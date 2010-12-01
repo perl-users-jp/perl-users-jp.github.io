@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>関数をラップする</title>
+    <link rel="stylesheet" href="http://perl-users.jp/articles/advent-calendar/adventcal.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+    <script type="text/javascript" src="http://perl-users.jp/articles/advent-calendar/adventcal.js"></script>
+
+</head>
+<body>
+<h1>関数をラップする</h1>
+<p>ウェブサービス等のAPI とやり取りするモジュールを使って開発している際、デバッグのためAPI からのレスポンスをのぞき見たいときがあると思います(自分はさっきありました)。</p>
+<p>そんなとき、関数をラップすると便利です。</p>
+<h2>型グロブ</h2>
+<pre class="lang-perl"><code>my $orig_request = LWP::UserAgent-&gt;can('request');
+*LWP::UserAgent::request = sub {
+    use Data::Dumper;
+    my $response = $orig_request-&gt;(@_);
+    print Dumper($response);
+    return $response;
+};
+</code></pre>
+<h2><a href="http://search.cpan.org/perldoc?Hook::LexWrap">Hook::LexWrap</a></h2>
+<pre class="lang-perl"><code>use Hook::LexWrap;
+wrap 'LWP::UserAgent::request',
+    post =&gt; sub {
+        use Data::Dumper;
+        my $response = $_[-1];
+        print Dumper($response);
+};
+</code></pre>
+<p>各ラッパー関数にはラップ元の関数と同じ引数リストが渡されます。加えて<code>$_[-1]</code>に関数の戻り値が設定されます。</p>
+<p><code>$_[-1]</code>を変更することで関数の最終的な戻り値を変更できます。</p>
+<p>つぎは<a href="http://tako3.com/http://buffr.org/">koyachi</a>さんお願いします。</p>
+<p><a href="./">Back</a></p>
+</body>
+</html>

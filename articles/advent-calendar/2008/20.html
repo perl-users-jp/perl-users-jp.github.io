@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+	<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+		<head profile="http://purl.org/net/ns/metaprof">
+			<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+			<title>reduce だいすき</title>
+			<link rel="stylesheet" href="http://perl-users.jp/articles/advent-calendar/adventcal.css" type="text/css" media="screen" />
+			<link rel="stylesheet" href="http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen" />
+			<script type="text/javascript" src="http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+			<script type="text/javascript" src="http://perl-users.jp/articles/advent-calendar/adventcal.js"></script>
+		</head>
+	<body>
+		<h1>reduce だいすき</h1>
+
+		<h2>基本</h2>
+		<p>デミグラスソース使った料理が食べたい cho45 です。Perl といえば某MMOゲームと同時に起動できないプログラムとして有名ですが今回はそれとは関係ない話です。</p>
+		<p>
+			Ruby 厨の多くが inject 厨である気がします (てきとーです) が、
+			Perl で List::Util::reduce を使っているところをあんまり見たことがないのでいくつか便利な例を紹介します。
+		</p>
+		<p><code>reduce</code> は何かというとリストを1つの値に纏めるものです。例えばリストの要素の合計は</p>
+		<pre class="lang-perl"><code>use Perl6::Say;
+use List::Util qw/reduce/;
+
+my $list = [1, 2, 3, 4, 5];
+
+say reduce { say "$a,$b"; $a + $b } @$list;
+</code></pre>
+		<pre class="lang-html"><samp>1,2
+3,3
+6,4
+10,5
+15
+</samp></pre>
+		<p>前回のループの返り値が <var>$a</var> に入り、<var>$b</var> には残りの要素のうち1つが入ります。</p>
+
+		<p>
+			実は List::Util の提供する関数たちの殆どは <code>reduce</code> を使って実装されています。
+			例えば List::Util::sum という関数はまさに例に出したコードそのものですし、<code>min</code>, <code>max</code> も前回の値と比較をして現在の要素が小さいか多いきいか比較しているだけです。
+			まるまるコピペしてみると
+		</p>
+		<pre class="lang-perl"><code># List::Util.pm
+
+sub sum (@) { reduce { $a + $b } @_ }
+
+sub min (@) { reduce { $a &lt; $b ? $a : $b } @_ }
+
+sub max (@) { reduce { $a &gt; $b ? $a : $b } @_ }
+
+sub minstr (@) { reduce { $a lt $b ? $a : $b } @_ }
+
+sub maxstr (@) { reduce { $a gt $b ? $a : $b } @_ }
+</code></pre>
+		<p>シンプルですね。</p>
+
+		<h2>初期値指定</h2>
+		<p>でもって、<code>reduce</code> は初期要素、つまり <var>$a</var> の最初の値を指定できます。
+		(というか Perl の場合は引数の渡し方の関係上、リストの最初の値と初期値の区別がないのですが)</p>
+		<pre class="lang-perl"><code>use List::Util qw/reduce/;
+
+use Data::Dumper;
+sub p ($) { print Dumper shift }
+
+my $data = [
+        { name =&gt; "foo", value =&gt; 1 },
+        { name =&gt; "bar", value =&gt; 2 },
+        { name =&gt; "baz", value =&gt; 3 },
+];
+
+my $ret = reduce { +{ %$a, $b-&gt;{name} =&gt; $b } } {}, @$data;
+p $ret;
+
+#my $ret = reduce {
+#       $a-&gt;{$b-&gt;{name}} = $b;
+#       $a;
+#} {}, @$data; # これも同じ
+</code></pre>
+		<pre class="lang-perl"><samp>$VAR1 = {
+          'bar' =&gt; {
+                     'value' =&gt; 2,
+                     'name' =&gt; 'bar'
+                   },
+          'baz' =&gt; {
+                     'value' =&gt; 3,
+                     'name' =&gt; 'baz'
+                   },
+          'foo' =&gt; {
+                     'value' =&gt; 1,
+                     'name' =&gt; 'foo'
+                   }
+        };</samp></pre>
+			<p>
+				ハッシュの配列を <code>name</code> キーの値をキーにしたハッシュに変換するコードです。
+				<code>reduce</code> の第一引数にハッシュリファレンスを渡して、それを更新していく形で新しいハッシュを作ります。
+			</p>
+
+			<p><code>+{}</code> は度々話題になるハッシュリファレンスを明示するやつで、<code>{ %$hasha, %$hashb }</code> はハッシュを更新するイディオムです。</p>
+			<p>2番目の例も同じことをするコードですが、最後に <var>$a</var> を書かないといけないのがちょっとダサいところです。ただハッシュを作りなおさない分効率的かもしれません。</p>
+
+			<p>これを <code>reduce</code> を使わないで書こうとすると</p>
+			<pre class="lang-perl"><code>my $ret = {};
+for my $i (@$data) {
+        $ret-&gt;{$i-&gt;{name}} = $i;
+}
+p $ret;
+</code></pre>
+			<p>
+				みたいな感じになりますね。
+				<code>for</code> ループと <code>$ret</code> 変数の関係がパっと見よくわからなく、
+				「<code>$ret</code> に空のハッシュリファレンスぃれてぇー、<code>for</code> ルゥプで <code>$i</code> に配列要素ぃれながらぁー、……」
+				みたいな感じで若干まどろっこしいのが残念です。
+				<code>reduce</code> を使えば
+				「<code>$ret</code> には <code>reduce</code> の結果をいれる。そしてそれは……」となるのでカッコイイです。
+			</p>
+
+			<p>次は otsune さん。</p>
+
+	</body>
+</html>

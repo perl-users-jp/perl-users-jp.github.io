@@ -1,0 +1,109 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+    <head profile="http://purl.org/net/ns/metaprof">
+        <!-- Document Metadata -->
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta http-equiv="Content-Language" content="ja" />
+        <meta http-equiv="Content-Style-Type" content="text/css" />
+        <meta http-equiv="Content-Script-Type" content="text/javascript" />
+        <meta http-equiv="imagetoolbar" content="no" />
+
+        <!-- Atom news feed -->
+
+        <link rel="alternate" type="application/rss+xml" title="RSS feed" href="http://coderepos.org/share/log/websites/perl-users.jp?limit=100&amp;mode=stop_on_copy&amp;format=rss" />
+        <link rel="stylesheet" type="text/css" href="/css/perl-users.jp.css" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+        <link rel="icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+
+        <title>Perlマニュアルの歩き方 - モダンなPerl入門 - モダンなPerl入門</title>
+
+        <script src="http://www.google-analytics.com/urchin.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            _uacct = "UA-4463402-1";
+            urchinTracker();
+        </script>
+        <!-- script src="/js/codepress/codepress.js" type="text/javascript"></script -->
+    </head>
+    <body>
+        <div id="head-navigation"><a href="/">Perl-users.jp</a></div>
+<!-- content start -->
+<h1>Perlマニュアルの歩き方</h1>
+
+<p>Perl には標準で説明書がついているのですが、まずそこへたどりつくのがひとくろうです。
+本稿では、そこへたどりつき、快適な Perl life を送るための道標をあたえます。</p>
+
+<h2>perldoc</h2>
+
+<p>Perl には、説明書を読むためのツールとして <code>perldoc</code> というコマンドラインツールが標準添付されています。
+このツールを使いこなして、ようやく Perl Monger としての初めの一歩にたどりついたといえるでしょう。</p>
+
+<h3>perldoc の説明書をみる</h3>
+
+<p><code>perldoc</code> の説明書も Perl でみれます。</p>
+
+<pre><code>% perldoc perldoc
+</code></pre>
+
+<p>とうつだけで OK。</p>
+
+<h3>マニュアルの目次をみる</h3>
+
+<pre><code>% perldoc perl
+</code></pre>
+
+<p>とすると、Perl のマニュアルがみれます。
+これを全部よむ必要はありませんが、どういうものがのっているのかを頭にいれておくと、べんりですね。</p>
+
+<h3>perldoc -f func</h3>
+
+<p>標準関数について調べたいときは</p>
+
+<pre><code>% perldoc -f warn
+</code></pre>
+
+<p>のようにします。引数などがわからなくなったらすぐ調べましょう。</p>
+
+<h3>モジュールのドキュメントをみる</h3>
+
+<p>モジュールのドキュメントをみるには</p>
+
+<pre><code>% perldoc Web::Scraper
+</code></pre>
+
+<p>のようにします。</p>
+
+<h3>モジュールのソースをみる</h3>
+
+<p>モジュールのソースをみるのは</p>
+
+<pre><code>% perldoc -m Web::Scraper
+</code></pre>
+
+<p>とします。先人がかいた Perl のコードを読むことはとも勉強になりますので、どんどんよみましょう。</p>
+
+<h3>モジュールのインストール先をみる</h3>
+
+<p>モジュールがどこにインストールされているのかを知りたいときは</p>
+
+<pre><code>% perldoc -l Web::Scraper
+</code></pre>
+
+<p>とします。</p>
+
+<h2>外部アプリケーションからの <code>perldoc</code> の利用</h2>
+
+<h3>emacs + anything.el</h3>
+
+<p>(ここにanything.elの説明)</p>
+
+<p><code>anything-sources</code> に <code>anything-c-source-man-pages</code> を追加すると <code>perldoc</code> も anything の対象になります。</p>
+
+<p>あとは anything を起動し、Moose などとタイプすると <code>Moose::*</code>
+といったドキュメントが一覧されますのでそこから開きたいドキュメントを選択することで簡単に <code>perldoc</code> を引くことができます。</p>
+
+<!-- content end -->
+        <hr />
+        <p><a href="/modern_introduction_perl/">目次へ</a></p>
+        <p>Last modified: $Date: 2008-08-06 20:05:58 +0900 (水, 06  8月 2008) $</p>
+    </body>
+</html>

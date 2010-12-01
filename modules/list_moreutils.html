@@ -1,0 +1,105 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+    <head profile="http://purl.org/net/ns/metaprof">
+        <!-- Document Metadata -->
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta http-equiv="Content-Language" content="ja" />
+        <meta http-equiv="Content-Style-Type" content="text/css" />
+        <meta http-equiv="Content-Script-Type" content="text/javascript" />
+        <meta http-equiv="imagetoolbar" content="no" />
+
+        <!-- Atom news feed -->
+
+        <link rel="alternate" type="application/rss+xml" title="RSS feed" href="http://coderepos.org/share/log/websites/perl-users.jp?limit=100&amp;mode=stop_on_copy&amp;format=rss" />
+        <link rel="stylesheet" type="text/css" href="/css/perl-users.jp.css" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+        <link rel="icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+
+        <title>List::MoreUtils - モダンなPerl入門 - モダンなPerl入門</title>
+
+        <script src="http://www.google-analytics.com/urchin.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            _uacct = "UA-4463402-1";
+            urchinTracker();
+        </script>
+        <!-- script src="/js/codepress/codepress.js" type="text/javascript"></script -->
+    </head>
+    <body>
+        <div id="head-navigation"><a href="/">Perl-users.jp</a></div>
+<!-- content start -->
+<h1>リスト処理</h1>
+
+<p>List::Utilでできないリスト操作はList::MoreUtils を覗くと見つかるかも</p>
+
+<h3>つかいかた</h3>
+
+<pre><code>use strict;
+use warnings;
+use List::MoreUtils qw(any all);
+</code></pre>
+
+<p>List::MoreUtilもメソッドをExportしないから注意が必要です。
+使いたいものだけExportするか</p>
+
+<pre><code>use List::MoreUtils qw(:all);
+</code></pre>
+
+<p>で全部Exportして使えます。</p>
+
+<h3>any</h3>
+
+<pre><code>$v = any {$_ &lt; 10} 1..10; # 真
+</code></pre>
+
+<p>リストを評価して要素の一つでも条件を満たすと真、満たさなかったら偽を返します。
+リストが空ならundefを返します。</p>
+
+<h3>all</h3>
+
+<pre><code>$v = all {$_ &lt; 10} 1..10; # 偽
+</code></pre>
+
+<p>リストを評価して全ての要素が条件を満たすと真、満たさなかったら偽を返します。
+リストが空ならundefを返します。</p>
+
+<h3>none</h3>
+
+<pre><code>$v = none {$_ &lt; 10} 1..10; # 偽
+</code></pre>
+
+<p>リストを評価して全て要素が条件を満たさなかったら真、一つでも満たしたら偽を返します。
+リストが空ならundefを返します。
+anyの逆です。</p>
+
+<h3>notall</h3>
+
+<pre><code>$v = notall {$_ &lt; 10} 1..10; # 真
+</code></pre>
+
+<p>リストを評価して一つでも要素が条件を満たさなかったら真、全て満たしたら偽を返します。
+リストが空ならundefを返します。
+allの逆です。</p>
+
+<h3>true</h3>
+
+<pre><code>$v = true {$_ &lt; 10} 1..10; #9
+</code></pre>
+
+<p>リストを評価して条件を満たした要素数を返します。</p>
+
+<h3>false</h3>
+
+<pre><code>$v = true {$_ &lt; 10} 1..10; #1
+</code></pre>
+
+<p>リストを評価して条件を満たさなかった要素数を返します。</p>
+
+<p>他にもたくさんあります。</p>
+
+<!-- content end -->
+        <hr />
+        <p><a href="/modern_introduction_perl/">目次へ</a></p>
+        <p>Last modified: $Date: 2008-05-22T09:21:23.154313Z $</p>
+    </body>
+</html>
+

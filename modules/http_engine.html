@@ -1,0 +1,134 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+    <head profile="http://purl.org/net/ns/metaprof">
+        <!-- Document Metadata -->
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta http-equiv="Content-Language" content="ja" />
+        <meta http-equiv="Content-Style-Type" content="text/css" />
+        <meta http-equiv="Content-Script-Type" content="text/javascript" />
+        <meta http-equiv="imagetoolbar" content="no" />
+
+        <!-- Atom news feed -->
+
+        <link rel="alternate" type="application/rss+xml" title="RSS feed" href="http://coderepos.org/share/log/websites/perl-users.jp?limit=100&amp;mode=stop_on_copy&amp;format=rss" />
+        <link rel="stylesheet" type="text/css" href="/css/perl-users.jp.css" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+        <link rel="icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+
+        <title>HTTP::Engine - モダンなPerl入門 - モダンなPerl入門</title>
+
+        <script src="http://www.google-analytics.com/urchin.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            _uacct = "UA-4463402-1";
+            urchinTracker();
+        </script>
+        <!-- script src="/js/codepress/codepress.js" type="text/javascript"></script -->
+    </head>
+    <body>
+        <div id="head-navigation"><a href="/">Perl-users.jp</a></div>
+<!-- content start -->
+<h1>HTTP::Engine</h1>
+
+<h3>HTTP::Engine とは?</h3>
+
+<p>Web アプリケーションの実行環境がいろいろある今日このごろです。Apache+mod_perl,
+lighty+fastcgi, CGI, HTTP::Server::Simple, などなど。でも、Web アプリケーションを
+各種実行環境の違いを考慮せずに実装したい。そんな思いがこりかたまってできたのが
+HTTP::Engine です。一度ウェブアプリケーションを実装してしまえば、各種環境で簡単に
+実行できるようになるのです。すばらしい。</p>
+
+<h3>インストール</h3>
+
+<p>いつものように CPAN からインストールしてください。
+sudo -H cpan HTTP::Engine
+とかするだけで、OK ですね。</p>
+
+<h3>つかってみる</h3>
+
+<h4>HTTP::Server::Simple + HTTP::Engine でWebアプリケーションをかく</h4>
+
+<pre><code>use HTTP::Engine;
+HTTP::Engine-&gt;new(
+    interface =&gt; {
+        module =&gt; 'ServerSimple',
+        args   =&gt; {
+            host =&gt; 'localhost',
+            port =&gt;  1978,
+        },
+        request_handler =&gt; sub {
+            my $req = shift;
+            return HTTP::Engine::Response-&gt;new(
+                 status =&gt; 200,
+                 body   =&gt; 'Hello, World',
+            );
+        },
+    },
+)-&gt;run;
+</code></pre>
+
+<p>サーバの設定と、リクエストハンドラの coderef を渡すだけです。簡単ですね。</p>
+
+<p>リクエストハンドラは、リクエストオブジェクトをわたされてレスポンスオブジェクトを
+返すだけです。</p>
+
+<h4>FastCGI + HTTP::Engine でWebアプリケーションをかく</h4>
+
+<pre><code>use HTTP::Engine;
+HTTP::Engine-&gt;new(
+    interface =&gt; {
+        module =&gt; 'FCGI',
+        args   =&gt; {
+        },
+        request_handler =&gt; sub {
+            my $req = shift;
+            return HTTP::Engine::Response-&gt;new(
+                 status =&gt; 200,
+                 body   =&gt; 'Hello, World',
+            );
+        },
+    },
+)-&gt;run;
+</code></pre>
+
+<p>こんな風にしましょう。はい。なかみはほとんどかわってません。module の指定をかえ
+たのと、args のところの指定をかえただけです。リクエストハンドラのところは同じで
+いいんです。これが HTTP::Engine のいいところです。</p>
+
+<pre><code>server.modules = (
+    "mod_access",
+    "mod_fastcgi",
+    "mod_accesslog"
+)
+
+server.port = 8572
+server.document-root = var.CWD
+
+server.errorlog    = var.CWD + "/examples/lighty/error.log"
+accesslog.filename = var.CWD + "/examples/lighty/access.log"
+
+fastcgi.server = (
+    "" =&gt; (
+        (
+            "bin-path"        =&gt; var.CWD + "/examples/lighty/test_fastcgi.pl",
+            "socket"          =&gt; var.CWD + "/examples/lighty/test.socket",
+            "check-local"     =&gt; "disable",
+            "min-procs"       =&gt; 1,
+            "max-procs"       =&gt; 1,
+            "idle-timeout"    =&gt; 20,
+            "bin-environment" =&gt; (
+                "PERL5LIB" =&gt; var.CWD + "/lib/"
+            )
+        )
+    )
+)
+</code></pre>
+
+<p>lighty の設定は上記のようにするかんじですね。かんたんです。</p>
+
+<!-- content end -->
+        <hr />
+        <p><a href="/modern_introduction_perl/">目次へ</a></p>
+        <p>Last modified: $Date: 2008-05-22T09:21:23.154313Z $</p>
+    </body>
+</html>
+

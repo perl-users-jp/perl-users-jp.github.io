@@ -1,0 +1,221 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+    <head profile="http://purl.org/net/ns/metaprof">
+        <!-- Document Metadata -->
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta http-equiv="Content-Language" content="ja" />
+        <meta http-equiv="Content-Style-Type" content="text/css" />
+        <meta http-equiv="Content-Script-Type" content="text/javascript" />
+        <meta http-equiv="imagetoolbar" content="no" />
+
+        <!-- Atom news feed -->
+
+        <link rel="alternate" type="application/rss+xml" title="RSS feed" href="http://coderepos.org/share/log/websites/perl-users.jp?limit=100&amp;mode=stop_on_copy&amp;format=rss" />
+        <link rel="stylesheet" type="text/css" href="/css/perl-users.jp.css" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+        <link rel="icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+
+        <title>XS code template - 動的にXSUBを生成する - エキスパートPerl</title>
+
+        <script src="http://www.google-analytics.com/urchin.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            _uacct = "UA-4463402-1";
+            urchinTracker();
+        </script>
+        <!-- script src="/js/codepress/codepress.js" type="text/javascript"></script -->
+    </head>
+    <body>
+        <div id="head-navigation"><a href="/">Perl-users.jp</a></div>
+<!-- content start -->
+<h1>XS code template - 動的にXSUBを生成する</h1>
+
+<p>XSコードはふつうPerlコードよりも多機能で高速ですが，書くのが難しいため敷居が高いことも事実です。また，いちいちコンパイルしなければならないのも煩わしい点です。
+ところで，Perlにはクロージャという仕組みがあり，動的にコードを生成することができます。したがって，XSでクロージャに等しいことを実現できれば，XSコードの煩わしさを避けつつXSの利益を享受することができます。</p>
+
+<p>なお，この文書はXSによるコード例を解説していますが，XSそのものについては解説しません。
+XSについてはperlxstutやperlxs，perlapiを参照してください。</p>
+
+<h2>クロージャの分析</h2>
+
+<p>まず，Perlのクロージャを分析します。Perlのクロージャは以下のようなものです。</p>
+
+<pre><code>sub make_accessor{
+    my($name) = @_;
+
+    return sub{ $_[0]-&gt;{$name} };
+}
+
+my $foo_accessor = make_accessor('foo');
+my $bar_accessor = make_accessor('bar');
+
+my $o = { foo =&gt; 42, bar =&gt; 3.14 };
+
+say $foo_accessor-&gt;($o); # =&gt; 42
+say $bar_accessor-&gt;($o); # =&gt; 3.14
+</code></pre>
+
+<p>このmake_accessor()が生成するものがクロージャです。このクロージャを分析すると，二つの要素，すなわち一連の「手続き」(最初の引数にアクセスし，ハッシュの要素を参照する)と，その手続きに結び付けられる「値」($name)からなっていることが分かります。「手続き」部分は静的に決定できますし，「値」は単にPerlの値(SV)ですから，このクロージャの二つの要素をXSで書くことに制約はありません。あとは「値」をうまく「手続き」と結びつけることができれば，XSによるクロージャを実現できることになります。</p>
+
+<p>ひとまず用語を整理しましょう。
+まず，クロージャを生成するコード(上記の例ではmake_accessor())をコードの<strong>ジェネレータ</strong>と呼ぶことにします。また，「手続き」はコードの<strong>テンプレート</strong>，「値」は<strong>パラメータ</strong>とそれぞれ呼ぶことにしましょう。また，Perlのクロージャと区別するため，以後はXSで作成するクロージャを<strong>テンプレートインスタンス</strong>と呼ぶことにします。</p>
+
+<h2>実装の方法</h2>
+
+<p>テンプレートとパラメータを結びつけるということは，コードがデータを持つことができなければいけません。</p>
+
+<p>一つ目の考え方は，FieldHashを使うというものです。FieldHashとは，オブジェクトをキー，そのオブジェクトのプロパティを値とするハッシュで，そのオブジェクトが開放されると自動的にFieldHashのそのオブジェクト用のエントリが削除される特殊なハッシュです。この機能はXSからも使用できるため，XSコードが自分自身のcvのアドレスをキーとすることで，コードがデータを持つことができます。したがって，FieldHashを用いてテンプレートを実現することができます。しかし，FieldHashのアクセスに掛かるオーバーヘッドは非常に大きいので，速度のためにXSを用いる意義が減少してしまいます。</p>
+
+<p>二つ目の考え方は，XSUBのフリースロットであるXSUBANYを使うものです。これはClass::XSAccessorが採用している方法ですが，これは正しくプロパティを開放するのが難しいため，最適とはいえません。</p>
+
+<p>三つ目の考え方は，全てのSV（XSUBもSVの一種です）が持つことのできるフリースロットであるVariable Magic Slotを使うというものです。これはテンプレートインスタンスの生成もプロパティへのアクセスも高速であり，テンプレートインスタンスの消滅と共に全てのプロパティがきちんと開放され，しかも比較的実装が容易です。ここでは，このVariable Magicによるテンプレートの実装を解説します。</p>
+
+<h2>実装例</h2>
+
+<p>実装例として，アクセサメソッドを生成するmix-inクラスを取り上げます。</p>
+
+<p>使用法は以下の通り：</p>
+
+<pre><code># Course.pm
+package Course;
+use parent qw(Class::Accessor::XS);
+__PACKAGE__-&gt;mk_accessors(qw(id title teachers description)));
+
+sub new{ ... }
+
+# script.pl
+use Course;
+my $c = Course-&gt;new();
+$c-&gt;id(42);
+$c-&gt;title('Psychology I');
+</code></pre>
+
+<p>実装は次の通り：</p>
+
+<pre><code>/* XS.xs */
+#define PERL_NO_GET_CONTEXT
+#include "EXTERN.h"
+#include "perl.h"
+#include "XSUB.h"
+
+#include "ppport.h"
+
+/* Magic識別子: &amp;accessor_identityはプログラム中で一意の値を持つ */
+MGVTBL accessor_identity;
+
+/* MGVTBLを識別子としてSVからmgを検索する */
+/* see also Perl_mg_find() in mg.c */
+static MAGIC*
+my_mg_find_by_vtbl(pTHX_ SV* const sv, const MGVTBL* const vtbl){
+    MAGIC* mg;
+    for(mg = SvMAGIC(sv); mg; mg = mg-&gt;mg_moremagic){
+        if(mg-&gt;mg_virtual == vtbl){
+            break;
+        }
+    }
+    return mg;
+}
+
+
+/* code template */
+XS(XS_Class_Accessor_XS_accessor); /* to pass -Wmissing-prototypes */
+XS(XS_Class_Accessor_XS_accessor){
+    dVAR; dXSARGS;
+
+    SV* self;
+    /* XSUBに結び付けられたMAGICオブジェクトを検索する */
+    MAGIC* const mg = my_mg_find_by_vtbl(aTHX_ (SV*)cv, &amp;accessor_identity);
+    assert(mg);
+
+    if(items &lt; 1 || items &gt; 2){
+        Perl_croak(aTHX_ "Usage: $obj-&gt;%"SVf, mg-&gt;mg_obj);
+    }
+
+    self = ST(0); /* $_[0] */
+
+    if(!(SvRV(self) &amp;&amp; SvTYPE(SvRV(self)) == SVt_PVHV)){
+        Perl_croak(aTHX_ "Not a HASH reference");
+    }
+
+    SP -= items;
+    {
+        HV* const obj    = (HV*)SvRV(self);
+        SV* const key    = mg-&gt;mg_obj; /* テンプレートのパラメータ */
+        U32 const hash   = (U32)XSANY.any_i32;
+        SV* retval;
+
+        if(items == 1){ /* read */
+            HE* const slot = hv_fetch_ent(obj, key, FALSE, hash);
+            retval = slot ? hv_iterval(obj, slot) : &amp;PL_sv_undef;
+        }
+        else{ /* write */
+            retval = newSVsv(ST(1));
+            hv_store_ent(obj, key, retval, hash);
+        }
+
+        ST(0) = retval;
+        XSRETURN(1);
+    }
+}
+
+MODULE = Class::Accessor::XS    PACKAGE = Class::Accessor::XS
+
+PROTOTYPES: DISABLE
+
+
+void
+mk_accessors(SV* klass, ...)
+PREINIT:
+    I32 i;
+CODE:
+    /* code generator */
+    for(i = 1; i &lt; items; i++){
+        SV* const name       = ST(i);
+        SV* const fq_name    = newSVpvf("%"SVf"::%"SVf, klass, name);
+        STRLEN pvlen;
+        const char* const pv = SvPV_const(fq_name, pvlen);
+
+        /* テンプレートインスタンスを作成する */
+        /* なお，newXS()の第一引数がNULLだと匿名関数になる */
+        CV* const xsub       = newXS(pv, XS_Class_Accessor_XS_accessor, __FILE__);
+        U32 hash;
+
+        /* テンプレートインスタンスを初期化する */
+
+        /* ハッシュ値を計算しておく */
+        PERL_HASH(hash, pv, pvlen);
+        CvXSUBANY(xsub).any_i32 = (I32)hash;
+
+        /* テンプレートとパラメータを結びつける */
+        sv_magicext((SV*)xsub, fq_name, PERL_MAGIC_ext, &amp;accessor_identity, NULL, 0);
+        SvREFCNT_dec(fq_name); /* refcnt++ in sv_magixext() */
+    }
+</code></pre>
+
+<p>この中では，CセクションにあるXS_Class_Accessor_XS_accessor()がテンプレートで，XSセクションにあるmk_accessors()がジェネレータです。
+newXS()が返すXSUBにsv_magicext()でMAGICオブジェクトをセットしており，テンプレート内のmy_mg_find_by_vtbl()でXSUBからMAGICオブジェクトを取り出します。なお，このmy_mg_find_by_vtbl()は相当する機能をPerlが提供していないため，独自に定義しています。</p>
+
+<p>この例では更にXSUBのフリースロットであるXSUBANYを利用してハッシュ値をあらかじめ計算してあります。
+また，XS_Class_Accessor_XS_accessor()はXSUBであるため，xsubppが自動的に生成するはずのコードもすべて自分で書いています。これは，たとえばaccessor_template()などとしてXSセクションに書いてもいいのですが，その場合にはモジュールの外部から呼ばれないように，XS.pm中でサブルーチン&amp;Class::Accessor::XS::accessor_template()を削除する必要があります。</p>
+
+<p>このClass::Accessor::XSの実行可能な完全なバージョンはCodeReposにあります。</p>
+
+<ul>
+<li>svn export http://svn.coderepos.org/share/lang/perl/Class-Accessor-XS/trunk Class-Accessor-XS</li>
+</ul>
+
+<h2>SEE ALSO</h2>
+
+<ul>
+<li><a href="http://search.cpan.org/dist/Data-Util/">Data::Util</a>のcurry()とmodify_subroutine()はここで説明した方法でコードテンプレートを実現しています</li>
+<li><a href="http://search.cpan.org/dist/Class-XSAccessor/">Class::XSAccessor</a>は別の方法でコードテンプレートを実現しています</li>
+</ul>
+
+
+<!-- content end -->
+        <hr />
+        <p><a href="/modern_introduction_perl/">目次へ</a></p>
+        <p>Last modified: $Date: 2009-02-02 19:48:29 +0900 (月, 02  2月 2009) $</p>
+    </body>
+</html>
+
+

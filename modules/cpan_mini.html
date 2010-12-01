@@ -1,0 +1,92 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+    <head profile="http://purl.org/net/ns/metaprof">
+        <!-- Document Metadata -->
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta http-equiv="Content-Language" content="ja" />
+        <meta http-equiv="Content-Style-Type" content="text/css" />
+        <meta http-equiv="Content-Script-Type" content="text/javascript" />
+        <meta http-equiv="imagetoolbar" content="no" />
+
+        <!-- Atom news feed -->
+
+        <link rel="alternate" type="application/rss+xml" title="RSS feed" href="http://coderepos.org/share/log/websites/perl-users.jp?limit=100&amp;mode=stop_on_copy&amp;format=rss" />
+        <link rel="stylesheet" type="text/css" href="/css/perl-users.jp.css" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+        <link rel="icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+
+        <title>CPAN::Mini - モダンなPerl入門 - モダンなPerl入門</title>
+
+        <script src="http://www.google-analytics.com/urchin.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            _uacct = "UA-4463402-1";
+            urchinTracker();
+        </script>
+        <!-- script src="/js/codepress/codepress.js" type="text/javascript"></script -->
+    </head>
+    <body>
+        <div id="head-navigation"><a href="/">Perl-users.jp</a></div>
+<!-- content start -->
+<h1>CPAN::Mini</h1>
+
+<p>CPANモジュールの最新版をローカルにミラーします。　
+モジュールがローカルにあることによってインストールの高速化、オフラインハックなどのメリットがあります。</p>
+
+<h3>インストール</h3>
+
+<pre><code>cpan CPAN::Mini
+</code></pre>
+
+<p>すると同時にminicpanというコマンドがインストールされます。</p>
+
+<h3>使い方</h3>
+
+<pre><code>minicpan -r http://ftp.funet.fi/pub/languages/perl/CPAN/ -l /var/minicpan
+</code></pre>
+
+<p>-r にミラー元のURL、-lにミラー先のディレクトリを指定します。
+cronに登録しておけば定期的にローカルミラーを最新に維持することができます。</p>
+
+<pre><code>0 4 * * * minicpan -qq -r http://ftp.funet.fi/pub/languages/perl/CPAN/ -l /var/minicpan
+</code></pre>
+
+<p>後はCPANシェルから</p>
+
+<pre><code>cpan&gt; o conf urllist unshift file:///var/minicpan
+cpan&gt; o conf commit
+</code></pre>
+
+<p>とすればローカルミラーが優先されるようになります。</p>
+
+<h3>Tips</h3>
+
+<p>ローカルミラーの更新はcronで指定したタイミングでしか行われなくなるので、CPANシェルを上げる度にインデックスの更新の必要がなくなります。</p>
+
+<pre><code>cpan&gt; o conf scan_cache never
+cpan&gt; o conf commit
+</code></pre>
+
+<p>して、</p>
+
+<pre><code>minicpan -qq -r http://ftp.funet.fi/pub/languages/perl/CPAN/ -l /var/minicpan
+perl -MCPAN -e 'CPAN::Index-&gt;force_reload; my $c = CPAN::CacheMgr-&gt;new; $c-&gt;{SCAN} = q/atstart/; $c-&gt;scan_cache'
+</code></pre>
+
+<p>をcronで呼ぶようにすれば幸せになります。</p>
+
+<p>参考</p>
+
+<ul>
+<li><a href="http://search.cpan.org/dist/CPAN-Mini/">Ricardo SIGNES / CPAN-Mini - search.cpan.org</a></li>
+<li><a href="http://blog.bulknews.net/mt/archives/002069.html">CPAN::Mini で CPAN のミラーをローカルに: blog.bulknews.net</a></li>
+<li><a href="http://e8y.net/mag/006-cpan-mini/">use CPAN::Mini; - 今日のCPANモジュール</a></li>
+<li><a href="http://subtech.g.hatena.ne.jp/miyagawa/20061125/1164410495">CPAN インデクス更新とキャッシュクリア - Bulknews::Subtech - subtec</a></li>
+</ul>
+
+<!-- content end -->
+        <hr />
+        <p><a href="/modern_introduction_perl/">目次へ</a></p>
+        <p>Last modified: $Date: 2008-05-22T09:21:23.154313Z $</p>
+    </body>
+</html>
+

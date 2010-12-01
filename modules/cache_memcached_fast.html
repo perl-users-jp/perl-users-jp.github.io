@@ -1,0 +1,178 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+    <head profile="http://purl.org/net/ns/metaprof">
+        <!-- Document Metadata -->
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta http-equiv="Content-Language" content="ja" />
+        <meta http-equiv="Content-Style-Type" content="text/css" />
+        <meta http-equiv="Content-Script-Type" content="text/javascript" />
+        <meta http-equiv="imagetoolbar" content="no" />
+
+        <!-- Atom news feed -->
+
+        <link rel="alternate" type="application/rss+xml" title="RSS feed" href="http://coderepos.org/share/log/websites/perl-users.jp?limit=100&amp;mode=stop_on_copy&amp;format=rss" />
+        <link rel="stylesheet" type="text/css" href="/css/perl-users.jp.css" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+        <link rel="icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+
+        <title>Cache::Memcached::Fast - モダンなPerl入門 - モダンなPerl入門</title>
+
+        <script src="http://www.google-analytics.com/urchin.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            _uacct = "UA-4463402-1";
+            urchinTracker();
+        </script>
+        <!-- script src="/js/codepress/codepress.js" type="text/javascript"></script -->
+    </head>
+    <body>
+        <div id="head-navigation"><a href="/">Perl-users.jp</a></div>
+<!-- content start -->
+<h1>Cache::Memcached::Fast</h1>
+
+<p>memcached へのアクセスは Cache::Memcached::Fast がオススメです。高速かつ安定して動作します。</p>
+
+<h3>つかいかた</h3>
+
+<pre><code>use Cache::Memcached::Fast;
+
+my $memd = new Cache::Memcached::Fast({
+    servers =&gt; [ { address =&gt; 'localhost:11211', weight =&gt; 2.5 },
+                '192.168.254.2:11211',
+                { address =&gt; '/path/to/unix.sock', noreply =&gt; 1 } ],
+    namespace =&gt; 'my:',
+    connect_timeout =&gt; 0.2,
+    io_timeout =&gt; 0.5,
+    close_on_error =&gt; 1,
+    compress_threshold =&gt; 100_000,
+    compress_ratio =&gt; 0.9,
+    compress_methods =&gt; [ \&amp;IO::Compress::Gzip::gzip,
+                            \&amp;IO::Uncompress::Gunzip::gunzip ],
+    max_failures =&gt; 3,
+    failure_timeout =&gt; 2,
+    ketama_points =&gt; 150,
+    nowait =&gt; 1,
+    hash_namespace =&gt; 1,
+    serialize_methods =&gt; [ \&amp;Storable::freeze, \&amp;Storable::thaw ],
+    utf8 =&gt; ($^V ge v5.8.1 ? 1 : 0),
+    max_size =&gt; 512 * 1024,
+});
+
+# サーバーのバージョンを得る
+my $versions = $memd-&gt;server_versions;
+while (my ($server, $version) = each %$versions) {
+    #...
+}
+
+# スカラー値をサーバーに送る
+$memd-&gt;add('skey', 'text');
+$memd-&gt;add_multi(['skey2', 'text2'], ['skey3', 'text3', 10]);
+
+$memd-&gt;replace('skey', 'val');
+$memd-&gt;replace_multi(['skey2', 'val2'], ['skey3', 'val3']);
+
+$memd-&gt;set('nkey', 5);
+$memd-&gt;set_multi(['nkey2', 10], ['skey3', 'text', 5]);
+
+# 複雑なデータもサーバーに送る
+my %hash = (a =&gt; 1, b =&gt; 2);
+my @list = (1, 2);
+$memd-&gt;set('hash', \%hash);
+$memd-&gt;set_multi(['scalar', 1], ['list', \@list]);
+
+# 文字列をキャッシュにくっつける
+$memd-&gt;prepend('skey', 'This is a ');
+$memd-&gt;prepend_multi(['skey2', 'This is a '], ['skey3', 'prefix ']);
+$memd-&gt;append('skey', 'ue.');
+Wait for all commands that were executed in nowait mode.
+
+$memd-&gt;append_multi(['skey2', 'ue.'], ['skey3', ' suffix']);
+
+# キャッシュ値を演算する
+$memd-&gt;incr('nkey', 10);
+print "OK\n" if $memd-&gt;decr('nkey', 3) == 12;
+
+my @counters = qw(c1 c2);
+$memd-&gt;incr_multi(['c3', 2], @counters, ['c4', 10]);
+
+# データをとってくる
+my $val = $memd-&gt;get('skey');
+print "OK\n" if $val eq 'This is a value.';
+my $href = $memd-&gt;get_multi('hash', 'nkey');
+print "OK\n" if $href-&gt;{hash}-&gt;{b} == 2 and $href-&gt;{nkey} == 12;
+
+# アトミックな操作もできます
+my $cas_val = $memd-&gt;gets('nkey');
+$$cas_val[1] = 0 if $$cas_val[1] == 12;
+if ($memd-&gt;cas('nkey', @$cas_val)) {
+    print "OK, value updated\n";
+} else {
+    print "Update failed, probably another client"
+        . " has updated the value\n";
+}
+
+# データを削除します
+$memd-&gt;delete('skey');
+
+my @keys = qw(k1 k2 k3);
+$memd-&gt;delete_multi(@keys, ['k5', 20]);
+
+# nowait モードのときに、すべてのコマンドが送られるのを待ちます
+$memd-&gt;nowait_push;
+
+# キャッシュを消します
+$memd-&gt;flush_all;
+</code></pre>
+
+<h3>注意しておきたいこと</h3>
+
+<ul>
+<li>*_multi 系のメソッドは、オールオアナッシングではありません。どれかがストアに成功して、どれかが失敗するということがありえます</li>
+<li>nowait オプションは、使うと高速になりますが、memcached 1.2.5 以前のサーバーに使うと刺さるかもしれません</li>
+<li>cas, add, append, prepend, gets は、それぞれ memcached 1.2.4 以後のみでしか使えません</li>
+</ul>
+
+<p>いくつかの機能は、memcached の比較的新しいバージョンでしか使えません。</p>
+
+<h3>Cache::Memcached との互換性について</h3>
+
+<p>Cache::Memcached::Fast は、Cache::Memcached と互換性を保つように設計されています。</p>
+
+<p>なお、下記の(わりと重要でないと思われる)ものは互換性がありませんので確認してください。</p>
+
+<ul>
+<li>コンストラクタの引数
+<ul>
+<li>no_rehash</li>
+<li>readonly</li>
+<li>debug</li>
+</ul></li>
+<li>メソッド
+<ul>
+<li>set_servers</li>
+<li>set_debug</li>
+<li>set_readonly</li>
+<li>set_norehash</li>
+<li>set_compress_threshold</li>
+<li>stats</li>
+<li>disconnect_all</li>
+</ul></li>
+</ul>
+
+<p>ハッシュの計算も互換性があります(servers の weight をすべて整数にし、その総和を 32768 より小さくすること)。</p>
+
+<h3>Cache::Memcached から乗り換えるに値する理由</h3>
+
+<ul>
+<li>とにかく速い(<a href="http://blog.nomadscafe.jp/archives/000734.html">一説には300%高速化されるケースもあるとのこと</a>)。</li>
+<li>*_multi 系のメソッドによって高速に動作可能</li>
+<li>cas 系のあたらしめのコマンドにも対応している</li>
+<li>nowait オプションがある</li>
+<li>細かく設定可能</li>
+</ul>
+
+<!-- content end -->
+        <hr />
+        <p><a href="/modern_introduction_perl/">目次へ</a></p>
+        <p>Last modified: $Date: 2008-05-22T09:21:23.154313Z $</p>
+    </body>
+</html>

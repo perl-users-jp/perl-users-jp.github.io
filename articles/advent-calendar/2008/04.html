@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>無名スカラー変数のリファレンス</title>
+    <link rel="stylesheet" href="http://perl-users.jp/articles/advent-calendar/adventcal.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+    <script type="text/javascript" src="http://perl-users.jp/articles/advent-calendar/adventcal.js"></script>
+</head>
+<body>
+<h1>無名スカラー変数のリファレンス</h1>
+<pre class="lang-perl"><code>    my $array_ref = [qw/a b c/];
+    my $hash_ref = +{1 =&gt; 'a', 2 =&gt; 'b', 3 =&gt; 'c'};
+    my $code_ref = sub {'a'};</code></pre>
+
+<p>
+Perlでは、無名配列のリファレンス 無名ハッシュのリファレンス、無名サブルーチンのリファレンスはこのように書けますが、無名スカラーのリファレンスを書く特別な構文はないので、以下のように書きます。
+</p>
+
+<pre class="lang-perl"><code>    my $scalar_ref = \do {'a'};</code></pre>
+
+<p>
+これはDamian Conway先生オススメのインサイドアウトオブジェクトのコンストラクタで見られる書き方です。
+</p>
+
+<pre class="lang-perl"><code>    {
+        package Person;
+        my %props = ();
+        sub new {
+            my $class = shift;
+            $prps{name} = 'John';
+            bless \do{''}, $class;
+        }
+        sub name {
+            my ( $self, $arg ) = @_;
+            $props{name} = $arg if $arg;
+            return $props{name};
+        }
+    }
+    
+    my $person = Person-&gt;new;
+    # $person-&gt;{name} = 'Tom'; #エラー
+    $person-&gt;name('Tom');
+    warn $person-&gt;name; # Tom</code></pre>
+
+<p>
+こうすることによってスカラーをバックエンドとするオブジェクトを作ることができ、オブジェクトのカプセル化をすることができます。
+</p>
+
+<p>さらにid:tokuhiromさんの指摘で </p>
+
+<pre class="lang-perl"><code>    my $scalar_ref = \'a';</code></pre>
+
+<p>でもよいことを知りました。</p>
+<p>ただしこの場合はimmutableされて変更ができなくなるので先ほどの例では「<samp>Modification of a read-only value</samp>」とエラーになります。</p>
+
+<pre class="lang-perl"><code>Template-&gt;new-&gt;process(\'&#91;% foo %&#93;', {foo =&gt; 3})</code></pre>
+
+<p>とかでも使うそうです。</p>
+
+<p>typseterさんに指摘されて思い出しましたが、そういえばDBICでも使いますね。</p>
+
+<pre class="lang-perl"><code>    select =&gt; [
+        \"date_trunc ('day', created_on) as created_day",
+        { count =&gt; 'id' }
+    ]</code></pre>
+
+<p>または音速のXS使いid:gfxさんのData::Utilを使うと</p>
+
+<pre class="lang-perl"><code>    use Data::Util qw(anon_scalar);
+    my $scalar_ref = anon_scalar('a');</code></pre>
+
+<p>と書くことも出来ます</p>
+
+<p>次はid:hirose31さん</p>
+</body>
+</html>

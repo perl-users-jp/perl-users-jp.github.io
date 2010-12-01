@@ -1,0 +1,97 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+    <head profile="http://purl.org/net/ns/metaprof">
+        <!-- Document Metadata -->
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta http-equiv="Content-Language" content="ja" />
+        <meta http-equiv="Content-Style-Type" content="text/css" />
+        <meta http-equiv="Content-Script-Type" content="text/javascript" />
+        <meta http-equiv="imagetoolbar" content="no" />
+
+        <!-- Atom news feed -->
+
+        <link rel="alternate" type="application/rss+xml" title="RSS feed" href="http://coderepos.org/share/log/websites/perl-users.jp?limit=100&amp;mode=stop_on_copy&amp;format=rss" />
+        <link rel="stylesheet" type="text/css" href="/css/perl-users.jp.css" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+        <link rel="icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+
+        <title>Perl でモバイルウェブ開発 - モダンなPerl入門</title>
+
+        <script src="http://www.google-analytics.com/urchin.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            _uacct = "UA-4463402-1";
+            urchinTracker();
+        </script>
+        <!-- script src="/js/codepress/codepress.js" type="text/javascript"></script -->
+    </head>
+    <body>
+        <div id="head-navigation"><a href="/">Perl-users.jp</a></div>
+<!-- content start -->
+<p>Perl でのモバイルウェブ開発。CPAN モジュールつかいまくって簡単に開発がすすめられます。</p>
+
+<h3>端末情報を制する(HTTP::MobileAttribute)</h3>
+
+<p>HTTP::MobileAttribute をつかうと、HTTP ヘッダから情報をぬきだし、ケータイ端末の情報をあつかいやすくすることができます。</p>
+
+<pre><code>use HTTP::MobileAttribute plugins =&gt; [
+    qw/ IS /
+];
+
+my $ma = HTTP::MobileAttribute-&gt;new();
+$ma-&gt;is_docomo();
+</code></pre>
+
+<h2>絵文字をふくむ文字列をUTF8にまとめつつ相互変換(Encode::JP::Mobile)</h2>
+
+<p>Encode::JP::Mobile をつかえば、絵文字の相互変換は容易におこなえます。ユーザがポストした発言などにふくまれる絵文字を、各キャリア用に相互変換することができます。</p>
+
+<p>Encode::JP::Mobile は、Encode.pm 用のエンコーディングのひとつとして実装されているので、いつものように encode/decode するだけでつかえます。Perl におけるただしい decode/encode のつかいかたがわからない場合には perldoc perluniintro などしてください。</p>
+
+<p>encoding 名は、自分で判断する必要はなく、前出の HTTP::MobileAttribute のプラグインである HTTP::MobileAttribute::Plugin::Encoding をつかえば、自動で端末に最適なエンコーディングをえらんでくれます。</p>
+
+<pre><code>use HTTP::MobileAttribute plugins =&gt; [
+    qw/ Encoding /
+];
+use Encode::JP::Mobile;
+use Encode;
+
+my $ma = HTTP::MobileAttribute-&gt;new;
+
+# 適切に decode してあげましょう
+my $decoded_name = decode($ma-&gt;encoding, $request-&gt;param('name'));
+
+# 出力するまえに encode します
+my $html = ...; # HTML をなんらかの手段で生成しましょう
+my $encoded_html = encode($ma-&gt;encoding, $html);
+</code></pre>
+
+<h3>ケータイのメールアドレスかどうかを判断(Mail::Address::MobileJp)</h3>
+
+<p>あるメールアドレスが、ケータイのものかどうかを判断できます。このモジュールはよくメンテナンスされているため、自前で実装するよりもこちらをつかった方がよいとおもいます。</p>
+
+<pre><code>use Mail::Address::MobileJp;
+is_mobile_jp('example@ezweb.ne.jp'); # =&gt; true
+is_mobile_jp('example@gmail.com');   # =&gt; false
+</code></pre>
+
+<h3>テンプレートファイルにある絵文字を各キャリヤ用に変換(HTML::Entities::ConvertPictogramMobileJp)</h3>
+
+<p>3キャリヤ対応のモバイルサイトを構築する場合において、すべてのキャリヤでちゃんと絵文字を表示させたいが、テンプレートをきりかえたりするのは面倒という場合にはこのモジュールです。</p>
+
+<p>ドコモの絵文字をテンプレートに記述して、それを元に各キャリアの絵文字に変換します。(ドコモの絵文字をつかうのは、ドコモの絵文字が一番数がすくないからです)</p>
+
+<pre><code>use HTML::Entities::ConvertPictogramMobileJp;
+use HTTP::MobileAttribute;
+
+convert_pictogram_entities(
+    mobile_agent =&gt; HTTP::MobileAttribute-&gt;new,
+    html  =&gt; "&amp;#xE001",
+);
+</code></pre>
+
+<!-- content end -->
+        <hr />
+        <p><a href="/modern_introduction_perl/">目次へ</a></p>
+        <p>Last modified: </p>
+    </body>
+</html>

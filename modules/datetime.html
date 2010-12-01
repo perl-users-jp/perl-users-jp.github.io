@@ -1,0 +1,132 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+    <head profile="http://purl.org/net/ns/metaprof">
+        <!-- Document Metadata -->
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta http-equiv="Content-Language" content="ja" />
+        <meta http-equiv="Content-Style-Type" content="text/css" />
+        <meta http-equiv="Content-Script-Type" content="text/javascript" />
+        <meta http-equiv="imagetoolbar" content="no" />
+
+        <!-- Atom news feed -->
+
+        <link rel="alternate" type="application/rss+xml" title="RSS feed" href="http://coderepos.org/share/log/websites/perl-users.jp?limit=100&amp;mode=stop_on_copy&amp;format=rss" />
+        <link rel="stylesheet" type="text/css" href="/css/perl-users.jp.css" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+        <link rel="icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+
+        <title>DateTime - モダンなPerl入門 - モダンなPerl入門</title>
+
+        <script src="http://www.google-analytics.com/urchin.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            _uacct = "UA-4463402-1";
+            urchinTracker();
+        </script>
+        <!-- script src="/js/codepress/codepress.js" type="text/javascript"></script -->
+    </head>
+    <body>
+        <div id="head-navigation"><a href="/">Perl-users.jp</a></div>
+<!-- content start -->
+<h1>日付の取り扱い</h1>
+
+<p>何かと面倒な日付処理には DateTime.pmをつかいます。</p>
+
+<h3>生成</h3>
+
+<pre><code>use strict;
+use warnings;
+
+use DateTime;
+
+#日付を指定して生成
+$dt = DateTime-&gt;new(
+    time_zone =&gt; 'Asia/Tokyo',
+    year      =&gt; 2008,
+    month     =&gt; 8,
+    day       =&gt; 4,
+    hour      =&gt; 15,
+    minute    =&gt; 0,
+    second    =&gt; 0
+);
+
+#epochから生成
+$dt = DateTime-&gt;from_epoch( time_zone =&gt; 'Asia/Tokyo', epoch =&gt; 1217829600 );
+
+#現在の日付(時間ふくむ)
+$dt = DateTime-&gt;now( time_zone =&gt; 'Asia/Tokyo' );
+
+#現在の日付(時間含まない)
+$dt = DateTime-&gt;today( time_zone =&gt; 'Asia/Tokyo' );
+
+#月末 2008-08-31T00:00:00
+$dt = DateTime-&gt;last_day_of_month( year =&gt; 2008, month =&gt; 8 );
+
+#2008年正月から250日目 2008-09-06T00:00:00
+$dt = DateTime-&gt;from_day_of_year( year =&gt; 2008, day_of_year =&gt; 250 );
+</code></pre>
+
+<p>色々なインスタンス生成の方法があります。</p>
+
+<h3>計算</h3>
+
+<pre><code>#3日後
+$dt = $dt-&gt;add( days =&gt; 3 );
+
+#2ヶ月前
+$dt = $dt-&gt;subtract( months =&gt; 2 );
+
+#差分
+$dt1 = DateTime-&gt;new(
+    time_zone =&gt; 'Asia/Tokyo',
+    year      =&gt; 2008,
+    month     =&gt; 8,
+    day       =&gt; 1
+);
+$dt2 = DateTime-&gt;new(
+    time_zone =&gt; 'Asia/Tokyo',
+    year      =&gt; 2008,
+    month     =&gt; 9,
+    day       =&gt; 1
+);
+
+$dur = $dt2 - $dt1;
+say $dur-&gt;months;    #1
+</code></pre>
+
+<p>DateTimeのインスタンスからDateTimeのインスタンスを引くとDateTime::Durationのインスタンスが返って来ます。</p>
+
+<h3>フォーマット</h3>
+
+<pre><code>#フォーマット指定して表示
+say $dt-&gt;strftime('%Y/%m/%d %H:%M:%S');    #2008/08/04 15:00:00
+
+#epochで表示
+say $dt-&gt;epoch;                            #1217829600
+
+#DateTime::Format::*を使って文字列に変換
+use DateTime::Format::W3CDTF;
+my $dt = DateTime-&gt;new(
+    time_zone =&gt; 'Asia/Tokyo',
+    year      =&gt; 2008,
+    month     =&gt; 8,
+    day       =&gt; 4,
+    hour      =&gt; 15,
+    minute    =&gt; 0,
+    second    =&gt; 0
+);
+say DateTime::Format::W3CDTF-&gt;format_datetime($dt)
+    ;    #2008-08-04T15:01:00+09:00
+
+#DateTime::Format::*を使って文字列から変換
+$dt = DateTime::Format::W3CDTF-&gt;parse_datetime('2008-08-04T15:00:00+09:00');
+</code></pre>
+
+<p>DateTime::Format::*には他にもDateTime::Format::MySQLなどがあります。</p>
+
+<!-- content end -->
+        <hr />
+        <p><a href="/modern_introduction_perl/">目次へ</a></p>
+        <p>Last modified: $Date: 2008-05-22T09:21:23.154313Z $</p>
+    </body>
+</html>
+
