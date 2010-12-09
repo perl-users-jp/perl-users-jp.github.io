@@ -1,0 +1,18 @@
+ .entry-content h3
+,.entry-content h4
+,.entry-content h5
+{
+    font-weight: bold;
+    color: #153B3E;
+}
+
+.entry-content h3 {
+    font-size: 130%;
+}
+.entry-content h4 {
+    font-size: 115%;
+}
+.entry-content h5 {
+    font-size: 100%;
+}
+
