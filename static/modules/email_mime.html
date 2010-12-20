@@ -37,6 +37,8 @@
 use warnings;
 use utf8;
 use Email::MIME;
+use Email::Address;
+use Email::Address::Loose -override; # ドコモの RFC 違反なメアド対策
 
 my $src = &lt;&lt;'...';
 Delivered-To: john@example.com
