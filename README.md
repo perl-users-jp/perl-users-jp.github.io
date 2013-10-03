@@ -16,3 +16,22 @@ make コマンドを実行してください。ビルドした結果が static/ 
  * Perl 5.18.1 以後
  * 最新の Carton
 
+## Makefile のつかいかた
+
+### make
+
+make dynamic でたちあがるサーバーから wallflower でコンテンツを収集し、static/ 以下に配置します。
+
+### make test
+
+テストを実行します。
+
+### make dynamic
+
+動的にコンテンツを表示するサーバーをたちあげます。
+
+### make static
+
+static/ のデータを確認するために Plack::App::Directory をつかってサーバーをたちあげます。
+
+
