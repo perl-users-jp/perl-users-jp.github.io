@@ -12,4 +12,9 @@ any '/' => sub {
     });
 };
 
+get '/products.html' => sub {
+    my $c = shift;
+    return $c->render('products.html');
+};
+
 1;

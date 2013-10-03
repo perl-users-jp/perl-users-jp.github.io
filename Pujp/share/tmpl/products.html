@@ -1,19 +1,7 @@
-<!doctype html> <html>
-<head>
-    <meta charset="utf8">
-    <title>Perl5でできたプロダクト</title>
-    <link rel="stylesheet" type="text/css" href="/static/bootstrap/css/bootstrap.min.css" />
-</head>
-<body>
-    <div class="navbar navbar-default">
-        <div class="container">
-            <div class="navbar-header">
-                <a class="navbar-brand" href="/">perl-users.jp</a>
-            </div><!-- /.navbar-inner -->
-        </div><!-- /.container -->
-    </div><!-- /.navbar -->
-    <div class="container">
-            <h1>Perl5でできたプロダクト</h1>
+:cascade "include/layout.tx"
+
+: around main -> {
+    <h1>Perl5でできたプロダクト</h1>
     <p>Perl5でできたプロダクトを紹介します。</p>
     <!-- 非ライブラリを中心に -->
     <hr />
@@ -62,8 +50,4 @@
         </div>
     </div>
 
-
-        <hr />
-    </div>
-</body>
-</html>
+: }
