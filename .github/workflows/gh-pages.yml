@@ -15,7 +15,7 @@ jobs:
     - name: Setup Perl
       uses: shogo82148/actions-setup-perl@v1
       with:
-        perl-version: 'latest'
+        perl-version: '5.30'
     
     - name: Build
       run: make build
