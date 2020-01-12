@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="<?= $vars->{description} ?>">
+        <meta name="author" content="<?= $vars->{author} ?>">
+        <title><?= $vars->{title} ?></title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        pubdate: <?= $vars->{pubdate} ?>
+        update_at: <?= $vars->{update_at} ?>
+        <?= $vars->{text} ?>
+        <pre class="prettyprint">
+            use features qw/say/;
+            sub hello {
+                return "hello"
+            }
+            print hello;
+        </pre>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>
