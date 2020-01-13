@@ -3,7 +3,7 @@ use warnings;
 use PerlUsersJP::Builder;
 
 PerlUsersJP::Builder->new(
-    src_dir     => './src',
-    docs_dir    => './docs',
+    content_dir => './content',
+    public_dir  => './public',
     layouts_dir => './layouts',
 )->run;

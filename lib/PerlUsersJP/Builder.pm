@@ -14,21 +14,21 @@ use Text::Markdown;
 use Text::MicroTemplate;
 
 use Class::Tiny qw(
-    src_dir
-    docs_dir
+    content_dir
+    public_dir
     layouts_dir
 );
 
 sub BUILDARGS {
     my ($class, %args) = @_;
 
-    die "required 'src_dir'"     unless exists $args{src_dir};
-    die "required 'docs_dir'"    unless exists $args{docs_dir};
+    die "required 'content_dir'" unless exists $args{content_dir};
+    die "required 'public_dir'"  unless exists $args{public_dir};
     die "required 'layouts_dir'" unless exists $args{layouts_dir};
 
     return {
-        src_dir     => ref $args{src_dir}     ? $args{src_dir}     : Path::Tiny::path($args{src_dir}),
-        docs_dir    => ref $args{docs_dir}    ? $args{docs_dir}    : Path::Tiny::path($args{docs_dir}),
+        content_dir => ref $args{content_dir} ? $args{content_dir} : Path::Tiny::path($args{content_dir}),
+        public_dir  => ref $args{public_dir}  ? $args{public_dir}  : Path::Tiny::path($args{public_dir}),
         layouts_dir => ref $args{layouts_dir} ? $args{layouts_dir} : Path::Tiny::path($args{layouts_dir}),
     }
 }
@@ -38,7 +38,7 @@ sub run {
     my ($self) = @_;
 
     my (@entries, @static);
-    my $iter = $self->src_dir->iterator({ recurse => 1 });
+    my $iter = $self->content_dir->iterator({ recurse => 1 });
     while (my $src = $iter->()) {
         next unless $src->is_file;
         push @entries => $src if $self->is_entry($src);
@@ -125,17 +125,17 @@ sub entry_title {
     my $title = $entry->title // '';
 
     my $subtitle = sub {
-        my $src_dir = $self->src_dir;
-        my $parent  = $entry->file->parent;
+        my $content_dir = $self->content_dir;
+        my $parent      = $entry->file->parent;
 
-        if ($parent eq $src_dir) {
+        if ($parent eq $content_dir) {
             return ""
         }
         else {
             # src/perl-advent-calendar/2012/casual
             # => Perl Advent Calendar 2012 Casual
             my @match = $parent =~ m!\w+!g;
-            shift @match; # remove $src_dir
+            shift @match; # remove $content_dir
             return join(' ', map { ucfirst } @match);
         }
     }->();
@@ -196,9 +196,9 @@ sub diag {
 
 sub dest_dir {
     my ($self, $src) = @_;
-    my $src_dir  = $self->src_dir;
-    my $dir      = $src->parent =~ s!$src_dir!!r;
-    my $dest_dir = $dir ? $self->docs_dir->child($dir) : $self->docs_dir;
+    my $content_dir = $self->content_dir;
+    my $dir         = $src->parent =~ s!$content_dir!!r;
+    my $dest_dir    = $dir ? $self->public_dir->child($dir) : $self->public_dir;
     return $dest_dir
 }
 
