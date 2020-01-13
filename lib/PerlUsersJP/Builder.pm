@@ -97,9 +97,8 @@ sub build_static {
 
 sub build_entry {
     my ($self, $entry) = @_;
-    my $template = $self->layouts_dir->child('entry.html');
 
-    my $html = _render_string($template, {
+    my $html = $self->_render_string('entry.html', {
         text        => $self->entry_text($entry),
         title       => $self->entry_title($entry),
         author      => $self->entry_author($entry),
@@ -164,8 +163,7 @@ sub build_tags {
 
     for my $tag (keys %entries) {
         my $entries = $entries{$tag};
-        my $template = $self->dest_layouts_dir->child('tag.html');
-        my $html     = _render_string($template, {
+        my $html     = $self->_render_string('tag.html', {
             entries => $entries
         });
 
@@ -241,8 +239,10 @@ sub format_text {
 }
 
 sub _render_string {
-    my ($template, $vars) = @_;
-    $template = $template->slurp_utf8 if ref $template;
+    my ($self, $template, $vars) = @_;
+
+    $template = ref $template ? $template->slurp_utf8
+              : $self->layouts_dir->child($template)->slurp_utf8;
 
     my $mt = Text::MicroTemplate->new(
         template    => $template,
