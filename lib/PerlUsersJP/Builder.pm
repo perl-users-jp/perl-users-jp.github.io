@@ -99,12 +99,11 @@ sub build_entry {
     my ($self, $entry) = @_;
     my $template = $self->layouts_dir->child('entry.html');
 
-    my $format = $entry->format // $self->detect_format($entry->file);
-    my $text   = $self->format_text($entry->body, $format);
-
     my $html = _render_string($template, {
-        text  => $text,
-        entry => $entry,
+        text        => $self->entry_text($entry),
+        title       => $self->entry_title($entry),
+        author      => $self->entry_author($entry),
+        description => $self->entry_author($entry),
     });
 
     my $name = $entry->file->basename =~ s!\.[^.]+$!.html!r;
@@ -112,6 +111,46 @@ sub build_entry {
     $dest->spew_utf8($html);
 
     $self->diag("Created entry $dest\n");
+}
+
+sub entry_text {
+    my ($self, $entry) = @_;
+    my $format = $entry->format // $self->detect_format($entry->file);
+    my $text   = $self->format_text($entry->body, $format);
+    return $text;
+}
+
+sub entry_title {
+    my ($self, $entry) = @_;
+    my $title = $entry->title // '';
+
+    my $subtitle = sub {
+        my $src_dir = $self->src_dir;
+        my $parent  = $entry->file->parent;
+
+        if ($parent eq $src_dir) {
+            return ""
+        }
+        else {
+            # src/perl-advent-calendar/2012/casual
+            # => Perl Advent Calendar 2012 Casual
+            my @match = $parent =~ m!\w+!g;
+            shift @match; # remove $src_dir
+            return join(' ', map { ucfirst } @match);
+        }
+    }->();
+
+    return $subtitle ? "$title - $subtitle" : $title;
+}
+
+sub entry_author {
+    my ($self, $entry) = @_;
+    return $entry->author // '';
+}
+
+sub entry_description {
+    my ($self, $entry) = @_;
+    return $entry->description // '';
 }
 
 sub build_tags {
