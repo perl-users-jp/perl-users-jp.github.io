@@ -45,8 +45,10 @@ sub run {
         push @static  => $src if $self->is_static($src);
     }
 
+    $self->diag("Build Start\n");
     $self->build_static_src_list(\@static);
     $self->build_entry_src_list(\@entries);
+    $self->diag("Build Finished\n");
 }
 
 sub build_static_src_list {
@@ -78,13 +80,19 @@ sub build_entry_src_list {
 sub build_dest_dir {
     my ($self, $src) = @_;
     my $dest = $self->dest_dir($src);
-    $dest->mkpath if !$dest->is_dir;
+    if (!$dest->is_dir) {
+        $dest->mkpath;
+
+        $self->diag("Created dest_dir $dest\n");
+    }
 }
 
 sub build_static {
     my ($self, $src) = @_;
-    my $dest = $self->dest_dir($src);
-    $src->copy($dest)
+    my $dest_dir = $self->dest_dir($src);
+    my $dest = $src->copy($dest_dir);
+
+    $self->diag("Created static $dest\n");
 }
 
 sub build_entry {
@@ -102,6 +110,8 @@ sub build_entry {
     my $name = $entry->file->basename =~ s!\.[^.]+$!.html!r;
     my $dest = $self->dest_dir($entry->file)->child($name);
     $dest->spew_utf8($html);
+
+    $self->diag("Created entry $dest\n");
 }
 
 sub build_tags {
@@ -140,6 +150,10 @@ sub build_atom {
     ... # TODO
 }
 
+sub diag {
+    my ($self, $msg) = @_;
+    print $msg;
+}
 
 sub dest_dir {
     my ($self, $src) = @_;
