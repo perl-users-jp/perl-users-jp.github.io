@@ -8,10 +8,12 @@ use PerlUsersJP::Entry;
 
 use Path::Tiny ();
 use Date::Format ();
+use Text::MicroTemplate;
+
 use Text::Xatena;
 use Text::Xatena::Inline;
 use Text::Markdown;
-use Text::MicroTemplate;
+use Pod::Simple::XHTML;
 
 use Class::Tiny qw(
     content_dir
@@ -235,6 +237,13 @@ sub format_text {
         my $html = $xatena->format( $text, inline => $inline );
         $html .= join "\n", @{ $inline->footnotes };
         return $html;
+    }
+    elsif ($format eq 'pod') {
+        my $parser = Pod::Simple::XHTML->new();
+        $parser->output_string(\my $out);
+        $parser->html_header('');
+        $parser->html_footer('');
+        $parser->parse_string_document("=pod\n\n$text");
     }
     else {
         die "unsupported format: $format";
