@@ -101,6 +101,7 @@ sub build_entry {
     my $html = $self->_render_string('entry.html', {
         text        => $self->entry_text($entry),
         title       => $self->entry_title($entry),
+        subtitle    => $self->entry_subtitle($entry),
         author      => $self->entry_author($entry),
         description => $self->entry_author($entry),
     });
@@ -122,24 +123,26 @@ sub entry_text {
 sub entry_title {
     my ($self, $entry) = @_;
     my $title = $entry->title // '';
+}
 
-    my $subtitle = sub {
-        my $content_dir = $self->content_dir;
-        my $parent      = $entry->file->parent;
+sub entry_subtitle {
+    my ($self, $entry) = @_;
 
-        if ($parent eq $content_dir) {
-            return ""
-        }
-        else {
-            # src/perl-advent-calendar/2012/casual
-            # => Perl Advent Calendar 2012 Casual
-            my @match = $parent =~ m!\w+!g;
-            shift @match; # remove $content_dir
-            return join(' ', map { ucfirst } @match);
-        }
-    }->();
+    my $content_dir = $self->content_dir;
+    my $parent      = $entry->file->parent;
 
-    return $subtitle ? "$title - $subtitle" : $title;
+    my $subtitle;
+    if ($parent eq $content_dir) {
+        $subtitle = ""
+    }
+    else {
+        # src/perl-advent-calendar/2012/casual
+        # => Perl Advent Calendar 2012 Casual
+        my @match = $parent =~ m!\w+!g;
+        shift @match; # remove $content_dir
+        $subtitle = join(' ', map { ucfirst } @match);
+    }
+    return $subtitle;
 }
 
 sub entry_author {

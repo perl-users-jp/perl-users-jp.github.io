@@ -5,11 +5,13 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
         <meta name="description" content="<?= $vars->{description} ?>">
         <meta name="author" content="<?= $vars->{author} ?>">
-        <title><?= $vars->{title} ?></title>
+        <title><?= $vars->{subtitle} ? "$vars->{title} - $vars->{subtitle}" : $vars->{title} ?></title>
         <link rel="icon" href="/img/favicon.ico">
         <link href="TODO" rel="stylesheet">
     </head>
     <body>
+        <h1><?= $vars->{title} ?></h1>
+
         <?= $vars->{text} ?>
         <pre class="prettyprint">
             use features qw/say/;
