@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>[% conf.title %] [% name | ucfirst %] Track</title>
+    <link>[% uri_for(year _ '/' _ name _ '/') %]</link>
+    <atom:link rel="self" href="[% uri_for(year _ '/' _ name _ '/') %]rss" type="application/rss+xml" /> 
+    <atom:link rel="hub" href="http://pubsubhubbub.appspot.com/"/>
+    <description>[% conf.title %] [% name | ucfirst %] Track</description>
+    [% FOR entry IN entries %]<item>
+      <title>[% entry.title %]</title>
+      <pubDate>[% entry.pubdate %]</pubDate>
+      <link>[% uri_for(entry.link) %]</link>
+      [% FOR category IN entry.categories %]<category>[% category %]</category>
+      [% END %]
+      <guid isPermaLink="true">[% uri_for(entry.link) %]</guid>
+      <description>
+      [% entry.text | unmark_raw %]
+      [% FOR note IN entry.footnotes %]
+      &lt;div class=&quot;note&quot; id=&quot;fn[% note.number %]&quot;&gt;
+          *[% note.number %]:
+          [% note.note | unmark_raw %]
+      &lt;/div&gt;
+      [% END %]
+      </description>
+      <author>[% html_escape_hex(entry.author) %]</author>
+    </item>
+    [% END %]
+  </channel>
+</rss>

@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:og="http://ogp.me/ns#"
+      xmlns:mixi="http://mixi-platform.com/ns#"
+      xml:lang="ja" lang="ja"
+>
+<head profile="http://purl.org/net/ns/metaprof">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="css/bootstrap.css" media="all" />
+    <title>[% title %] - [% conf.title %] [% name | ucfirst %] Track</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="[% uri_for(year _ '/' _ name _ '/rss') %]" />
+    <link rel="stylesheet" href="http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="http://perl-users.jp/css/adcal.css" type="text/css" media="screen" />
+
+    <meta property="og:description" content="[% conf.title %] [% name | ucfirst %] Track に投稿された記事です" />
+    <meta property="og:type"  content="article" />
+    <meta property="og:url"   content="[% uri_for(req.path_info) %]" />
+    <meta property="og:site_name" content="[% conf.title %]" />
+    <meta property="og:image" content="http://perl-users.jp/articles/advent-calendar/img/adcal2010.jpg" />
+    <link rel="canonical" href="[% uri_for(req.path_info) %]" />
+    <link rel="mixi-check-image" type="image/jpeg"
+          href="http://perl-users.jp/articles/advent-calendar/img/adcal2010.jpg" />
+
+<meta http-equiv="Content-Script-Type" content="text/javascript" />
+<script type="text/javascript" src="http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+<script type="text/javascript" src="http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script type="text/javascript" src="http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+<script type="text/javascript">
+    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'a.permalink', title: 'h1.entry-header', container: 'h1.entry-header' } } };
+</script>
+<script type="text/javascript">
+$(function() {
+    var node;
+    if( document.location.href.match( /\/sym\/\d*$/ ) ){
+        node = document.getElementById("banner-description");
+        if( node ){
+            node.innerHTML = node.innerHTML.replace( /Perl\s*/gi, "記号プログラミング" );
+        }
+    }
+    /* fix twitter links */
+    (function(){
+        var i, elms, href;
+        var twid, hid;
+        var re1 = /^https?:\/\/twitter\.com\/(#!\/)?(\w+)$/, re2 = /^id:(\w+)$/;
+        var m;
+
+        elms = document.getElementsByTagName( "a" );
+        for( var i = 0; i < elms.length; i++ ){
+            href = elms[ i ].getAttribute( "href" ) || "";
+            if( !( m = re1.exec( href ) ) ) continue;
+            twid = m[ 2 ]; 
+            if( !( m = re2.exec( elms[ i ].innerHTML ) ) ) continue;
+            hid = m[ 1 ];
+            if( twid == hid ){
+                elms[ i ].innerHTML = "@" + twid;
+            }
+        }
+    })();
+
+    $.get("rss", function(x) {
+        $('<h2/>').addClass('module-header').text('Entries').appendTo('#beta');
+        var c = $('<ul/>').appendTo('#beta');
+        $("item", x).each(function(x) {
+            var title = $("title", this).text();
+            var url = $("link", this).text();
+            var tmp = url.split('/');
+            var day = tmp.pop();
+            var track = tmp.pop();
+            var year = tmp.pop();
+            var date = year + '/12/' + (day < 10 ? '0' + day : day);
+            var li = $('<li/>').appendTo(c);
+            li.append($('<span/>').text(date)).append(' ').append($('<a/>').text(title).attr('href', url));
+        });
+    });
+    $(function () {
+        var n = document.getElementById('rolling');
+        var r = 0, s = 1;
+        setInterval(function() {
+                var trans = 'rotate(' + r + 'deg) scale(' + s + ',' + s + ')';
+                    n.setAttribute('style', '-moz-transform:' + trans +'; -webkit-transform:' + trans + '; -ie-transform:' + trans + '; transform:' + trans);
+                        r += .8; s += .01;
+        }, 100);
+    });
+});
+</script>
+
+<style type="text/css">
+    pre {
+        border-left: 2px solid #cccccc;
+        padding-left: 4px;
+        margin-left: 10px;
+        overflow: auto;
+    }
+</style>
+
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner" class="navbar">
+            <div id="banner-inner" class="pkg navbar-inner">
+                <div id="banner-header" class="brand">[% title %] - [% year %] advent calendar [% name %]</div>
+                <div class="nav-collapse">
+                    <ul class="nav" id="main-menu-left">
+                        <li>Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody" class="container">
+        <div class="row">
+            [% INCLUDE 'include/sidemenu.html' %]
+            <div id="pagebody-inner" class="span8">
+                <div id="alpha">
+                    <div id="alpha-inner">
+<div class="entry">
+    <h1 class="entry-header">[% title %]&nbsp;<a href="http://b.hatena.ne.jp/entry/[% uri_for(req.path_info) %]"><img src="http://b.hatena.ne.jp/entry/image/[% uri_for(req.path_info) %]" alt="B!" /></a></h1><br />
+    <p class="pull-right">[% author %]</p>
+    <br style="clear: both;" />
+    <div class="entry-content">
+      [% text %]
+    </div>
+
+    <br />
+    <div class="entry-notes">
+        [% FOR note IN footnotes %]
+        <div class="note" id="fn[% note.number %]">
+            *[% note.number %]:
+            [% note.note %]
+        </div>
+        [% END %]
+    </div>
+
+    <br />
+    <div class="entry-meta">
+        <a rel="bookmark" class="permalink" href="[% uri_for(req.path_info) %]">[% update_at %]</a>
+        &nbsp;|&nbsp;
+        <a href="[% uri_for(year _ '/' _ name _ '/') %]">Index</a>
+        <br />
+
+        <div style="margin-top:12px;margin-bottom:-8px;">
+          <div style="float:left;margin-right:8px;">
+            <a href="http://mixi.jp/share.pl"
+            class="mixi-check-button"
+            data-key="6e769313568f4b9fe2270602e5cba4c9d6febd58"
+            >Check</a>
+          </div>
+
+          <!-- AddThis Button BEGIN -->
+          <div class="addthis_toolbox addthis_default_style " style="float:left;">
+            <a class="addthis_button_facebook_like" fb:like:layout="button_count"></a>
+            <a class="addthis_button_tweet"></a>
+            <a class="addthis_counter addthis_pill_style"></a>
+          </div>
+          <!-- AddThis Button END -->
+        </div>
+        <div style="clear:both;"></div>
+
+        <div id="disqus_thread"></div>
+        <script type="text/javascript">
+            var disqus_shortname = 'jpac';
+            (function() {
+                var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        <a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+    </div>
+</div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#username=xa-4cf91af90fd7d613"></script>
+<script type="text/javascript" src="http://static.mixi.jp/js/share.js"></script>
+</body>
+</html>
