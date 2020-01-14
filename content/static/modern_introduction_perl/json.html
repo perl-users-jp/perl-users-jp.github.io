@@ -1,0 +1,63 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+    <head profile="http://purl.org/net/ns/metaprof">
+        <!-- Document Metadata -->
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta http-equiv="Content-Language" content="ja" />
+        <meta http-equiv="Content-Style-Type" content="text/css" />
+        <meta http-equiv="Content-Script-Type" content="text/javascript" />
+        <meta http-equiv="imagetoolbar" content="no" />
+
+        <!-- Atom news feed -->
+
+        <link rel="alternate" type="application/rss+xml" title="RSS feed" href="http://coderepos.org/share/log/websites/perl-users.jp?limit=100&amp;mode=stop_on_copy&amp;format=rss" />
+        <link rel="stylesheet" type="text/css" href="/css/perl-users.jp.css" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+        <link rel="icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+
+        <title>JSON - モダンなPerl入門 - モダンなPerl入門</title>
+
+        <script src="http://www.google-analytics.com/urchin.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            _uacct = "UA-4463402-1";
+            urchinTracker();
+        </script>
+        <!-- script src="/js/codepress/codepress.js" type="text/javascript"></script -->
+    </head>
+    <body>
+        <div id="head-navigation"><a href="/">Perl-users.jp</a></div>
+<!-- content start -->
+<h1>JSON の取り扱い</h1>
+
+<p>JSON を扱うには JSON.pmをつかいます。</p>
+
+<h3>つかいかた</h3>
+
+<pre><code>use strict;
+use warnings;
+use JSON;
+use Data::Dumper;
+
+# encode
+say encode_json({foo =&gt; [1,2,3]});
+# decode
+say Dumper(decode_json('{"foo":[1,2,3]}'));
+</code></pre>
+
+<p>上記のように書きましょう。とっても簡単ですね。</p>
+
+<h3>JSON::Any やその他の JSON::* モジュールについて</h3>
+
+<p>JSON.pm 2.x 以後は、JSON::XS がインストールされている場合には JSON::XS のラッパーとして動作するようになっています。</p>
+
+<p>JSON::Any はもはや使う必要がありません。</p>
+
+<p>JSON::* モジュールの中でも現在もっともよくメンテされているのが JSON::XS と JSON.pm ですから、アプリケーションを書くときには
+JSON.pm をつかっておくのが一番よいでしょう。</p>
+
+<!-- content end -->
+        <hr />
+        <p><a href="/modern_introduction_perl/">目次へ</a></p>
+        <p>Last modified: $Date: 2008-05-22T09:21:23.154313Z $</p>
+    </body>
+</html>

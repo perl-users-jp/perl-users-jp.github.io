@@ -1,0 +1,15 @@
+document.writeln('2008-05-26<br>');
+document.writeln('- <a href="http://perl-users.jp/news/2008-05-26-1.html">perl-mongers.org がはじまりました</a><br>');
+document.writeln('2008-05-25<br>');
+document.writeln('- <a href="http://perl-users.jp/news/2008-05-25-1.html">Moose が XS なしでうごくようになりました</a><br>');
+document.writeln('2008-05-23<br>');
+document.writeln('- <a href="http://perl-users.jp/news/2008-05-23-1.html">Kansai.pm第9回ミーティングが開催されます</a><br>');
+document.writeln('2008-05-21<br>');
+document.writeln('- <a href="http://perl-users.jp/news/2008-05-21-4.html">Perl News にニュースを投稿してください</a><br>');
+document.writeln('- <a href="http://perl-users.jp/news/2008-05-21-3.html">更新テスト</a><br>');
+document.writeln('- <a href="http://perl-users.jp/news/2008-05-21-2.html">TPF-J構想</a><br>');
+document.writeln('- <a href="http://perl-users.jp/news/2008-05-21-1.html">Moose の Cheatsheet</a><br>');
+document.writeln('2008-05-20<br>');
+document.writeln('- <a href="http://perl-users.jp/news/2008-05-20-3.html">autobox 2.50 がリリースされました</a><br>');
+document.writeln('- <a href="http://perl-users.jp/news/2008-05-20-2.html">CodePressてすと</a><br>');
+document.writeln('- <a href="http://perl-users.jp/news/2008-05-20-1.html">らくだニュースはじめました</a><br>');

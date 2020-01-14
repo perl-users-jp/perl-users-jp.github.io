@@ -1,0 +1,171 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+    <head profile="http://purl.org/net/ns/metaprof">
+        <!-- Document Metadata -->
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta http-equiv="Content-Language" content="ja" />
+        <meta http-equiv="Content-Style-Type" content="text/css" />
+        <meta http-equiv="Content-Script-Type" content="text/javascript" />
+        <meta http-equiv="imagetoolbar" content="no" />
+
+        <!-- Atom news feed -->
+
+        <link rel="alternate" type="application/rss+xml" title="RSS feed" href="http://coderepos.org/share/log/websites/perl-users.jp?limit=100&amp;mode=stop_on_copy&amp;format=rss" />
+        <link rel="stylesheet" type="text/css" href="/css/perl-users.jp.css" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+        <link rel="icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+
+        <title>Moose 入門 - モダンなPerl入門</title>
+
+        <script src="http://www.google-analytics.com/urchin.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            _uacct = "UA-4463402-1";
+            urchinTracker();
+        </script>
+        <!-- script src="/js/codepress/codepress.js" type="text/javascript"></script -->
+    </head>
+    <body>
+        <div id="head-navigation"><a href="/">Perl-users.jp</a></div>
+<!-- content start -->
+<p>LL温泉2008用の資料です。
+最近の Perl OOP のこと。</p>
+
+<p>Perl5 の OOP と簡単なモジュールのつくりかた。</p>
+
+<h2>Perl5 についての見解</h2>
+
+<p>Perl5 の OOP はむずかしい。</p>
+
+<h2>昔ながらの Perl5 OOP</h2>
+
+<pre><code>package Person; # クラス宣言
+use strict;
+use warnings;
+
+sub new {
+    my ($class) = @_;
+
+    return bless {
+        name =&gt; '',
+        age  =&gt; undef,
+    }, $class;
+}
+
+sub name {
+    my ($self, $name) = @_;
+    $self-&gt;{'name'} = $name if $name;
+    return $self-&gt;{'name'};
+}
+
+sub age {
+    my ($self, $age) = @_;
+    $self-&gt;{'age'} = $age if $age; # 引数つきだったらセッターになります
+    return $self-&gt;{'age'}; 
+}
+
+1;
+</code></pre>
+
+<h3>Moose</h3>
+
+<pre><code>package Person;  # くらすせんげん
+use Moose; # Moose なクラスであることを宣言
+
+has name =&gt; (is =&gt; 'rw'); # アクセサを宣言する
+has age  =&gt; (is =&gt; 'rw'); # rw =&gt; read/write 可能なアクセサの意
+
+1; # なんでもいい。
+</code></pre>
+
+<h3>Moose をさらに</h3>
+
+<pre><code>has name =&gt; (
+    is  =&gt; 'rw',      # 読み書き両用のアクセサ
+    isa =&gt; 'Str',     # 文字列型
+    default =&gt; 'Bob'  # デフォルト値を提供
+);
+
+has staff =&gt; (
+    is      =&gt; 'ro',                            # 読みこみ専用アクセサ
+    isa     =&gt; 'ArrayRef',                      # 配列リファレンス型
+    lazy    =&gt; 1,                               # default の評価を遅延させる
+    default =&gt; sub { [qw(Bob Alice Tim)] },     # デフォルト値をかえす無名関数
+);
+</code></pre>
+
+<h3>実践</h3>
+
+<pre><code># CPAN モジュールを各種いれる
+% sudo -H cpan
+cpan[1]&gt; install Moose
+cpan[1]&gt; install Module::Install
+# pmsetup という perl module をつくるためのスクリプトをダウンロードする
+% wget http://svn.bulknews.net/repos/public/misc/pmsetup
+# pmsetup をうごかす
+% perl pmsetup Point
+# なにかきかれたら、てきとうにこたえる。
+
+# なかみをみてみる
+% tree Point
+.
+|-- Changes
+|-- MANIFEST.SKIP
+|-- Makefile.PL
+|-- README
+|-- lib
+|   `-- Point.pm
+|-- t
+|   `-- 00_compile.t
+`-- xt
+    |-- perlcritic.t
+    |-- pod.t
+    `-- podspell.t
+
+3 directories, 9 files
+
+# できたディレクトリにうつる
+% cd Point
+
+# Makefile ができる
+% perl Makefile.PL
+
+# テストをうごかす(テストかいてないのでとおるはず)
+% make test
+</code></pre>
+
+<p>t/01_simple.t というファイルを作成し、内容を下記のようにする</p>
+
+<pre><code>use strict;
+use warnings;
+use Test::More tests =&gt; 4; # テストの個数を真面目に指定してあげてください
+use_ok 'Point'; # Point.pm を import/require してだいじょうぶなことを確認
+
+my $point = Point-&gt;new(x =&gt; 5, y =&gt; 7); # インスタンスをつくってみる
+is $point-&gt;x, 5; # 引数であたえたものがはいってることを確認する
+is $point-&gt;y, 7;
+$point-&gt;x(9);    # セッターをつかってみる
+is $point-&gt;x, 9; # セットされてることを確認する
+</code></pre>
+
+<p>この状態で</p>
+
+<pre><code>% make test
+</code></pre>
+
+<p>すると、テストがこけるので、lib/Point.pm の中を上記のコードを参考にして変更する。</p>
+
+<p>test がとおれば成功です。</p>
+
+<h3>参考にするとよいサイト</h3>
+
+<ul>
+<li>http://search.cpan.org/~drolsky/Moose-0.61/</li>
+</ul>
+
+
+<!-- content end -->
+        <hr />
+        <p><a href="/modern_introduction_perl/">目次へ</a></p>
+        <p>Last modified: $Date: 2008-10-26T05:38:56.231052Z $</p>
+    </body>
+</html>

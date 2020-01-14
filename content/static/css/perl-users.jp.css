@@ -1,0 +1,24 @@
+@charset "UTF-8";
+
+img {
+    border: 0 none;
+    vertical-align: bottom;
+}
+
+pre {
+    padding: 0.5em;
+    color: #BEBEBE;
+    background-color: #2B2B2B;
+}
+
+span.synComment    { color: #7CCD7C; }
+span.synConstant   { color: #FA8072; }
+span.synIdentifier { color: #87CEEB; }
+span.synStatement  { color: #EEDC82; font-weight: bold; }
+span.synPreProc    { color: #EE799F; }
+span.synType       { color: #FFA54F; font-weight: bold; }
+span.synSpecial    { color: #76EEC6; }
+span.synUnderlined { text-decoration: underline; }
+span.synError      { color: #FFFFFF; background-color: #B03030; }
+span.synTodo       { color: #FF4500; background-color: #EEEE00; }
+span.synLinenum    { color: #8B8B00; }

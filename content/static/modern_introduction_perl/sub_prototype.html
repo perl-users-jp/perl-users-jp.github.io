@@ -1,0 +1,71 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+    <head profile="http://purl.org/net/ns/metaprof">
+        <!-- Document Metadata -->
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta http-equiv="Content-Language" content="ja" />
+        <meta http-equiv="Content-Style-Type" content="text/css" />
+        <meta http-equiv="Content-Script-Type" content="text/javascript" />
+        <meta http-equiv="imagetoolbar" content="no" />
+
+        <!-- Atom news feed -->
+
+        <link rel="alternate" type="application/rss+xml" title="RSS feed" href="http://coderepos.org/share/log/websites/perl-users.jp?limit=100&amp;mode=stop_on_copy&amp;format=rss" />
+        <link rel="stylesheet" type="text/css" href="/css/perl-users.jp.css" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+        <link rel="icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+
+        <title>プロトタイプ - モダンなPerl入門</title>
+
+        <script src="http://www.google-analytics.com/urchin.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            _uacct = "UA-4463402-1";
+            urchinTracker();
+        </script>
+        <!-- script src="/js/codepress/codepress.js" type="text/javascript"></script -->
+    </head>
+    <body>
+        <div id="head-navigation"><a href="/">Perl-users.jp</a></div>
+<!-- content start -->
+<h1>Perlのプロトタイプ (書きかけ誰かもっとかいて!)</h1>
+
+<p>Perlの関数は基本C/C++/Javaのように引数の型や数の宣言をする必要はありません。
+ですが、特殊な状況下（たとえばDSLを書きたい時）ではある一定の指定ができます。
+このような指定を「関数のプロトタイプを指定する」といいます。</p>
+
+<p>このプロトタイプはJavaScriptのフレームワークであるPrototypeとは違い、関数の引数の型の宣言を行うことが出来ます。関数にプロトタイプが定義されている時は、定義された型どおりに関数を呼び出さなければエラーとなります。</p>
+<pre><code><span class="synStatement">sub</span><span class="synIdentifier"> subname ($$$) </span>{
+    <span class="synStatement">my</span>(<span class="synIdentifier">$foo</span>, <span class="synIdentifier">$bar</span>, <span class="synIdentifier">$baz</span>) = <span class="synIdentifier">@_</span>;
+}
+</code></pre>
+<p>といった定義の時は</p>
+<pre><code>subname <span class="synIdentifier">$foo</span>, <span class="synIdentifier">$bar</span>, <span class="synIdentifier">$baz</span>;
+</code></pre>
+<p>という形で関数を呼び出さなければなりません。</p>
+<pre><code><span class="synStatement">my</span> <span class="synIdentifier">@list</span> = <span class="synConstant">qw( foo bar baz )</span>;
+subname <span class="synIdentifier">@list</span>;
+</code></pre>
+<p>ではエラーになります。</p>
+
+<h3><code>(&amp;@)</code></h3>
+<pre><code><span class="synStatement">sub</span><span class="synIdentifier"> hoge ($&amp;) </span>{}
+</code></pre>
+<p>のような形でプロトタイプ宣言すると</p>
+<pre><code>hoge <span class="synConstant">'foo'</span>,<span class="synIdentifier"> </span><span class="synStatement">sub</span><span class="synIdentifier"> </span>{};
+</code></pre>
+<p>のような形で無いと関数が使えませんが</p>
+<pre><code><span class="synStatement">sub</span><span class="synIdentifier"> hoge (&amp;) </span>{}
+<span class="synStatement">sub</span><span class="synIdentifier"> mymap (&amp;@) </span>{}
+</code></pre>
+<p>のような形でプロトタイプ宣言すると</p>
+<pre><code>hoge {};
+mymap {} <span class="synConstant">qw( a b c d )</span>;
+</code></pre>
+<p>のような形で sub を省略出来ます。</p>
+
+<!-- content end -->
+        <hr />
+        <p><a href="/modern_introduction_perl/">目次へ</a></p>
+        <p>Last modified: $Date: 2008-05-24 10:17:03 +0900 (Sat, 24 May 2008) $</p>
+    </body>
+</html>

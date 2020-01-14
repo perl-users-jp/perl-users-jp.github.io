@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>定数の展開</title>
+    <link rel="stylesheet" href="http://perl-users.jp/articles/advent-calendar/adventcal.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+    <script type="text/javascript" src="http://perl-users.jp/articles/advent-calendar/adventcal.js"></script>
+</head>
+<body>
+<h1>定数の展開</h1>
+<pre><code>% perl -MO=Deparse,-print -e'sub foo() { 0 }; warn foo'
+sub foo () { 0 }
+warn 0;
+-e syntax OK</code></pre>
+<p>「<code>sub foo() { }</code>」のように書くと、この関数が引数をとらないことを宣言できます。</p>
+<p>この関数が定数を返す場合、この関数は定数として展開されます。</p>
+</body>
+</html>

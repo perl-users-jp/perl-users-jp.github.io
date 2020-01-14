@@ -1,0 +1,3253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <generator>Plagger/0.7.17</generator>
+    <link>http://perl-users.jp/articles/advent-calendar/2008/index.html</link>
+    <title>JPerl Advent Calendar 2008</title>
+    <pubDate>Fri, 26 Dec 2008 15:13:04 +0900</pubDate>
+    <item>
+      <author>nobody@example.com</author>
+      <dc:creator>nobody@example.com</dc:creator>
+      <link>http://perl-users.jp/articles/advent-calendar/2008/25.html</link>
+      <description>バイナリファイルを解析するPerlといえばテキスト処理や正規表現が得意で、バイナリを扱うような話についてはあまり聞かない印象があります。Perlが持つ関数pack/unpack等でもバイナリ処理は可能ですが、今回はData::ParseBinaryを使ってバイナリファイルを気軽に解析してみましょう。基本ファイルからストリームを作る解析したいファイルをData::ParseBinaryで扱えるストリームに変換します。use Data::ParseBinary;
+my $stream = CreateStreamReader(File =&gt; $file_handle);
+解析したい構造を定義するStruct関数で解析したい構造を定義します。Struct以下には基本データ型やコンテナ型、ビット/バイトパディング型、制御構文型等を使用できます。各型に指定したラベルが解析結果として得られるハッシュのキーとなります。my $your_data_structure = Struct('YOUR_DATA_STRUCTURE',
+    UBInt8('length'),
+    Array(sub { $_-&gt;ctx-&gt;{length}}, UBInt8('data')),
+);
+定義した構造を元にストリームを解析する解析したい構造に対してストリームを渡して解析を開始します。解析結果はハッシュとして返されます。my $data = $your_data_structure-&gt;parse($stream);
+#  結果例
+#  $data = {
+#      'YOUT_DATA_STRUCTURE' =&gt; {
+#          'length' =&gt; 10,
+#          'data' =&gt; [
+#                     1,
+#                     2,
+#                     ...,
+#                    ],
+#          },
+#  }
+例:FLVファイルを解析する例として、Flashで扱う映像ファイルフォーマットであるFLVファイルを途中まで解析してみます。こちらの仕様書(PDF)を見ながらStruct中を眺めるとやってることがわかると思います。長くなりそうなので途中から詳細はn byteデータチャンクとして扱い、その先を具体的に解析しないようにしています。興味を持たれたらコメントアウト部分を修正して続きを解析してみてください。#!/usr/bin/env perl
+use strict;
+use warnings;
+
+package FLV::Parser;
+use Data::ParseBinary;
+
+sub parse {
+    my($self, $file) = @_;
+
+    my $s =
+    Struct('FLV',
+        header(),
+        body(),
+    );
+    open my $fh, '&lt;', $file;
+    binmode $fh;
+    my $stream = CreateStreamReader(File =&gt; $fh);
+    my $data = $s-&gt;parse($stream);
+    close $fh;
+    $data;
+}
+
+sub UBInt24 {
+    my($name) = @_;
+    Struct($name,
+        UBInt8('_b1'),
+        UBInt8('_b2'),
+        UBInt8('_b3'),
+        Value('value', sub { $_-&gt;ctx-&gt;{_b1} &lt;&lt; 16 | $_-&gt;ctx-&gt;{_b2} &lt;&lt; 8 | $_-&gt;ctx-&gt;{_b3} }),
+    );
+}
+
+sub header {
+    # 9 byte
+    Struct('Header',
+        Const(String('Signature', 3), 'FLV'),
+        UBInt8('Version'),
+        BitStruct('TypeFlags',
+            Padding(5),
+            Flag('Audio'),
+            Padding(1),
+            Flag('Video'),
+        ),
+        UBInt32('DataOffset')
+    );
+}
+
+sub body {
+    Struct('Body',
+        UBInt32('PreviousTagSize0'),
+        GreedyRange(Struct('tags',
+            flvtag(),
+            UBInt32('PreviousTagSizeN'),
+        )),
+    );
+}
+
+sub flvtag {
+    Struct('FLVTAG',
+        UBInt8('TagType'),
+        UBInt24('DataSize'),
+        UBInt24('Timestamp'),
+        UBInt8('TimestampExtended'),
+        UBInt24('StreamID'),
+        Switch("Data", sub {$_-&gt;ctx-&gt;{TagType}}, {
+            8 =&gt; Struct('AUDIODATA',
+                BitStruct('info',
+                    BitField('SoundFormat', 4),
+                    BitField('SoundRate', 2),
+                    BitField('SoundSize', 1),
+                    BitField('SoundType', 1),
+                ),
+                Array(sub{$_-&gt;ctx(1)-&gt;{DataSize}-&gt;{value} - 1}, UBInt8('SoundData')),
+            ),
+            9 =&gt; Struct('VIDEODATA',
+                BitStruct('info',
+                    BitField('FrameType', 4),
+                    BitField('CodecID', 4),
+                ),
+                Array(sub{$_-&gt;ctx(1)-&gt;{DataSize}-&gt;{value} - 1}, UBInt8('VideoData'))
+            ),
+
+#            8 =&gt; audiodata(),
+#            9 =&gt; videodata(),
+#            10 =&gt; scriptdataobject(),
+        },
+        default =&gt; Array(sub{$_-&gt;ctx(0)-&gt;{DataSize}-&gt;{value}}, UBInt8('VideoData'))
+        )
+    );
+}
+
+
+=head2 commentout
+
+sub audiodata {
+    Struct('AUDIODATA',
+        BitStruct('info',
+            BitField('SoundFormat', 4),
+            BitField('SoundRate', 2),
+            BitField('SoundSize', 1),
+            BitField('SoundType', 1),
+        ),
+        Switch('SoundData', sub {$_-&gt;ctx-&gt;{info}-&gt;{SoundFormat}}, {
+            10 =&gt; aacaudiodata(),
+        })
+    );
+}
+sub aacaudiodata {
+    Struct(
+        UBInt8('AACPacketType'),
+        UBInt8('Data', n)
+    );
+}
+sub videodata {
+    Struct('VIDEODATA',
+    );
+}
+sub scriptdataobject {
+    Struct('SCRIPTDATAOBJECT',
+    );
+}
+
+=cut
+
+package main;
+use Data::Dumper;
+
+my $data = FLV::Parser-&gt;parse('foo.flv');
+print Dumper $data;
+C言語でバイナリ解析する場合に比べると、細かい構造体単位でstruct定義を分ける必要がなく、複雑な構造であっても見た目に理解しやすいのがいいところです。制御構文のように使える関数もあるので、「bit 31から28の値が0001なら構造A、0010なら構造Bとして次のN Byteを解析する」というような処理も書きやすいです。処理速度は速くないのでリアルタイムで処理するような用途には向きませんが、バイナリエディタで入れ子になったデータ構造のオフセットを確認しながら手動で値を確認するよりわかりやすいでしょう。また仕様書から複雑なデータフォーマットを学ぶ時にも理解の助けとなると思います。Back
+</description>
+      <dc:date>2008-12-24T18:14:47Z</dc:date>
+      <title>バイナリファイルを解析する</title>
+      <pubDate>Wed, 24 Dec 2008 18:14:47 -0000</pubDate>
+      <content:encoded>&lt;body&gt;&lt;h1&gt;バイナリファイルを解析する&lt;/h1&gt;&lt;p&gt;Perlといえばテキスト処理や正規表現が得意で、バイナリを扱うような話についてはあまり聞かない印象があります。Perlが持つ関数&lt;code&gt;pack&lt;/code&gt;/&lt;code&gt;unpack&lt;/code&gt;等でもバイナリ処理は可能ですが、今回は&lt;a href="http://search.cpan.org/dist/Data-ParseBinary/"&gt;Data::ParseBinary&lt;/a&gt;を使ってバイナリファイルを気軽に解析してみましょう。&lt;/p&gt;&lt;h2&gt;基本&lt;/h2&gt;&lt;h3&gt;ファイルからストリームを作る&lt;/h3&gt;&lt;p&gt;解析したいファイルをData::ParseBinaryで扱えるストリームに変換します。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;use Data::ParseBinary;
+my $stream = CreateStreamReader(File =&amp;gt; $file_handle);
+&lt;/code&gt;&lt;/pre&gt;&lt;h3&gt;解析したい構造を定義する&lt;/h3&gt;&lt;p&gt;Struct関数で解析したい構造を定義します。Struct以下には基本データ型やコンテナ型、ビット/バイトパディング型、制御構文型等を使用できます。各型に指定したラベルが解析結果として得られるハッシュのキーとなります。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;my $your_data_structure = Struct(&amp;apos;YOUR_DATA_STRUCTURE&amp;apos;,
+    UBInt8(&amp;apos;length&amp;apos;),
+    Array(sub { $_-&amp;gt;ctx-&amp;gt;{length}}, UBInt8(&amp;apos;data&amp;apos;)),
+);
+&lt;/code&gt;&lt;/pre&gt;&lt;h3&gt;定義した構造を元にストリームを解析する&lt;/h3&gt;&lt;p&gt;解析したい構造に対してストリームを渡して解析を開始します。解析結果はハッシュとして返されます。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;my $data = $your_data_structure-&amp;gt;parse($stream);
+#  結果例
+#  $data = {
+#      &amp;apos;YOUT_DATA_STRUCTURE&amp;apos; =&amp;gt; {
+#          &amp;apos;length&amp;apos; =&amp;gt; 10,
+#          &amp;apos;data&amp;apos; =&amp;gt; [
+#                     1,
+#                     2,
+#                     ...,
+#                    ],
+#          },
+#  }
+&lt;/code&gt;&lt;/pre&gt;&lt;h2&gt;例:FLVファイルを解析する&lt;/h2&gt;&lt;p&gt;例として、Flashで扱う映像ファイルフォーマットであるFLVファイルを途中まで解析してみます。&lt;a href="http://www.adobe.com/devnet/flv/pdf/video_file_format_spec_v9.pdf"&gt;こちらの仕様書(PDF)&lt;/a&gt;を見ながらStruct中を眺めるとやってることがわかると思います。&lt;/p&gt;&lt;p&gt;長くなりそうなので途中から詳細はn byteデータチャンクとして扱い、その先を具体的に解析しないようにしています。興味を持たれたらコメントアウト部分を修正して続きを解析してみてください。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;#!/usr/bin/env perl
+use strict;
+use warnings;
+
+package FLV::Parser;
+use Data::ParseBinary;
+
+sub parse {
+    my($self, $file) = @_;
+
+    my $s =
+    Struct(&amp;apos;FLV&amp;apos;,
+        header(),
+        body(),
+    );
+    open my $fh, &amp;apos;&amp;lt;&amp;apos;, $file;
+    binmode $fh;
+    my $stream = CreateStreamReader(File =&amp;gt; $fh);
+    my $data = $s-&amp;gt;parse($stream);
+    close $fh;
+    $data;
+}
+
+sub UBInt24 {
+    my($name) = @_;
+    Struct($name,
+        UBInt8(&amp;apos;_b1&amp;apos;),
+        UBInt8(&amp;apos;_b2&amp;apos;),
+        UBInt8(&amp;apos;_b3&amp;apos;),
+        Value(&amp;apos;value&amp;apos;, sub { $_-&amp;gt;ctx-&amp;gt;{_b1} &amp;lt;&amp;lt; 16 | $_-&amp;gt;ctx-&amp;gt;{_b2} &amp;lt;&amp;lt; 8 | $_-&amp;gt;ctx-&amp;gt;{_b3} }),
+    );
+}
+
+sub header {
+    # 9 byte
+    Struct(&amp;apos;Header&amp;apos;,
+        Const(String(&amp;apos;Signature&amp;apos;, 3), &amp;apos;FLV&amp;apos;),
+        UBInt8(&amp;apos;Version&amp;apos;),
+        BitStruct(&amp;apos;TypeFlags&amp;apos;,
+            Padding(5),
+            Flag(&amp;apos;Audio&amp;apos;),
+            Padding(1),
+            Flag(&amp;apos;Video&amp;apos;),
+        ),
+        UBInt32(&amp;apos;DataOffset&amp;apos;)
+    );
+}
+
+sub body {
+    Struct(&amp;apos;Body&amp;apos;,
+        UBInt32(&amp;apos;PreviousTagSize0&amp;apos;),
+        GreedyRange(Struct(&amp;apos;tags&amp;apos;,
+            flvtag(),
+            UBInt32(&amp;apos;PreviousTagSizeN&amp;apos;),
+        )),
+    );
+}
+
+sub flvtag {
+    Struct(&amp;apos;FLVTAG&amp;apos;,
+        UBInt8(&amp;apos;TagType&amp;apos;),
+        UBInt24(&amp;apos;DataSize&amp;apos;),
+        UBInt24(&amp;apos;Timestamp&amp;apos;),
+        UBInt8(&amp;apos;TimestampExtended&amp;apos;),
+        UBInt24(&amp;apos;StreamID&amp;apos;),
+        Switch(&amp;quot;Data&amp;quot;, sub {$_-&amp;gt;ctx-&amp;gt;{TagType}}, {
+            8 =&amp;gt; Struct(&amp;apos;AUDIODATA&amp;apos;,
+                BitStruct(&amp;apos;info&amp;apos;,
+                    BitField(&amp;apos;SoundFormat&amp;apos;, 4),
+                    BitField(&amp;apos;SoundRate&amp;apos;, 2),
+                    BitField(&amp;apos;SoundSize&amp;apos;, 1),
+                    BitField(&amp;apos;SoundType&amp;apos;, 1),
+                ),
+                Array(sub{$_-&amp;gt;ctx(1)-&amp;gt;{DataSize}-&amp;gt;{value} - 1}, UBInt8(&amp;apos;SoundData&amp;apos;)),
+            ),
+            9 =&amp;gt; Struct(&amp;apos;VIDEODATA&amp;apos;,
+                BitStruct(&amp;apos;info&amp;apos;,
+                    BitField(&amp;apos;FrameType&amp;apos;, 4),
+                    BitField(&amp;apos;CodecID&amp;apos;, 4),
+                ),
+                Array(sub{$_-&amp;gt;ctx(1)-&amp;gt;{DataSize}-&amp;gt;{value} - 1}, UBInt8(&amp;apos;VideoData&amp;apos;))
+            ),
+
+#            8 =&amp;gt; audiodata(),
+#            9 =&amp;gt; videodata(),
+#            10 =&amp;gt; scriptdataobject(),
+        },
+        default =&amp;gt; Array(sub{$_-&amp;gt;ctx(0)-&amp;gt;{DataSize}-&amp;gt;{value}}, UBInt8(&amp;apos;VideoData&amp;apos;))
+        )
+    );
+}
+
+
+=head2 commentout
+
+sub audiodata {
+    Struct(&amp;apos;AUDIODATA&amp;apos;,
+        BitStruct(&amp;apos;info&amp;apos;,
+            BitField(&amp;apos;SoundFormat&amp;apos;, 4),
+            BitField(&amp;apos;SoundRate&amp;apos;, 2),
+            BitField(&amp;apos;SoundSize&amp;apos;, 1),
+            BitField(&amp;apos;SoundType&amp;apos;, 1),
+        ),
+        Switch(&amp;apos;SoundData&amp;apos;, sub {$_-&amp;gt;ctx-&amp;gt;{info}-&amp;gt;{SoundFormat}}, {
+            10 =&amp;gt; aacaudiodata(),
+        })
+    );
+}
+sub aacaudiodata {
+    Struct(
+        UBInt8(&amp;apos;AACPacketType&amp;apos;),
+        UBInt8(&amp;apos;Data&amp;apos;, n)
+    );
+}
+sub videodata {
+    Struct(&amp;apos;VIDEODATA&amp;apos;,
+    );
+}
+sub scriptdataobject {
+    Struct(&amp;apos;SCRIPTDATAOBJECT&amp;apos;,
+    );
+}
+
+=cut
+
+package main;
+use Data::Dumper;
+
+my $data = FLV::Parser-&amp;gt;parse(&amp;apos;foo.flv&amp;apos;);
+print Dumper $data;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;C言語でバイナリ解析する場合に比べると、細かい構造体単位でstruct定義を分ける必要がなく、複雑な構造であっても見た目に理解しやすいのがいいところです。制御構文のように使える関数もあるので、「bit 31から28の値が0001なら構造A、0010なら構造Bとして次のN Byteを解析する」というような処理も書きやすいです。&lt;/p&gt;&lt;p&gt;処理速度は速くないのでリアルタイムで処理するような用途には向きませんが、バイナリエディタで入れ子になったデータ構造のオフセットを確認しながら手動で値を確認するよりわかりやすいでしょう。また仕様書から複雑なデータフォーマットを学ぶ時にも理解の助けとなると思います。&lt;/p&gt;&lt;p&gt;&lt;a href="http://perl-users.jp/articles/advent-calendar/2008/"&gt;Back&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;
+</content:encoded>
+      <dcterms:modified>2008-12-24T18:14:47Z</dcterms:modified>
+      <guid isPermaLink="false">tag:perl-users.jp,2006:http://perl-users.jp/articles/advent-calendar/2008/25.html</guid>
+    </item>
+    <item>
+      <author>nobody@example.com</author>
+      <dc:creator>nobody@example.com</dc:creator>
+      <link>http://perl-users.jp/articles/advent-calendar/2008/24.html</link>
+      <description>関数をラップするウェブサービス等のAPI とやり取りするモジュールを使って開発している際、デバッグのためAPI からのレスポンスをのぞき見たいときがあると思います(自分はさっきありました)。そんなとき、関数をラップすると便利です。型グロブmy $orig_request = LWP::UserAgent-&gt;can('request');
+*LWP::UserAgent::request = sub {
+    use Data::Dumper;
+    my $response = $orig_request-&gt;(@_);
+    print Dumper($response);
+    return $response;
+};
+Hook::LexWrapuse Hook::LexWrap;
+wrap 'LWP::UserAgent::request',
+    post =&gt; sub {
+        use Data::Dumper;
+        my $response = $_[-1];
+        print Dumper($response);
+};
+各ラッパー関数にはラップ元の関数と同じ引数リストが渡されます。加えて$_[-1]に関数の戻り値が設定されます。$_[-1]を変更することで関数の最終的な戻り値を変更できます。つぎはkoyachiさんお願いします。Back
+</description>
+      <dc:date>2008-12-24T04:12:13Z</dc:date>
+      <title>関数をラップする</title>
+      <pubDate>Wed, 24 Dec 2008 04:12:13 -0000</pubDate>
+      <content:encoded>&lt;body&gt;&lt;h1&gt;関数をラップする&lt;/h1&gt;&lt;p&gt;ウェブサービス等のAPI とやり取りするモジュールを使って開発している際、デバッグのためAPI からのレスポンスをのぞき見たいときがあると思います(自分はさっきありました)。&lt;/p&gt;&lt;p&gt;そんなとき、関数をラップすると便利です。&lt;/p&gt;&lt;h2&gt;型グロブ&lt;/h2&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;my $orig_request = LWP::UserAgent-&amp;gt;can(&amp;apos;request&amp;apos;);
+*LWP::UserAgent::request = sub {
+    use Data::Dumper;
+    my $response = $orig_request-&amp;gt;(@_);
+    print Dumper($response);
+    return $response;
+};
+&lt;/code&gt;&lt;/pre&gt;&lt;h2&gt;&lt;a href="http://search.cpan.org/perldoc?Hook::LexWrap"&gt;Hook::LexWrap&lt;/a&gt;&lt;/h2&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;use Hook::LexWrap;
+wrap &amp;apos;LWP::UserAgent::request&amp;apos;,
+    post =&amp;gt; sub {
+        use Data::Dumper;
+        my $response = $_[-1];
+        print Dumper($response);
+};
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;各ラッパー関数にはラップ元の関数と同じ引数リストが渡されます。加えて&lt;code&gt;$_[-1]&lt;/code&gt;に関数の戻り値が設定されます。&lt;/p&gt;&lt;p&gt;&lt;code&gt;$_[-1]&lt;/code&gt;を変更することで関数の最終的な戻り値を変更できます。&lt;/p&gt;&lt;p&gt;つぎは&lt;a href="http://tako3.com/http://buffr.org/"&gt;koyachi&lt;/a&gt;さんお願いします。&lt;/p&gt;&lt;p&gt;&lt;a href="http://perl-users.jp/articles/advent-calendar/2008/"&gt;Back&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;
+</content:encoded>
+      <dcterms:modified>2008-12-24T04:12:13Z</dcterms:modified>
+      <guid isPermaLink="false">tag:perl-users.jp,2006:http://perl-users.jp/articles/advent-calendar/2008/24.html</guid>
+    </item>
+    <item>
+      <author>nobody@example.com</author>
+      <dc:creator>nobody@example.com</dc:creator>
+      <link>http://perl-users.jp/articles/advent-calendar/2008/23.html</link>
+      <description>キャッシュしよう京都観光で散財しすぎて貯金がないmalaです。こんにちは。キャッシュの話を書きます。色んなキャッシュがありますデータベースから引く前にmemcachedから取得したりテンプレートエンジンのレンダリング結果をキャッシュしたり各種ウェブサービスのリクエスト結果をキャッシュしたりその他諸々CPUを食ったり時間のかかる処理をキャッシュしたり簡単に思いつくのはこの程度ですが、スケーラブルなウェブサイトを構築するには常識的に考えてそんなのキャッシュしねーだろうというようなものをキャッシュする必要があります。DateTimeをキャッシュしよう同じ時刻に対するDateTimeオブジェクトをキャッシュします。package MyDateTime;
+use strict;
+use base qw(DateTime);
+
+my %CACHE;
+
+sub now {
+    my $class = shift;
+    $class-&gt;from_epoch(epoch =&gt; (scalar time), @_);
+}
+
+sub from_epoch {
+    my ($class, %args) = @_;
+    my $key = "from_epoch::".$args{epoch};
+    my $obj = $CACHE{$key};
+    return $obj-&gt;clone if (defined $obj);
+
+    my $self = $class-&gt;SUPER::from_epoch(%args);
+    $CACHE{$key} = $self;
+    return $self;
+}
+
+1;手元のMacBook(Core Duo 2GHz/Perl 5.8.8)でベンチマークを取ってみた結果はこちら            (warning: too few iterations for a reliable count)
+              Rate        now now_cached
+now         3086/s         --       -95%
+now_cached 66667/s      2060%         --
+現在時刻を生成しまくるという極端なケースですが、20倍ぐらい高速化することができます。 オリジナルのDateTime-&gt;nowを呼び出すと、DateTimeオブジェクトを一回生成するあたり、0.3msぐらいかかっているということがわかります。 たかが0.3msですが、Feedを解析したりしていると10000件ぐらいのDateTimeオブジェクトを作ったりすることも良くありますから、合計で3秒かかったりして、結構無視できなかったりします。ちなみにこのコードはtimezone等、他の引数を全く考慮しておらず、かなりいい加減な代物ですから、注意してください。 cloneしているのはDateTimeオブジェクトを破壊的に使う可能性があるからです。Method::Cachedを使って手軽に高速化こういったコードをいちいち書くのが面倒くさいのでbonnnuさんのMethod::Cachedを試してみました。memoizeとかmemoiseとか呼ばれる奴ですね。attributeを使ってキャッシュの有効期限と、引数のシリアライズルールを記述してやると、そのメソッドの結果がキャッシュされるようになります。サンプルコード。package MyDateTime2;
+use strict;
+use base qw(DateTime);
+use Method::Cached;
+
+Method::Cached-&gt;set_domain(
+    datetime =&gt; {
+        storage_class =&gt; 'Cache::FastMmap'
+    }
+);
+
+sub now {
+    my $class = shift;
+    $class-&gt;from_epoch(epoch =&gt; (scalar time), @_);
+}
+
+sub from_epoch :Cached("datetime", 60, [SELF_SHIFT, HASH]){
+    my ($class, %args) = @_;
+    warn "called";
+    $class-&gt;SUPER::from_epoch(%args);
+}
+
+1;benchmark.pl#!/usr/bin/perl
+
+use strict;
+use DateTime;
+use MyDateTime;
+use MyDateTime2;
+use Data::Dumper;
+use Benchmark qw(cmpthese);
+
+use Cache::FastMmap;
+my $a = MyDateTime2-&gt;now;
+
+my $cache = Cache::FastMmap-&gt;new;
+$cache-&gt;set(datetime =&gt; $a);
+$cache-&gt;set(simple   =&gt; 1);
+
+cmpthese (10000, {
+    now =&gt; sub {DateTime-&gt;now},
+    now_cached =&gt; sub {MyDateTime-&gt;now},
+    now_cached2 =&gt; sub {MyDateTime2-&gt;now},
+    fastmmap =&gt; sub {$cache-&gt;get("datetime")},
+    fastmmap_simple =&gt; sub {$cache-&gt;get("simple")},
+});
+結果はこちら。called at MyDateTime2.pm line 19.
+            (warning: too few iterations for a reliable count)
+            (warning: too few iterations for a reliable count)
+called at MyDateTime2.pm line 19.
+called at MyDateTime2.pm line 19.
+called at MyDateTime2.pm line 19.
+called at MyDateTime2.pm line 19.
+called at MyDateTime2.pm line 19.
+called at MyDateTime2.pm line 19.
+called at MyDateTime2.pm line 19.
+called at MyDateTime2.pm line 19.
+                   Rate now_cached2 fastmmap      now fastmmap_simple now_cached
+now_cached2      1553/s          --      -8%     -49%            -96%       -98%
+fastmmap         1686/s          9%       --     -45%            -95%       -97%
+now              3040/s         96%      80%       --            -92%       -95%
+fastmmap_simple 37037/s       2285%    2096%    1119%              --       -44%
+now_cached      66667/s       4193%    3853%    2093%             80%         --
+残念ながらオリジナルのDateTimeよりも遅くなってしまいました。約半分の速度に落ちました。結果的に遅くなってますが10000回呼び出されているのに、オリジナルのfrom_epochメソッドが呼び出されたのは8回ですので、同じ秒数である限りfrom_epochがキャッシュを使っているのがわかりますCache::FastMmapからDateTimeオブジェクトを引くだけの処理で1686/sなので、キャッシュを引く処理が遅いということになります。Cache::FastMmapにシリアライズが不要なシンプルなデータをキャッシュした場合は37000/sが出ていますので、storableの速度が遅いのだと予想が付きます。元々速い処理をさらに高速化したいような場合だと、Storableの速度や関数の呼び出し速度が影響して、Cache::*系のモジュールを使っても高速化できないケースがあります。クロージャとキャッシュあまり関係ないですが、キャッシュ関係のコードを書いていると「失敗したら代わりに何かする」系の処理に良く遭遇します。こういった処理はクロージャを使うと記述が楽になったりすることが多いです。今までこのように書いていたのをsub hoge {
+    my $cache = MyCacheClass-&gt;new;
+    my $cache_key = "hoge";
+    if (defined (my $data = $cache-&gt;get($cache_key)){
+        # HIT CACHE
+        return $data;
+    }
+    my $result = Something-&gt;heavy();
+    $cache-&gt;set($cache_key =&gt; $result, 60 * 60 * 3); # 3hours
+    return $result;
+}
+こんな風に書くのがマイブームです。sub hoge {
+    my $cache = MyCacheClass-&gt;new;
+    my $cache_key = "hoge";
+    $cache-&gt;get_or_set($cache_key, sub {
+        Something-&gt;heavy();
+    }, 60 * 60 * 3);
+}関連してそうなCPANモジュールhttp://search.cpan.org/dist/Memoize/http://search.cpan.org/dist/Method-Cached/http://search.cpan.org/dist/Attribute-Cached/http://search.cpan.org/~dankogai/Attribute-Util-1.03/次はyoupy(ブラクラ注意)さんに回したいと思います。Back
+</description>
+      <dc:date>2008-12-23T16:53:05Z</dc:date>
+      <title>キャッシュしよう</title>
+      <pubDate>Tue, 23 Dec 2008 16:53:05 -0000</pubDate>
+      <content:encoded>&lt;body&gt;&lt;h1&gt;キャッシュしよう&lt;/h1&gt;&lt;p&gt;京都観光で散財しすぎて貯金がないmalaです。こんにちは。キャッシュの話を書きます。&lt;/p&gt;&lt;h2&gt;色んなキャッシュがあります&lt;/h2&gt;&lt;ul&gt;&lt;li&gt;データベースから引く前にmemcachedから取得したり&lt;/li&gt;&lt;li&gt;テンプレートエンジンのレンダリング結果をキャッシュしたり&lt;/li&gt;&lt;li&gt;各種ウェブサービスのリクエスト結果をキャッシュしたり&lt;/li&gt;&lt;li&gt;その他諸々CPUを食ったり時間のかかる処理をキャッシュしたり&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;簡単に思いつくのはこの程度ですが、スケーラブルなウェブサイトを構築するには常識的に考えてそんなのキャッシュしねーだろうというようなものをキャッシュする必要があります。&lt;/p&gt;&lt;h2&gt;DateTimeをキャッシュしよう&lt;/h2&gt;&lt;p&gt;同じ時刻に対するDateTimeオブジェクトをキャッシュします。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;package MyDateTime;
+use strict;
+use base qw(DateTime);
+
+my %CACHE;
+
+sub now {
+    my $class = shift;
+    $class-&amp;gt;from_epoch(epoch =&amp;gt; (scalar time), @_);
+}
+
+sub from_epoch {
+    my ($class, %args) = @_;
+    my $key = &amp;quot;from_epoch::&amp;quot;.$args{epoch};
+    my $obj = $CACHE{$key};
+    return $obj-&amp;gt;clone if (defined $obj);
+
+    my $self = $class-&amp;gt;SUPER::from_epoch(%args);
+    $CACHE{$key} = $self;
+    return $self;
+}
+
+1;&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;手元のMacBook(Core Duo 2GHz/Perl 5.8.8)でベンチマークを取ってみた結果はこちら&lt;/p&gt;&lt;pre class="lang-html"&gt;&lt;code&gt;            (warning: too few iterations for a reliable count)
+              Rate        now now_cached
+now         3086/s         --       -95%
+now_cached 66667/s      2060%         --
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;現在時刻を生成しまくるという極端なケースですが、20倍ぐらい高速化することができます。 オリジナルの&lt;code&gt;DateTime-&amp;gt;now&lt;/code&gt;を呼び出すと、DateTimeオブジェクトを一回生成するあたり、0.3msぐらいかかっているということがわかります。 たかが0.3msですが、Feedを解析したりしていると10000件ぐらいのDateTimeオブジェクトを作ったりすることも良くありますから、合計で3秒かかったりして、結構無視できなかったりします。&lt;/p&gt;&lt;p&gt;ちなみにこのコードはtimezone等、他の引数を全く考慮しておらず、かなりいい加減な代物ですから、注意してください。 cloneしているのはDateTimeオブジェクトを破壊的に使う可能性があるからです。&lt;/p&gt;&lt;h2&gt;Method::Cachedを使って手軽に高速化&lt;/h2&gt;&lt;p&gt;こういったコードをいちいち書くのが面倒くさいのでbonnnuさんの&lt;a href="http://coderepos.org/share/browser/lang/perl/Method-Cached/trunk"&gt;Method::Cached&lt;/a&gt;を試してみました。memoizeとかmemoiseとか呼ばれる奴ですね。&lt;/p&gt;&lt;p&gt;attributeを使ってキャッシュの有効期限と、引数のシリアライズルールを記述してやると、そのメソッドの結果がキャッシュされるようになります。&lt;/p&gt;&lt;p&gt;サンプルコード。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;package MyDateTime2;
+use strict;
+use base qw(DateTime);
+use Method::Cached;
+
+Method::Cached-&amp;gt;set_domain(
+    datetime =&amp;gt; {
+        storage_class =&amp;gt; &amp;apos;Cache::FastMmap&amp;apos;
+    }
+);
+
+sub now {
+    my $class = shift;
+    $class-&amp;gt;from_epoch(epoch =&amp;gt; (scalar time), @_);
+}
+
+sub from_epoch :Cached(&amp;quot;datetime&amp;quot;, 60, [SELF_SHIFT, HASH]){
+    my ($class, %args) = @_;
+    warn &amp;quot;called&amp;quot;;
+    $class-&amp;gt;SUPER::from_epoch(%args);
+}
+
+1;&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;benchmark.pl&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;#!/usr/bin/perl
+
+use strict;
+use DateTime;
+use MyDateTime;
+use MyDateTime2;
+use Data::Dumper;
+use Benchmark qw(cmpthese);
+
+use Cache::FastMmap;
+my $a = MyDateTime2-&amp;gt;now;
+
+my $cache = Cache::FastMmap-&amp;gt;new;
+$cache-&amp;gt;set(datetime =&amp;gt; $a);
+$cache-&amp;gt;set(simple   =&amp;gt; 1);
+
+cmpthese (10000, {
+    now =&amp;gt; sub {DateTime-&amp;gt;now},
+    now_cached =&amp;gt; sub {MyDateTime-&amp;gt;now},
+    now_cached2 =&amp;gt; sub {MyDateTime2-&amp;gt;now},
+    fastmmap =&amp;gt; sub {$cache-&amp;gt;get(&amp;quot;datetime&amp;quot;)},
+    fastmmap_simple =&amp;gt; sub {$cache-&amp;gt;get(&amp;quot;simple&amp;quot;)},
+});
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;結果はこちら。&lt;/p&gt;&lt;pre class="lang-html"&gt;&lt;code&gt;called at MyDateTime2.pm line 19.
+            (warning: too few iterations for a reliable count)
+            (warning: too few iterations for a reliable count)
+called at MyDateTime2.pm line 19.
+called at MyDateTime2.pm line 19.
+called at MyDateTime2.pm line 19.
+called at MyDateTime2.pm line 19.
+called at MyDateTime2.pm line 19.
+called at MyDateTime2.pm line 19.
+called at MyDateTime2.pm line 19.
+called at MyDateTime2.pm line 19.
+                   Rate now_cached2 fastmmap      now fastmmap_simple now_cached
+now_cached2      1553/s          --      -8%     -49%            -96%       -98%
+fastmmap         1686/s          9%       --     -45%            -95%       -97%
+now              3040/s         96%      80%       --            -92%       -95%
+fastmmap_simple 37037/s       2285%    2096%    1119%              --       -44%
+now_cached      66667/s       4193%    3853%    2093%             80%         --
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;残念ながらオリジナルのDateTimeよりも遅くなってしまいました。約半分の速度に落ちました。&lt;/p&gt;&lt;p&gt;結果的に遅くなってますが10000回呼び出されているのに、オリジナルの&lt;code&gt;from_epoch&lt;/code&gt;メソッドが呼び出されたのは8回ですので、同じ秒数である限り&lt;code&gt;from_epoch&lt;/code&gt;がキャッシュを使っているのがわかります&lt;/p&gt;&lt;p&gt;Cache::FastMmapからDateTimeオブジェクトを引くだけの処理で1686/sなので、キャッシュを引く処理が遅いということになります。Cache::FastMmapにシリアライズが不要なシンプルなデータをキャッシュした場合は37000/sが出ていますので、storableの速度が遅いのだと予想が付きます。元々速い処理をさらに高速化したいような場合だと、Storableの速度や関数の呼び出し速度が影響して、Cache::*系のモジュールを使っても高速化できないケースがあります。&lt;/p&gt;&lt;h2&gt;クロージャとキャッシュ&lt;/h2&gt;&lt;p&gt;あまり関係ないですが、キャッシュ関係のコードを書いていると「失敗したら代わりに何かする」系の処理に良く遭遇します。こういった処理はクロージャを使うと記述が楽になったりすることが多いです。&lt;/p&gt;&lt;p&gt;今までこのように書いていたのを&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;sub hoge {
+    my $cache = MyCacheClass-&amp;gt;new;
+    my $cache_key = &amp;quot;hoge&amp;quot;;
+    if (defined (my $data = $cache-&amp;gt;get($cache_key)){
+        # HIT CACHE
+        return $data;
+    }
+    my $result = Something-&amp;gt;heavy();
+    $cache-&amp;gt;set($cache_key =&amp;gt; $result, 60 * 60 * 3); # 3hours
+    return $result;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;こんな風に書くのがマイブームです。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;sub hoge {
+    my $cache = MyCacheClass-&amp;gt;new;
+    my $cache_key = &amp;quot;hoge&amp;quot;;
+    $cache-&amp;gt;get_or_set($cache_key, sub {
+        Something-&amp;gt;heavy();
+    }, 60 * 60 * 3);
+}&lt;/code&gt;&lt;/pre&gt;&lt;h2&gt;関連してそうなCPANモジュール&lt;/h2&gt;&lt;ul&gt;&lt;li&gt;&lt;a href="http://search.cpan.org/dist/Memoize/"&gt;http://search.cpan.org/dist/Memoize/&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href="http://search.cpan.org/dist/Method-Cached/"&gt;http://search.cpan.org/dist/Method-Cached/&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href="http://search.cpan.org/dist/Attribute-Cached/"&gt;http://search.cpan.org/dist/Attribute-Cached/&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href="http://search.cpan.org/~dankogai/Attribute-Util-1.03/"&gt;http://search.cpan.org/~dankogai/Attribute-Util-1.03/&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;次は&lt;a href="http://d.hatena.ne.jp/youpy/"&gt;youpy&lt;/a&gt;(ブラクラ注意)さんに回したいと思います。&lt;/p&gt;&lt;p&gt;&lt;a href="http://perl-users.jp/articles/advent-calendar/2008/"&gt;Back&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;
+</content:encoded>
+      <dcterms:modified>2008-12-23T16:53:05Z</dcterms:modified>
+      <guid isPermaLink="false">tag:perl-users.jp,2006:http://perl-users.jp/articles/advent-calendar/2008/23.html</guid>
+    </item>
+    <item>
+      <author>nobody@example.com</author>
+      <dc:creator>nobody@example.com</dc:creator>
+      <link>http://perl-users.jp/articles/advent-calendar/2008/22.html</link>
+      <description>一行野郎(one-liner)はperlにおまかせ序文もしもプログラミング言語が宗教だったら……（全訳版）［絵文録ことのは］2008/12/21によると、ブードゥー教徒らしい  dankogai  です。 ブードゥー教徒らしく、「上司があなたに金曜夜21時に緊急の仕事を命ずるときにしばしば使われる」呪文をここでまとめておくことにします。 基本中の基本コマンドとしてのperlは、スイッチがない場合、引数はスクリプト名として扱われます。% cat hello.pl
+print "Hello, world!\n";
+% perl hello.pl
+Hello, world!
+% コマンドライン中の文字列をスクリプトとして解釈させるには、-eを使います。% perl -e'print "Hello, World!\n"'
+Hello, world!
+% ちなみに、perlとコマンド名だけで起動すると、標準入力をスクリプトとして返します。% perl
+print 1+1, "\n";
+[ctrl-D]
+2
+% なお、ここまでの挙動はrubyも同じです。強制改行Perlには、長らくRubyのputs相当が不在でした。その代わり、-lをコマンドライン指定するとprintがputs代わりになります。% perl -e'print "Hello, World!"'
+Hello, World! %
+% perl -le'print "Hello, World!"'
+Hello, World!
+% 実は-lにはprintを強制改行させるだけではなく、行を強制chompする機能もあるのですが、これに関しては後述します。5.10.0 以降では、sayが加わったので、それを使うことも出来ます。ただし、これをワンライナーから利用するには-eではなく-Eを指定する必要があります。% perl -e'say "Hello, World!"'
+String found where operator expected at -e line 1, near "say "Hello, World!""
+        (Do you need to predeclare say?)
+syntax error at -e line 1, near "say "Hello, World!""
+Execution of -e aborted due to compilation errors.
+% perl -E'say "Hello, World!"'
+Hello, World!
+-MModuleでモジュールを利用コマンドラインでモジュールを使うには、-e'use Module; ...'としてもよいのですが、-MModuleとすることも出来ます。こちらの方が一般的です。たとえば、以下のワンライナーはhttp://www.dan.co.jp/の内容を標準出力に書き出します。(もちろんLWPがインストールされていれば)。% perl -MLWP::Simple -le'print get shift' http://www.dan.co.jp/
+-MO=Deparseでスクリプト化ここで、-MO=Deparseも覚えておきましょう。perlにはさまざまなコマンドラインスイッチがあるので、複雑なものを利用した場合、実際に実行されるコードがどうなっているのかわかりにくくなったりしますが、これを使えば「もしコマンドラインではなく、スクリプトだったらどうなるか」を確認することできます。% perl -MO=Deparse -le'print "Hello, World!"'
+BEGIN { $/ = "\n"; $\ = "\n"; }
+print 'Hello, World!';
+-e syntax OK
+% -nで一行づつ処理、-pでそれをprintワンライナーの用途で最も多いのが、テキストを一行ずつ処理するというもの。この時使うと便利なのが-nと-p。通常どちらも-lと組み合わせて使います。例: 行番号を表示% perl -nle'print "$.:$_"' script.pl
+1:while(&lt;&gt;){
+2:    print "$.:$_"
+3:}
+findと組み合わせてperlを使う時にも、これが大活躍します。詳しくは404 Blog Not Found:perl - the best friend of find(1)もあわせてご覧ください。なお、このオプションはrubyにも受け継がれています。-iでファイルをまとめて書き換えここまでの例では、結果は全て標準出力でしたが、-iを指定すると、ファイルの出力は入力元となったファイル自身になります。たとえば% perl -i -ple's/\r\n/\n/g' *.txt
+で、DOS式の改行(\r\n)をすべてUnix式(\n)に変更できます。元のファイルを上書きせず残しておきたい場合は、-i.extとします。% perl -i.bak -ple's/\r\n/\n/g' *.txt
+とすると、元のファイルは.txt.bakとして残されます。ちなみに-i.bakの後、% find . -type f -name \*.bak | perl -nle'$o=$_;s/\.bak$//;rename $o,$_'
+とすれば、「アンドゥ」したのと同じことになります。-aでawkっぽく-nまたは-pさらに-aを加えると、AWKっぽい処理も可能になります。ただし、$1, $2といった、awkではフィールド変数にあたる変数はPerlではregexpで使われているので、フィールドは@Fという配列に格納されます。例: PIDを列挙する% ps aux | perl -anle'print $F[1]'
+このオプションも、rubyに移植されています(rubyの場合は配列オブジェクト$F)。Unicode使うなら-CIOPerl 5.8.1から加わったオプションです。Perl 5.8からは、UTF-8を単なるバイト列ではなく文字列としても扱うようになりましたが、下位互換性を保つため、STDINやSTDOUTといった標準ファイルハンドルは、何もしなければバイト列扱いで、これを切り替えるにはbinmode STDIN, ':utf8';などとしなければなりません。スクリプトならたかだか一行ですが、ワンライナーにはそれでもかったるい。-Cはその悩みを解消します。ちなみにIは入力を、Oは出力をそれぞれ切り替えます。口で言うとまだるっこしいのですが、以下を見ればその意味がおわかりいただけるかと。% perl -MHTML::Entities -ple'$_=encode_entities($_)'
+Dan Kogai (小飼弾)
+Dan Kogai (&amp;aring;&amp;deg;&amp;#143;&amp;eacute;&amp;pound;&amp;frac14;&amp;aring;&amp;frac14;&amp;frac34;)
+% perl -CIO -MHTML::Entities -ple'$_=encode_entities($_)'
+Dan Kogai (小飼弾)
+Dan Kogai (&amp;#x5C0F;&amp;#x98FC;&amp;#x5F3E;)
+最近の端末エミュレーターは、OS X標準装備のTerminal.appも含めてUTF-8にはじめから対応しているものが多いので、日本語処理もワンライナーでやりやすくなりました。ぜひ活用してみましょう。まとめこのようにワンライナーに強いのがperlの美点の一つです。私のshellのhistoryには、こうして出来たone-linerがどっさりたまっています。% echo $SHELL
+/bin/tcsh
+% echo histdup
+erase
+% echo $savehist
+1024
+% history | perl -nle'/perl/ and $p++;END{print $p}'
+257
+なんと1/4がワンライナーでした。みなさんも是非。そうそう。次はid:malaにてお願いします。Dan the One-Liner MongerSee Also:perldoc perlrunBack
+</description>
+      <dc:date>2008-12-23T16:53:05Z</dc:date>
+      <title>一行野郎(one-liner)はperlにおまかせ</title>
+      <pubDate>Tue, 23 Dec 2008 16:53:05 -0000</pubDate>
+      <content:encoded>&lt;body&gt;&lt;div class="hentry"&gt;&lt;h1 class="entry-title"&gt;一行野郎(one-liner)はperlにおまかせ&lt;/h1&gt;&lt;div class="entry-content"&gt;&lt;h2&gt;序文&lt;/h2&gt;&lt;ul style="list-style-image:url(http://www.kotono8.com/favicon.ico)"&gt;&lt;li&gt;&lt;a href="http://www.kotono8.com/2008/12/21if-programming-languages-were-religions.html" target="_blank"&gt;もしもプログラミング言語が宗教だったら……（全訳版）［絵文録ことのは］2008/12/21&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;によると、ブードゥー教徒らしい &lt;span class="vcard"&gt; &lt;span class="fn nickname"&gt;dankogai&lt;/span&gt; &lt;/span&gt; です。 ブードゥー教徒らしく、「上司があなたに金曜夜21時に緊急の仕事を命ずるときにしばしば使われる」呪文をここでまとめておくことにします。 &lt;/p&gt;&lt;h2&gt;基本中の基本&lt;/h2&gt;&lt;p&gt;コマンドとしての&lt;code&gt;perl&lt;/code&gt;は、スイッチがない場合、引数はスクリプト名として扱われます。&lt;/p&gt;&lt;pre class="lang-sh"&gt;&lt;code&gt;&lt;span class="nocode"&gt;% &lt;/span&gt;cat hello.pl
+&lt;span class="nocode"&gt;print &amp;quot;Hello, world!\n&amp;quot;;
+% &lt;/span&gt;perl hello.pl
+&lt;span class="nocode"&gt;Hello, world!
+% &lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;コマンドライン中の文字列をスクリプトとして解釈させるには、&lt;code&gt;-e&lt;/code&gt;を使います。&lt;/p&gt;&lt;pre class="lang-sh"&gt;&lt;code&gt;&lt;span class="nocode"&gt;% &lt;/span&gt;perl -e&amp;apos;print &amp;quot;Hello, World!\n&amp;quot;&amp;apos;
+&lt;span class="nocode"&gt;Hello, world!
+% &lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;ちなみに、&lt;code&gt;perl&lt;/code&gt;とコマンド名だけで起動すると、標準入力をスクリプトとして返します。&lt;/p&gt;&lt;pre class="lang-sh"&gt;&lt;code&gt;&lt;span class="nocode"&gt;% &lt;/span&gt;perl
+&lt;span class="nocode"&gt;print 1+1, &amp;quot;\n&amp;quot;;
+[&lt;kbd&gt;ctrl-D&lt;/kbd&gt;]
+2
+% &lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;なお、ここまでの挙動は&lt;code&gt;ruby&lt;/code&gt;も同じです。&lt;/p&gt;&lt;h2&gt;強制改行&lt;/h2&gt;&lt;p&gt;Perlには、長らくRubyの&lt;code&gt;puts&lt;/code&gt;相当が不在でした。その代わり、&lt;code&gt;-l&lt;/code&gt;をコマンドライン指定すると&lt;code&gt;print&lt;/code&gt;が&lt;code&gt;puts&lt;/code&gt;代わりになります。&lt;/p&gt;&lt;pre class="lang-sh"&gt;&lt;code&gt;&lt;span class="nocode"&gt;% &lt;/span&gt;perl -e&amp;apos;print &amp;quot;Hello, World!&amp;quot;&amp;apos;
+&lt;span class="nocode"&gt;Hello, World! %
+% &lt;/span&gt;perl -le&amp;apos;print &amp;quot;Hello, World!&amp;quot;&amp;apos;
+&lt;span class="nocode"&gt;Hello, World!
+% &lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;実は&lt;code&gt;-l&lt;/code&gt;には&lt;code&gt;print&lt;/code&gt;を強制改行させるだけではなく、行を強制&lt;code&gt;chomp&lt;/code&gt;する機能もあるのですが、これに関しては後述します。&lt;/p&gt;&lt;p&gt;5.10.0 以降では、&lt;code&gt;say&lt;/code&gt;が加わったので、それを使うことも出来ます。ただし、これをワンライナーから利用するには&lt;code&gt;-e&lt;/code&gt;ではなく&lt;code&gt;-E&lt;/code&gt;を指定する必要があります。&lt;/p&gt;&lt;pre class="lang-sh"&gt;&lt;code&gt;&lt;span class="nocode"&gt;% &lt;/span&gt;perl -e&amp;apos;say &amp;quot;Hello, World!&amp;quot;&amp;apos;
+&lt;span class="nocode"&gt;String found where operator expected at -e line 1, near &amp;quot;say &amp;quot;Hello, World!&amp;quot;&amp;quot;
+        (Do you need to predeclare say?)
+syntax error at -e line 1, near &amp;quot;say &amp;quot;Hello, World!&amp;quot;&amp;quot;
+Execution of -e aborted due to compilation errors.
+% &lt;/span&gt;perl -E&amp;apos;say &amp;quot;Hello, World!&amp;quot;&amp;apos;
+&lt;span class="nocode"&gt;Hello, World!
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;h2&gt;-M&lt;i&gt;Module&lt;/i&gt;でモジュールを利用&lt;/h2&gt;&lt;p&gt;コマンドラインでモジュールを使うには、&lt;code&gt;-e&amp;apos;use Module; ...&amp;apos;&lt;/code&gt;としてもよいのですが、&lt;code&gt;-M&lt;i&gt;Module&lt;/i&gt;&lt;/code&gt;とすることも出来ます。こちらの方が一般的です。&lt;/p&gt;&lt;p&gt;たとえば、以下のワンライナーは&lt;code&gt;http://www.dan.co.jp/&lt;/code&gt;の内容を標準出力に書き出します。(もちろん&lt;a href="http://search.cpan.org/perldoc?LWP" target="_blank"&gt;LWP&lt;/a&gt;がインストールされていれば)。&lt;/p&gt;&lt;pre class="lang-sh"&gt;&lt;code&gt;&lt;span class="nocode"&gt;% &lt;/span&gt;perl -MLWP::Simple -le&amp;apos;print get shift&amp;apos; http://www.dan.co.jp/
+&lt;/code&gt;&lt;/pre&gt;&lt;h3&gt;-MO=Deparseでスクリプト化&lt;/h3&gt;&lt;p&gt;ここで、&lt;code&gt;-MO=Deparse&lt;/code&gt;も覚えておきましょう。&lt;code&gt;perl&lt;/code&gt;にはさまざまなコマンドラインスイッチがあるので、複雑なものを利用した場合、実際に実行されるコードがどうなっているのかわかりにくくなったりしますが、これを使えば「もしコマンドラインではなく、スクリプトだったらどうなるか」を確認することできます。&lt;/p&gt;&lt;pre class="lang-sh"&gt;&lt;code&gt;&lt;span class="nocode"&gt;% &lt;/span&gt;perl -MO=Deparse -le&amp;apos;print &amp;quot;Hello, World!&amp;quot;&amp;apos;
+&lt;span class="nocode"&gt;BEGIN { $/ = &amp;quot;\n&amp;quot;; $\ = &amp;quot;\n&amp;quot;; }
+print &amp;apos;Hello, World!&amp;apos;;
+-e syntax OK
+% &lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;h2&gt;&lt;code&gt;-n&lt;/code&gt;で一行づつ処理、&lt;code&gt;-p&lt;/code&gt;でそれを&lt;code&gt;print&lt;/code&gt;&lt;/h2&gt;&lt;p&gt;ワンライナーの用途で最も多いのが、テキストを一行ずつ処理するというもの。この時使うと便利なのが&lt;code&gt;-n&lt;/code&gt;と&lt;code&gt;-p&lt;/code&gt;。通常どちらも&lt;code&gt;-l&lt;/code&gt;と組み合わせて使います。&lt;/p&gt;&lt;p&gt;例: 行番号を表示&lt;/p&gt;&lt;pre class="lang-sh"&gt;&lt;code&gt;&lt;span class="nocode"&gt;% &lt;/span&gt;perl -nle&amp;apos;print &amp;quot;$.:$_&amp;quot;&amp;apos; script.pl
+&lt;span class="nocode"&gt;1:while(&amp;lt;&amp;gt;){
+2:    print &amp;quot;$.:$_&amp;quot;
+3:}
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;code&gt;find&lt;/code&gt;と組み合わせて&lt;code&gt;perl&lt;/code&gt;を使う時にも、これが大活躍します。詳しくは&lt;/p&gt;&lt;ul style="list-style-image:url(http://www.dan.co.jp/favicon.ico)"&gt;&lt;li&gt;&lt;a href="http://blog.livedoor.jp/dankogai/archives/51008266.html" target="_blank"&gt;404 Blog Not Found:perl - the best friend of find(1)&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;もあわせてご覧ください。なお、このオプションは&lt;code&gt;ruby&lt;/code&gt;にも受け継がれています。&lt;/p&gt;&lt;h2&gt;-iでファイルをまとめて書き換え&lt;/h2&gt;&lt;p&gt;ここまでの例では、結果は全て標準出力でしたが、&lt;code&gt;-i&lt;/code&gt;を指定すると、ファイルの出力は入力元となったファイル自身になります。たとえば&lt;/p&gt;&lt;pre class="lang-sh"&gt;&lt;code&gt;&lt;span class="nocode"&gt;% &lt;/span&gt;perl -i -ple&amp;apos;s/\r\n/\n/g&amp;apos; *.txt
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;で、DOS式の改行(&lt;code&gt;\r\n&lt;/code&gt;)をすべてUnix式(&lt;code&gt;\n&lt;/code&gt;)に変更できます。&lt;/p&gt;&lt;p&gt;元のファイルを上書きせず残しておきたい場合は、&lt;code&gt;-i&lt;i&gt;.ext&lt;/i&gt;&lt;/code&gt;とします。&lt;/p&gt;&lt;pre class="lang-sh"&gt;&lt;code&gt;&lt;span class="nocode"&gt;% &lt;/span&gt;perl -i.bak -ple&amp;apos;s/\r\n/\n/g&amp;apos; *.txt
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;とすると、元のファイルは&lt;code&gt;.txt.bak&lt;/code&gt;として残されます。ちなみに&lt;code&gt;-i&lt;i&gt;.bak&lt;/i&gt;&lt;/code&gt;の後、&lt;/p&gt;&lt;pre class="lang-sh"&gt;&lt;code&gt;&lt;span class="nocode"&gt;% &lt;/span&gt;find . -type f -name \*.bak | perl -nle&amp;apos;$o=$_;s/\.bak$//;rename $o,$_&amp;apos;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;とすれば、「アンドゥ」したのと同じことになります。&lt;/p&gt;&lt;h2&gt;-aでawkっぽく&lt;/h2&gt;&lt;p&gt;&lt;code&gt;-n&lt;/code&gt;または&lt;code&gt;-p&lt;/code&gt;さらに&lt;code&gt;-a&lt;/code&gt;を加えると、AWKっぽい処理も可能になります。ただし、&lt;code&gt;$1&lt;/code&gt;, &lt;code&gt;$2&lt;/code&gt;といった、&lt;code&gt;awk&lt;/code&gt;ではフィールド変数にあたる変数はPerlではregexpで使われているので、フィールドは&lt;code&gt;@F&lt;/code&gt;という配列に格納されます。&lt;/p&gt;&lt;p&gt;例: PIDを列挙する&lt;/p&gt;&lt;pre class="lang-sh"&gt;&lt;code&gt;&lt;span class="nocode"&gt;% &lt;/span&gt;ps aux | perl -anle&amp;apos;print $F[1]&amp;apos;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;このオプションも、&lt;code&gt;ruby&lt;/code&gt;に移植されています(&lt;code&gt;ruby&lt;/code&gt;の場合は配列オブジェクト$F)。&lt;/p&gt;&lt;h2&gt;Unicode使うなら-CIO&lt;/h2&gt;&lt;p&gt;Perl 5.8.1から加わったオプションです。Perl 5.8からは、UTF-8を単なるバイト列ではなく文字列としても扱うようになりましたが、下位互換性を保つため、&lt;code&gt;STDIN&lt;/code&gt;や&lt;code&gt;STDOUT&lt;/code&gt;といった標準ファイルハンドルは、何もしなければバイト列扱いで、これを切り替えるには&lt;code&gt;binmode STDIN, &amp;apos;:utf8&amp;apos;;&lt;/code&gt;などとしなければなりません。スクリプトならたかだか一行ですが、ワンライナーにはそれでもかったるい。&lt;code&gt;-C&lt;/code&gt;はその悩みを解消します。ちなみに&lt;code&gt;I&lt;/code&gt;は入力を、&lt;code&gt;O&lt;/code&gt;は出力をそれぞれ切り替えます。&lt;/p&gt;&lt;p&gt;口で言うとまだるっこしいのですが、以下を見ればその意味がおわかりいただけるかと。&lt;/p&gt;&lt;pre class="lang-sh"&gt;&lt;code&gt;&lt;span class="nocode"&gt;% &lt;/span&gt;perl -MHTML::Entities -ple&amp;apos;$_=encode_entities($_)&amp;apos;
+&lt;span class="nocode"&gt;Dan Kogai (小飼弾)
+Dan Kogai (&amp;amp;aring;&amp;amp;deg;&amp;amp;#143;&amp;amp;eacute;&amp;amp;pound;&amp;amp;frac14;&amp;amp;aring;&amp;amp;frac14;&amp;amp;frac34;)
+% &lt;/span&gt;perl -CIO -MHTML::Entities -ple&amp;apos;$_=encode_entities($_)&amp;apos;
+&lt;span class="nocode"&gt;Dan Kogai (小飼弾)
+Dan Kogai (&amp;amp;#x5C0F;&amp;amp;#x98FC;&amp;amp;#x5F3E;)
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;最近の端末エミュレーターは、OS X標準装備の&lt;code&gt;Terminal.app&lt;/code&gt;も含めてUTF-8にはじめから対応しているものが多いので、日本語処理もワンライナーでやりやすくなりました。ぜひ活用してみましょう。&lt;/p&gt;&lt;h2&gt;まとめ&lt;/h2&gt;&lt;p&gt;このようにワンライナーに強いのが&lt;code&gt;perl&lt;/code&gt;の美点の一つです。私のshellのhistoryには、こうして出来たone-linerがどっさりたまっています。&lt;/p&gt;&lt;pre class="lang-sh"&gt;&lt;code&gt;&lt;span class="nocode"&gt;% &lt;/span&gt;echo $SHELL
+&lt;span class="nocode"&gt;/bin/tcsh
+% &lt;/span&gt;echo histdup
+&lt;span class="nocode"&gt;erase
+% &lt;/span&gt;echo $savehist
+&lt;span class="nocode"&gt;1024
+% &lt;/span&gt;history | perl -nle&amp;apos;/perl/ and $p++;END{print $p}&amp;apos;
+&lt;span class="nocode"&gt;257
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;なんと1/4がワンライナーでした。みなさんも是非。&lt;/p&gt;&lt;p&gt;そうそう。次はid:malaにてお願いします。&lt;/p&gt;&lt;p&gt;Dan the One-Liner Monger&lt;/p&gt;&lt;p&gt;See Also:&lt;/p&gt;&lt;ul style="list-style-image:url(http://search.cpan.org/favicon.ico)"&gt;&lt;li&gt;&lt;a href="http://search.cpan.org/perldoc?perlrun" target="_blank"&gt;perldoc perlrun&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;&lt;a href="http://perl-users.jp/articles/advent-calendar/2008/"&gt;Back&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;
+</content:encoded>
+      <dcterms:modified>2008-12-23T16:53:05Z</dcterms:modified>
+      <guid isPermaLink="false">tag:perl-users.jp,2006:http://perl-users.jp/articles/advent-calendar/2008/22.html</guid>
+    </item>
+    <item>
+      <author>nobody@example.com</author>
+      <dc:creator>nobody@example.com</dc:creator>
+      <link>http://perl-users.jp/articles/advent-calendar/2008/21.html</link>
+      <description>Config::PitとWeb::ScraperとPlaggerで24時間365日のゲーム監視体制序文趣味のネットウォッチのために仕方が無く超便利なPerlを覚えようという感じの  otsune  です。そんなわけでコーディングの深い話はよくわからんので、今回はPerlとCPANを使ってネットウォッチを支援する手法について書きます。 ウォッチしたいWebページを機械的に監視できれば、あとはPlaggerなどの便利ツールを使って「メールを出す」「im.kayac.comでメッセンジャーにアラートを出す」「ピザを注文する」など好きな処理をすることが出来ます。RSSフィードやAPIなどがあるWebサイトであれば特に苦労はしないのですが、今回取り上げるOgame.jpはウェブブラウザーゲームなので、フィードなど便利な機能はまったく存在しません。そこでウォッチしたいWebページに対してWeb::Scraperを使ってYAMLを出力する短いスクリプトを書いてしまいます。メールを出すなどのこまごまとした処理は既存のPlagger等のスクリプトに任せられるので、最小限のコードを書くだけでやりたいことが出来るようになります。概要ざっと流れを説明します。まずブラウザーゲームのOgame.jpはユーザー名とパスワードによりログインが必要なサイトなので、WWW::Mechanizeでログインします。そのログイン時にConfig::Pitを使うことでパスワードをスクリプト内に書かないようにします。そして、Web::ScraperでHTMLページから監視したい「敵が攻めてくる警告文」の部分を切り抜きします。最後にYAMLで、Plaggerであつかえるフィードとエントリーの形で出力します。解説早速コードを見ながら解説しましょう。（コードはCodeReposにcommitしてあります）#!/usr/bin/perl
+use strict;
+use warnings;
+use URI;
+use WWW::Mechanize;
+use Config::Pit;
+use Web::Scraper;
+use DateTime;
+use YAML;
+この辺は定番という感じで。今回使う主なCPANモジュールは、WWW::Mechanize, Config::Pit, Web::Scraperです。my $uni = shift || 'uni4';
+# get password
+#Config::Pit::switch('ogame');
+my $config = pit_get("$uni.ogame.jp", require =&gt; {
+        "username" =&gt; "otsune",
+        "password" =&gt; "your password on ogame.jp"
+    });
+Config::Pitのpit_getを使うことでスクリプトにIDやパスワードをハードコードする必要が無くなります。ぜひ使いましょう。パスワードの設定はppit set uni4.ogame.jpなどと入力して$EDITORで編集することで~/.pit/以下に保存できます。またperl -MConfig::Pit -e'Config::Pit::set("uni4.ogame.jp", data=&gt;{ username=&gt;"dankogai", password=&gt;"kogaidan" })'というワンライナーでも~/.pit/以下に保存できます。# login
+my $ogame_login = "http://$uni.ogame.jp/game/reg/login2.php";
+my $uri = URI-&gt;new($ogame_login);
+$uri-&gt;query_form(
+    login =&gt; $config-&gt;{username},
+    pass  =&gt; $config-&gt;{password},
+    v     =&gt; 2,
+);
+
+# access
+my $mech = WWW::Mechanize-&gt;new(cookie_jar =&gt; {});
+my $response = $mech-&gt;get( $uri );
+
+if (!$response-&gt;is_success || $response-&gt;content =~ /errormessage/){
+    warn $mech-&gt;status();
+    return;
+};
+
+$mech-&gt;follow_link(url_regex =&gt; qr{index\.php}i);
+URIモジュールでIDやパスワードのクエリー付きURLを組み立てて、WWW::Mechanizeでブラウザーゲームにログインをします。Ogame.jpはログイン後に&lt;meta http-equiv='refresh' ...&gt;ヘッダーでindex.phpにリダイレクトしているので、follow_linkメソッドでページ移動します。# scrape
+my $feed = scraper {
+    process 'title', 'title' =&gt; 'TEXT';
+    process 'tr.flight', 'entry[]' =&gt; scraper {
+        process 'span.attack', title =&gt; 'TEXT',
+        process '//a[@class="attack"]/following-sibling::a', body =&gt; '@title';
+        process '//div[starts-with(@id, "bxx")]', date =&gt; sub {
+            my $dt = DateTime-&gt;now(time_zone=&gt;'local');
+            $dt-&gt;add( seconds=&gt;$_-&gt;attr('title') );
+            return $dt-&gt;iso8601();
+        }
+    }
+}-&gt;scrape($mech-&gt;content, $mech-&gt;uri);
+Web::Scraperのscraperメソッドで、取得したWebページ(content)から切り抜きたい箇所をXPathかCSSセレクターで指定して読み込みます。（contentを渡してスクレイピングするときは、第二引数に$mech-&gt;uriを渡すと、Web::Scraperが相対URLを自動的に絶対URLにしてくれるのでオススメ）ここでポイントなのが後処理をするPlaggerにあわせて「ひとつのFeedに複数のEntry」という構造で項目名を決めることです。具体的な例では---
+link: フィードのURL&lt;http://example.com/hoge/&gt;
+title: 'フィードタイトル'
+image: フィードのサムネイル画像URL&lt;http://img.example.com/hoge/logo.png&gt;
+entry:
+  - title: 'エントリー1のタイトル'
+    link: エントリー1のURL&lt;http://example.com/hoge/path/to/entry1-link&gt;
+    date: エントリー1の日付(2008-12-21T01:23:45Z)
+    body: 'エントリー1内容'
+  - title: 'エントリー2のタイトル'
+    link: エントリー2のURL&lt;http://example.com/hoge/path/to/entry2-link&gt;
+    date: エントリー2の日付(2008-12-21T06:54:32Z)
+    body: 'エントリー2内容'
+という感じの構造のYAMLを出力します。（何が使えるかはPlaggerのlib/Plagger/Feed.pmやlib/Plagger/Entry.pmのアクセッサ名を参照すると良いでしょう）。Web::Scraperのprocessでは、ダブルクォートを使うときにXPath属性選択省略記号の@などを\でエスケープする必要があります。たとえば'//hoge[@attr="fuga"]'と"//hoge[\@attr='fuga']"は同じです。XPath文と一致させておきたいときはシングルクォートを使うと良いでしょう。また、Web::Scraperでsubでコールバックを使うと、$_にprocessで切り抜かれたHTML::Elementsが渡されます。敵が到達するまでの残り時間は、divタグのtitleという属性に整数値で書かれているので、subのコールバック内でDateTimeモジュールを使って加算して（具体的には$dt-&gt;add( seconds=&gt;&lt;数値&gt; )の部分）、日付文字列にして返しています。$feed-&gt;{link}  = $ogame_login;
+$feed-&gt;{image} = 'http://board.ogame.jp/ogame_logo/jp.gif';
+ここでは固定されているフィードのリンクとサムネイルイメージを直接指定してます。# output
+binmode STDOUT, ":utf8";
+print YAML::Dump $feed;
+最後にWeb::Scraperによって$feedに読み込まれたデータをYAMLとして出力します。おまけPlaggerで使うにはplagger/assets/plugins/CustomFeed-Script/以下にogame_check.plという名前などでスクリプトを配置してplugins:
+  - module: Subscription::Config
+    config:
+      feed:
+        - url: script:/path/to/plagger/assets/plugins/CustomFeed-Script/ogame_check.pl
+
+  - module: CustomFeed::Script
+というconfig.yamlで読み込みます。このスクリプトをPlaggerだけで使うつもりなら、use Plagger;とuse Plagger::UserAgent;をスクリプトに追記することでWWW::MechanizeはPlagger::UserAgentを使うことも出来ます。（おなじ理由で、DateTimeの代わりにPlagger::Dateを使うこともできます）、あーでもmechでfollow_linkとか使ってるとダメか……最後に「PerlはCPANを使うためのインターフェース」が持論のオレ的には、やりたいことをサクっと解決できるCPANという仕組みはとてもすばらしいと思っています。さて、次はmalaの予定だったけど、連絡付いたのでDan Kogaiさんで。Back
+</description>
+      <dc:date>2008-12-21T14:47:10Z</dc:date>
+      <title>Config::PitとWeb::ScraperとPlaggerで24時間365日のゲーム監視体制</title>
+      <pubDate>Sun, 21 Dec 2008 14:47:10 -0000</pubDate>
+      <content:encoded>&lt;body&gt;&lt;div class="hentry"&gt;&lt;h1 class="entry-title"&gt;Config::PitとWeb::ScraperとPlaggerで24時間365日のゲーム監視体制&lt;/h1&gt;&lt;div class="entry-content"&gt;&lt;h2&gt;序文&lt;/h2&gt;&lt;p&gt;趣味のネットウォッチのために仕方が無く超便利なPerlを覚えようという感じの &lt;span class="vcard"&gt; &lt;span class="fn nickname"&gt;otsune&lt;/span&gt; &lt;/span&gt; です。そんなわけでコーディングの深い話はよくわからんので、今回はPerlとCPANを使ってネットウォッチを支援する手法について書きます。 &lt;/p&gt;&lt;p&gt;ウォッチしたいWebページを機械的に監視できれば、あとはPlaggerなどの便利ツールを使って「メールを出す」「im.kayac.comでメッセンジャーにアラートを出す」「ピザを注文する」など好きな処理をすることが出来ます。&lt;/p&gt;&lt;p&gt;RSSフィードやAPIなどがあるWebサイトであれば特に苦労はしないのですが、今回取り上げるOgame.jpはウェブブラウザーゲームなので、フィードなど便利な機能はまったく存在しません。&lt;/p&gt;&lt;p&gt;そこでウォッチしたいWebページに対して&lt;a href="http://search.cpan.org/dist/Web-Scraper/"&gt;Web::Scraper&lt;/a&gt;を使ってYAMLを出力する短いスクリプトを書いてしまいます。&lt;/p&gt;&lt;p&gt;メールを出すなどのこまごまとした処理は既存のPlagger等のスクリプトに任せられるので、最小限のコードを書くだけでやりたいことが出来るようになります。&lt;/p&gt;&lt;h2&gt;概要&lt;/h2&gt;&lt;p&gt;ざっと流れを説明します。まずブラウザーゲームのOgame.jpはユーザー名とパスワードによりログインが必要なサイトなので、WWW::Mechanizeでログインします。&lt;/p&gt;&lt;p&gt;そのログイン時にConfig::Pitを使うことでパスワードをスクリプト内に書かないようにします。&lt;/p&gt;&lt;p&gt;そして、Web::ScraperでHTMLページから監視したい「敵が攻めてくる警告文」の部分を切り抜きします。&lt;/p&gt;&lt;p&gt;最後にYAMLで、Plaggerであつかえるフィードとエントリーの形で出力します。&lt;/p&gt;&lt;h2&gt;解説&lt;/h2&gt;&lt;p&gt;早速コードを見ながら解説しましょう。（コードは&lt;a href="http://coderepos.org/share/browser/lang/perl/misc/ogame_check.pl"&gt;CodeRepos&lt;/a&gt;にcommitしてあります）&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;#!/usr/bin/perl
+use strict;
+use warnings;
+use URI;
+use WWW::Mechanize;
+use Config::Pit;
+use Web::Scraper;
+use DateTime;
+use YAML;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;この辺は定番という感じで。今回使う主なCPANモジュールは、WWW::Mechanize, Config::Pit, Web::Scraperです。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;my $uni = shift || &amp;apos;uni4&amp;apos;;
+# get password
+#Config::Pit::switch(&amp;apos;ogame&amp;apos;);
+my $config = pit_get(&amp;quot;$uni.ogame.jp&amp;quot;, require =&amp;gt; {
+        &amp;quot;username&amp;quot; =&amp;gt; &amp;quot;otsune&amp;quot;,
+        &amp;quot;password&amp;quot; =&amp;gt; &amp;quot;your password on ogame.jp&amp;quot;
+    });
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Config::Pitの&lt;code&gt;pit_get&lt;/code&gt;を使うことでスクリプトにIDやパスワードをハードコードする必要が無くなります。ぜひ使いましょう。パスワードの設定は&lt;code&gt;ppit set uni4.ogame.jp&lt;/code&gt;などと入力して&lt;var&gt;$EDITOR&lt;/var&gt;で編集することで&lt;code&gt;~/.pit/&lt;/code&gt;以下に保存できます。また&lt;code&gt;perl -MConfig::Pit -e&amp;apos;Config::Pit::set(&amp;quot;uni4.ogame.jp&amp;quot;, data=&amp;gt;{ username=&amp;gt;&amp;quot;dankogai&amp;quot;, password=&amp;gt;&amp;quot;kogaidan&amp;quot; })&amp;apos;&lt;/code&gt;というワンライナーでも&lt;code&gt;~/.pit/&lt;/code&gt;以下に保存できます。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;# login
+my $ogame_login = &amp;quot;http://$uni.ogame.jp/game/reg/login2.php&amp;quot;;
+my $uri = URI-&amp;gt;new($ogame_login);
+$uri-&amp;gt;query_form(
+    login =&amp;gt; $config-&amp;gt;{username},
+    pass  =&amp;gt; $config-&amp;gt;{password},
+    v     =&amp;gt; 2,
+);
+
+# access
+my $mech = WWW::Mechanize-&amp;gt;new(cookie_jar =&amp;gt; {});
+my $response = $mech-&amp;gt;get( $uri );
+
+if (!$response-&amp;gt;is_success || $response-&amp;gt;content =~ /errormessage/){
+    warn $mech-&amp;gt;status();
+    return;
+};
+
+$mech-&amp;gt;follow_link(url_regex =&amp;gt; qr{index\.php}i);
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;URIモジュールでIDやパスワードのクエリー付きURLを組み立てて、WWW::Mechanizeでブラウザーゲームにログインをします。Ogame.jpはログイン後に&lt;code&gt;&amp;lt;meta http-equiv=&amp;apos;refresh&amp;apos; ...&amp;gt;&lt;/code&gt;ヘッダーで&lt;code&gt;index.php&lt;/code&gt;にリダイレクトしているので、&lt;code&gt;follow_link&lt;/code&gt;メソッドでページ移動します。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;# scrape
+my $feed = scraper {
+    process &amp;apos;title&amp;apos;, &amp;apos;title&amp;apos; =&amp;gt; &amp;apos;TEXT&amp;apos;;
+    process &amp;apos;tr.flight&amp;apos;, &amp;apos;entry[]&amp;apos; =&amp;gt; scraper {
+        process &amp;apos;span.attack&amp;apos;, title =&amp;gt; &amp;apos;TEXT&amp;apos;,
+        process &amp;apos;//a[@class=&amp;quot;attack&amp;quot;]/following-sibling::a&amp;apos;, body =&amp;gt; &amp;apos;@title&amp;apos;;
+        process &amp;apos;//div[starts-with(@id, &amp;quot;bxx&amp;quot;)]&amp;apos;, date =&amp;gt; sub {
+            my $dt = DateTime-&amp;gt;now(time_zone=&amp;gt;&amp;apos;local&amp;apos;);
+            $dt-&amp;gt;add( seconds=&amp;gt;$_-&amp;gt;attr(&amp;apos;title&amp;apos;) );
+            return $dt-&amp;gt;iso8601();
+        }
+    }
+}-&amp;gt;scrape($mech-&amp;gt;content, $mech-&amp;gt;uri);
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Web::Scraperの&lt;code&gt;scraper&lt;/code&gt;メソッドで、取得したWebページ(&lt;code&gt;content&lt;/code&gt;)から切り抜きたい箇所をXPathかCSSセレクターで指定して読み込みます。（&lt;code&gt;content&lt;/code&gt;を渡してスクレイピングするときは、第二引数に&lt;code&gt;$mech-&amp;gt;uri&lt;/code&gt;を渡すと、Web::Scraperが相対URLを自動的に絶対URLにしてくれるのでオススメ）&lt;/p&gt;&lt;p&gt;ここでポイントなのが後処理をするPlaggerにあわせて「ひとつのFeedに複数のEntry」という構造で項目名を決めることです。具体的な例では&lt;/p&gt;&lt;pre class="lang-html"&gt;&lt;code&gt;---
+link: フィードのURL&amp;lt;http://example.com/hoge/&amp;gt;
+title: &amp;apos;フィードタイトル&amp;apos;
+image: フィードのサムネイル画像URL&amp;lt;http://img.example.com/hoge/logo.png&amp;gt;
+entry:
+  - title: &amp;apos;エントリー1のタイトル&amp;apos;
+    link: エントリー1のURL&amp;lt;http://example.com/hoge/path/to/entry1-link&amp;gt;
+    date: エントリー1の日付(2008-12-21T01:23:45Z)
+    body: &amp;apos;エントリー1内容&amp;apos;
+  - title: &amp;apos;エントリー2のタイトル&amp;apos;
+    link: エントリー2のURL&amp;lt;http://example.com/hoge/path/to/entry2-link&amp;gt;
+    date: エントリー2の日付(2008-12-21T06:54:32Z)
+    body: &amp;apos;エントリー2内容&amp;apos;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;という感じの構造のYAMLを出力します。（何が使えるかはPlaggerの&lt;code&gt;lib/Plagger/Feed.pm&lt;/code&gt;や&lt;code&gt;lib/Plagger/Entry.pm&lt;/code&gt;のアクセッサ名を参照すると良いでしょう）。&lt;/p&gt;&lt;p&gt;Web::Scraperの&lt;code&gt;process&lt;/code&gt;では、ダブルクォートを使うときにXPath属性選択省略記号の&lt;code&gt;@&lt;/code&gt;などを&lt;code&gt;\&lt;/code&gt;でエスケープする必要があります。たとえば&lt;code&gt;&amp;apos;//hoge[@attr=&amp;quot;fuga&amp;quot;]&amp;apos;&lt;/code&gt;と&lt;code&gt;&amp;quot;//hoge[\@attr=&amp;apos;fuga&amp;apos;]&amp;quot;&lt;/code&gt;は同じです。XPath文と一致させておきたいときはシングルクォートを使うと良いでしょう。&lt;/p&gt;&lt;p&gt;また、Web::Scraperで&lt;code&gt;sub&lt;/code&gt;でコールバックを使うと、&lt;var&gt;$_&lt;/var&gt;に&lt;code&gt;process&lt;/code&gt;で切り抜かれたHTML::Elementsが渡されます。&lt;/p&gt;&lt;p&gt;敵が到達するまでの残り時間は、&lt;code&gt;div&lt;/code&gt;タグの&lt;code&gt;title&lt;/code&gt;という属性に整数値で書かれているので、&lt;code&gt;sub&lt;/code&gt;のコールバック内でDateTimeモジュールを使って加算して（具体的には&lt;code&gt;$dt-&amp;gt;add( seconds=&amp;gt;&lt;var&gt;&amp;lt;数値&amp;gt;&lt;/var&gt; )&lt;/code&gt;の部分）、日付文字列にして返しています。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;$feed-&amp;gt;{link}  = $ogame_login;
+$feed-&amp;gt;{image} = &amp;apos;http://board.ogame.jp/ogame_logo/jp.gif&amp;apos;;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;ここでは固定されているフィードのリンクとサムネイルイメージを直接指定してます。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;# output
+binmode STDOUT, &amp;quot;:utf8&amp;quot;;
+print YAML::Dump $feed;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;最後にWeb::Scraperによって&lt;var&gt;$feed&lt;/var&gt;に読み込まれたデータをYAMLとして出力します。&lt;/p&gt;&lt;h2&gt;おまけ&lt;/h2&gt;&lt;p&gt;Plaggerで使うには&lt;code&gt;plagger/assets/plugins/CustomFeed-Script/&lt;/code&gt;以下に&lt;code&gt;ogame_check.pl&lt;/code&gt;という名前などでスクリプトを配置して&lt;/p&gt;&lt;pre class="lang-html"&gt;&lt;code&gt;plugins:
+  - module: Subscription::Config
+    config:
+      feed:
+        - url: script:/path/to/plagger/assets/plugins/CustomFeed-Script/ogame_check.pl
+
+  - module: CustomFeed::Script
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;という&lt;code&gt;config.yaml&lt;/code&gt;で読み込みます。&lt;/p&gt;&lt;p&gt;このスクリプトをPlaggerだけで使うつもりなら、&lt;code&gt;use Plagger;&lt;/code&gt;と&lt;code&gt;use Plagger::UserAgent;&lt;/code&gt;をスクリプトに追記することでWWW::MechanizeはPlagger::UserAgentを使うことも出来ます。（おなじ理由で、DateTimeの代わりにPlagger::Dateを使うこともできます）、あーでも&lt;code&gt;mech&lt;/code&gt;で&lt;code&gt;follow_link&lt;/code&gt;とか使ってるとダメか……&lt;/p&gt;&lt;h2&gt;最後に&lt;/h2&gt;&lt;p&gt;「PerlはCPANを使うためのインターフェース」が持論のオレ的には、やりたいことをサクっと解決できるCPANという仕組みはとてもすばらしいと思っています。&lt;/p&gt;&lt;p&gt;さて、次はmalaの予定だったけど、連絡付いたので&lt;a href="http://www.dan.co.jp/~dankogai/"&gt;Dan Kogai&lt;/a&gt;さんで。&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;&lt;a href="http://perl-users.jp/articles/advent-calendar/2008/"&gt;Back&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;
+</content:encoded>
+      <dcterms:modified>2008-12-21T14:47:10Z</dcterms:modified>
+      <guid isPermaLink="false">tag:perl-users.jp,2006:http://perl-users.jp/articles/advent-calendar/2008/21.html</guid>
+    </item>
+    <item>
+      <author>nobody@example.com</author>
+      <dc:creator>nobody@example.com</dc:creator>
+      <link>http://perl-users.jp/articles/advent-calendar/2008/20.html</link>
+      <description>reduce だいすき基本デミグラスソース使った料理が食べたい cho45 です。Perl といえば某MMOゲームと同時に起動できないプログラムとして有名ですが今回はそれとは関係ない話です。 Ruby 厨の多くが inject 厨である気がします (てきとーです) が、 Perl で List::Util::reduce を使っているところをあんまり見たことがないのでいくつか便利な例を紹介します。 reduce は何かというとリストを1つの値に纏めるものです。例えばリストの要素の合計はuse Perl6::Say;
+use List::Util qw/reduce/;
+
+my $list = [1, 2, 3, 4, 5];
+
+say reduce { say "$a,$b"; $a + $b } @$list;
+ 1,2
+3,3
+6,4
+10,5
+15
+前回のループの返り値が $a に入り、$b には残りの要素のうち1つが入ります。 実は List::Util の提供する関数たちの殆どは reduce を使って実装されています。 例えば List::Util::sum という関数はまさに例に出したコードそのものですし、min, max も前回の値と比較をして現在の要素が小さいか多いきいか比較しているだけです。 まるまるコピペしてみると # List::Util.pm
+
+sub sum (@) { reduce { $a + $b } @_ }
+
+sub min (@) { reduce { $a &lt; $b ? $a : $b } @_ }
+
+sub max (@) { reduce { $a &gt; $b ? $a : $b } @_ }
+
+sub minstr (@) { reduce { $a lt $b ? $a : $b } @_ }
+
+sub maxstr (@) { reduce { $a gt $b ? $a : $b } @_ }
+シンプルですね。初期値指定でもって、reduce は初期要素、つまり $a の最初の値を指定できます。 (というか Perl の場合は引数の渡し方の関係上、リストの最初の値と初期値の区別がないのですが)use List::Util qw/reduce/;
+
+use Data::Dumper;
+sub p ($) { print Dumper shift }
+
+my $data = [
+        { name =&gt; "foo", value =&gt; 1 },
+        { name =&gt; "bar", value =&gt; 2 },
+        { name =&gt; "baz", value =&gt; 3 },
+];
+
+my $ret = reduce { +{ %$a, $b-&gt;{name} =&gt; $b } } {}, @$data;
+p $ret;
+
+#my $ret = reduce {
+#       $a-&gt;{$b-&gt;{name}} = $b;
+#       $a;
+#} {}, @$data; # これも同じ
+ $VAR1 = {
+          'bar' =&gt; {
+                     'value' =&gt; 2,
+                     'name' =&gt; 'bar'
+                   },
+          'baz' =&gt; {
+                     'value' =&gt; 3,
+                     'name' =&gt; 'baz'
+                   },
+          'foo' =&gt; {
+                     'value' =&gt; 1,
+                     'name' =&gt; 'foo'
+                   }
+        }; ハッシュの配列を name キーの値をキーにしたハッシュに変換するコードです。 reduce の第一引数にハッシュリファレンスを渡して、それを更新していく形で新しいハッシュを作ります。 +{} は度々話題になるハッシュリファレンスを明示するやつで、{ %$hasha, %$hashb } はハッシュを更新するイディオムです。2番目の例も同じことをするコードですが、最後に $a を書かないといけないのがちょっとダサいところです。ただハッシュを作りなおさない分効率的かもしれません。これを reduce を使わないで書こうとするとmy $ret = {};
+for my $i (@$data) {
+        $ret-&gt;{$i-&gt;{name}} = $i;
+}
+p $ret;
+ みたいな感じになりますね。 for ループと $ret 変数の関係がパっと見よくわからなく、 「$ret に空のハッシュリファレンスぃれてぇー、for ルゥプで $i に配列要素ぃれながらぁー、……」 みたいな感じで若干まどろっこしいのが残念です。 reduce を使えば 「$ret には reduce の結果をいれる。そしてそれは……」となるのでカッコイイです。 次は otsune さん。
+</description>
+      <dc:date>2008-12-21T14:47:10Z</dc:date>
+      <title>reduce だいすき</title>
+      <pubDate>Sun, 21 Dec 2008 14:47:10 -0000</pubDate>
+      <content:encoded>&lt;body&gt;&lt;h1&gt;reduce だいすき&lt;/h1&gt;&lt;h2&gt;基本&lt;/h2&gt;&lt;p&gt;デミグラスソース使った料理が食べたい cho45 です。Perl といえば某MMOゲームと同時に起動できないプログラムとして有名ですが今回はそれとは関係ない話です。&lt;/p&gt;&lt;p&gt; Ruby 厨の多くが inject 厨である気がします (てきとーです) が、 Perl で List::Util::reduce を使っているところをあんまり見たことがないのでいくつか便利な例を紹介します。 &lt;/p&gt;&lt;p&gt;&lt;code&gt;reduce&lt;/code&gt; は何かというとリストを1つの値に纏めるものです。例えばリストの要素の合計は&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;use Perl6::Say;
+use List::Util qw/reduce/;
+
+my $list = [1, 2, 3, 4, 5];
+
+say reduce { say &amp;quot;$a,$b&amp;quot;; $a + $b } @$list;
+&lt;/code&gt;&lt;/pre&gt; &lt;pre class="lang-html"&gt;&lt;samp&gt;1,2
+3,3
+6,4
+10,5
+15
+&lt;/samp&gt;&lt;/pre&gt;&lt;p&gt;前回のループの返り値が &lt;var&gt;$a&lt;/var&gt; に入り、&lt;var&gt;$b&lt;/var&gt; には残りの要素のうち1つが入ります。&lt;/p&gt;&lt;p&gt; 実は List::Util の提供する関数たちの殆どは &lt;code&gt;reduce&lt;/code&gt; を使って実装されています。 例えば List::Util::sum という関数はまさに例に出したコードそのものですし、&lt;code&gt;min&lt;/code&gt;, &lt;code&gt;max&lt;/code&gt; も前回の値と比較をして現在の要素が小さいか多いきいか比較しているだけです。 まるまるコピペしてみると &lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;# List::Util.pm
+
+sub sum (@) { reduce { $a + $b } @_ }
+
+sub min (@) { reduce { $a &amp;lt; $b ? $a : $b } @_ }
+
+sub max (@) { reduce { $a &amp;gt; $b ? $a : $b } @_ }
+
+sub minstr (@) { reduce { $a lt $b ? $a : $b } @_ }
+
+sub maxstr (@) { reduce { $a gt $b ? $a : $b } @_ }
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;シンプルですね。&lt;/p&gt;&lt;h2&gt;初期値指定&lt;/h2&gt;&lt;p&gt;でもって、&lt;code&gt;reduce&lt;/code&gt; は初期要素、つまり &lt;var&gt;$a&lt;/var&gt; の最初の値を指定できます。 (というか Perl の場合は引数の渡し方の関係上、リストの最初の値と初期値の区別がないのですが)&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;use List::Util qw/reduce/;
+
+use Data::Dumper;
+sub p ($) { print Dumper shift }
+
+my $data = [
+        { name =&amp;gt; &amp;quot;foo&amp;quot;, value =&amp;gt; 1 },
+        { name =&amp;gt; &amp;quot;bar&amp;quot;, value =&amp;gt; 2 },
+        { name =&amp;gt; &amp;quot;baz&amp;quot;, value =&amp;gt; 3 },
+];
+
+my $ret = reduce { +{ %$a, $b-&amp;gt;{name} =&amp;gt; $b } } {}, @$data;
+p $ret;
+
+#my $ret = reduce {
+#       $a-&amp;gt;{$b-&amp;gt;{name}} = $b;
+#       $a;
+#} {}, @$data; # これも同じ
+&lt;/code&gt;&lt;/pre&gt; &lt;pre class="lang-perl"&gt;&lt;samp&gt;$VAR1 = {
+          &amp;apos;bar&amp;apos; =&amp;gt; {
+                     &amp;apos;value&amp;apos; =&amp;gt; 2,
+                     &amp;apos;name&amp;apos; =&amp;gt; &amp;apos;bar&amp;apos;
+                   },
+          &amp;apos;baz&amp;apos; =&amp;gt; {
+                     &amp;apos;value&amp;apos; =&amp;gt; 3,
+                     &amp;apos;name&amp;apos; =&amp;gt; &amp;apos;baz&amp;apos;
+                   },
+          &amp;apos;foo&amp;apos; =&amp;gt; {
+                     &amp;apos;value&amp;apos; =&amp;gt; 1,
+                     &amp;apos;name&amp;apos; =&amp;gt; &amp;apos;foo&amp;apos;
+                   }
+        };&lt;/samp&gt;&lt;/pre&gt;&lt;p&gt; ハッシュの配列を &lt;code&gt;name&lt;/code&gt; キーの値をキーにしたハッシュに変換するコードです。 &lt;code&gt;reduce&lt;/code&gt; の第一引数にハッシュリファレンスを渡して、それを更新していく形で新しいハッシュを作ります。 &lt;/p&gt;&lt;p&gt;&lt;code&gt;+{}&lt;/code&gt; は度々話題になるハッシュリファレンスを明示するやつで、&lt;code&gt;{ %$hasha, %$hashb }&lt;/code&gt; はハッシュを更新するイディオムです。&lt;/p&gt;&lt;p&gt;2番目の例も同じことをするコードですが、最後に &lt;var&gt;$a&lt;/var&gt; を書かないといけないのがちょっとダサいところです。ただハッシュを作りなおさない分効率的かもしれません。&lt;/p&gt;&lt;p&gt;これを &lt;code&gt;reduce&lt;/code&gt; を使わないで書こうとすると&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;my $ret = {};
+for my $i (@$data) {
+        $ret-&amp;gt;{$i-&amp;gt;{name}} = $i;
+}
+p $ret;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt; みたいな感じになりますね。 &lt;code&gt;for&lt;/code&gt; ループと &lt;code&gt;$ret&lt;/code&gt; 変数の関係がパっと見よくわからなく、 「&lt;code&gt;$ret&lt;/code&gt; に空のハッシュリファレンスぃれてぇー、&lt;code&gt;for&lt;/code&gt; ルゥプで &lt;code&gt;$i&lt;/code&gt; に配列要素ぃれながらぁー、……」 みたいな感じで若干まどろっこしいのが残念です。 &lt;code&gt;reduce&lt;/code&gt; を使えば 「&lt;code&gt;$ret&lt;/code&gt; には &lt;code&gt;reduce&lt;/code&gt; の結果をいれる。そしてそれは……」となるのでカッコイイです。 &lt;/p&gt;&lt;p&gt;次は otsune さん。&lt;/p&gt;&lt;/body&gt;
+</content:encoded>
+      <dcterms:modified>2008-12-21T14:47:10Z</dcterms:modified>
+      <guid isPermaLink="false">tag:perl-users.jp,2006:http://perl-users.jp/articles/advent-calendar/2008/20.html</guid>
+    </item>
+    <item>
+      <author>nobody@example.com</author>
+      <dc:creator>nobody@example.com</dc:creator>
+      <link>http://perl-users.jp/articles/advent-calendar/2008/19.html</link>
+      <description>Vim で便利な Perl Pluginsこんにちは、Yuichi Tateno です。皆さんの記事が長くなってきたので、そろそろ短めな記事に戻そうかと思います。 
+
+　 　 　 　 　 　 _
+　　　　　　　　ノ |_ 　 ll__l---||＿　　　　　　　Nice boat.
+　　　　　　rj「ｌ＿_｀ー'　 ヽｌーｊ　 L---┐
+　　　　　 |―┴┴―｀ーｒュ-‐&lt;￣.ィｊ .__ｊｌ
+　　　　　 |[][][][][][] i　""" _..,,ｒr=''´　l
+　　　　　 l￣￣￣￣/7-‐'´　　　 　／
+　　　f　 ｊL-、 ＿-‐'　　　　　 -‐´~~
+　　　ヽ |　￣　　＿ｊ＿ -‐'~´~~
+　　　　 ｀ー～´~~~~
+
+さて、本題ですが、みなさん (の 1/3 ぐらい) が大好きな Vim についての話です。といっても Vim 全体について書くと長くなるので、便利な手前味噌な Plugin の紹介です。use 文を挿入http://subtech.g.hatena.ne.jp/secondlife/20070605/1181004403エディタで書いてる途中に Perl::Module-&gt;new と書いたら頭まで戻って use Perl::Module; と書くのはめんどくさいですね。ばかげています。そんなことを即座にやってくれる Plugin です。Perldoc をさくさくひくよhttp://subtech.g.hatena.ne.jp/secondlife/20081001/1222845699あんまりよい Perldoc viewer が無いので作りました。K で Vim の man 引きっぽくつかえます。それと viewer のバッファで s でソースとドキュメントがトグルするのが地味に便利です。ちなみに perldoc の引数は -f ぐらいしか覚えていないです。さて、今回は便利な Plugin の紹介でした。関係ない話をすると、最初超便利！と思っても1ヶ月ぐらいで使わなくなる物とそれ以上使い続けられる物があります。だいたいネットで記事を書いている人は、使い続けて1週間ぐらいで「これは便利」的な記事を書く傾向にあると思う(含む自分)なので、じつは便利と紹介されていても便利でない物 ( もしかして: vim + errormarker.vim で vim )があるので気をつけましょう。次は cho45 さんお願いします。
+</description>
+      <dc:date>2008-12-19T02:58:17Z</dc:date>
+      <title>Vim で便利な Perl Plugins</title>
+      <pubDate>Fri, 19 Dec 2008 02:58:17 -0000</pubDate>
+      <content:encoded>&lt;body&gt;&lt;h1&gt;Vim で便利な Perl Plugins&lt;/h1&gt;&lt;div class="section"&gt;&lt;p&gt;こんにちは、Yuichi Tateno です。皆さんの記事が長くなってきたので、そろそろ短めな記事に戻そうかと思います。 &lt;/p&gt;&lt;pre class="aa-photo gigazine-method" id="boat"&gt;
+
+　 　 　 　 　 　 _
+　　　　　　　　ノ |_ 　 ll__l---||＿　　　　　　　Nice boat.
+　　　　　　rj「ｌ＿_｀ー&amp;apos;　 ヽｌーｊ　 L---┐
+　　　　　 |―┴┴―｀ーｒュ-‐&amp;lt;￣.ィｊ .__ｊｌ
+　　　　　 |[][][][][][] i　&amp;quot;&amp;quot;&amp;quot; _..,,ｒr=&amp;apos;&amp;apos;´　l
+　　　　　 l￣￣￣￣/7-‐&amp;apos;´　　　 　／
+　　　f　 ｊL-、 ＿-‐&amp;apos;　　　　　 -‐´~~
+　　　ヽ |　￣　　＿ｊ＿ -‐&amp;apos;~´~~
+　　　　 ｀ー～´~~~~
+
+&lt;/pre&gt;&lt;p&gt;さて、本題ですが、みなさん (の 1/3 ぐらい) が大好きな Vim についての話です。といっても Vim 全体について書くと長くなるので、便利な手前味噌な Plugin の紹介です。&lt;/p&gt;&lt;h2&gt;use 文を挿入&lt;/h2&gt;&lt;p&gt;&lt;a href="http://subtech.g.hatena.ne.jp/secondlife/20070605/1181004403"&gt;http://subtech.g.hatena.ne.jp/secondlife/20070605/1181004403&lt;/a&gt;&lt;/p&gt;&lt;p&gt;エディタで書いてる途中に &lt;code&gt;Perl::Module-&amp;gt;new&lt;/code&gt; と書いたら頭まで戻って &lt;code&gt;use Perl::Module;&lt;/code&gt; と書くのはめんどくさいですね。ばかげています。そんなことを即座にやってくれる Plugin です。&lt;/p&gt;&lt;h2&gt;Perldoc をさくさくひくよ&lt;/h2&gt;&lt;p&gt;&lt;a href="http://subtech.g.hatena.ne.jp/secondlife/20081001/1222845699"&gt;http://subtech.g.hatena.ne.jp/secondlife/20081001/1222845699&lt;/a&gt;&lt;/p&gt;&lt;p&gt;あんまりよい Perldoc viewer が無いので作りました。&lt;kbd&gt;K&lt;/kbd&gt; で Vim の man 引きっぽくつかえます。それと viewer のバッファで &lt;kbd&gt;s&lt;/kbd&gt; でソースとドキュメントがトグルするのが地味に便利です。ちなみに &lt;code&gt;perldoc&lt;/code&gt; の引数は &lt;code&gt;-f&lt;/code&gt; ぐらいしか覚えていないです。&lt;/p&gt;&lt;p&gt;さて、今回は便利な Plugin の紹介でした。関係ない話をすると、最初超便利！と思っても1ヶ月ぐらいで使わなくなる物とそれ以上使い続けられる物があります。だいたいネットで記事を書いている人は、使い続けて1週間ぐらいで「これは便利」的な記事を書く傾向にあると思う(含む自分)なので、じつは便利と紹介されていても便利でない物 ( &lt;a href="http://subtech.g.hatena.ne.jp/secondlife/20080729/1217315593"&gt;もしかして: vim + errormarker.vim で vim&lt;/a&gt; )があるので気をつけましょう。&lt;/p&gt;&lt;p&gt;次は cho45 さんお願いします。&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;
+</content:encoded>
+      <dcterms:modified>2008-12-19T02:58:17Z</dcterms:modified>
+      <guid isPermaLink="false">tag:perl-users.jp,2006:http://perl-users.jp/articles/advent-calendar/2008/19.html</guid>
+    </item>
+    <item>
+      <author>nobody@example.com</author>
+      <dc:creator>nobody@example.com</dc:creator>
+      <link>http://perl-users.jp/articles/advent-calendar/2008/18.html</link>
+      <description>ファイルのすべてを飲み込む方法原稿を落としたら，すしをおごりにアメリカに行かないといけないとの噂にgkbrしているid:hakobe932です． 932は草津の932です．こんにちは． ファイルの中身をすべて読み込む処理というのは，非常によくある処理です．TIMTOWTDIが信条のPerlでは，ファイルの中身をすべて読み込む方法もたくさんあります．ここでは，どんな方法があるのか見てみましょう． 行単位で読み込むもっともシンプルなのは行入力演算子(&lt;&gt;)を使って行毎にデータを読み込み，それを連結する方法です．open my $fh, '&lt;', './inputfile'
+    or die "failed to open: $!";
+my $content = '';
+while (my $line = &lt;$fh&gt;) {
+    $content .= $line;
+}
+print $content;
+もう少し工夫して後置whileを使うと1行で書くことができます．open my $fh, '&lt;', './inputfile'
+    or die "failed to open: $!";
+my $content = '';
+$content .= $_ while &lt;$fh&gt;;
+print $content;
+行入力演算子はリストコンテキストで評価すると，すべての行のリストが返ってくるので，次のように書くこともできます． open my $fh, '&lt;', './inputfile'
+    or die "failed to open: $!";
+my $content = join '', &lt;$fh&gt;;
+print $content;
+$/を利用して読み込む行入力演算子でファイルの内容をすべて読み込むのは，シンプルで比較的わかりやすいですが，行を一度保存するのでメモリを食いがちです．もう少し効率の良い方法として$/変数を使うやりかたがあります．グローバル変数$/をローカル化すると行入力演算子でファイルの内容をすべて読み込むことができます． open my $fh, '&lt;', './inputfile'
+    or die "failed to open: $!";
+my $content = '';
+{
+    local $/;
+    $content = &lt;$fh&gt;;
+}
+print $content;
+これでは少しかっこわるいのですが，doブロックを使えばもう少しきれいです．open my $fh, '&lt;', './inputfile'
+    or die "failed to open: $!";
+my $content = do { local $/; &lt;$fh&gt; };
+print $content;
+これでコードもずいぶんスッキリしました．しかし，おまじない的なコードで，ぱっとみたときに何をやっているのかわかりにくいですね． ファイルのすべてを飲み込む そこで，ファイルのすべてを飲み込むためにPerl6::Slurpを使いましょう．Perl6::Slurpは名前の通りファイルの内容をすべて飲み込みます． use Perl6::Slurp;
+my $content = slurp './inputfile';
+print $content;
+Perl6::Slurpでexportされるslurp関数を使えば，おまじない的な部分がなくなって，とってもシンプルでわかりやすいコードが書けます．しかも，ファイルハンドルをopenする手間もへって良いとこづくしですね! 似たようなモジュールにFile::Slurpがあります．他にPath::Classを使うという手もあります． use Path::Class;
+my $inputfile = file('./inputfile');
+my $content = $inputfile-&gt;slurp;
+print $content;
+Path::Classはslurpするのに使う以外にも，ファイル操作に関する便利なメソッドがたくさん用意されています．モダンなPerlコードでは定番の のファイル操作のモジュールですね．slurp系のメソッドや関数は，リストコンテキストで評価されると行のリストを返すので注意が必要です．以下のようなはまり方をすると非常にやっかいです．use Perl6::Slurp;
+my $obj = { data =&gt; slurp './inputfile' }; # このslurpはリストコンテキストで実行される!
+このように，すでにあるモジュールを使うとすっきり簡潔にコードが書けます．モジュールの充実しているPerlの醍醐味かもデスネ．おまけ: readシステムコールで直接読み込むsysread関数をつかえばreadシステムコールを発行して指定サイズ文だけファイルからデータを読み込めます．-s 演算子をファイルハンドルに対して使えばファイルサイズが取れるので，以下のようにすればファイルの内容をすべて読み込むことができます． open my $fh, '&lt;', './inputfile'
+    or die "failed to open: $!";
+my $content;
+sysread $fh, $content, -s $fh;
+print $content;
+事前にサイズを指定してシステムコールを発行するので，非常に高速なはずです．ただし，生のシステムコールを叩くのでいろいろな例外事項の対処を自分でしないといけないため，あまりおすすめできません！ まとめというわけで，いろいろな方法でファイルの中身をすべて読み込んで見ました．多くの選択肢があってなかなかPerlらしい感じですね．わかりやすさや，覚えやすさ，書いているプログラムの性質などに合わせて，良さそうなのを選べば良いと思います．個人的には，Perl6::Slurpや$/を使った方法をよく使います．これからは，Path::Classを使うのがオシャレかもしれませんね．もし，このほかにもファイルを飲み込む方法があればぜひ教えてクダサイ．現在つぎにお願いする人をさがしてます…＞ Yuichi Tateno に
+</description>
+      <dc:date>2008-12-19T02:32:13Z</dc:date>
+      <title>ファイルのすべてを飲み込む方法</title>
+      <pubDate>Fri, 19 Dec 2008 02:32:13 -0000</pubDate>
+      <content:encoded>&lt;body&gt;&lt;h1&gt;ファイルのすべてを飲み込む方法&lt;/h1&gt;&lt;div class="section"&gt;&lt;p&gt;原稿を落としたら，すしをおごりにアメリカに行かないといけないとの噂にgkbrしている&lt;a href="http://d.hatena.ne.jp/hakobe932"&gt;id:hakobe932&lt;/a&gt;です． 932は草津の932です．こんにちは． &lt;/p&gt;&lt;p&gt;ファイルの中身をすべて読み込む処理というのは，非常によくある処理です．&lt;abbr title="There is more than one way to do it"&gt;TIMTOWTDI&lt;/abbr&gt;が信条のPerlでは，ファイルの中身をすべて読み込む方法もたくさんあります．ここでは，どんな方法があるのか見てみましょう． &lt;/p&gt;&lt;h2&gt;行単位で読み込む&lt;/h2&gt;&lt;p&gt;もっともシンプルなのは行入力演算子(&lt;code&gt;&amp;lt;&amp;gt;&lt;/code&gt;)を使って行毎にデータを読み込み，それを連結する方法です．&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;open my $fh, &amp;apos;&amp;lt;&amp;apos;, &amp;apos;./inputfile&amp;apos;
+    or die &amp;quot;failed to open: $!&amp;quot;;
+my $content = &amp;apos;&amp;apos;;
+while (my $line = &amp;lt;$fh&amp;gt;) {
+    $content .= $line;
+}
+print $content;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;もう少し工夫して後置&lt;code&gt;while&lt;/code&gt;を使うと1行で書くことができます．&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;open my $fh, &amp;apos;&amp;lt;&amp;apos;, &amp;apos;./inputfile&amp;apos;
+    or die &amp;quot;failed to open: $!&amp;quot;;
+my $content = &amp;apos;&amp;apos;;
+$content .= $_ while &amp;lt;$fh&amp;gt;;
+print $content;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;行入力演算子はリストコンテキストで評価すると，すべての行のリストが返ってくるので，次のように書くこともできます． &lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;open my $fh, &amp;apos;&amp;lt;&amp;apos;, &amp;apos;./inputfile&amp;apos;
+    or die &amp;quot;failed to open: $!&amp;quot;;
+my $content = join &amp;apos;&amp;apos;, &amp;lt;$fh&amp;gt;;
+print $content;
+&lt;/code&gt;&lt;/pre&gt;&lt;h2&gt;$/を利用して読み込む&lt;/h2&gt;&lt;p&gt;行入力演算子でファイルの内容をすべて読み込むのは，シンプルで比較的わかりやすいですが，行を一度保存するのでメモリを食いがちです．もう少し効率の良い方法として&lt;var&gt;$/&lt;/var&gt;変数を使うやりかたがあります．&lt;/p&gt;&lt;p&gt;グローバル変数&lt;var&gt;$/&lt;/var&gt;をローカル化すると行入力演算子でファイルの内容をすべて読み込むことができます． &lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;open my $fh, &amp;apos;&amp;lt;&amp;apos;, &amp;apos;./inputfile&amp;apos;
+    or die &amp;quot;failed to open: $!&amp;quot;;
+my $content = &amp;apos;&amp;apos;;
+{
+    local $/;
+    $content = &amp;lt;$fh&amp;gt;;
+}
+print $content;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;これでは少しかっこわるいのですが，&lt;code&gt;do&lt;/code&gt;ブロックを使えばもう少しきれいです．&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;open my $fh, &amp;apos;&amp;lt;&amp;apos;, &amp;apos;./inputfile&amp;apos;
+    or die &amp;quot;failed to open: $!&amp;quot;;
+my $content = do { local $/; &amp;lt;$fh&amp;gt; };
+print $content;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;これでコードもずいぶんスッキリしました．しかし，おまじない的なコードで，ぱっとみたときに何をやっているのかわかりにくいですね． &lt;/p&gt;&lt;h2&gt;ファイルのすべてを飲み込む&lt;/h2&gt;&lt;p&gt; そこで，ファイルのすべてを飲み込むために&lt;a href="http://search.cpan.org/perldoc?Perl6::Slurp"&gt;Perl6::Slurp&lt;/a&gt;を使いましょう．Perl6::Slurpは名前の通りファイルの内容をすべて飲み込みます． &lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;use Perl6::Slurp;
+my $content = slurp &amp;apos;./inputfile&amp;apos;;
+print $content;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Perl6::Slurpでexportされる&lt;code&gt;slurp&lt;/code&gt;関数を使えば，おまじない的な部分がなくなって，とってもシンプルでわかりやすいコードが書けます．しかも，ファイルハンドルを&lt;code&gt;open&lt;/code&gt;する手間もへって良いとこづくしですね! 似たようなモジュールに&lt;a href="http://search.cpan.org/perldoc?File::Slurp"&gt;File::Slurp&lt;/a&gt;があります．&lt;/p&gt;&lt;p&gt;他に&lt;a href="http://search.cpan.org/perldoc?Path::Class"&gt;Path::Class&lt;/a&gt;を使うという手もあります． &lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;use Path::Class;
+my $inputfile = file(&amp;apos;./inputfile&amp;apos;);
+my $content = $inputfile-&amp;gt;slurp;
+print $content;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Path::Classは&lt;code&gt;slurp&lt;/code&gt;するのに使う以外にも，ファイル操作に関する便利なメソッドがたくさん用意されています．モダンなPerlコードでは定番の のファイル操作のモジュールですね．&lt;/p&gt;&lt;p&gt;slurp系のメソッドや関数は，リストコンテキストで評価されると行のリストを返すので注意が必要です．以下のようなはまり方をすると非常にやっかいです．&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;use Perl6::Slurp;
+my $obj = { data =&amp;gt; slurp &amp;apos;./inputfile&amp;apos; }; # このslurpはリストコンテキストで実行される!
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;このように，すでにあるモジュールを使うとすっきり簡潔にコードが書けます．モジュールの充実しているPerlの醍醐味かもデスネ．&lt;/p&gt;&lt;h2&gt;おまけ: readシステムコールで直接読み込む&lt;/h2&gt;&lt;p&gt;&lt;code&gt;sysread&lt;/code&gt;関数をつかえば&lt;code&gt;read&lt;/code&gt;システムコールを発行して指定サイズ文だけファイルからデータを読み込めます．&lt;code&gt;-s&lt;/code&gt; 演算子をファイルハンドルに対して使えばファイルサイズが取れるので，以下のようにすればファイルの内容をすべて読み込むことができます． &lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;open my $fh, &amp;apos;&amp;lt;&amp;apos;, &amp;apos;./inputfile&amp;apos;
+    or die &amp;quot;failed to open: $!&amp;quot;;
+my $content;
+sysread $fh, $content, -s $fh;
+print $content;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;事前にサイズを指定してシステムコールを発行するので，非常に高速なはずです．ただし，生のシステムコールを叩くのでいろいろな例外事項の対処を自分でしないといけないため，あまりおすすめできません！ &lt;/p&gt;&lt;h2&gt;まとめ&lt;/h2&gt;&lt;p&gt;というわけで，いろいろな方法でファイルの中身をすべて読み込んで見ました．多くの選択肢があってなかなかPerlらしい感じですね．わかりやすさや，覚えやすさ，書いているプログラムの性質などに合わせて，良さそうなのを選べば良いと思います．個人的には，Perl6::Slurpや&lt;var&gt;$/&lt;/var&gt;を使った方法をよく使います．これからは，Path::Classを使うのがオシャレかもしれませんね．&lt;/p&gt;&lt;p&gt;もし，このほかにもファイルを飲み込む方法があればぜひ教えてクダサイ．&lt;/p&gt;&lt;p&gt;現在つぎにお願いする人をさがしてます…&lt;ins datetime="2008-12-19"&gt;＞ Yuichi Tateno に&lt;/ins&gt;&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;
+</content:encoded>
+      <dcterms:modified>2008-12-19T02:32:13Z</dcterms:modified>
+      <guid isPermaLink="false">tag:perl-users.jp,2006:http://perl-users.jp/articles/advent-calendar/2008/18.html</guid>
+    </item>
+    <item>
+      <author>nobody@example.com</author>
+      <dc:creator>nobody@example.com</dc:creator>
+      <link>http://perl-users.jp/articles/advent-calendar/2008/17.html</link>
+      <description>酔っぱらった勢いでコードを書く際に大切なことプライベートでコードを書く時は、たいていビールを飲みながらってな毎日のkentaro a.k.a. id:antipopです。こんにちは。そんなわけで、ただでさえtypoが多いのに加えて、酔いにより手元はボロボロ。調子良く書いていても、つまらないtypoをいちいち修正してまわっていると、せっかくの気分のいい酔いも覚めてしまうというものです。そこで、コードを書く時には酒を飲まない、という以外の対策を考えてみました。とにかく全部ぶっつぶすひとはどうしたところで間違いを犯すものです。酔っぱらっていても酔っぱらってなくても、それは同じ。ならば、あり得る名前をあらかじめ定義してはどうか、と考えました。たとえば以下のようなクラスを定義したとします。package Hoge::Fuga::Piyo;
+use strict;
+use warnings;
+
+# ... (snip) ...
+
+1;
+このクラスを使う際に、上記したように手元不如意の状態に陥っていると、ついつい以下のように書いたりして、怒られたりします。my $obj = Hgeo::Ufag::Poyi-&gt;new;
+こんなことではいつtypoをしてしまうか心配で、あっという間に酔いも覚めてしまうでしょう。この大変に深刻な問題避けるにはどうしたらいいか。そうです。Hoge::Fuga::Piyoという正しいパッケージ名から得られる、あり得る組合せのクラスをあらかじめ定義してまわれば、たとえ上記のようなコードを書いてしまったとしても、つつがなく、期待通りにスクリプトは動作し、酔い心地を邪魔されることもありません。というわけで、なんらかの方法でもってHoge::Fuga::Piyoの順列組合せを生成して、その名前を元にパッケージを定義してみようと思い立ちました。さて、どのぐらいの組合せがあるのでしょうか。ここでは、パッケージ名に含まれるアルファベットの大文字小文字を考慮しない。組合せは::で分割された文字列どうしで行われる、という条件を置く。::で分割された各パートに含まれる文字を全て使う。つまり各パートの文字数は変わらない。すると、組合せの数はHoge::Fuga::Piyoの場合、4! * 4! * 4! = 1,000通りになります。もしパッケージ名がSome::Complicated::Nameのようなものだった場合、4! * 11! * 4! = 6,600通りなんてな大きな数字になってしまいます。これではダメです……。もう少し賢くさすがに、あり得るものを全部網羅しようなんて無茶でした。それに上記の条件だと組み合わせに過ぎないので、typoにありがちな隣のキーを押してしまったというような状況を救うことができません。もっと人間の現実にやりがちな間違いに適切に対応した、賢い仕組みが必要です。そこでCPANを漁ってみると、Acme::Tpyoなんてな、その名前からしてひとを食ったようなモジュールが見つかります。ちなみにTpyoは僕がtypoしたのではなく、モジュール名自体がtypoを表現しています。これはどんなモジュールかというと、ある文字列を渡すと、わざとtypoした文章を生成して返してくれるというものです。しかも、ただ単にtypoした文字列を返すだけではなく、typingしているひとの性格や能力、その時の状態をエミュレートしてtypoしてくれるというインテリジェントなtypoマシーンなのです。たとえば、typistがキーをどれだけミスタイプしがちか、指の太さ、キータッチの強さ、カフェインや、はたまたアルコールの摂取状況なんてことまで考慮してくれます。まさに、今回の問題を解決するに際して、まさにぴったりの機能を提供してくれるものであるといえます。typo safeな環境を作るそこで、上述のAcme::Tpyoを用いて、typoに強い環境を作ってみましょう。その際、基本的には「全方位作戦」の方針を踏襲しますが、無制限に候補を羅列してもしかたがないし、また、Acme::Tpyoのインテリジェントなtypo生成能力により現実的にあり得る間違いをかなりしぼれると思わるので、適当な数だけ候補を生成するようにして、大体において役立ちそうというラインで満足するようにしておきましょう。ここではAcme::Class::TypoSafeというモジュールを作成してみました。実装の詳細を検討する前に、まずは使い方を見ておきましょう。このモジュールのテストコードを以下に示します。use strict;
+use warnings;
+use Test::More qw(no_plan);
+use UNIVERSAL::require;
+
+package Some::Complicated::Name;
+use Acme::Class::TypoSafe;
+
+sub new { bless {}, shift }
+sub difficult_to_type_correctly {}
+
+package main;
+
+my %packages = Acme::Class::TypoSafe-&gt;typo_packages;
+for my $package (keys %packages) {
+    my $obj = $package-&gt;new;
+    isa_ok $obj, $package;
+    isa_ok $obj, 'Some::Complicated::Name';
+    can_ok $obj, ('new', 'difficult_to_type_correctly', @{$packages{$package}});
+}
+ここでは、Some::Complicated::Nameというクラスを定義して、それを使ってコードを書いていこうとしています。Acme::Class::TypoSafeの使い方は上記の通り簡単で、単にuseするだけです。その結果、デフォルトでは100通りのtypoしたらこうなるだろうなというパッケージ名を生成して、それをAcme::Class::TypoSafeをuseしたモジュールの子クラスとして定義します。 package Some::Complicated::Name;
+use Acme::Class::TypoSafe;
+
+# ... (snip) ...
+
+package main;
+my $foo = Sone::Conplicared::Name-&gt;new;
+my $bar = Sien::Cmopcalired::Nane-&gt;new;
+酔っぱらって手元不如意のままこんなコードを書いても、もう安心です。ちょっとしたtypoぐらい気にかけなくても、各種パラメタの調整具合や、確率的な事情にもよりますが、けっこう拾ってくれるようです。さらにtypoしてみるここまでは、パッケージ名についてtypoした場合のことしか考慮していませんでした。typoにおいて更に深刻なのは、パッケージ名よりも書く機会の多いメソッド名でしょう。そこで、Acme::Class::TypoSafeを、メソッド名についてもuse元パッケージのメソッド一覧からそれぞれのtypo文字列を生成してエイリアスメソッドを定義するということにしました。……といいたいところなのですが、この記事を書いている時点では、以下のように実装してみたものの、use元のメソッド一覧を取得することができず、そのためメソッド名についてはいまも安心できない状況が続いています。package Acme::Class::TypoSafe;
+use strict;
+use warnings;
+use Acme::Tpyo;
+use Class::Inspector;
+
+our $VERSION       = '0.01';
+our %TYPO_PACKAGES = ();
+
+sub import {
+    my ($class, %args) = @_;
+    my $package = caller;
+    my $keyset  = delete $args{keyset};
+    my $tpyist  = delete $args{tpyist};
+    my $count   = delete $args{count} || 100;
+    my $tpyo    = Acme::Tpyo-&gt;new($keyset, $tpyist);
+
+    my $i = 0;
+    while ($i &lt; $count)  {
+        my $typo_package = join '::', map {
+            my $part = $_;
+            my $typo = $tpyo-&gt;misspell($part);
+            ucfirst(lc($typo));
+        } split '::', $package;
+
+        next if $package eq $typo_package           ||
+                $typo_package =~ /[^[:alnum:]_\:]/;
+
+        # define typo packages
+        eval &lt;&lt;"EOS";
+package $typo_package;
+use base qw($package);
+EOS
+        $TYPO_PACKAGES{$typo_package} = [];
+
+        # define typo functions for typo packages
+        for my $function (@{Class::Inspector-&gt;functions($package)}) {
+            warn $function;
+            for (1 .. $count) {
+                my $typo_function = $tpyo-&gt;misspell($function);
+                warn $typo_function;
+                next if $function eq $typo_function        ||
+                        $typo_function =~ /[^[:alnum:]_]/;
+                {
+                    no strict 'refs';
+                    *{$typo_package  . '::' . $typo_function}
+                        = *{$package . '::' . $function};
+                }
+                push @{$TYPO_PACKAGES{$typo_package}}, $typo_function;
+            }
+        }
+
+        $i++;
+    }
+}
+
+sub typo_packages {
+    %TYPO_PACKAGES;
+}
+
+1;
+このAcme::Class::TypoSafeはCodeReposに置いてありますので、typoに惑わされることのない安心・快適な泥酔コーディングを目指すPerlハッカーのみなさんに、改善をお願いしたいところであります。というわけで、次ははこべさん、お願いします。
+</description>
+      <dc:date>2008-12-17T15:44:03Z</dc:date>
+      <title>酔っぱらった勢いでコードを書く際に大切なこと</title>
+      <pubDate>Wed, 17 Dec 2008 15:44:03 -0000</pubDate>
+      <content:encoded>&lt;body&gt;&lt;h1&gt;酔っぱらった勢いでコードを書く際に大切なこと&lt;/h1&gt;&lt;div class="section"&gt;&lt;p&gt;プライベートでコードを書く時は、たいていビールを飲みながらってな毎日のkentaro a.k.a. &lt;a href="http://d.hatena.ne.jp/antipop/"&gt;id:antipop&lt;/a&gt;です。こんにちは。&lt;/p&gt;&lt;p&gt;そんなわけで、ただでさえtypoが多いのに加えて、酔いにより手元はボロボロ。調子良く書いていても、つまらないtypoをいちいち修正してまわっていると、せっかくの気分のいい酔いも覚めてしまうというものです。そこで、コードを書く時には酒を飲まない、という以外の対策を考えてみました。&lt;/p&gt;&lt;h2&gt;とにかく全部ぶっつぶす&lt;/h2&gt;&lt;p&gt;ひとはどうしたところで間違いを犯すものです。酔っぱらっていても酔っぱらってなくても、それは同じ。ならば、あり得る名前をあらかじめ定義してはどうか、と考えました。&lt;/p&gt;&lt;p&gt;たとえば以下のようなクラスを定義したとします。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;package Hoge::Fuga::Piyo;
+use strict;
+use warnings;
+
+# ... (snip) ...
+
+1;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;このクラスを使う際に、上記したように手元不如意の状態に陥っていると、ついつい以下のように書いたりして、怒られたりします。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;my $obj = Hgeo::Ufag::Poyi-&amp;gt;new;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;こんなことではいつtypoをしてしまうか心配で、あっという間に酔いも覚めてしまうでしょう。&lt;/p&gt;&lt;p&gt;この大変に深刻な問題避けるにはどうしたらいいか。そうです。Hoge::Fuga::Piyoという正しいパッケージ名から得られる、あり得る組合せのクラスをあらかじめ定義してまわれば、たとえ上記のようなコードを書いてしまったとしても、つつがなく、期待通りにスクリプトは動作し、酔い心地を邪魔されることもありません。&lt;/p&gt;&lt;p&gt;というわけで、なんらかの方法でもってHoge::Fuga::Piyoの順列組合せを生成して、その名前を元にパッケージを定義してみようと思い立ちました。さて、どのぐらいの組合せがあるのでしょうか。ここでは、&lt;/p&gt;&lt;ul&gt;&lt;li&gt;パッケージ名に含まれるアルファベットの大文字小文字を考慮しない。&lt;/li&gt;&lt;li&gt;組合せは::で分割された文字列どうしで行われる、という条件を置く。&lt;/li&gt;&lt;li&gt;::で分割された各パートに含まれる文字を全て使う。つまり各パートの文字数は変わらない。&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;すると、組合せの数はHoge::Fuga::Piyoの場合、&lt;code&gt;4! * 4! * 4! = 1,000&lt;/code&gt;通りになります。もしパッケージ名がSome::Complicated::Nameのようなものだった場合、&lt;code&gt;4! * 11! * 4! = 6,600&lt;/code&gt;通りなんてな大きな数字になってしまいます。これではダメです……。&lt;/p&gt;&lt;h2&gt;もう少し賢く&lt;/h2&gt;&lt;p&gt;さすがに、あり得るものを全部網羅しようなんて無茶でした。それに上記の条件だと組み合わせに過ぎないので、typoにありがちな隣のキーを押してしまったというような状況を救うことができません。もっと人間の現実にやりがちな間違いに適切に対応した、賢い仕組みが必要です。&lt;/p&gt;&lt;p&gt;そこでCPANを漁ってみると、&lt;a href="http://search.cpan.org/dist/Acme-Tpyo/"&gt;Acme::Tpyo&lt;/a&gt;なんてな、その名前からしてひとを食ったようなモジュールが見つかります。ちなみにTpyoは僕がtypoしたのではなく、モジュール名自体がtypoを表現しています。&lt;/p&gt;&lt;p&gt;これはどんなモジュールかというと、ある文字列を渡すと、わざとtypoした文章を生成して返してくれるというものです。しかも、ただ単にtypoした文字列を返すだけではなく、typingしているひとの性格や能力、その時の状態をエミュレートしてtypoしてくれるというインテリジェントなtypoマシーンなのです。たとえば、typistがキーをどれだけミスタイプしがちか、指の太さ、キータッチの強さ、カフェインや、はたまたアルコールの摂取状況なんてことまで考慮してくれます。まさに、今回の問題を解決するに際して、まさにぴったりの機能を提供してくれるものであるといえます。&lt;/p&gt;&lt;h2&gt;typo safeな環境を作る&lt;/h2&gt;&lt;p&gt;そこで、上述のAcme::Tpyoを用いて、typoに強い環境を作ってみましょう。その際、基本的には「全方位作戦」の方針を踏襲しますが、無制限に候補を羅列してもしかたがないし、また、Acme::Tpyoのインテリジェントなtypo生成能力により現実的にあり得る間違いをかなりしぼれると思わるので、適当な数だけ候補を生成するようにして、大体において役立ちそうというラインで満足するようにしておきましょう。&lt;/p&gt;&lt;p&gt;ここでは&lt;a href="http://svn.coderepos.org/share/lang/perl/Acme-Class-TypoSafe/trunk/"&gt;Acme::Class::TypoSafe&lt;/a&gt;というモジュールを作成してみました。実装の詳細を検討する前に、まずは使い方を見ておきましょう。このモジュールのテストコードを以下に示します。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;use strict;
+use warnings;
+use Test::More qw(no_plan);
+use UNIVERSAL::require;
+
+package Some::Complicated::Name;
+use Acme::Class::TypoSafe;
+
+sub new { bless {}, shift }
+sub difficult_to_type_correctly {}
+
+package main;
+
+my %packages = Acme::Class::TypoSafe-&amp;gt;typo_packages;
+for my $package (keys %packages) {
+    my $obj = $package-&amp;gt;new;
+    isa_ok $obj, $package;
+    isa_ok $obj, &amp;apos;Some::Complicated::Name&amp;apos;;
+    can_ok $obj, (&amp;apos;new&amp;apos;, &amp;apos;difficult_to_type_correctly&amp;apos;, @{$packages{$package}});
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;ここでは、Some::Complicated::Nameというクラスを定義して、それを使ってコードを書いていこうとしています。Acme::Class::TypoSafeの使い方は上記の通り簡単で、単に&lt;code&gt;use&lt;/code&gt;するだけです。その結果、デフォルトでは100通りのtypoしたらこうなるだろうなというパッケージ名を生成して、それをAcme::Class::TypoSafeを&lt;code&gt;use&lt;/code&gt;したモジュールの子クラスとして定義します。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt; package Some::Complicated::Name;
+use Acme::Class::TypoSafe;
+
+# ... (snip) ...
+
+package main;
+my $foo = Sone::Conplicared::Name-&amp;gt;new;
+my $bar = Sien::Cmopcalired::Nane-&amp;gt;new;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;酔っぱらって手元不如意のままこんなコードを書いても、もう安心です。ちょっとしたtypoぐらい気にかけなくても、各種パラメタの調整具合や、確率的な事情にもよりますが、けっこう拾ってくれるようです。&lt;/p&gt;&lt;h2&gt;さらにtypoしてみる&lt;/h2&gt;&lt;p&gt;ここまでは、パッケージ名についてtypoした場合のことしか考慮していませんでした。typoにおいて更に深刻なのは、パッケージ名よりも書く機会の多いメソッド名でしょう。そこで、Acme::Class::TypoSafeを、メソッド名についても&lt;code&gt;use&lt;/code&gt;元パッケージのメソッド一覧からそれぞれのtypo文字列を生成してエイリアスメソッドを定義するということにしました。&lt;/p&gt;&lt;p&gt;……といいたいところなのですが、この記事を書いている時点では、以下のように実装してみたものの、&lt;code&gt;use&lt;/code&gt;元のメソッド一覧を取得することができず、そのためメソッド名についてはいまも安心できない状況が続いています。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;package Acme::Class::TypoSafe;
+use strict;
+use warnings;
+use Acme::Tpyo;
+use Class::Inspector;
+
+our $VERSION       = &amp;apos;0.01&amp;apos;;
+our %TYPO_PACKAGES = ();
+
+sub import {
+    my ($class, %args) = @_;
+    my $package = caller;
+    my $keyset  = delete $args{keyset};
+    my $tpyist  = delete $args{tpyist};
+    my $count   = delete $args{count} || 100;
+    my $tpyo    = Acme::Tpyo-&amp;gt;new($keyset, $tpyist);
+
+    my $i = 0;
+    while ($i &amp;lt; $count)  {
+        my $typo_package = join &amp;apos;::&amp;apos;, map {
+            my $part = $_;
+            my $typo = $tpyo-&amp;gt;misspell($part);
+            ucfirst(lc($typo));
+        } split &amp;apos;::&amp;apos;, $package;
+
+        next if $package eq $typo_package           ||
+                $typo_package =~ /[^[:alnum:]_\:]/;
+
+        # define typo packages
+        eval &amp;lt;&amp;lt;&amp;quot;EOS&amp;quot;;
+package $typo_package;
+use base qw($package);
+EOS
+        $TYPO_PACKAGES{$typo_package} = [];
+
+        # define typo functions for typo packages
+        for my $function (@{Class::Inspector-&amp;gt;functions($package)}) {
+            warn $function;
+            for (1 .. $count) {
+                my $typo_function = $tpyo-&amp;gt;misspell($function);
+                warn $typo_function;
+                next if $function eq $typo_function        ||
+                        $typo_function =~ /[^[:alnum:]_]/;
+                {
+                    no strict &amp;apos;refs&amp;apos;;
+                    *{$typo_package  . &amp;apos;::&amp;apos; . $typo_function}
+                        = *{$package . &amp;apos;::&amp;apos; . $function};
+                }
+                push @{$TYPO_PACKAGES{$typo_package}}, $typo_function;
+            }
+        }
+
+        $i++;
+    }
+}
+
+sub typo_packages {
+    %TYPO_PACKAGES;
+}
+
+1;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;このAcme::Class::TypoSafeは&lt;a href="http://svn.coderepos.org/share/lang/perl/Acme-Class-TypoSafe/trunk/"&gt;CodeReposに置いてあります&lt;/a&gt;ので、typoに惑わされることのない安心・快適な泥酔コーディングを目指すPerlハッカーのみなさんに、改善をお願いしたいところであります。&lt;/p&gt;&lt;p&gt;というわけで、次は&lt;a href="http://d.hatena.ne.jp/hakobe932/"&gt;はこべさん&lt;/a&gt;、お願いします。&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;
+</content:encoded>
+      <dcterms:modified>2008-12-17T15:44:03Z</dcterms:modified>
+      <guid isPermaLink="false">tag:perl-users.jp,2006:http://perl-users.jp/articles/advent-calendar/2008/17.html</guid>
+    </item>
+    <item>
+      <author>nobody@example.com</author>
+      <dc:creator>nobody@example.com</dc:creator>
+      <link>http://perl-users.jp/articles/advent-calendar/2008/16.html</link>
+      <description>Perl の map と grep を使うすしを奢らなければいけないなんて、バトンを渡されてから知りました。おいしい寿司が食いたい sekimura です。今回は使いこなすと気持ちよくて、使いすぎると気持ち悪いと言われてしまう grep と map の使い方について紹介します。この二つは文法がよく似ていて、同時に使われることも多いので一気に両方の使い方を覚えるのをおすすめします。grep: 配列をフィルターするまずは、前回覚えた perldoc を使って grep とはなにかを調べてみましょう。$ perldoc -f grep
+       grep BLOCK LIST
+       grep EXPR,LIST
+               This is similar in spirit to, but not the same as, grep(1) and
+               its relatives.  In particular, it is not limited to using
+               regular expressions.
+
+               Evaluates the BLOCK or EXPR for each element of LIST (locally
+               setting $_ to each element) and returns the list value
+               consisting of those elements for which the expression evaluated
+               to true.  In scalar context, returns the number of times the
+               expression was true.
+「UNIX コマンドの grep 等のコマンドと似てるけど違うもの。だって正規表現以外も使えるんだぜ」とか書いていますね。LIST の全要素を（$_ を局所的にセットしながら）BLOCK か EXPR で評価し、その結果が真となるものだけからなる配列を返します。スカラコンテキストの場合は、結果が真となる要素の数を返します。例えば %ENV のキーからなる配列から "H" で始まるものだけを抜き出すには以下のようにします。$ perl -e 'print join " ", (grep /^H/, keys %ENV), "\n"'
+HOME HISTCONTROL
+grep は BLOCK を使った場合にもっと楽しくなります。例えば、以下のように、ある二つの配列をつなぎ合わせたものから、重複を取り除いた配列を得ることができます。my @cities = ('Sapporo', 'Nishitokyo', 'Yokohama');
+my @prefs  = ('Hokkaido', 'Tokyo', 'Yokohama');
+my %seen;
+
+my @uniq = grep { ++$seen{$_} &lt; 2 } (@cities, @prefs);
+
+## @uniq には ('Sapporo', 'Nishitokyo', 'Yokohama', 'Hokkaido', 'Tokyo') が入る。
+逆に重複したものだけ抜き出したいときには以下のように grep で取得した配列に対して grep することで得られます。my @lunch  = ('Bento', 'Ramen', 'Onigiri', 'Curry');
+my @dinner = ('Tonkatsu', 'Ramen', 'Curry');
+my %seen;
+
+my @dup = grep { $seen{$_} &gt;= 2 } grep { ++$seen{$_} &gt; 1 } (@luch, @dinner);
+
+## @dup には ('Ramen', 'Curry') が入る。
+map: 配列の要素を変換する例によって perldoc -f map しましょう。$ perldoc -f map
+       map BLOCK LIST
+       map EXPR,LIST
+              Evaluates the BLOCK or EXPR for each element of LIST (locally
+              setting $_ to each element) and returns the list value composed
+              of the results of each such evaluation.  In scalar context,
+              returns the total number of elements so generated.  Evaluates
+              BLOCK or EXPR in list context, so each element of LIST may
+              produce zero, one, or more elements in the returned value.
+ほとんど同じことが書いてありますね。grep はフィルターなので、得られる配列は与えられた配列のサブセットになるのに対して、map では与えられた各要素を変換し、その結果を配列として得ることが可能です。my %price_map = (
+  'Ramen' =&gt; 400,
+  'Curry' =&gt; 650,
+  'Katsudon' =&gt; 600,
+);
+my @today = ('Ramen', 'Curry');
+my @meshi_dai = map { $price_map{$_} } @today;
+## @meshi_dai には ('400', '650') が入る。
+
+my @zei_komi = map { $_ x 1.05 } @meshi_dai;
+## @zei_komi には ('420', '682.5') が入る。
+grep のときにはスルーしましたが、 BLOCK 内での $_ は元の要素のリファレンスなので、$_ を変更してしまうと、元の要素も変更されてしまいます。よく、「破壊的」と呼ばれるケースですね。これを防ぐには、 BLOCK の内部で my 変数にコピーしてから変更を加えていきます。my @addresses = ('katsuo@example.com', 'wakame@example.com', 'tara@example.com');
+my @no_spam = map { my $email = $_; $email =~ s/\@/ at /; $email } @addresses;
+
+## @no_spam には ('katsuo at example.com', 'wakame at example.com', 'tara at example.com) が入る。
+このようにして、@addresses の要素を変更すること無く @no_spam という変換後の要素を持つ配列を得ることができます。使いどころgrep, map 両方共 for, foreach のループで書き換えることができますが、それぞれ「フィルター」と「変換」という意味をコードを読む人に的確に伝えることができるのがメリットではないでしょうか。その他にも、デバッガーやワンライナーでループ処理を簡素に書けるのも利点です。 sort 等のコマンドと組み合わせて UNIX のパイプのようにデータを処理すると自分が偉くなったような錯覚に陥るのがオススメどころです。 ただし、 grep, map を単にループ処理をするために、左辺値を受け取らずに使うのはコードを読む人を混乱させるので避けた方がいいでしょう。 (SEE ALSO perldoc perlstyle) 次は nipotan さん と思ったら風邪引いてピンチだそうで。 antipop さんお願いします。
+</description>
+      <dc:date>2008-12-17T13:37:36Z</dc:date>
+      <title>Perl の map と grep を使う</title>
+      <pubDate>Wed, 17 Dec 2008 13:37:36 -0000</pubDate>
+      <content:encoded>&lt;body&gt;&lt;h1&gt;Perl の map と grep を使う&lt;/h1&gt;&lt;div class="section"&gt;&lt;p&gt;すしを奢らなければいけないなんて、バトンを渡されてから知りました。おいしい寿司が食いたい sekimura です。&lt;/p&gt;&lt;p&gt;今回は使いこなすと気持ちよくて、使いすぎると気持ち悪いと言われてしまう &lt;code&gt;grep&lt;/code&gt; と &lt;code&gt;map&lt;/code&gt; の使い方について紹介します。この二つは文法がよく似ていて、同時に使われることも多いので一気に両方の使い方を覚えるのをおすすめします。&lt;/p&gt;&lt;h2&gt;grep: 配列をフィルターする&lt;/h2&gt;&lt;p&gt;まずは、前回覚えた perldoc を使って &lt;code&gt;grep&lt;/code&gt; とはなにかを調べてみましょう。&lt;/p&gt;&lt;pre&gt;&lt;code&gt;$ perldoc -f grep
+       grep BLOCK LIST
+       grep EXPR,LIST
+               This is similar in spirit to, but not the same as, grep(1) and
+               its relatives.  In particular, it is not limited to using
+               regular expressions.
+
+               Evaluates the BLOCK or EXPR for each element of LIST (locally
+               setting $_ to each element) and returns the list value
+               consisting of those elements for which the expression evaluated
+               to true.  In scalar context, returns the number of times the
+               expression was true.
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;「UNIX コマンドの &lt;code&gt;grep&lt;/code&gt; 等のコマンドと似てるけど違うもの。だって正規表現以外も使えるんだぜ」とか書いていますね。LIST の全要素を（&lt;code&gt;$_&lt;/code&gt; を局所的にセットしながら）BLOCK か EXPR で評価し、その結果が真となるものだけからなる配列を返します。スカラコンテキストの場合は、結果が真となる要素の数を返します。例えば &lt;code&gt;%ENV&lt;/code&gt; のキーからなる配列から &lt;code&gt;&amp;quot;H&amp;quot;&lt;/code&gt; で始まるものだけを抜き出すには以下のようにします。&lt;/p&gt;&lt;pre&gt;&lt;code&gt;$ perl -e &amp;apos;print join &amp;quot; &amp;quot;, (grep /^H/, keys %ENV), &amp;quot;\n&amp;quot;&amp;apos;
+HOME HISTCONTROL
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;code&gt;grep&lt;/code&gt; は BLOCK を使った場合にもっと楽しくなります。例えば、以下のように、ある二つの配列をつなぎ合わせたものから、重複を取り除いた配列を得ることができます。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;my @cities = (&amp;apos;Sapporo&amp;apos;, &amp;apos;Nishitokyo&amp;apos;, &amp;apos;Yokohama&amp;apos;);
+my @prefs  = (&amp;apos;Hokkaido&amp;apos;, &amp;apos;Tokyo&amp;apos;, &amp;apos;Yokohama&amp;apos;);
+my %seen;
+
+my @uniq = grep { ++$seen{$_} &amp;lt; 2 } (@cities, @prefs);
+
+## @uniq には (&amp;apos;Sapporo&amp;apos;, &amp;apos;Nishitokyo&amp;apos;, &amp;apos;Yokohama&amp;apos;, &amp;apos;Hokkaido&amp;apos;, &amp;apos;Tokyo&amp;apos;) が入る。
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;逆に重複したものだけ抜き出したいときには以下のように &lt;code&gt;grep&lt;/code&gt; で取得した配列に対して &lt;code&gt;grep&lt;/code&gt; することで得られます。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;my @lunch  = (&amp;apos;Bento&amp;apos;, &amp;apos;Ramen&amp;apos;, &amp;apos;Onigiri&amp;apos;, &amp;apos;Curry&amp;apos;);
+my @dinner = (&amp;apos;Tonkatsu&amp;apos;, &amp;apos;Ramen&amp;apos;, &amp;apos;Curry&amp;apos;);
+my %seen;
+
+my @dup = grep { $seen{$_} &amp;gt;= 2 } grep { ++$seen{$_} &amp;gt; 1 } (@luch, @dinner);
+
+## @dup には (&amp;apos;Ramen&amp;apos;, &amp;apos;Curry&amp;apos;) が入る。
+&lt;/code&gt;&lt;/pre&gt;&lt;h2&gt;map: 配列の要素を変換する&lt;/h2&gt;&lt;p&gt;例によって &lt;code&gt;perldoc -f map&lt;/code&gt; しましょう。&lt;/p&gt;&lt;pre&gt;&lt;code&gt;$ perldoc -f map
+       map BLOCK LIST
+       map EXPR,LIST
+              Evaluates the BLOCK or EXPR for each element of LIST (locally
+              setting $_ to each element) and returns the list value composed
+              of the results of each such evaluation.  In scalar context,
+              returns the total number of elements so generated.  Evaluates
+              BLOCK or EXPR in list context, so each element of LIST may
+              produce zero, one, or more elements in the returned value.
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;ほとんど同じことが書いてありますね。&lt;code&gt;grep&lt;/code&gt; はフィルターなので、得られる配列は与えられた配列のサブセットになるのに対して、&lt;code&gt;map&lt;/code&gt; では与えられた各要素を変換し、その結果を配列として得ることが可能です。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;my %price_map = (
+  &amp;apos;Ramen&amp;apos; =&amp;gt; 400,
+  &amp;apos;Curry&amp;apos; =&amp;gt; 650,
+  &amp;apos;Katsudon&amp;apos; =&amp;gt; 600,
+);
+my @today = (&amp;apos;Ramen&amp;apos;, &amp;apos;Curry&amp;apos;);
+my @meshi_dai = map { $price_map{$_} } @today;
+## @meshi_dai には (&amp;apos;400&amp;apos;, &amp;apos;650&amp;apos;) が入る。
+
+my @zei_komi = map { $_ x 1.05 } @meshi_dai;
+## @zei_komi には (&amp;apos;420&amp;apos;, &amp;apos;682.5&amp;apos;) が入る。
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;code&gt;grep&lt;/code&gt; のときにはスルーしましたが、 BLOCK 内での &lt;code&gt;$_&lt;/code&gt; は元の要素のリファレンスなので、&lt;code&gt;$_&lt;/code&gt; を変更してしまうと、元の要素も変更されてしまいます。よく、「破壊的」と呼ばれるケースですね。これを防ぐには、 BLOCK の内部で &lt;code&gt;my&lt;/code&gt; 変数にコピーしてから変更を加えていきます。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;my @addresses = (&amp;apos;katsuo@example.com&amp;apos;, &amp;apos;wakame@example.com&amp;apos;, &amp;apos;tara@example.com&amp;apos;);
+my @no_spam = map { my $email = $_; $email =~ s/\@/ at /; $email } @addresses;
+
+## @no_spam には (&amp;apos;katsuo at example.com&amp;apos;, &amp;apos;wakame at example.com&amp;apos;, &amp;apos;tara at example.com) が入る。
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;このようにして、&lt;code&gt;@addresses&lt;/code&gt; の要素を変更すること無く &lt;code&gt;@no_spam&lt;/code&gt; という変換後の要素を持つ配列を得ることができます。&lt;/p&gt;&lt;h2&gt;使いどころ&lt;/h2&gt;&lt;p&gt;&lt;code&gt;grep&lt;/code&gt;, &lt;code&gt;map&lt;/code&gt; 両方共 &lt;code&gt;for&lt;/code&gt;, &lt;code&gt;foreach&lt;/code&gt; のループで書き換えることができますが、それぞれ「フィルター」と「変換」という意味をコードを読む人に的確に伝えることができるのがメリットではないでしょうか。その他にも、デバッガーやワンライナーでループ処理を簡素に書けるのも利点です。 &lt;code&gt;sort&lt;/code&gt; 等のコマンドと組み合わせて UNIX のパイプのようにデータを処理すると自分が偉くなったような錯覚に陥るのがオススメどころです。 &lt;/p&gt;&lt;p&gt;ただし、 &lt;code&gt;grep&lt;/code&gt;, &lt;code&gt;map&lt;/code&gt; を単にループ処理をするために、左辺値を受け取らずに使うのはコードを読む人を混乱させるので避けた方がいいでしょう。 (SEE ALSO &lt;code&gt;perldoc perlstyle&lt;/code&gt;) &lt;/p&gt;&lt;p&gt;次は &lt;del&gt;nipotan さん&lt;/del&gt; と思ったら風邪引いてピンチだそうで。 antipop さんお願いします。&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;
+</content:encoded>
+      <dcterms:modified>2008-12-17T13:37:36Z</dcterms:modified>
+      <guid isPermaLink="false">tag:perl-users.jp,2006:http://perl-users.jp/articles/advent-calendar/2008/16.html</guid>
+    </item>
+    <item>
+      <author>nobody@example.com</author>
+      <dc:creator>nobody@example.com</dc:creator>
+      <link>http://perl-users.jp/articles/advent-calendar/2008/15.html</link>
+      <description>perldoc を使いこなす国内滞在説が根強い miyagawa です。アメリカ合衆国国内という意味であれば、いつもそうなんですが。今回は意外と知られていないと思われる perldoc コマンドの使い方を紹介します。perldoc は Perl モジュールに含まれる POD ドキュメントを整形して man 表示するツールで、perldoc モジュール名のようにして実行します。% perldoc Web::Scraper
+-l オプションをつけるとそのモジュールのあるパス、-m オプションで POD の代わりにソースコードそのものを表示することができます。% perldoc -l Web::Scraper
+/Library/Perl/5.8.6/Web/Scraper.pm
+# .pm ファイルを vi で開く
+% vi `perldoc -l Web::Scraper`
+# .pm ファイルを PAGER で開く
+% perldoc -m Web::Scraper
+エラーにファイル名と行数が書いてあってその部分を見たい、なんてときには Emacs や Vim などにパイプで渡して開くと便利ですね。-f オプションは Perl の組み込み関数のドキュメントを表示します。% perldoc -f index
+       index STR,SUBSTR,POSITION
+       index STR,SUBSTR
+               The index function searches for one string within another, but
+               without the wildcard-like behavior of a full regular-expression
+               pattern match.  It returns the position of the first occurrence
+               of SUBSTR in STR at or after POSITION.  If POSITION is omitted,
+               starts searching from the beginning of the string.  The return
+               value is based at 0 (or whatever you've set the $[ variable
+               to--but don't do that).  If the substring is not found, returns
+               one less than the base, ordinarily "-1".
+よく -X ファイルテスト演算子 の対応を忘れてしまって困りますが、そういうときは perldoc -f -X とすると一覧がでてきます。そうそう、ターミナルのロケールに UTF-8 を設定している場合、perldoc と nroff では、コードに含まれるシングルクォートやダブルクォートが UTF-8 の全角文字に変換されてしまい、ペーストしても動かない という問題があります。ちょっとバッドノウハウ気味ですが、perldoc に -t オプションをつけていつもテキスト表示するか、一時的に LANG 環境変数を無効化することで対応しています。% alias perldoc
+env LANG=C perldoc
+次は sekimura さん。
+</description>
+      <dc:date>2008-12-16T11:03:38Z</dc:date>
+      <title>perldoc を使いこなす</title>
+      <pubDate>Tue, 16 Dec 2008 11:03:38 -0000</pubDate>
+      <content:encoded>&lt;body&gt;&lt;h1&gt;perldoc を使いこなす&lt;/h1&gt;&lt;div class="section"&gt;&lt;p&gt;国内滞在説が根強い miyagawa です。アメリカ合衆国国内という意味であれば、いつもそうなんですが。&lt;/p&gt;&lt;p&gt;今回は意外と知られていないと思われる perldoc コマンドの使い方を紹介します。perldoc は Perl モジュールに含まれる POD ドキュメントを整形して man 表示するツールで、perldoc モジュール名のようにして実行します。&lt;/p&gt;&lt;pre&gt;&lt;code&gt;% perldoc Web::Scraper
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;code&gt;-l&lt;/code&gt; オプションをつけるとそのモジュールのあるパス、&lt;code&gt;-m&lt;/code&gt; オプションで POD の代わりにソースコードそのものを表示することができます。&lt;/p&gt;&lt;pre&gt;&lt;code&gt;% perldoc -l Web::Scraper
+/Library/Perl/5.8.6/Web/Scraper.pm
+# .pm ファイルを vi で開く
+% vi `perldoc -l Web::Scraper`
+# .pm ファイルを PAGER で開く
+% perldoc -m Web::Scraper
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;エラーにファイル名と行数が書いてあってその部分を見たい、なんてときには Emacs や Vim などにパイプで渡して開くと便利ですね。&lt;/p&gt;&lt;p&gt;&lt;code&gt;-f&lt;/code&gt; オプションは Perl の組み込み関数のドキュメントを表示します。&lt;/p&gt;&lt;pre&gt;&lt;code&gt;% perldoc -f index
+       index STR,SUBSTR,POSITION
+       index STR,SUBSTR
+               The index function searches for one string within another, but
+               without the wildcard-like behavior of a full regular-expression
+               pattern match.  It returns the position of the first occurrence
+               of SUBSTR in STR at or after POSITION.  If POSITION is omitted,
+               starts searching from the beginning of the string.  The return
+               value is based at 0 (or whatever you&amp;apos;ve set the $[ variable
+               to--but don&amp;apos;t do that).  If the substring is not found, returns
+               one less than the base, ordinarily &amp;quot;-1&amp;quot;.
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;よく &lt;a href="http://perl-users.jp/articles/advent-calendar/2008/06.html"&gt;&lt;code&gt;-X&lt;/code&gt; ファイルテスト演算子&lt;/a&gt; の対応を忘れてしまって困りますが、そういうときは &lt;code&gt;perldoc -f -X&lt;/code&gt; とすると一覧がでてきます。&lt;/p&gt;&lt;p&gt;そうそう、ターミナルのロケールに UTF-8 を設定している場合、&lt;a href="http://use.perl.org/~jbisbee/journal/36868"&gt;perldoc と nroff では、コードに含まれるシングルクォートやダブルクォートが UTF-8 の全角文字に変換されてしまい、ペーストしても動かない&lt;/a&gt; という問題があります。ちょっとバッドノウハウ気味ですが、perldoc に &lt;code&gt;-t&lt;/code&gt; オプションをつけていつもテキスト表示するか、一時的に &lt;var&gt;LANG&lt;/var&gt; 環境変数を無効化することで対応しています。&lt;/p&gt;&lt;pre&gt;&lt;code&gt;% alias perldoc
+env LANG=C perldoc
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;次は sekimura さん。&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;
+</content:encoded>
+      <dcterms:modified>2008-12-16T11:03:38Z</dcterms:modified>
+      <guid isPermaLink="false">tag:perl-users.jp,2006:http://perl-users.jp/articles/advent-calendar/2008/15.html</guid>
+    </item>
+    <item>
+      <author>nobody@example.com</author>
+      <dc:creator>nobody@example.com</dc:creator>
+      <link>http://perl-users.jp/articles/advent-calendar/2008/14.html</link>
+      <description>ヒアドキュメントの中でPerlの式を書く初代新幹線「0系」最後のラストランの日に、新幹線N700系のぞみでイーモバイルしながらこの記事を書いているid:TAKESAKOです。Perlのヒアドキュメントを使うと複数行にわたる文字列を一気に代入したりするときに楽なので、使っている人も多いと思います。my $foo = "bar";
+my $tmp = time(); # ←関数の実行結果
+print&lt;&lt;EOF;
+  &lt;div class="${foo}1"&gt;
+    &lt;h1&gt;TIME: $tmp&lt;/h1&gt;
+  &lt;/div&gt;
+EOF
+しかし、ヒアドキュメントの途中でサブルーチンの実行結果も一緒に埋め込みたいときがでてくるときがあります。@{[ Perlの式 ]}そのようなときは、@{[ リスト ]} というイディオムを使うと非常に便利です。print&lt;&lt;EOF;
+  &lt;div class="${foo}1"&gt;
+    &lt;h1&gt;TIME: @{[ time() ]}&lt;/h1&gt;
+  &lt;/div&gt;
+EOF
+実行結果：  &lt;div class="bar1"&gt;
+    &lt;h1&gt;TIME: 1229258525&lt;/h1&gt;
+  &lt;/div&gt;
+@{[ リスト ]} の中にはPerlの式をそのまま書くことができます。この例では、関数 time() の実行結果がヒアドキュメントの文字列の中に埋め込まれていることがわかります。リストコンテキストの罠しかし、このイディオムの式はリストコンテキストで評価されるので、wantarray でサブルーチンの戻り値を切り替えている関数などでは期待通りの結果が得られない場合があります。print&lt;&lt;EOF;
+  &lt;div class="${foo}2"&gt;
+    &lt;h1&gt;TIME: @{[ localtime() ]}&lt;/h1&gt;
+  &lt;/div&gt;
+EOF
+実行結果：  &lt;div class="bar2"&gt;
+    &lt;h1&gt;TIME: 5 42 21 14 11 108 0 348 0&lt;/h1&gt;
+  &lt;/div&gt;
+このような場合は、式が必ずスカラーコンテキストで評価されるように、 "".localtime() もしくは scalar localtime() などと記述すれば大丈夫です。print&lt;&lt;EOF;
+  &lt;div class="${foo}3"&gt;
+    &lt;h1&gt;TIME: @{[ scalar localtime() ]}&lt;/h1&gt;
+  &lt;/div&gt;
+EOF
+実行結果：  &lt;div class="bar3"&gt;
+    &lt;h1&gt;TIME: Sun Dec 14 21:42:05 2008&lt;/h1&gt;
+  &lt;/div&gt;
+"@a\n" と特殊変数 $"ちなみに、ダブルクォート文字列中に @a を埋め込んだ場合、例えば "@a\n" は join($",@a)."\n" と等価となります。$" は、配列のリストを文字列に変換するときに自動的に要素間に挿入する文字列（デフォルトは空白 " "）を意味する特殊変数です。 一時的に $" の値を書き換えて、要素間に自動挿入する文字列をデフォルトの空白から任意の文字列に変更することもできます。do {
+  local $" = " x ";
+  my @a = ('sin', 'cos', 'tan');
+  print "@a\n";
+};
+実行結果：sin x cos x tanここで、"@a\n" の部分を "@{[ リスト ]}\n" に置き換えて、print "@{[ 'sin', 'cos', 'tan' ]}\n";
+と、無名配列のデリファレンス @{[ ]} を使うことによって、配列 @a を使わずに、文字列中に直接リストの値を埋め込むことが可能になります。このようにヒアドキュメントの他にも、ダブルクォーテーションで囲まれた文字列の中でも @{[ リスト ]} のイディオムを使ってPerlの式を展開することができます。閑話休題数日前の復習ですが、Perlは破壊的な正規表現の置換を行なうので、以下のように複数行にわけて書くのが面倒という話がありました。my $a = "AAA";
+my $b = $a;
+   $b =~ s/A/B/g;
+print "'$a' =&gt; '$b',\n";
+実行結果：'AAA' =&gt; 'BBB',
+これは、$b = $a の代入文を ( ) で括って、置換演算子 =~ の左辺に持ってくることによって1行短縮することができます。my $a = "AAA";
+( my $b = $a ) =~ s/A/B/g;
+代入演算子 = は左結合なので、さらに変数 $a の初期化も1行にまとめることができます。( my $b = my $a = "AAA" ) =~ s/A/B/g;
+これは、myの存在しなかったPerl4の時代で基本的なテクニックだったそうです。@{[ リスト ]} の応用例ここでmapを使えば一時変数の名前もつけなくてよくなるはず…と思って以下のコードを書いて実行してみます。my ($b) = map { s/A/B/g; $_ } ("AAA");
+実行結果：Modification of a read-only value attempted at - line 1.しかし、このコードは Perl に怒られてエラーになってしまいます。("AAA") としただけでは "AAA" は文字列定数（read-only value）と解釈されるので、値の変更ができないのです。map の初期値に @{[]}そこで登場するのが @{[ リスト ]} の応用例です。my ($b) = map { s/A/B/g; $_ } @{["AAA"]};
+["AAA"]で無名配列を作ってすぐに@{}でデリファレンスしてあげれば、 一時的な配列を作成することができます。この配列の値は破壊的な変更が可能です。grep の第一引数に s///ちなみに、map の他に grep を使っても同じようなコードを書くことができます。my ($b) = grep s/A/B/g || 1, @{["AAA"]};
+このとき || 1 の部分を省略してしまうと、 s/// の戻り値がそのまま評価されてしまうので、置換に失敗した要素が取り除かれてしまいます。print join ":", grep s/A/B/g, @{["AAA", "ABC", "XXX", "A"]};
+実行結果：BBB:BBC:Bs/A/B/ の置換に失敗した "XXX" の値も含めたい場合は、s の後ろに || 1 をつけて、パターンマッチの結果に関わらず常に真になるようにします。print join ":", grep s/A/B/g || 1, @{["AAA", "ABC", "XXX", "A"]};
+実行結果：BBB:BBC:XXX:B次は国内滞在説が根強い id:miyagawa さんにお願いしたいと思います。;-)
+</description>
+      <dc:date>2008-12-16T13:43:19Z</dc:date>
+      <title>ヒアドキュメントの中でPerlの式を書く</title>
+      <pubDate>Tue, 16 Dec 2008 13:43:19 -0000</pubDate>
+      <content:encoded>&lt;body&gt;&lt;h1&gt;ヒアドキュメントの中でPerlの式を書く&lt;/h1&gt;&lt;div class="section"&gt;&lt;p&gt;&lt;a href="http://news.google.co.jp/news?hl=ja&amp;amp;q=%E6%96%B0%E5%B9%B9%E7%B7%9A&amp;amp;um=1&amp;amp;ie=UTF-8&amp;amp;ncl=1259980833&amp;amp;sa=X&amp;amp;oi=news_result&amp;amp;resnum=1&amp;amp;ct=more-results&amp;amp;cd=1"&gt;初代新幹線「0系」最後のラストランの日&lt;/a&gt;に、新幹線N700系のぞみでイーモバイルしながらこの記事を書いている&lt;a href="http://namazu.org/~takesako/"&gt;id:TAKESAKO&lt;/a&gt;です。&lt;/p&gt;&lt;p&gt;Perlのヒアドキュメントを使うと複数行にわたる文字列を一気に代入したりするときに楽なので、使っている人も多いと思います。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;my $foo = &amp;quot;bar&amp;quot;;
+my $tmp = time(); # ←関数の実行結果
+print&amp;lt;&amp;lt;EOF;
+  &amp;lt;div class=&amp;quot;${foo}1&amp;quot;&amp;gt;
+    &amp;lt;h1&amp;gt;TIME: $tmp&amp;lt;/h1&amp;gt;
+  &amp;lt;/div&amp;gt;
+EOF
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;しかし、ヒアドキュメントの途中でサブルーチンの実行結果も一緒に埋め込みたいときがでてくるときがあります。&lt;/p&gt;&lt;h2&gt;@{[ Perlの式 ]}&lt;/h2&gt;&lt;p&gt;そのようなときは、&lt;code&gt;@{[ リスト ]}&lt;/code&gt; というイディオムを使うと非常に便利です。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;print&amp;lt;&amp;lt;EOF;
+  &amp;lt;div class=&amp;quot;${foo}1&amp;quot;&amp;gt;
+    &amp;lt;h1&amp;gt;TIME: @{[ time() ]}&amp;lt;/h1&amp;gt;
+  &amp;lt;/div&amp;gt;
+EOF
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;実行結果：&lt;/p&gt;&lt;pre class="lang-html"&gt;&lt;samp&gt;  &amp;lt;div class=&amp;quot;bar1&amp;quot;&amp;gt;
+    &amp;lt;h1&amp;gt;TIME: 1229258525&amp;lt;/h1&amp;gt;
+  &amp;lt;/div&amp;gt;
+&lt;/samp&gt;&lt;/pre&gt;&lt;p&gt;@{[ リスト ]} の中にはPerlの式をそのまま書くことができます。&lt;/p&gt;&lt;p&gt;この例では、関数 time() の実行結果がヒアドキュメントの文字列の中に埋め込まれていることがわかります。&lt;/p&gt;&lt;h3&gt;リストコンテキストの罠&lt;/h3&gt;&lt;p&gt;しかし、このイディオムの式はリストコンテキストで評価されるので、wantarray でサブルーチンの戻り値を切り替えている関数などでは期待通りの結果が得られない場合があります。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;print&amp;lt;&amp;lt;EOF;
+  &amp;lt;div class=&amp;quot;${foo}2&amp;quot;&amp;gt;
+    &amp;lt;h1&amp;gt;TIME: @{[ localtime() ]}&amp;lt;/h1&amp;gt;
+  &amp;lt;/div&amp;gt;
+EOF
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;実行結果：&lt;/p&gt;&lt;pre class="lang-html"&gt;&lt;samp&gt;  &amp;lt;div class=&amp;quot;bar2&amp;quot;&amp;gt;
+    &amp;lt;h1&amp;gt;TIME: 5 42 21 14 11 108 0 348 0&amp;lt;/h1&amp;gt;
+  &amp;lt;/div&amp;gt;
+&lt;/samp&gt;&lt;/pre&gt;&lt;p&gt;このような場合は、式が必ずスカラーコンテキストで評価されるように、 &lt;code&gt;&amp;quot;&amp;quot;.localtime()&lt;/code&gt; もしくは &lt;code&gt;scalar localtime()&lt;/code&gt; などと記述すれば大丈夫です。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;print&amp;lt;&amp;lt;EOF;
+  &amp;lt;div class=&amp;quot;${foo}3&amp;quot;&amp;gt;
+    &amp;lt;h1&amp;gt;TIME: @{[ scalar localtime() ]}&amp;lt;/h1&amp;gt;
+  &amp;lt;/div&amp;gt;
+EOF
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;実行結果：&lt;/p&gt;&lt;pre class="lang-html"&gt;&lt;samp&gt;  &amp;lt;div class=&amp;quot;bar3&amp;quot;&amp;gt;
+    &amp;lt;h1&amp;gt;TIME: Sun Dec 14 21:42:05 2008&amp;lt;/h1&amp;gt;
+  &amp;lt;/div&amp;gt;
+&lt;/samp&gt;&lt;/pre&gt;&lt;h3&gt;&amp;quot;@a\n&amp;quot; と特殊変数 $&amp;quot;&lt;/h3&gt;&lt;p&gt;ちなみに、ダブルクォート文字列中に &lt;code&gt;@a&lt;/code&gt; を埋め込んだ場合、例えば &lt;code&gt;&amp;quot;@a\n&amp;quot;&lt;/code&gt; は &lt;code&gt;join($&amp;quot;,@a).&amp;quot;\n&amp;quot;&lt;/code&gt; と等価となります。&lt;/p&gt;&lt;p&gt;&lt;code&gt;$&amp;quot;&lt;/code&gt; は、配列のリストを文字列に変換するときに自動的に要素間に挿入する文字列（デフォルトは空白 &lt;code&gt;&amp;quot; &amp;quot;&lt;/code&gt;）を意味する特殊変数です。&lt;br /&gt; 一時的に &lt;code&gt;$&amp;quot;&lt;/code&gt; の値を書き換えて、要素間に自動挿入する文字列をデフォルトの空白から任意の文字列に変更することもできます。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;do {
+  local $&amp;quot; = &amp;quot; x &amp;quot;;
+  my @a = (&amp;apos;sin&amp;apos;, &amp;apos;cos&amp;apos;, &amp;apos;tan&amp;apos;);
+  print &amp;quot;@a\n&amp;quot;;
+};
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;実行結果：&lt;/p&gt;&lt;pre class="lang-html"&gt;&lt;samp&gt;sin x cos x tan&lt;/samp&gt;&lt;/pre&gt;&lt;p&gt;ここで、&lt;code&gt;&amp;quot;@a\n&amp;quot;&lt;/code&gt; の部分を &lt;code&gt;&amp;quot;@{[ リスト ]}\n&amp;quot;&lt;/code&gt; に置き換えて、&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;print &amp;quot;@{[ &amp;apos;sin&amp;apos;, &amp;apos;cos&amp;apos;, &amp;apos;tan&amp;apos; ]}\n&amp;quot;;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;と、無名配列のデリファレンス &lt;code&gt;@{[ ]}&lt;/code&gt; を使うことによって、配列 &lt;code&gt;@a&lt;/code&gt; を使わずに、文字列中に直接リストの値を埋め込むことが可能になります。&lt;/p&gt;&lt;p&gt;このようにヒアドキュメントの他にも、ダブルクォーテーションで囲まれた文字列の中でも &lt;code&gt;@{[ リスト ]}&lt;/code&gt; のイディオムを使ってPerlの式を展開することができます。&lt;/p&gt;&lt;h2&gt;閑話休題&lt;/h2&gt;&lt;p&gt;&lt;a href="http://perl-users.jp/articles/advent-calendar/2008/12.html"&gt;数日前の復習&lt;/a&gt;ですが、Perlは破壊的な正規表現の置換を行なうので、以下のように複数行にわけて書くのが面倒という話がありました。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;my $a = &amp;quot;AAA&amp;quot;;
+my $b = $a;
+   $b =~ s/A/B/g;
+print &amp;quot;&amp;apos;$a&amp;apos; =&amp;gt; &amp;apos;$b&amp;apos;,\n&amp;quot;;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;実行結果：&lt;/p&gt;&lt;pre class="lang-html"&gt;&lt;samp&gt;&amp;apos;AAA&amp;apos; =&amp;gt; &amp;apos;BBB&amp;apos;,
+&lt;/samp&gt;&lt;/pre&gt;&lt;p&gt;これは、&lt;code&gt;$b = $a&lt;/code&gt; の代入文を &lt;code&gt;( )&lt;/code&gt; で括って、置換演算子 &lt;code&gt;=~&lt;/code&gt; の左辺に持ってくることによって1行短縮することができます。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;my $a = &amp;quot;AAA&amp;quot;;
+( my $b = $a ) =~ s/A/B/g;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;代入演算子 &lt;code&gt;=&lt;/code&gt; は左結合なので、さらに変数 &lt;code&gt;$a&lt;/code&gt; の初期化も1行にまとめることができます。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;( my $b = my $a = &amp;quot;AAA&amp;quot; ) =~ s/A/B/g;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;これは、&lt;code&gt;my&lt;/code&gt;の存在しなかったPerl4の時代で基本的なテクニックだったそうです。&lt;/p&gt;&lt;h2&gt;@{[ リスト ]} の応用例&lt;/h2&gt;&lt;p&gt;ここで&lt;code&gt;map&lt;/code&gt;を使えば一時変数の名前もつけなくてよくなるはず…と思って以下のコードを書いて実行してみます。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;my ($b) = map { s/A/B/g; $_ } (&amp;quot;AAA&amp;quot;);
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;実行結果：&lt;/p&gt;&lt;pre class="lang-html"&gt;&lt;samp&gt;Modification of a read-only value attempted at - line 1.&lt;/samp&gt;&lt;/pre&gt;&lt;p&gt;しかし、このコードは Perl に怒られてエラーになってしまいます。&lt;/p&gt;&lt;p&gt;&lt;code&gt;(&amp;quot;AAA&amp;quot;)&lt;/code&gt; としただけでは &lt;code&gt;&amp;quot;AAA&amp;quot;&lt;/code&gt; は文字列定数（read-only value）と解釈されるので、値の変更ができないのです。&lt;/p&gt;&lt;h3&gt;map の初期値に @{[]}&lt;/h3&gt;&lt;p&gt;そこで登場するのが &lt;code&gt;@{[ リスト ]}&lt;/code&gt; の応用例です。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;my ($b) = map { s/A/B/g; $_ } @{[&amp;quot;AAA&amp;quot;]};
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;code&gt;[&amp;quot;AAA&amp;quot;]&lt;/code&gt;で無名配列を作ってすぐに&lt;code&gt;@{}&lt;/code&gt;でデリファレンスしてあげれば、 一時的な配列を作成することができます。&lt;br /&gt;この配列の値は破壊的な変更が可能です。&lt;/p&gt;&lt;h3&gt;grep の第一引数に s///&lt;/h3&gt;&lt;p&gt;ちなみに、&lt;code&gt;map&lt;/code&gt; の他に &lt;code&gt;grep&lt;/code&gt; を使っても同じようなコードを書くことができます。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;my ($b) = grep s/A/B/g || 1, @{[&amp;quot;AAA&amp;quot;]};
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;このとき &lt;code&gt;|| 1&lt;/code&gt; の部分を省略してしまうと、 &lt;code&gt;s///&lt;/code&gt; の戻り値がそのまま評価されてしまうので、置換に失敗した要素が取り除かれてしまいます。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;print join &amp;quot;:&amp;quot;, grep s/A/B/g, @{[&amp;quot;AAA&amp;quot;, &amp;quot;ABC&amp;quot;, &amp;quot;XXX&amp;quot;, &amp;quot;A&amp;quot;]};
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;実行結果：&lt;/p&gt;&lt;pre class="lang-html"&gt;&lt;samp&gt;BBB:BBC:B&lt;/samp&gt;&lt;/pre&gt;&lt;p&gt;&lt;code&gt;s/A/B/&lt;/code&gt; の置換に失敗した &lt;code&gt;&amp;quot;XXX&amp;quot;&lt;/code&gt; の値も含めたい場合は、&lt;code&gt;s&lt;/code&gt; の後ろに &lt;code&gt;|| 1&lt;/code&gt; をつけて、パターンマッチの結果に関わらず常に真になるようにします。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;print join &amp;quot;:&amp;quot;, grep s/A/B/g || 1, @{[&amp;quot;AAA&amp;quot;, &amp;quot;ABC&amp;quot;, &amp;quot;XXX&amp;quot;, &amp;quot;A&amp;quot;]};
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;実行結果：&lt;/p&gt;&lt;pre class="lang-html"&gt;&lt;samp&gt;BBB:BBC:XXX:B&lt;/samp&gt;&lt;/pre&gt;&lt;p&gt;次は国内滞在説が根強い id:miyagawa さんにお願いしたいと思います。;-)&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;
+</content:encoded>
+      <dcterms:modified>2008-12-16T13:43:19Z</dcterms:modified>
+      <guid isPermaLink="false">tag:perl-users.jp,2006:http://perl-users.jp/articles/advent-calendar/2008/14.html</guid>
+    </item>
+    <item>
+      <author>nobody@example.com</author>
+      <dc:creator>nobody@example.com</dc:creator>
+      <link>http://perl-users.jp/articles/advent-calendar/2008/13.html</link>
+      <description>Win32::GuiTest で Windows の GUI アプリをハックしよう どうもあまちゃんです。 突然ですが、 Win32::GuiTest というモジュールを使うと Windows の GUI アプリを楽しくハックする事ができます。  使う側は特にめんどうくさいことをしなくても （時には別プロセスに入り込んで）様々な情報を取得してきたり設定してきたりしてくれます。 インストールStrawberry Perl を使っているなら普通に C:\&gt; cpan -i Win32::GuiTest
+ でインストールできます。 ActivePerl を使っている場合は、PPM があります。 ケーススタディ ソースはコピペすれば動くと思いますよっと。UTF-8 で書いてます。 基本的な書き方use strict;
+use warnings;
+use utf8;
+# ↑ Perl ハッカーに DIS られなくなるおまじない
+
+# Win32::GuiTest を使うおまじない
+use Win32::GuiTest qw(:ALL);
+
+# 日本語を使えるようにするおまじない
+UnicodeSemantics(1);
+
+# ここで Win32::GuiTest を使う
+マウスを動かすuse strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+
+# 小数点もいけちゃう sleep 関数
+use Time::HiRes qw(sleep);
+
+UnicodeSemantics(1);
+
+for (my $i = 0; $i &lt; 500; $i++) {
+
+    # 10 ms 待つ
+    sleep(0.01);
+
+    # マウスを動かす
+    MouseMoveAbsPix(cos($i / 10) * 400 + 400, sin($i / 10) * 400 + 400);
+}
+デスクトップ領域を取得するuse strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+use Time::HiRes qw(sleep);
+
+UnicodeSemantics(1);
+
+# デスクトップウィンドウの取得
+my $desktop_win = GetDesktopWindow();
+
+# デスクトップウィンドウの矩形の取得
+my ($left, $top, $right, $bottom) = GetWindowRect($desktop_win);
+
+# (left, top は 0 だよねーっと）一応確認
+die "Oops!" if $left != 0 || $top != 0;
+
+for (my $i = 0; $i &lt; 500; $i++) {
+    sleep(0.01);
+
+    # デスクトップ全体をマウスが回る（この爽快感！）
+    MouseMoveAbsPix(
+        cos($i / 10) * $right / 2 + $right / 2,
+        sin($i / 10) * $bottom / 2  + $bottom / 2
+    );
+}
+全ウィンドウの列挙use strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+use Time::HiRes qw(sleep);
+
+UnicodeSemantics(1);
+
+# デスクトップウィンドウの取得（全部の親）
+my $desktop_win = GetDesktopWindow();
+
+# （デスクトップウィンドウにはお父さんウィンドウいないよね＞＜？）一応確認
+die "Oops!" if GetParent($desktop_win) != 0;
+
+# デスクトップウィンドウの全子孫を走査
+for my $child (GetChildWindows($desktop_win)) {
+
+    # ここで各ウィンドウ（$child）にあんなことやこんなことをする
+}
+ウィンドウの情報を取得use strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+
+# cmd.exe のエンコーディングが CP932 なので
+use Encode;
+my $cp932 = find_encoding('cp932');
+
+UnicodeSemantics(1);
+
+my $desktop_win = GetDesktopWindow();
+die "Oops!" if GetParent($desktop_win) != 0;
+
+for my $child (GetChildWindows($desktop_win)) {
+
+    # ウィンドウの深さ
+    my $window_depth   = GetChildDepth($desktop_win, $child);
+
+    # ウィンドウのクラス名（種類）
+    my $class_name     = GetClassName($child);
+
+    # ウィンドウの名前
+    my $window_text    = GetWindowText($child);
+
+    # 表示
+    print $cp932-&gt;encode('--' x $window_depth . $window_text . '(' . $class_name . ")\n");
+}
+ ウィンドウ名からウィンドウを取得use strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+use Encode;
+my $cp932 = find_encoding('cp932');
+
+UnicodeSemantics(1);
+
+# Windows のスタートメニューのスタートボタンのウィンドウ
+my ($win, @wins) = FindWindowLike(0, '^スタート$');
+
+# 一個だけだよね＞＜？一応確認
+die 'Oops!' if @wins;
+
+# 情報の表示
+print $cp932-&gt;encode(GetWindowText($win) . '(' . GetClassName($win) . ")\n");
+ Button をクリックさせるuse strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+
+UnicodeSemantics(1);
+
+my ($win, @wins) = FindWindowLike(0, '^スタート$');
+die 'Oops!' if @wins;
+
+# ボタンの座標を取得
+my ($x, $y) = GetWindowRect($win);
+
+# マウスをボタン上に移動
+MouseMoveAbsPix($x + 1, $y + 1);
+
+# クリック！
+SendLButtonDown();
+SendLButtonUp();
+
+# FindWindowLike から SendLButton*() までを一発でやってくれる
+# MouseClick という関数もありますが、今回は使いません
+ メニューの取得use strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+use Time::HiRes qw(sleep);
+
+# 無名関数の再帰呼び出し用
+use Devel::Caller qw(caller_cv);
+
+UnicodeSemantics(1);
+
+# メモ帳の起動
+system('start notepad');
+
+# メモ帳の起動を待つ
+sleep(0.5);
+
+# メモ帳のウィンドウを取得
+my ($notepad) = FindWindowLike(0, 'メモ帳$');
+
+# メモ帳を最前に持ってくる
+SetForegroundWindow($notepad);
+
+# メニューツリーを再帰的に走査
+(sub {
+    my ($menu, $depth) = @_;
+
+    # メニューアイテムの数を取得
+    my $count = GetMenuItemCount($menu);
+
+    # メニューアイテムを走査
+    for (my $i = 0; $i &lt; $count; $i ++) {
+
+        # メニューアイテムの情報を取得
+        my $info = { GetMenuItemInfo($menu, $i) };
+
+        # 表示
+        print '--' x $depth . $info-&gt;{text} . "\n" if $info-&gt;{type} eq 'string';
+
+        # サブメニューを表示（再帰）
+        caller_cv(0)-&gt;(GetSubMenu($menu, $i), $depth + 1);
+    }
+
+})-&gt;(GetMenu($notepad), 0); # メモ帳のメインメニューを渡す
+ メニューの選択use strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+use Time::HiRes qw(sleep);
+
+UnicodeSemantics(1);
+
+system('start notepad');
+sleep(0.5);
+my ($notepad) = FindWindowLike(0, 'メモ帳$');
+SetForegroundWindow($notepad);
+
+# 0 番目のメニューアイテムからサブメニューを取得して、
+# サブメニューから 1 番目のメニューアイテムの ID を取得してくる
+# （メモ帳では、「ファイル」→「開く」メニュー
+my $id = GetMenuItemID(GetSubMenu(GetMenu($notepad), 0), 1);
+
+# WM_COMMAND メッセージでメモ帳に、メニューが選択されたと教えてあげる
+PostMessage($notepad, Win32::GuiTest::WM_COMMAND, $id, 0);
+
+# MenuSelect っていうのもあるのですが、
+# 日本語を CP932 で指定しなければならず、
+# しかも、フルの名前を指定しないといけないので、めんどうです。
+# 今回は使いません＞＜
+ エディットボックスへ文字を入力する(1)use strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+use Time::HiRes qw(sleep);
+use Encode;
+my $cp932 = find_encoding('cp932');
+
+UnicodeSemantics(1);
+
+system('start notepad');
+sleep(0.5);
+my ($notepad) = FindWindowLike(0, 'メモ帳$');
+SetForegroundWindow($notepad);
+
+# エディットボックスを取得
+my ($edit) = FindWindowLike($notepad, undef, '^Edit$');
+
+# WMSetText を使って、エディットボックスの値を直接設定
+WMSetText($edit, $cp932-&gt;encode('ほげほげ'));
+ エディットボックスへ文字を入力する(2)（キーボード入力をエミュレート）use strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+use Time::HiRes qw(sleep);
+
+UnicodeSemantics(1);
+
+system('start notepad');
+sleep(0.5);
+my ($notepad) = FindWindowLike(0, 'メモ帳$');
+SetForegroundWindow($notepad);
+
+# エディットボックスを取得
+my ($edit) = FindWindowLike($notepad, undef, '^Edit$');
+
+# フォーカスを合わせる
+SetFocus($edit);
+
+# キーボード入力をエミュレート
+SendKeys('hoge{ENTER}hoge{ENTER}fuga{ENTER}piyo');
+ エディットボックスの文字を取得するuse strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+use Time::HiRes qw(sleep);
+use Encode;
+my $cp932 = find_encoding('cp932');
+
+UnicodeSemantics(1);
+
+system('start notepad');
+sleep(0.5);
+my ($notepad) = FindWindowLike(0, 'メモ帳$');
+SetForegroundWindow($notepad);
+my ($edit) = FindWindowLike($notepad, undef, '^Edit$');
+WMSetText($edit, $cp932-&gt;encode('ほげほげ'));
+
+# エディットボックスのデータを取得
+# （CP932 で帰ってくるので、そのまま print してるけど、プログラム中で扱う時は decode すべき）
+print WMGetText($edit) . "\n";
+ ツリービューを選択するuse strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+use Time::HiRes qw(sleep);
+use Encode;
+my $cp932 = find_encoding('cp932');
+
+UnicodeSemantics(1);
+
+# レジストリエディタを起動
+system('start regedit');
+
+# 待つ
+sleep(0.5);
+
+# ウィンドウを取得
+my ($regedit) = FindWindowLike(0, undef, '^RegEdit_RegEdit$');
+
+# 最前面に持ってくる
+SetForegroundWindow($regedit);
+
+# 左のツリービューを取得
+my ($tree) = FindWindowLike($regedit, undef, '^SysTreeView32$');
+
+# ツリービューを選択する
+# この場合は、 Firefox のレジストリキーを読みに行きます
+SelTreeViewItemPath($tree, $cp932-&gt;encode('マイ コンピュータ|HKEY_LOCAL_MACHINE|SOFTWARE|Mozilla|Firefox'));
+
+# この関数は、エクスプローラーでも威力を発揮します。
+ リストビューのアイテムをダブルクリックするuse strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+use Time::HiRes qw(sleep);
+use Encode;
+my $cp932 = find_encoding('cp932');
+
+UnicodeSemantics(1);
+
+# レジストリエディタを起動
+system('start regedit');
+
+# 待つ
+sleep(0.5);
+
+# ウィンドウを取得
+my ($regedit) = FindWindowLike(0, undef, '^RegEdit_RegEdit$');
+
+# 最前面に持ってくる
+SetForegroundWindow($regedit);
+
+# 左のツリービューを取得
+my ($tree) = FindWindowLike($regedit, undef, '^SysTreeView32$');
+
+# ツリービューを選択する
+SelTreeViewItemPath($tree, $cp932-&gt;encode('マイ コンピュータ|HKEY_CLASSES_ROOT|CompressFolder'));
+
+# 右のリストビューを取得
+my ($list) = FindWindowLike($regedit, undef, '^SysListView32$');
+
+my ($x, $y, $posbuf);
+
+# $list を持っているプロセス（regedit のプロセス）
+# のメモリ空間を 8 バイト確保
+$posbuf = AllocateVirtualBuffer($list, 8);
+
+# メモリ確保出来たら
+if ($posbuf) {
+
+    # エラーのときもちゃんとレスキューされるように
+    eval {
+
+        # $list に 0x1010 (LVM_GETITEMPOSITION) というメッッセージを送る
+        # 結果を返して欲しい共有メモリのポインタを渡す
+        # 第三引数の 1 は「（0 から数えて）1 番目のリストアイテム」という意味
+        SendMessage($list, 0x1010, 1, $posbuf-&gt;{ptr});
+
+        # 共有メモリから、結果を読み出す
+        # $x, $y にはリストアイテムの位置を取得
+        ($x, $y) = unpack('L2', ReadFromVirtualBuffer($posbuf, 8));
+
+    };
+
+    # 共有メモリを解放
+    FreeVirtualBuffer($posbuf);
+
+    # もし、 eval 中にエラーがあれば
+    die $@ if $@;
+}
+
+# リストビューの位置を取る
+my ($px, $py) = GetWindowRect($list);
+
+# マウスを移動
+MouseMoveAbsPix($px + $x + 4, $py + $y + 4);
+
+# ダブルクリック！
+SendLButtonDown();
+SendLButtonUp();
+SendLButtonDown();
+SendLButtonUp();
+
+# 実装のほうで SetWindowsHookEx を使ってる部分が動かないことがある（原因不明）ので
+# この例のように、
+# 自分で共有メモリ（AllocateVirtualBuffer）を使って生のメッセージでやるというパターンは結構あります。
+ ツールバーをクリックするuse strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+use Time::HiRes qw(sleep);
+use Encode;
+my $cp932 = find_encoding('cp932');
+
+UnicodeSemantics(1);
+
+# エクスプローラーの起動
+system('start explorer');
+
+# 待つ
+sleep(0.5);
+
+# ウィンドウを取得
+my ($exp) = FindWindowLike(0, undef, '^ExploreWClass$');
+
+# 最前面に持ってくる
+SetForegroundWindow($exp);
+
+# 一番最初のツールバーを取得
+# （ツールバーはたいていいくつかある）
+my ($toolbar) = FindWindowLike($exp, undef, '^ToolbarWindow32$');
+
+my ($x, $y, $rectbuf);
+
+# $toolbar を持っているプロセス（エクスプローラーのプロセス）
+# のメモリ空間を 16 バイト確保
+$rectbuf = AllocateVirtualBuffer($toolbar, 16);
+
+# メモリ確保出来たら
+if ($rectbuf) {
+
+    # エラーのときもちゃんとレスキューされるように
+    eval {
+
+        # $toolbar に 0x4ld (TB_GETITEMRECT) というメッッセージを送る
+        # 結果を返して欲しい共有メモリのポインタを渡す
+        # 第三引数の 7 は
+        # 「（0 から数えて）7 番目のツールバーアイテム（セパレータや hide されているアイテムも含む）」という意味
+        SendMessage($toolbar, 0x41d, 7, $rectbuf-&gt;{ptr});
+
+        # 共有メモリから、結果を読み出す
+        # $x, $y にはリストアイテムの位置を取得
+        ($x, $y) = unpack('L4', ReadFromVirtualBuffer($rectbuf, 16));
+
+    };
+
+    # 共有メモリを解放
+    FreeVirtualBuffer($rectbuf);
+
+    # もし、 eval 中にエラーがあれば
+    die $@ if $@;
+}
+
+# ツールバーの位置を取る
+my ($px, $py) = GetWindowRect($toolbar);
+
+# マウスを移動
+MouseMoveAbsPix($px + $x + 4, $py + $y + 4);
+
+# クリック！
+SendLButtonDown();
+SendLButtonUp();
+まとめ このように、めんどくさい Windows の GUI での作業を Perl を使ってある程度自動化しておくことが出来ます。  また、これらを CGI 化して GreaseMonkey とかで呼び出すと非常に便利です＞＜でも、大変危険ですので絶対に真似しないようにしてください＞＜  というわけで、次は id:TAKESAKO さんお願いします。 
+            var elm = document.getElementById('toc');
+            elm.innerHTML = '&lt;h3&gt;もくじ&lt;/h3&gt;';
+            var ul = document.createElement('ul');
+            elm.appendChild(ul);
+            var articles = document.getElementsByTagName('h3');
+            for (var i = 0, l = articles.length; i &lt; l; i ++) {
+                var article = articles[i];
+                article.id = 'article-' + i;
+                var li = document.createElement('li');
+                li.innerHTML = '&lt;a href="#article-' + i + '"&gt;' + article.innerHTML + '&lt;/a&gt;';
+                ul.appendChild(li);
+            }
+        
+</description>
+      <dc:date>2008-12-16T13:43:19Z</dc:date>
+      <title>Win32::GuiTest で Windows の GUI アプリをハックしよう</title>
+      <pubDate>Tue, 16 Dec 2008 13:43:19 -0000</pubDate>
+      <content:encoded>&lt;body&gt;&lt;h1&gt;Win32::GuiTest で Windows の GUI アプリをハックしよう&lt;/h1&gt;&lt;p&gt; どうも&lt;a href="http://d.hatena.ne.jp/amachang/"&gt;あまちゃん&lt;/a&gt;です。 突然ですが、 Win32::GuiTest というモジュールを使うと Windows の GUI アプリを楽しくハックする事ができます。 &lt;/p&gt;&lt;p&gt; 使う側は特にめんどうくさいことをしなくても （時には別プロセスに入り込んで）様々な情報を取得してきたり設定してきたりしてくれます。 &lt;/p&gt;&lt;div&gt;&lt;h2&gt;インストール&lt;/h2&gt;&lt;p&gt;&lt;a href="http://strawberryperl.com/"&gt;Strawberry Perl&lt;/a&gt; を使っているなら普通に &lt;/p&gt;&lt;pre&gt;&lt;code&gt;C:\&amp;gt; cpan -i Win32::GuiTest
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt; でインストールできます。 &lt;a href="http://www.activestate.com/Products/activeperl/index.mhtml"&gt;ActivePerl&lt;/a&gt; を使っている場合は、&lt;a href="http://sourceforge.net/projects/winguitest"&gt;PPM があります&lt;/a&gt;。 &lt;/p&gt;&lt;/div&gt;&lt;div class="step"&gt;&lt;h2&gt;ケーススタディ&lt;/h2&gt;&lt;p&gt; ソースはコピペすれば動くと思いますよっと。UTF-8 で書いてます。 &lt;/p&gt;&lt;div id="toc"&gt;&lt;/div&gt;&lt;div&gt;&lt;h3&gt;基本的な書き方&lt;/h3&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;use strict;
+use warnings;
+use utf8;
+# ↑ Perl ハッカーに DIS られなくなるおまじない
+
+# Win32::GuiTest を使うおまじない
+use Win32::GuiTest qw(:ALL);
+
+# 日本語を使えるようにするおまじない
+UnicodeSemantics(1);
+
+# ここで Win32::GuiTest を使う
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div&gt;&lt;h3&gt;マウスを動かす&lt;/h3&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;use strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+
+# 小数点もいけちゃう sleep 関数
+use Time::HiRes qw(sleep);
+
+UnicodeSemantics(1);
+
+for (my $i = 0; $i &amp;lt; 500; $i++) {
+
+    # 10 ms 待つ
+    sleep(0.01);
+
+    # マウスを動かす
+    MouseMoveAbsPix(cos($i / 10) * 400 + 400, sin($i / 10) * 400 + 400);
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div&gt;&lt;h3&gt;デスクトップ領域を取得する&lt;/h3&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;use strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+use Time::HiRes qw(sleep);
+
+UnicodeSemantics(1);
+
+# デスクトップウィンドウの取得
+my $desktop_win = GetDesktopWindow();
+
+# デスクトップウィンドウの矩形の取得
+my ($left, $top, $right, $bottom) = GetWindowRect($desktop_win);
+
+# (left, top は 0 だよねーっと）一応確認
+die &amp;quot;Oops!&amp;quot; if $left != 0 || $top != 0;
+
+for (my $i = 0; $i &amp;lt; 500; $i++) {
+    sleep(0.01);
+
+    # デスクトップ全体をマウスが回る（この爽快感！）
+    MouseMoveAbsPix(
+        cos($i / 10) * $right / 2 + $right / 2,
+        sin($i / 10) * $bottom / 2  + $bottom / 2
+    );
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div&gt;&lt;h3&gt;全ウィンドウの列挙&lt;/h3&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;use strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+use Time::HiRes qw(sleep);
+
+UnicodeSemantics(1);
+
+# デスクトップウィンドウの取得（全部の親）
+my $desktop_win = GetDesktopWindow();
+
+# （デスクトップウィンドウにはお父さんウィンドウいないよね＞＜？）一応確認
+die &amp;quot;Oops!&amp;quot; if GetParent($desktop_win) != 0;
+
+# デスクトップウィンドウの全子孫を走査
+for my $child (GetChildWindows($desktop_win)) {
+
+    # ここで各ウィンドウ（$child）にあんなことやこんなことをする
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div&gt;&lt;h3&gt;ウィンドウの情報を取得&lt;/h3&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;use strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+
+# cmd.exe のエンコーディングが CP932 なので
+use Encode;
+my $cp932 = find_encoding(&amp;apos;cp932&amp;apos;);
+
+UnicodeSemantics(1);
+
+my $desktop_win = GetDesktopWindow();
+die &amp;quot;Oops!&amp;quot; if GetParent($desktop_win) != 0;
+
+for my $child (GetChildWindows($desktop_win)) {
+
+    # ウィンドウの深さ
+    my $window_depth   = GetChildDepth($desktop_win, $child);
+
+    # ウィンドウのクラス名（種類）
+    my $class_name     = GetClassName($child);
+
+    # ウィンドウの名前
+    my $window_text    = GetWindowText($child);
+
+    # 表示
+    print $cp932-&amp;gt;encode(&amp;apos;--&amp;apos; x $window_depth . $window_text . &amp;apos;(&amp;apos; . $class_name . &amp;quot;)\n&amp;quot;);
+}
+&lt;/code&gt;&lt;/pre&gt; &lt;a href="http://f.hatena.ne.jp/amachang/20081211163602"&gt;&lt;img alt="20081211163602" src="http://img.f.hatena.ne.jp/images/fotolife/a/amachang/20081211/20081211163602.jpg" /&gt;&lt;/a&gt;&lt;/div&gt;&lt;div&gt;&lt;h3&gt;ウィンドウ名からウィンドウを取得&lt;/h3&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;use strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+use Encode;
+my $cp932 = find_encoding(&amp;apos;cp932&amp;apos;);
+
+UnicodeSemantics(1);
+
+# Windows のスタートメニューのスタートボタンのウィンドウ
+my ($win, @wins) = FindWindowLike(0, &amp;apos;^スタート$&amp;apos;);
+
+# 一個だけだよね＞＜？一応確認
+die &amp;apos;Oops!&amp;apos; if @wins;
+
+# 情報の表示
+print $cp932-&amp;gt;encode(GetWindowText($win) . &amp;apos;(&amp;apos; . GetClassName($win) . &amp;quot;)\n&amp;quot;);
+&lt;/code&gt;&lt;/pre&gt; &lt;a href="http://f.hatena.ne.jp/amachang/20081211164830"&gt;&lt;img alt="20081211164830" src="http://img.f.hatena.ne.jp/images/fotolife/a/amachang/20081211/20081211164830.jpg" /&gt;&lt;/a&gt;&lt;/div&gt;&lt;div&gt;&lt;h3&gt;Button をクリックさせる&lt;/h3&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;use strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+
+UnicodeSemantics(1);
+
+my ($win, @wins) = FindWindowLike(0, &amp;apos;^スタート$&amp;apos;);
+die &amp;apos;Oops!&amp;apos; if @wins;
+
+# ボタンの座標を取得
+my ($x, $y) = GetWindowRect($win);
+
+# マウスをボタン上に移動
+MouseMoveAbsPix($x + 1, $y + 1);
+
+# クリック！
+SendLButtonDown();
+SendLButtonUp();
+
+# FindWindowLike から SendLButton*() までを一発でやってくれる
+# MouseClick という関数もありますが、今回は使いません
+&lt;/code&gt;&lt;/pre&gt; &lt;a href="http://f.hatena.ne.jp/amachang/20081211170226"&gt;&lt;img alt="20081211170226" src="http://img.f.hatena.ne.jp/images/fotolife/a/amachang/20081211/20081211170226.jpg" /&gt;&lt;/a&gt;&lt;/div&gt;&lt;div&gt;&lt;h3&gt;メニューの取得&lt;/h3&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;use strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+use Time::HiRes qw(sleep);
+
+# 無名関数の再帰呼び出し用
+use Devel::Caller qw(caller_cv);
+
+UnicodeSemantics(1);
+
+# メモ帳の起動
+system(&amp;apos;start notepad&amp;apos;);
+
+# メモ帳の起動を待つ
+sleep(0.5);
+
+# メモ帳のウィンドウを取得
+my ($notepad) = FindWindowLike(0, &amp;apos;メモ帳$&amp;apos;);
+
+# メモ帳を最前に持ってくる
+SetForegroundWindow($notepad);
+
+# メニューツリーを再帰的に走査
+(sub {
+    my ($menu, $depth) = @_;
+
+    # メニューアイテムの数を取得
+    my $count = GetMenuItemCount($menu);
+
+    # メニューアイテムを走査
+    for (my $i = 0; $i &amp;lt; $count; $i ++) {
+
+        # メニューアイテムの情報を取得
+        my $info = { GetMenuItemInfo($menu, $i) };
+
+        # 表示
+        print &amp;apos;--&amp;apos; x $depth . $info-&amp;gt;{text} . &amp;quot;\n&amp;quot; if $info-&amp;gt;{type} eq &amp;apos;string&amp;apos;;
+
+        # サブメニューを表示（再帰）
+        caller_cv(0)-&amp;gt;(GetSubMenu($menu, $i), $depth + 1);
+    }
+
+})-&amp;gt;(GetMenu($notepad), 0); # メモ帳のメインメニューを渡す
+&lt;/code&gt;&lt;/pre&gt; &lt;a href="http://f.hatena.ne.jp/amachang/20081211184621"&gt;&lt;img alt="20081211184621" src="http://img.f.hatena.ne.jp/images/fotolife/a/amachang/20081211/20081211184621.jpg" /&gt;&lt;/a&gt;&lt;/div&gt;&lt;div&gt;&lt;h3&gt;メニューの選択&lt;/h3&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;use strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+use Time::HiRes qw(sleep);
+
+UnicodeSemantics(1);
+
+system(&amp;apos;start notepad&amp;apos;);
+sleep(0.5);
+my ($notepad) = FindWindowLike(0, &amp;apos;メモ帳$&amp;apos;);
+SetForegroundWindow($notepad);
+
+# 0 番目のメニューアイテムからサブメニューを取得して、
+# サブメニューから 1 番目のメニューアイテムの ID を取得してくる
+# （メモ帳では、「ファイル」→「開く」メニュー
+my $id = GetMenuItemID(GetSubMenu(GetMenu($notepad), 0), 1);
+
+# WM_COMMAND メッセージでメモ帳に、メニューが選択されたと教えてあげる
+PostMessage($notepad, Win32::GuiTest::WM_COMMAND, $id, 0);
+
+# MenuSelect っていうのもあるのですが、
+# 日本語を CP932 で指定しなければならず、
+# しかも、フルの名前を指定しないといけないので、めんどうです。
+# 今回は使いません＞＜
+&lt;/code&gt;&lt;/pre&gt; &lt;a href="http://f.hatena.ne.jp/amachang/20081211190920"&gt;&lt;img alt="20081211190920" src="http://img.f.hatena.ne.jp/images/fotolife/a/amachang/20081211/20081211190920.jpg" /&gt;&lt;/a&gt;&lt;/div&gt;&lt;div&gt;&lt;h3&gt;エディットボックスへ文字を入力する(1)&lt;/h3&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;use strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+use Time::HiRes qw(sleep);
+use Encode;
+my $cp932 = find_encoding(&amp;apos;cp932&amp;apos;);
+
+UnicodeSemantics(1);
+
+system(&amp;apos;start notepad&amp;apos;);
+sleep(0.5);
+my ($notepad) = FindWindowLike(0, &amp;apos;メモ帳$&amp;apos;);
+SetForegroundWindow($notepad);
+
+# エディットボックスを取得
+my ($edit) = FindWindowLike($notepad, undef, &amp;apos;^Edit$&amp;apos;);
+
+# WMSetText を使って、エディットボックスの値を直接設定
+WMSetText($edit, $cp932-&amp;gt;encode(&amp;apos;ほげほげ&amp;apos;));
+&lt;/code&gt;&lt;/pre&gt; &lt;a href="http://f.hatena.ne.jp/amachang/20081211190921"&gt;&lt;img alt="20081211190921" src="http://img.f.hatena.ne.jp/images/fotolife/a/amachang/20081211/20081211190921.jpg" /&gt;&lt;/a&gt;&lt;/div&gt;&lt;div&gt;&lt;h3&gt;エディットボックスへ文字を入力する(2)（キーボード入力をエミュレート）&lt;/h3&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;use strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+use Time::HiRes qw(sleep);
+
+UnicodeSemantics(1);
+
+system(&amp;apos;start notepad&amp;apos;);
+sleep(0.5);
+my ($notepad) = FindWindowLike(0, &amp;apos;メモ帳$&amp;apos;);
+SetForegroundWindow($notepad);
+
+# エディットボックスを取得
+my ($edit) = FindWindowLike($notepad, undef, &amp;apos;^Edit$&amp;apos;);
+
+# フォーカスを合わせる
+SetFocus($edit);
+
+# キーボード入力をエミュレート
+SendKeys(&amp;apos;hoge{ENTER}hoge{ENTER}fuga{ENTER}piyo&amp;apos;);
+&lt;/code&gt;&lt;/pre&gt; &lt;a href="http://f.hatena.ne.jp/amachang/20081211190922"&gt;&lt;img alt="20081211190922" src="http://img.f.hatena.ne.jp/images/fotolife/a/amachang/20081211/20081211190922.jpg" /&gt;&lt;/a&gt;&lt;/div&gt;&lt;div&gt;&lt;h3&gt;エディットボックスの文字を取得する&lt;/h3&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;use strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+use Time::HiRes qw(sleep);
+use Encode;
+my $cp932 = find_encoding(&amp;apos;cp932&amp;apos;);
+
+UnicodeSemantics(1);
+
+system(&amp;apos;start notepad&amp;apos;);
+sleep(0.5);
+my ($notepad) = FindWindowLike(0, &amp;apos;メモ帳$&amp;apos;);
+SetForegroundWindow($notepad);
+my ($edit) = FindWindowLike($notepad, undef, &amp;apos;^Edit$&amp;apos;);
+WMSetText($edit, $cp932-&amp;gt;encode(&amp;apos;ほげほげ&amp;apos;));
+
+# エディットボックスのデータを取得
+# （CP932 で帰ってくるので、そのまま print してるけど、プログラム中で扱う時は decode すべき）
+print WMGetText($edit) . &amp;quot;\n&amp;quot;;
+&lt;/code&gt;&lt;/pre&gt; &lt;a href="http://f.hatena.ne.jp/amachang/20081211190923"&gt;&lt;img alt="20081211190923" src="http://img.f.hatena.ne.jp/images/fotolife/a/amachang/20081211/20081211190923.jpg" /&gt;&lt;/a&gt;&lt;/div&gt;&lt;div&gt;&lt;h3&gt;ツリービューを選択する&lt;/h3&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;use strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+use Time::HiRes qw(sleep);
+use Encode;
+my $cp932 = find_encoding(&amp;apos;cp932&amp;apos;);
+
+UnicodeSemantics(1);
+
+# レジストリエディタを起動
+system(&amp;apos;start regedit&amp;apos;);
+
+# 待つ
+sleep(0.5);
+
+# ウィンドウを取得
+my ($regedit) = FindWindowLike(0, undef, &amp;apos;^RegEdit_RegEdit$&amp;apos;);
+
+# 最前面に持ってくる
+SetForegroundWindow($regedit);
+
+# 左のツリービューを取得
+my ($tree) = FindWindowLike($regedit, undef, &amp;apos;^SysTreeView32$&amp;apos;);
+
+# ツリービューを選択する
+# この場合は、 Firefox のレジストリキーを読みに行きます
+SelTreeViewItemPath($tree, $cp932-&amp;gt;encode(&amp;apos;マイ コンピュータ|HKEY_LOCAL_MACHINE|SOFTWARE|Mozilla|Firefox&amp;apos;));
+
+# この関数は、エクスプローラーでも威力を発揮します。
+&lt;/code&gt;&lt;/pre&gt; &lt;a href="http://f.hatena.ne.jp/amachang/20081212005253"&gt;&lt;img alt="20081212005253" src="http://img.f.hatena.ne.jp/images/fotolife/a/amachang/20081212/20081212005253.jpg" /&gt;&lt;/a&gt;&lt;/div&gt;&lt;div&gt;&lt;h3&gt;リストビューのアイテムをダブルクリックする&lt;/h3&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;use strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+use Time::HiRes qw(sleep);
+use Encode;
+my $cp932 = find_encoding(&amp;apos;cp932&amp;apos;);
+
+UnicodeSemantics(1);
+
+# レジストリエディタを起動
+system(&amp;apos;start regedit&amp;apos;);
+
+# 待つ
+sleep(0.5);
+
+# ウィンドウを取得
+my ($regedit) = FindWindowLike(0, undef, &amp;apos;^RegEdit_RegEdit$&amp;apos;);
+
+# 最前面に持ってくる
+SetForegroundWindow($regedit);
+
+# 左のツリービューを取得
+my ($tree) = FindWindowLike($regedit, undef, &amp;apos;^SysTreeView32$&amp;apos;);
+
+# ツリービューを選択する
+SelTreeViewItemPath($tree, $cp932-&amp;gt;encode(&amp;apos;マイ コンピュータ|HKEY_CLASSES_ROOT|CompressFolder&amp;apos;));
+
+# 右のリストビューを取得
+my ($list) = FindWindowLike($regedit, undef, &amp;apos;^SysListView32$&amp;apos;);
+
+my ($x, $y, $posbuf);
+
+# $list を持っているプロセス（regedit のプロセス）
+# のメモリ空間を 8 バイト確保
+$posbuf = AllocateVirtualBuffer($list, 8);
+
+# メモリ確保出来たら
+if ($posbuf) {
+
+    # エラーのときもちゃんとレスキューされるように
+    eval {
+
+        # $list に 0x1010 (LVM_GETITEMPOSITION) というメッッセージを送る
+        # 結果を返して欲しい共有メモリのポインタを渡す
+        # 第三引数の 1 は「（0 から数えて）1 番目のリストアイテム」という意味
+        SendMessage($list, 0x1010, 1, $posbuf-&amp;gt;{ptr});
+
+        # 共有メモリから、結果を読み出す
+        # $x, $y にはリストアイテムの位置を取得
+        ($x, $y) = unpack(&amp;apos;L2&amp;apos;, ReadFromVirtualBuffer($posbuf, 8));
+
+    };
+
+    # 共有メモリを解放
+    FreeVirtualBuffer($posbuf);
+
+    # もし、 eval 中にエラーがあれば
+    die $@ if $@;
+}
+
+# リストビューの位置を取る
+my ($px, $py) = GetWindowRect($list);
+
+# マウスを移動
+MouseMoveAbsPix($px + $x + 4, $py + $y + 4);
+
+# ダブルクリック！
+SendLButtonDown();
+SendLButtonUp();
+SendLButtonDown();
+SendLButtonUp();
+
+# 実装のほうで SetWindowsHookEx を使ってる部分が動かないことがある（原因不明）ので
+# この例のように、
+# 自分で共有メモリ（AllocateVirtualBuffer）を使って生のメッセージでやるというパターンは結構あります。
+&lt;/code&gt;&lt;/pre&gt; &lt;a href="http://f.hatena.ne.jp/amachang/20081212020713"&gt;&lt;img alt="20081212020713" src="http://img.f.hatena.ne.jp/images/fotolife/a/amachang/20081212/20081212020713.jpg" /&gt;&lt;/a&gt;&lt;/div&gt;&lt;div&gt;&lt;h3&gt;ツールバーをクリックする&lt;/h3&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;use strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+use Time::HiRes qw(sleep);
+use Encode;
+my $cp932 = find_encoding(&amp;apos;cp932&amp;apos;);
+
+UnicodeSemantics(1);
+
+# エクスプローラーの起動
+system(&amp;apos;start explorer&amp;apos;);
+
+# 待つ
+sleep(0.5);
+
+# ウィンドウを取得
+my ($exp) = FindWindowLike(0, undef, &amp;apos;^ExploreWClass$&amp;apos;);
+
+# 最前面に持ってくる
+SetForegroundWindow($exp);
+
+# 一番最初のツールバーを取得
+# （ツールバーはたいていいくつかある）
+my ($toolbar) = FindWindowLike($exp, undef, &amp;apos;^ToolbarWindow32$&amp;apos;);
+
+my ($x, $y, $rectbuf);
+
+# $toolbar を持っているプロセス（エクスプローラーのプロセス）
+# のメモリ空間を 16 バイト確保
+$rectbuf = AllocateVirtualBuffer($toolbar, 16);
+
+# メモリ確保出来たら
+if ($rectbuf) {
+
+    # エラーのときもちゃんとレスキューされるように
+    eval {
+
+        # $toolbar に 0x4ld (TB_GETITEMRECT) というメッッセージを送る
+        # 結果を返して欲しい共有メモリのポインタを渡す
+        # 第三引数の 7 は
+        # 「（0 から数えて）7 番目のツールバーアイテム（セパレータや hide されているアイテムも含む）」という意味
+        SendMessage($toolbar, 0x41d, 7, $rectbuf-&amp;gt;{ptr});
+
+        # 共有メモリから、結果を読み出す
+        # $x, $y にはリストアイテムの位置を取得
+        ($x, $y) = unpack(&amp;apos;L4&amp;apos;, ReadFromVirtualBuffer($rectbuf, 16));
+
+    };
+
+    # 共有メモリを解放
+    FreeVirtualBuffer($rectbuf);
+
+    # もし、 eval 中にエラーがあれば
+    die $@ if $@;
+}
+
+# ツールバーの位置を取る
+my ($px, $py) = GetWindowRect($toolbar);
+
+# マウスを移動
+MouseMoveAbsPix($px + $x + 4, $py + $y + 4);
+
+# クリック！
+SendLButtonDown();
+SendLButtonUp();
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;a href="http://f.hatena.ne.jp/amachang/20081212023736"&gt;&lt;img alt="20081212023736" src="http://img.f.hatena.ne.jp/images/fotolife/a/amachang/20081212/20081212023736.jpg" /&gt;&lt;/a&gt;&lt;/div&gt;&lt;div&gt;&lt;h2&gt;まとめ&lt;/h2&gt;&lt;p&gt; このように、めんどくさい Windows の GUI での作業を Perl を使ってある程度自動化しておくことが出来ます。 &lt;/p&gt;&lt;p&gt; また、これらを &lt;strong&gt;CGI 化して GreaseMonkey とかで呼び出すと非常に便利&lt;/strong&gt;です＞＜&lt;strong&gt;でも、大変危険ですので絶対に真似しないように&lt;/strong&gt;してください＞＜ &lt;/p&gt;&lt;p&gt; というわけで、次は &lt;a href="http://d.hatena.ne.jp/TAKESAKO/"&gt;id:TAKESAKO&lt;/a&gt; さんお願いします。 &lt;/p&gt;&lt;/div&gt;&lt;script type="text/javascript"&gt;
+            var elm = document.getElementById(&amp;apos;toc&amp;apos;);
+            elm.innerHTML = &amp;apos;&amp;lt;h3&amp;gt;もくじ&amp;lt;/h3&amp;gt;&amp;apos;;
+            var ul = document.createElement(&amp;apos;ul&amp;apos;);
+            elm.appendChild(ul);
+            var articles = document.getElementsByTagName(&amp;apos;h3&amp;apos;);
+            for (var i = 0, l = articles.length; i &amp;lt; l; i ++) {
+                var article = articles[i];
+                article.id = &amp;apos;article-&amp;apos; + i;
+                var li = document.createElement(&amp;apos;li&amp;apos;);
+                li.innerHTML = &amp;apos;&amp;lt;a href=&amp;quot;#article-&amp;apos; + i + &amp;apos;&amp;quot;&amp;gt;&amp;apos; + article.innerHTML + &amp;apos;&amp;lt;/a&amp;gt;&amp;apos;;
+                ul.appendChild(li);
+            }
+        &lt;/script&gt;&lt;/body&gt;
+</content:encoded>
+      <dcterms:modified>2008-12-16T13:43:19Z</dcterms:modified>
+      <guid isPermaLink="false">tag:perl-users.jp,2006:http://perl-users.jp/articles/advent-calendar/2008/13.html</guid>
+    </item>
+    <item>
+      <author>nobody@example.com</author>
+      <dc:creator>nobody@example.com</dc:creator>
+      <link>http://perl-users.jp/articles/advent-calendar/2008/12.html</link>
+      <description>非破壊な s/// のススメ正規表現の置換でときどき困るのは、元の文字列が変更されてしまうことです。そのため、たとえば文字列を URI escape する際には、以下のように別変数にコピーした上で、正規表現を適用することになります。my $escaped = $search_str;
+$escaped =~ s/([^0-9A-Za-z_.!~*'()-])/'%' . uc(unpack('H2', $1))/eg;
+my $url = "http://example.com/search?q=$escaped";
+以前、この点がめんどくさいなーとブログに書いたところ、kazeburo さん他に以下のようなテクニックを教えていただきました。use List::MoreUtils qw(apply);
+
+my $url = 'http://example.com/search?q='
+    . apply { s/([^0-9A-Za-z_.!~*'()-])/'%' . uc(unpack('H2', $1))/eg } $search_str;
+これなら、不要な変数に頭を悩まされずに１ステートメントで書くことができ、意味も明快です。いいですね。次は id:amachang。
+</description>
+      <dc:date>2008-12-16T13:43:19Z</dc:date>
+      <title>非破壊な s/// のススメ</title>
+      <pubDate>Tue, 16 Dec 2008 13:43:19 -0000</pubDate>
+      <content:encoded>&lt;body&gt;&lt;h1&gt;非破壊な s/// のススメ&lt;/h1&gt;&lt;div class="section"&gt;&lt;p&gt;正規表現の置換でときどき困るのは、元の文字列が変更されてしまうことです。そのため、たとえば文字列を URI escape する際には、以下のように別変数にコピーした上で、正規表現を適用することになります。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;my $escaped = $search_str;
+$escaped =~ s/([^0-9A-Za-z_.!~*&amp;apos;()-])/&amp;apos;%&amp;apos; . uc(unpack(&amp;apos;H2&amp;apos;, $1))/eg;
+my $url = &amp;quot;http://example.com/search?q=$escaped&amp;quot;;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;以前、&lt;a href="http://labs.cybozu.co.jp/blog/kazuho/archives/2007/07/perl_ndes_regex.php"&gt;この点がめんどくさいなーとブログに書いた&lt;/a&gt;ところ、kazeburo さん他に以下のようなテクニックを教えていただきました。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;use List::MoreUtils qw(apply);
+
+my $url = &amp;apos;http://example.com/search?q=&amp;apos;
+    . apply { s/([^0-9A-Za-z_.!~*&amp;apos;()-])/&amp;apos;%&amp;apos; . uc(unpack(&amp;apos;H2&amp;apos;, $1))/eg } $search_str;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;これなら、不要な変数に頭を悩まされずに１ステートメントで書くことができ、意味も明快です。いいですね。&lt;/p&gt;&lt;p&gt;次は id:amachang。&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;
+</content:encoded>
+      <dcterms:modified>2008-12-16T13:43:19Z</dcterms:modified>
+      <guid isPermaLink="false">tag:perl-users.jp,2006:http://perl-users.jp/articles/advent-calendar/2008/12.html</guid>
+    </item>
+    <item>
+      <author>nobody@example.com</author>
+      <dc:creator>nobody@example.com</dc:creator>
+      <link>http://perl-users.jp/articles/advent-calendar/2008/11.html</link>
+      <description>Carp::Clan でエラーハンドリングのススメCarp, Carp::Clan で共通のことcarp呼び出し元の分かる warncluckcarp + stack backtracecroak呼び出し元の分かる dieconfesscroak + stack backtrace但し Carp の場合は cluck や confess を明示的に使うよりも、$ perl -MCarp=verbose target.pl
+ という使い方でも stacktrace を得ることが出来ます。Carp::Clan の場合は、 use Carp::Clan;
+
+$Carp::Clan::Verbose = 1 if $ENV{DEBUG};
+ のようなフラグで判別すると良いでしょう。 Carp::Clan のススメ Carp::Clan の場合ですと、デフォルトでメッセージとファイル名、行番号だけで無く、どの package のどのサブルーチン内でエラーが起きたかも分かります。 $ perl carp.pl
+warning message!!! at carp.pl line 17
+$ perl carp_clan.pl
+NS::A::do_a(): warning message!!! at carp_clan.pl line 19
+ という具合です。具体的なコードでは、 #!/usr/bin/perl
+
+use strict;
+use warnings;
+
+package NS::A;
+
+use Carp::Clan;
+
+$Carp::Clan::Verbose = 1 if $ENV{DEBUG};
+
+sub do_a {
+    croak('warning message!!!');
+}
+
+package NS::B;
+
+sub do_b {
+    NS::A::do_a();
+}
+
+package NS::C;
+
+sub do_c {
+    NS::B::do_b();
+}
+
+package main;
+
+NS::C::do_c();
+ のような形になります。またエラーハンドリングの package 名に対する正規表現によるグルーピングもできます。詳しくは perldoc Carp::Clan を見て下さい。  次は id:kazuhooku さん。 
+</description>
+      <dc:date>2008-12-16T13:43:19Z</dc:date>
+      <title>Carp::Clan でエラーハンドリングのススメ</title>
+      <pubDate>Tue, 16 Dec 2008 13:43:19 -0000</pubDate>
+      <content:encoded>&lt;body&gt;&lt;h1&gt;Carp::Clan でエラーハンドリングのススメ&lt;/h1&gt;&lt;div class="section"&gt;&lt;h2&gt;Carp, Carp::Clan で共通のこと&lt;/h2&gt;&lt;dl&gt;&lt;dt&gt;carp&lt;/dt&gt;&lt;dd&gt;呼び出し元の分かる warn&lt;/dd&gt;&lt;dt&gt;cluck&lt;/dt&gt;&lt;dd&gt;carp + stack backtrace&lt;/dd&gt;&lt;dt&gt;croak&lt;/dt&gt;&lt;dd&gt;呼び出し元の分かる die&lt;/dd&gt;&lt;dt&gt;confess&lt;/dt&gt;&lt;dd&gt;croak + stack backtrace&lt;/dd&gt;&lt;/dl&gt;&lt;p&gt;但し Carp の場合は &lt;var&gt;cluck&lt;/var&gt; や &lt;var&gt;confess&lt;/var&gt; を明示的に使うよりも、&lt;/p&gt;&lt;pre&gt;&lt;code&gt;$ perl -MCarp=verbose target.pl
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt; という使い方でも stacktrace を得ることが出来ます。Carp::Clan の場合は、 &lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;use Carp::Clan;
+
+$Carp::Clan::Verbose = 1 if $ENV{DEBUG};
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt; のようなフラグで判別すると良いでしょう。 &lt;/p&gt;&lt;/div&gt;&lt;div class="section"&gt;&lt;h2&gt;Carp::Clan のススメ&lt;/h2&gt;&lt;p&gt; Carp::Clan の場合ですと、デフォルトでメッセージとファイル名、行番号だけで無く、どの package のどのサブルーチン内でエラーが起きたかも分かります。 &lt;/p&gt;&lt;pre&gt;&lt;code&gt;$ perl carp.pl
+warning message!!! at carp.pl line 17
+$ perl carp_clan.pl
+NS::A::do_a(): warning message!!! at carp_clan.pl line 19
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt; という具合です。具体的なコードでは、 &lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+package NS::A;
+
+use Carp::Clan;
+
+$Carp::Clan::Verbose = 1 if $ENV{DEBUG};
+
+sub do_a {
+    croak(&amp;apos;warning message!!!&amp;apos;);
+}
+
+package NS::B;
+
+sub do_b {
+    NS::A::do_a();
+}
+
+package NS::C;
+
+sub do_c {
+    NS::B::do_b();
+}
+
+package main;
+
+NS::C::do_c();
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt; のような形になります。またエラーハンドリングの package 名に対する正規表現によるグルーピングもできます。詳しくは perldoc Carp::Clan を見て下さい。 &lt;/p&gt;&lt;p&gt; 次は id:kazuhooku さん。 &lt;/p&gt;&lt;/div&gt;&lt;/body&gt;
+</content:encoded>
+      <dcterms:modified>2008-12-16T13:43:19Z</dcterms:modified>
+      <guid isPermaLink="false">tag:perl-users.jp,2006:http://perl-users.jp/articles/advent-calendar/2008/11.html</guid>
+    </item>
+    <item>
+      <author>nobody@example.com</author>
+      <dc:creator>nobody@example.com</dc:creator>
+      <link>http://perl-users.jp/articles/advent-calendar/2008/10.html</link>
+      <description>SQLiteを使ったテストのtipsDB周りのモジュールを開発している場合、テストDBにSQLiteを使う事が良くあります。その際、普通であれば以下のようなテストコードを書くと思いますuse Test::More tests =&gt; 1;
+use DBI;
+do {
+    # SQLiteで使うファイルを指定
+    my $dbh = DBI-&gt;connect('dbi:SQLite:./test.db','','');
+    $dbh-&gt;do(q{CREATE TABLE foo (id INT, name TEXT)});
+    $dbh-&gt;do(q{INSERT INTO foo (id, name) VALUES (10,'nekokak')});
+
+    my $sth = $dbh-&gt;prepare('SELECT * FROM foo');
+    $sth-&gt;execute;
+    my $row = $sth-&gt;fetchrow_hashref();
+    ok $row;
+    # 後始末としてファイルを削除
+    unlink './test.db';
+};
+しかし、エラーが発生した場合、最後のunlinkが実行されずに、test.dbファイルが残ってしまい、 テストスクリプトを再度実行すると、CREATE TABLEの部分でエラーが発生してしまいます。SQLiteではファイル名を指定しない場合、ファイルを作らずオンメモリで処理できるので、 テストコードを書く際はファイルを指定しないようにすると良いでしょう。use Test::More tests =&gt; 1;
+use DBI;
+do {
+    # SQLiteで使うファイルを指定せずオンメモリで処理
+    my $dbh = DBI-&gt;connect('dbi:SQLite:','','');
+    $dbh-&gt;do(q{CREATE TABLE foo (id INT, name TEXT)});
+    $dbh-&gt;do(q{INSERT INTO foo (id, name) VALUES (10,'nekokak')});
+
+    my $sth = $dbh-&gt;prepare('SELECT * FROM foo');
+    $sth-&gt;execute;
+    my $row = $sth-&gt;fetchrow_hashref();
+    ok $row;
+};
+このようにファイルを指定せずに書けば、unlinkも必要なく、ゴミファイルが残る心配もありませんね。次は zigorou さん。
+</description>
+      <dc:date>2008-12-16T11:03:38Z</dc:date>
+      <title>SQLiteを使ったテストのtips</title>
+      <pubDate>Tue, 16 Dec 2008 11:03:38 -0000</pubDate>
+      <content:encoded>&lt;body&gt;&lt;h1&gt;SQLiteを使ったテストのtips&lt;/h1&gt;&lt;p&gt;DB周りのモジュールを開発している場合、テストDBにSQLiteを使う事が良くあります。&lt;/p&gt;&lt;p&gt;その際、普通であれば以下のようなテストコードを書くと思います&lt;/p&gt;&lt;pre&gt;&lt;code&gt;use Test::More tests =&amp;gt; 1;
+use DBI;
+do {
+    # SQLiteで使うファイルを指定
+    my $dbh = DBI-&amp;gt;connect(&amp;apos;dbi:SQLite:./test.db&amp;apos;,&amp;apos;&amp;apos;,&amp;apos;&amp;apos;);
+    $dbh-&amp;gt;do(q{CREATE TABLE foo (id INT, name TEXT)});
+    $dbh-&amp;gt;do(q{INSERT INTO foo (id, name) VALUES (10,&amp;apos;nekokak&amp;apos;)});
+
+    my $sth = $dbh-&amp;gt;prepare(&amp;apos;SELECT * FROM foo&amp;apos;);
+    $sth-&amp;gt;execute;
+    my $row = $sth-&amp;gt;fetchrow_hashref();
+    ok $row;
+    # 後始末としてファイルを削除
+    unlink &amp;apos;./test.db&amp;apos;;
+};
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;しかし、エラーが発生した場合、最後のunlinkが実行されずに、test.dbファイルが残ってしまい、 テストスクリプトを再度実行すると、CREATE TABLEの部分でエラーが発生してしまいます。&lt;/p&gt;&lt;p&gt;SQLiteではファイル名を指定しない場合、ファイルを作らずオンメモリで処理できるので、 テストコードを書く際はファイルを指定しないようにすると良いでしょう。&lt;/p&gt;&lt;pre&gt;&lt;code&gt;use Test::More tests =&amp;gt; 1;
+use DBI;
+do {
+    # SQLiteで使うファイルを指定せずオンメモリで処理
+    my $dbh = DBI-&amp;gt;connect(&amp;apos;dbi:SQLite:&amp;apos;,&amp;apos;&amp;apos;,&amp;apos;&amp;apos;);
+    $dbh-&amp;gt;do(q{CREATE TABLE foo (id INT, name TEXT)});
+    $dbh-&amp;gt;do(q{INSERT INTO foo (id, name) VALUES (10,&amp;apos;nekokak&amp;apos;)});
+
+    my $sth = $dbh-&amp;gt;prepare(&amp;apos;SELECT * FROM foo&amp;apos;);
+    $sth-&amp;gt;execute;
+    my $row = $sth-&amp;gt;fetchrow_hashref();
+    ok $row;
+};
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;このようにファイルを指定せずに書けば、unlinkも必要なく、ゴミファイルが残る心配もありませんね。&lt;/p&gt;&lt;p&gt;次は zigorou さん。&lt;/p&gt;&lt;/body&gt;
+</content:encoded>
+      <dcterms:modified>2008-12-16T11:03:38Z</dcterms:modified>
+      <guid isPermaLink="false">tag:perl-users.jp,2006:http://perl-users.jp/articles/advent-calendar/2008/10.html</guid>
+    </item>
+    <item>
+      <author>nobody@example.com</author>
+      <dc:creator>nobody@example.com</dc:creator>
+      <link>http://perl-users.jp/articles/advent-calendar/2008/09.html</link>
+      <description>全てのコードにテストを(標準入力乗っ取り編) テストコード書くのってピタゴラ装置作るみたいで楽しいですよね。 というわけであらゆるコードにはテストコードを用意してあげたい！ けどそういうときちょっとめんどくさいのが、昔ながらのCGIスクリプトやメールフィルタなどのフィルタスクリプト、要はSTDINからデータが入ってくる前提のコードです。 make testやproveからテストする前提だと標準入力に何も渡さないし…、 というわけでこんなかんじでテストを書いてみます。 
+
+{
+    local *STDIN;
+    open STDIN, '&lt;', 't/data1.txt';
+    my $rv = SomeFilter-&gt;run;
+    ok $rv;
+}
+
+{
+    local *STDIN;
+    open STDIN, '&lt;', 't/data2.txt';
+    my $rv = SomeFilter-&gt;run;
+    ok $rv;
+}
+
+ 各ブロックのlocal文により、各スタック内ではSTDINが上書きされるため、 STDINを受け取る前提のコードに好きなファイルを好きなだけ渡すことができます。 あくまでも各ブロックの中だけ上書きしているので 
+
+{
+    local *STDIN;
+    open STDIN, '&lt;', 't/data1.txt';
+    my $rv = SomeFilter-&gt;run;
+    ok $rv;
+}
+
+{
+    my $rv = SomeFilter-&gt;run;
+    ok $rv;
+}
+
+ とかすると、最後のブロックでは標準入力を待つのが分かります。 
+
+{   
+    local *STDIN = *DATA;
+    SomeFilter-&gt;run;
+}
+
+__DATA__
+blah blah blah
+
+ こんな書き方も出来ます。さて、次のバトンは nekokak さんに渡します。 
+</description>
+      <dc:date>2008-12-16T11:03:38Z</dc:date>
+      <title>全てのコードにテストを(標準入力乗っ取り編)</title>
+      <pubDate>Tue, 16 Dec 2008 11:03:38 -0000</pubDate>
+      <content:encoded>&lt;body&gt;&lt;h1&gt;全てのコードにテストを(標準入力乗っ取り編)&lt;/h1&gt;&lt;p&gt; テストコード書くのってピタゴラ装置作るみたいで楽しいですよね。 というわけであらゆるコードにはテストコードを用意してあげたい！ けどそういうときちょっとめんどくさいのが、昔ながらのCGIスクリプトやメールフィルタなどのフィルタスクリプト、要はSTDINからデータが入ってくる前提のコードです。 make testやproveからテストする前提だと標準入力に何も渡さないし…、 というわけでこんなかんじでテストを書いてみます。 &lt;/p&gt;&lt;pre&gt;
+&lt;code&gt;
+{
+    local *STDIN;
+    open STDIN, &amp;apos;&amp;lt;&amp;apos;, &amp;apos;t/data1.txt&amp;apos;;
+    my $rv = SomeFilter-&amp;gt;run;
+    ok $rv;
+}
+
+{
+    local *STDIN;
+    open STDIN, &amp;apos;&amp;lt;&amp;apos;, &amp;apos;t/data2.txt&amp;apos;;
+    my $rv = SomeFilter-&amp;gt;run;
+    ok $rv;
+}
+&lt;/code&gt;
+&lt;/pre&gt;&lt;p&gt; 各ブロックのlocal文により、各スタック内ではSTDINが上書きされるため、 STDINを受け取る前提のコードに好きなファイルを好きなだけ渡すことができます。 あくまでも各ブロックの中だけ上書きしているので &lt;/p&gt;&lt;pre&gt;
+&lt;code&gt;
+{
+    local *STDIN;
+    open STDIN, &amp;apos;&amp;lt;&amp;apos;, &amp;apos;t/data1.txt&amp;apos;;
+    my $rv = SomeFilter-&amp;gt;run;
+    ok $rv;
+}
+
+{
+    my $rv = SomeFilter-&amp;gt;run;
+    ok $rv;
+}
+&lt;/code&gt;
+&lt;/pre&gt;&lt;p&gt; とかすると、最後のブロックでは標準入力を待つのが分かります。 &lt;/p&gt;&lt;pre&gt;
+&lt;code&gt;
+{   
+    local *STDIN = *DATA;
+    SomeFilter-&amp;gt;run;
+}
+
+__DATA__
+blah blah blah
+&lt;/code&gt;
+&lt;/pre&gt;&lt;p&gt; こんな書き方も出来ます。さて、次のバトンは nekokak さんに渡します。 &lt;/p&gt;&lt;/body&gt;
+</content:encoded>
+      <dcterms:modified>2008-12-16T11:03:38Z</dcterms:modified>
+      <guid isPermaLink="false">tag:perl-users.jp,2006:http://perl-users.jp/articles/advent-calendar/2008/09.html</guid>
+    </item>
+    <item>
+      <author>nobody@example.com</author>
+      <dc:creator>nobody@example.com</dc:creator>
+      <link>http://perl-users.jp/articles/advent-calendar/2008/08.html</link>
+      <description>ワンライナーで画像収集某掲示板まとめブログのエッチな記事に載っている画像を収集したいときに、Perl ではワンライナー、つまり1行のコマンドで書くことができます。例えば、女の子の太もも画像 ( http://metiss.blog92.fc2.com/blog-entry-142.html ) にリンクされている画像をカレントディレクトリにダウンロードしたければ以下のようなコマンドをたたくだけです。
+
+  $perl -MLWP::Simple -MFile::Basename -e 'map{mirror($_,basename($_))} get($ARGV[0]) =~ m{&lt;a.*?href="(http://[^"]+\.jpg)"}gi;' http://metiss.blog92.fc2.com/blog-entry-142.html
+
+ どうでしょう。ダウンロードできましたか？このワンライナーから以下のことがわかりますね。 -M で指定したモジュールの読み込み-e で指定したスクリプトを実行@ARGV に引数が入る とまぁ、どこまでワンライナーでできるかやってみたわけですが、 普通に使う分には、以下のようなスクリプトをパス通ったところに置いて、いつでも画像収集しておけるようにすればうはうはですね。 
+
+  #!/usr/bin/perl
+  use strict;
+  use LWP::Simple;
+  use File::Basename;
+
+  my $content = get(shift);
+  my @l = $content =~ m{&lt;a.*?href="(http://[^"]+\.jpg)"}gi;
+  map{mirror($_,basename($_))} @l;
+
+ 
+ こんな感じで使えます。  ./dl.pl http://metiss.blog92.fc2.com/blog-entry-142.html  Tipsというより便利スクリプトの紹介になってしまいしたことご了承くだされ。 さて、次のバトンは _33rpm さんに渡します。 
+</description>
+      <dc:date>2008-12-16T11:03:38Z</dc:date>
+      <title>ワンライナーで画像収集</title>
+      <pubDate>Tue, 16 Dec 2008 11:03:38 -0000</pubDate>
+      <content:encoded>&lt;body&gt;&lt;h1&gt;ワンライナーで画像収集&lt;/h1&gt;&lt;p&gt;某掲示板まとめブログのエッチな記事に載っている画像を収集したいときに、Perl ではワンライナー、つまり1行のコマンドで書くことができます。例えば、女の子の太もも画像 ( http://metiss.blog92.fc2.com/blog-entry-142.html ) にリンクされている画像をカレントディレクトリにダウンロードしたければ以下のようなコマンドをたたくだけです。&lt;/p&gt;&lt;pre&gt;
+&lt;code&gt;
+  $perl -MLWP::Simple -MFile::Basename -e &amp;apos;map{mirror($_,basename($_))} get($ARGV[0]) =~ m{&amp;lt;a.*?href=&amp;quot;(http://[^&amp;quot;]+\.jpg)&amp;quot;}gi;&amp;apos; http://metiss.blog92.fc2.com/blog-entry-142.html
+&lt;/code&gt;
+&lt;/pre&gt;&lt;p&gt; どうでしょう。ダウンロードできましたか？このワンライナーから以下のことがわかりますね。 &lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;code&gt;-M&lt;/code&gt; で指定したモジュールの読み込み&lt;/li&gt;&lt;li&gt;&lt;code&gt;-e&lt;/code&gt; で指定したスクリプトを実行&lt;/li&gt;&lt;li&gt;&lt;code&gt;@ARGV&lt;/code&gt; に引数が入る&lt;/li&gt;&lt;/ul&gt;&lt;p&gt; とまぁ、どこまでワンライナーでできるかやってみたわけですが、 普通に使う分には、以下のようなスクリプトをパス通ったところに置いて、いつでも画像収集しておけるようにすればうはうはですね。 &lt;/p&gt;&lt;pre&gt;
+&lt;code&gt;
+  #!/usr/bin/perl
+  use strict;
+  use LWP::Simple;
+  use File::Basename;
+
+  my $content = get(shift);
+  my @l = $content =~ m{&amp;lt;a.*?href=&amp;quot;(http://[^&amp;quot;]+\.jpg)&amp;quot;}gi;
+  map{mirror($_,basename($_))} @l;
+&lt;/code&gt;
+&lt;/pre&gt; &lt;pre&gt;
+&lt;/pre&gt;&lt;p&gt; こんな感じで使えます。 &lt;/p&gt;&lt;code&gt; ./dl.pl http://metiss.blog92.fc2.com/blog-entry-142.html &lt;/code&gt;&lt;p&gt; Tipsというより便利スクリプトの紹介になってしまいしたことご了承くだされ。 さて、次のバトンは _33rpm さんに渡します。 &lt;/p&gt;&lt;/body&gt;
+</content:encoded>
+      <dcterms:modified>2008-12-16T11:03:38Z</dcterms:modified>
+      <guid isPermaLink="false">tag:perl-users.jp,2006:http://perl-users.jp/articles/advent-calendar/2008/08.html</guid>
+    </item>
+    <item>
+      <author>nobody@example.com</author>
+      <dc:creator>nobody@example.com</dc:creator>
+      <link>http://perl-users.jp/articles/advent-calendar/2008/07.html</link>
+      <description>コマンドラインスイッチと特殊変数を使いまくるファイルの奇数行だけを表示したいといったときに、例えばどんなコードを書くでしょうか。例えば、以下のように書く事ができます。
+
+    #!/usr/bin/env perl -w
+    use strict;
+    my $lines = 0;
+    while(&lt;&gt;) {
+        $lines++;
+        print $_ if $lines % 2;
+    }
+
+ただ、こういう小さい物にスクリプトを作るのも面倒ですし、1ライナーで書きたいと思いませんか？Perlには数多くのコマンドラインスイッチや特殊変数があり、それを使うととても短く書く事ができます。例えば、この例では以下の物を使うと1ライナーで書けるくらいの短さになります。
+
+    $. - 現在の行番号
+    -n - プログラムのループ
+
+まず $.を使ってみましょう。line変数が不要になるので以下のようになります。
+
+    #!/usr/bin/env perl
+    use strict;
+    while(&lt;&gt;) {
+        print $_ if $. % 2;
+    }
+
+続いて-nオプションを使ってみましょう。ループが不要になるので、以下のように書けます。
+
+    #!/usr/bin/env perl -wn
+    print $_ if $. % 2;
+
+これだったら1ライナーで書きたいと思えますよね。1ライナーで書くと、-e スクリプト評価のコマンドラインスイッチを使って以下のようになりますね。
+
+    perl -wn -e 'print $_ if $. % 2' words.txt 
+
+コマンドラインスイッチは、perldoc perlrunで調べられます。他にも便利なコマンドラインスイッチや特殊変数があるので、是非読んでみてください次は yusukebe さん。
+</description>
+      <dc:date>2008-12-16T11:03:38Z</dc:date>
+      <title>コマンドラインスイッチと特殊変数を使いまくる</title>
+      <pubDate>Tue, 16 Dec 2008 11:03:38 -0000</pubDate>
+      <content:encoded>&lt;body&gt;&lt;h1&gt;コマンドラインスイッチと特殊変数を使いまくる&lt;/h1&gt;&lt;p&gt;ファイルの奇数行だけを表示したいといったときに、例えばどんなコードを書くでしょうか。&lt;/p&gt;&lt;p&gt;例えば、以下のように書く事ができます。&lt;/p&gt;&lt;pre&gt;
+&lt;code&gt;
+    #!/usr/bin/env perl -w
+    use strict;
+    my $lines = 0;
+    while(&amp;lt;&amp;gt;) {
+        $lines++;
+        print $_ if $lines % 2;
+    }
+&lt;/code&gt;
+&lt;/pre&gt;&lt;p&gt;ただ、こういう小さい物にスクリプトを作るのも面倒ですし、1ライナーで書きたいと思いませんか？&lt;/p&gt;&lt;p&gt;Perlには数多くのコマンドラインスイッチや特殊変数があり、それを使うととても短く書く事ができます。&lt;/p&gt;&lt;p&gt;例えば、この例では以下の物を使うと1ライナーで書けるくらいの短さになります。&lt;/p&gt;&lt;pre&gt;
+&lt;code&gt;
+    $. - 現在の行番号
+    -n - プログラムのループ
+&lt;/code&gt;
+&lt;/pre&gt;&lt;p&gt;まず &lt;code&gt;$.&lt;code&gt;を使ってみましょう。line変数が不要になるので以下のようになります。&lt;/code&gt;&lt;/code&gt;&lt;/p&gt;&lt;pre&gt;
+&lt;code&gt;
+    #!/usr/bin/env perl
+    use strict;
+    while(&amp;lt;&amp;gt;) {
+        print $_ if $. % 2;
+    }
+&lt;/code&gt;
+&lt;/pre&gt;&lt;p&gt;続いて-nオプションを使ってみましょう。ループが不要になるので、以下のように書けます。&lt;/p&gt;&lt;pre&gt;
+&lt;code&gt;
+    #!/usr/bin/env perl -wn
+    print $_ if $. % 2;
+&lt;/code&gt;
+&lt;/pre&gt;&lt;p&gt;これだったら1ライナーで書きたいと思えますよね。&lt;/p&gt;&lt;p&gt;1ライナーで書くと、-e スクリプト評価のコマンドラインスイッチを使って以下のようになりますね。&lt;/p&gt;&lt;pre&gt;
+&lt;code&gt;
+    perl -wn -e &amp;apos;print $_ if $. % 2&amp;apos; words.txt 
+&lt;/code&gt;
+&lt;/pre&gt;&lt;p&gt;コマンドラインスイッチは、perldoc perlrunで調べられます。&lt;/p&gt;&lt;p&gt;他にも便利なコマンドラインスイッチや特殊変数があるので、是非読んでみてください&lt;/p&gt;&lt;p&gt;次は yusukebe さん。&lt;/p&gt;&lt;/body&gt;
+</content:encoded>
+      <dcterms:modified>2008-12-16T11:03:38Z</dcterms:modified>
+      <guid isPermaLink="false">tag:perl-users.jp,2006:http://perl-users.jp/articles/advent-calendar/2008/07.html</guid>
+    </item>
+    <item>
+      <author>nobody@example.com</author>
+      <dc:creator>nobody@example.com</dc:creator>
+      <link>http://perl-users.jp/articles/advent-calendar/2008/06.html</link>
+      <description>ファイルテスト演算子をつかいまくる_ という特殊変数があり、これは最後にテスト演算子に渡した引数を示します。よって、ファイルでありかつリーダブルでありかつ実行可能であるというようなテストをしたい場合は、-f $file &amp;&amp; -r $file &amp;&amp; -x $file;
+とするかわりに、-f $file &amp;&amp; -r _ &amp;&amp; -x _;
+とかくことができます。また、miyagawaさん情報によれば、perl5.10では-f -r -x $file;
+などのように書くことも出来るようになっているそうです。次は dann さん。
+</description>
+      <dc:date>2008-12-16T11:03:38Z</dc:date>
+      <title>ファイルテスト演算子をつかいまくる</title>
+      <pubDate>Tue, 16 Dec 2008 11:03:38 -0000</pubDate>
+      <content:encoded>&lt;body&gt;&lt;h1&gt;ファイルテスト演算子をつかいまくる&lt;/h1&gt;&lt;p&gt;&lt;code&gt;_&lt;/code&gt; という特殊変数があり、これは最後にテスト演算子に渡した引数を示します。&lt;/p&gt;&lt;p&gt;よって、ファイルでありかつリーダブルでありかつ実行可能であるというようなテストをしたい場合は、&lt;/p&gt;&lt;pre&gt;&lt;code&gt;-f $file &amp;amp;&amp;amp; -r $file &amp;amp;&amp;amp; -x $file;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;とするかわりに、&lt;/p&gt;&lt;pre&gt;&lt;code&gt;-f $file &amp;amp;&amp;amp; -r _ &amp;amp;&amp;amp; -x _;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;とかくことができます。&lt;/p&gt;&lt;p&gt;また、miyagawaさん情報によれば、perl5.10では&lt;/p&gt;&lt;pre&gt;&lt;code&gt;-f -r -x $file;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;などのように書くことも出来るようになっているそうです。&lt;/p&gt;&lt;p&gt;次は dann さん。&lt;/p&gt;&lt;/body&gt;
+</content:encoded>
+      <dcterms:modified>2008-12-16T11:03:38Z</dcterms:modified>
+      <guid isPermaLink="false">tag:perl-users.jp,2006:http://perl-users.jp/articles/advent-calendar/2008/06.html</guid>
+    </item>
+    <item>
+      <author>nobody@example.com</author>
+      <dc:creator>nobody@example.com</dc:creator>
+      <link>http://perl-users.jp/articles/advent-calendar/2008/05.html</link>
+      <description>効率的な変数宣言my %hash=();よりmy %hash;の方が効率的です。  どのぐらい効率的かというと: $ perl -MO=Concise -e 'my %hash=()'
+7  &lt;@&gt; leave[1 ref] vKP/REFC -&gt;(end)
+1     &lt;0&gt; enter -&gt;2
+2     &lt;;&gt; nextstate(main 1 -e:1) v -&gt;3
+6     &lt;2&gt; aassign[t2] vKS -&gt;7
+-        &lt;1&gt; ex-list lK -&gt;4
+3           &lt;0&gt; pushmark s -&gt;4
+-           &lt;0&gt; stub lP -&gt;-
+-        &lt;1&gt; ex-list lK -&gt;6
+4           &lt;0&gt; pushmark s -&gt;5
+5           &lt;0&gt; padhv[%hash:1,2] lRM*/LVINTRO -&gt;6
+
+$ perl -MO=Concise,-exec -e 'my %hash=()'
+1  &lt;0&gt; enter
+2  &lt;;&gt; nextstate(main 1 -e:1) v
+3  &lt;0&gt; pushmark s
+4  &lt;0&gt; pushmark s
+5  &lt;0&gt; padhv[%hash:1,2] lRM*/LVINTRO
+6  &lt;2&gt; aassign[t2] vKS
+7  &lt;@&gt; leave[1 ref] vKP/REFC $ perl -MO=Concise -e 'my %hash'
+4  &lt;@&gt; leave[1 ref] vKP/REFC -&gt;(end)
+1     &lt;0&gt; enter -&gt;2
+2     &lt;;&gt; nextstate(main 1 -e:1) v -&gt;3
+3     &lt;0&gt; padhv[%hash:1,2] vM/LVINTRO -&gt;4
+
+$ perl -MO=Concise,-exec -e 'my %hash'
+1  &lt;0&gt; enter
+2  &lt;;&gt; nextstate(main 1 -e:1) v
+3  &lt;0&gt; padhv[%hash:1,2] vM/LVINTRO
+4  &lt;@&gt; leave[1 ref] vKP/REFC というわけでopcodeでたった3つ分だけ効率的です。 次はid:typesterさん
+</description>
+      <dc:date>2008-12-16T11:03:38Z</dc:date>
+      <title>効率的な変数宣言</title>
+      <pubDate>Tue, 16 Dec 2008 11:03:38 -0000</pubDate>
+      <content:encoded>&lt;body&gt;&lt;h1&gt;効率的な変数宣言&lt;/h1&gt;&lt;p&gt;&lt;code&gt;my %hash=();&lt;/code&gt;より&lt;code&gt;my %hash;&lt;/code&gt;の方が効率的です。 &lt;/p&gt;&lt;p&gt; どのぐらい効率的かというと: &lt;/p&gt;&lt;pre&gt;&lt;code&gt;$ perl -MO=Concise -e &amp;apos;my %hash=()&amp;apos;
+7  &amp;lt;@&amp;gt; leave[1 ref] vKP/REFC -&amp;gt;(end)
+1     &amp;lt;0&amp;gt; enter -&amp;gt;2
+2     &amp;lt;;&amp;gt; nextstate(main 1 -e:1) v -&amp;gt;3
+6     &amp;lt;2&amp;gt; aassign[t2] vKS -&amp;gt;7
+-        &amp;lt;1&amp;gt; ex-list lK -&amp;gt;4
+3           &amp;lt;0&amp;gt; pushmark s -&amp;gt;4
+-           &amp;lt;0&amp;gt; stub lP -&amp;gt;-
+-        &amp;lt;1&amp;gt; ex-list lK -&amp;gt;6
+4           &amp;lt;0&amp;gt; pushmark s -&amp;gt;5
+5           &amp;lt;0&amp;gt; padhv[%hash:1,2] lRM*/LVINTRO -&amp;gt;6
+
+$ perl -MO=Concise,-exec -e &amp;apos;my %hash=()&amp;apos;
+1  &amp;lt;0&amp;gt; enter
+2  &amp;lt;;&amp;gt; nextstate(main 1 -e:1) v
+3  &amp;lt;0&amp;gt; pushmark s
+4  &amp;lt;0&amp;gt; pushmark s
+5  &amp;lt;0&amp;gt; padhv[%hash:1,2] lRM*/LVINTRO
+6  &amp;lt;2&amp;gt; aassign[t2] vKS
+7  &amp;lt;@&amp;gt; leave[1 ref] vKP/REFC&lt;/code&gt;&lt;/pre&gt; &lt;pre&gt;&lt;code&gt;$ perl -MO=Concise -e &amp;apos;my %hash&amp;apos;
+4  &amp;lt;@&amp;gt; leave[1 ref] vKP/REFC -&amp;gt;(end)
+1     &amp;lt;0&amp;gt; enter -&amp;gt;2
+2     &amp;lt;;&amp;gt; nextstate(main 1 -e:1) v -&amp;gt;3
+3     &amp;lt;0&amp;gt; padhv[%hash:1,2] vM/LVINTRO -&amp;gt;4
+
+$ perl -MO=Concise,-exec -e &amp;apos;my %hash&amp;apos;
+1  &amp;lt;0&amp;gt; enter
+2  &amp;lt;;&amp;gt; nextstate(main 1 -e:1) v
+3  &amp;lt;0&amp;gt; padhv[%hash:1,2] vM/LVINTRO
+4  &amp;lt;@&amp;gt; leave[1 ref] vKP/REFC&lt;code&gt;&lt;/code&gt;&lt;/code&gt;&lt;/pre&gt;&lt;p&gt; というわけでopcodeでたった3つ分だけ効率的です。 &lt;/p&gt;&lt;p&gt;次はid:typesterさん&lt;/p&gt;&lt;/body&gt;
+</content:encoded>
+      <dcterms:modified>2008-12-16T11:03:38Z</dcterms:modified>
+      <guid isPermaLink="false">tag:perl-users.jp,2006:http://perl-users.jp/articles/advent-calendar/2008/05.html</guid>
+    </item>
+    <item>
+      <author>nobody@example.com</author>
+      <dc:creator>nobody@example.com</dc:creator>
+      <link>http://perl-users.jp/articles/advent-calendar/2008/04.html</link>
+      <description>無名スカラー変数のリファレンス    my $array_ref = [qw/a b c/];
+    my $hash_ref = +{1 =&gt; 'a', 2 =&gt; 'b', 3 =&gt; 'c'};
+    my $code_ref = sub {'a'}; Perlでは、無名配列のリファレンス 無名ハッシュのリファレンス、無名サブルーチンのリファレンスはこのように書けますが、無名スカラーのリファレンスを書く特別な構文はないので、以下のように書きます。     my $scalar_ref = \do {'a'}; これはDamian Conway先生オススメのインサイドアウトオブジェクトのコンストラクタで見られる書き方です。     {
+        package Person;
+        my %props = ();
+        sub new {
+            my $class = shift;
+            $prps{name} = 'John';
+            bless \do{''}, $class;
+        }
+        sub name {
+            my ( $self, $arg ) = @_;
+            $props{name} = $arg if $arg;
+            return $props{name};
+        }
+    }
+    
+    my $person = Person-&gt;new;
+    # $person-&gt;{name} = 'Tom'; #エラー
+    $person-&gt;name('Tom');
+    warn $person-&gt;name; # Tom こうすることによってスカラーをバックエンドとするオブジェクトを作ることができ、オブジェクトのカプセル化をすることができます。 さらにid:tokuhiromさんの指摘で     my $scalar_ref = \'a';でもよいことを知りました。ただしこの場合はimmutableされて変更ができなくなるので先ほどの例では「Modification of a read-only value」とエラーになります。Template-&gt;new-&gt;process(\'[% foo %]', {foo =&gt; 3})とかでも使うそうです。typseterさんに指摘されて思い出しましたが、そういえばDBICでも使いますね。    select =&gt; [
+        \"date_trunc ('day', created_on) as created_day",
+        { count =&gt; 'id' }
+    ]または音速のXS使いid:gfxさんのData::Utilを使うと    use Data::Util qw(anon_scalar);
+    my $scalar_ref = anon_scalar('a');と書くことも出来ます次はid:hirose31さん
+</description>
+      <dc:date>2008-12-16T13:43:19Z</dc:date>
+      <title>無名スカラー変数のリファレンス</title>
+      <pubDate>Tue, 16 Dec 2008 13:43:19 -0000</pubDate>
+      <content:encoded>&lt;body&gt;&lt;h1&gt;無名スカラー変数のリファレンス&lt;/h1&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;    my $array_ref = [qw/a b c/];
+    my $hash_ref = +{1 =&amp;gt; &amp;apos;a&amp;apos;, 2 =&amp;gt; &amp;apos;b&amp;apos;, 3 =&amp;gt; &amp;apos;c&amp;apos;};
+    my $code_ref = sub {&amp;apos;a&amp;apos;};&lt;/code&gt;&lt;/pre&gt;&lt;p&gt; Perlでは、無名配列のリファレンス 無名ハッシュのリファレンス、無名サブルーチンのリファレンスはこのように書けますが、無名スカラーのリファレンスを書く特別な構文はないので、以下のように書きます。 &lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;    my $scalar_ref = \do {&amp;apos;a&amp;apos;};&lt;/code&gt;&lt;/pre&gt;&lt;p&gt; これはDamian Conway先生オススメのインサイドアウトオブジェクトのコンストラクタで見られる書き方です。 &lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;    {
+        package Person;
+        my %props = ();
+        sub new {
+            my $class = shift;
+            $prps{name} = &amp;apos;John&amp;apos;;
+            bless \do{&amp;apos;&amp;apos;}, $class;
+        }
+        sub name {
+            my ( $self, $arg ) = @_;
+            $props{name} = $arg if $arg;
+            return $props{name};
+        }
+    }
+    
+    my $person = Person-&amp;gt;new;
+    # $person-&amp;gt;{name} = &amp;apos;Tom&amp;apos;; #エラー
+    $person-&amp;gt;name(&amp;apos;Tom&amp;apos;);
+    warn $person-&amp;gt;name; # Tom&lt;/code&gt;&lt;/pre&gt;&lt;p&gt; こうすることによってスカラーをバックエンドとするオブジェクトを作ることができ、オブジェクトのカプセル化をすることができます。 &lt;/p&gt;&lt;p&gt;さらにid:tokuhiromさんの指摘で &lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;    my $scalar_ref = \&amp;apos;a&amp;apos;;&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;でもよいことを知りました。&lt;/p&gt;&lt;p&gt;ただしこの場合はimmutableされて変更ができなくなるので先ほどの例では「&lt;samp&gt;Modification of a read-only value&lt;/samp&gt;」とエラーになります。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;Template-&amp;gt;new-&amp;gt;process(\&amp;apos;[% foo %]&amp;apos;, {foo =&amp;gt; 3})&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;とかでも使うそうです。&lt;/p&gt;&lt;p&gt;typseterさんに指摘されて思い出しましたが、そういえばDBICでも使いますね。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;    select =&amp;gt; [
+        \&amp;quot;date_trunc (&amp;apos;day&amp;apos;, created_on) as created_day&amp;quot;,
+        { count =&amp;gt; &amp;apos;id&amp;apos; }
+    ]&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;または音速のXS使いid:gfxさんのData::Utilを使うと&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;    use Data::Util qw(anon_scalar);
+    my $scalar_ref = anon_scalar(&amp;apos;a&amp;apos;);&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;と書くことも出来ます&lt;/p&gt;&lt;p&gt;次はid:hirose31さん&lt;/p&gt;&lt;/body&gt;
+</content:encoded>
+      <dcterms:modified>2008-12-16T13:43:19Z</dcterms:modified>
+      <guid isPermaLink="false">tag:perl-users.jp,2006:http://perl-users.jp/articles/advent-calendar/2008/04.html</guid>
+    </item>
+    <item>
+      <author>nobody@example.com</author>
+      <dc:creator>nobody@example.com</dc:creator>
+      <link>http://perl-users.jp/articles/advent-calendar/2008/03.html</link>
+      <description>$@はグローバル変数あまり意識されていませんが、$@はグローバル変数です。気をつけないとおかしなことになります。以下のコードではdie()で例外を発生させているので「Error is Dummy error」と表示されるように見えますが、表示されません。    package Hoge;
+    sub new { bless {}, shift }
+    sub cleanup {
+        # 色々処理
+    }
+
+    sub DESTROY {
+        my $self = shift;
+        eval { $self-&gt;cleanup };
+    }
+
+    package main;
+    eval {
+        my $hoge = Hoge-&gt;new();
+        die "Dummy error";
+    };
+    if ($@) {
+        print "Error is $@\n";
+    } else {
+        print "Everything OK!\n";
+    }evalがdie()によって終了し、スコープが切り替わる段階でDESTROYが呼ばれます。その中でeval{}をもう一度呼んでいますが、ここではエラーがなかったため$@が空に設定されるのです。よって、エラーの値を出力するころにはすでに$@は空で、エラーを検知できません。このようなグローバル変数を変更する可能性のあるコードを書く場合はlocalで修飾すると良いでしょう。    sub DESTROY {
+        my $self = shift;
+        local $@;
+        eval { $self-&gt;cleanup };
+    }なお、全てのeval{}でこの処理を加える必要はありませんが、該当する箇所にエラーがあってもわざとそれを無視する今回のような場合には明示的にlocalをつけておいたほうが安全です。次はid:hidekさん
+</description>
+      <dc:date>2008-12-16T13:43:19Z</dc:date>
+      <title>$@はグローバル変数</title>
+      <pubDate>Tue, 16 Dec 2008 13:43:19 -0000</pubDate>
+      <content:encoded>&lt;body&gt;&lt;h1&gt;$@はグローバル変数&lt;/h1&gt;&lt;p&gt;あまり意識されていませんが、&lt;code&gt;$@&lt;/code&gt;はグローバル変数です。気をつけないとおかしなことになります。以下のコードでは&lt;code&gt;die()&lt;/code&gt;で例外を発生させているので「&lt;samp&gt;Error is Dummy error&lt;/samp&gt;」と表示されるように見えますが、表示されません。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;    package Hoge;
+    sub new { bless {}, shift }
+    sub cleanup {
+        # 色々処理
+    }
+
+    sub DESTROY {
+        my $self = shift;
+        eval { $self-&amp;gt;cleanup };
+    }
+
+    package main;
+    eval {
+        my $hoge = Hoge-&amp;gt;new();
+        die &amp;quot;Dummy error&amp;quot;;
+    };
+    if ($@) {
+        print &amp;quot;Error is $@\n&amp;quot;;
+    } else {
+        print &amp;quot;Everything OK!\n&amp;quot;;
+    }&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;code&gt;eval&lt;/code&gt;が&lt;code&gt;die()&lt;/code&gt;によって終了し、スコープが切り替わる段階で&lt;code&gt;DESTROY&lt;/code&gt;が呼ばれます。その中で&lt;code&gt;eval{}&lt;/code&gt;をもう一度呼んでいますが、ここではエラーがなかったため&lt;code&gt;$@&lt;/code&gt;が空に設定されるのです。よって、エラーの値を出力するころにはすでに&lt;code&gt;$@&lt;/code&gt;は空で、エラーを検知できません。&lt;/p&gt;&lt;p&gt;このようなグローバル変数を変更する可能性のあるコードを書く場合は&lt;code&gt;local&lt;/code&gt;で修飾すると良いでしょう。&lt;/p&gt;&lt;pre class="lang-perl"&gt;&lt;code&gt;    sub DESTROY {
+        my $self = shift;
+        local $@;
+        eval { $self-&amp;gt;cleanup };
+    }&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;なお、全ての&lt;code&gt;eval{}&lt;/code&gt;でこの処理を加える必要はありませんが、該当する箇所にエラーがあってもわざとそれを無視する今回のような場合には明示的に&lt;code&gt;local&lt;/code&gt;をつけておいたほうが安全です。&lt;/p&gt;&lt;p&gt;次はid:hidekさん&lt;/p&gt;&lt;/body&gt;
+</content:encoded>
+      <dcterms:modified>2008-12-16T13:43:19Z</dcterms:modified>
+      <guid isPermaLink="false">tag:perl-users.jp,2006:http://perl-users.jp/articles/advent-calendar/2008/03.html</guid>
+    </item>
+    <item>
+      <author>nobody@example.com</author>
+      <dc:creator>nobody@example.com</dc:creator>
+      <link>http://perl-users.jp/articles/advent-calendar/2008/02.html</link>
+      <description>myのリファレンス$ cat cool.pl
+use strict;
+use warnings;
+sub lopnor {
+    my $val = shift;
+    $$val = 'soffritto';
+}
+
+lopnor(\my $danjou);
+print "he is $danjou\n";
+
+$ perl cool.pl
+he is soffritto「\my $vars」と書く事により変数の定義をしつつ戻り値で、その定義した変数のリファレンスを返す。よって、関数の引数に「\my $xxx」と書くとコンパクトに書ける。が、これはTTくらいでしか使ってるの見た事無い。つぎのバトンはid:lestrratさん。
+</description>
+      <dc:date>2008-12-16T11:03:38Z</dc:date>
+      <title>myのリファレンス</title>
+      <pubDate>Tue, 16 Dec 2008 11:03:38 -0000</pubDate>
+      <content:encoded>&lt;body&gt;&lt;h1&gt;myのリファレンス&lt;/h1&gt;&lt;pre&gt;&lt;code&gt;$ cat cool.pl
+use strict;
+use warnings;
+sub lopnor {
+    my $val = shift;
+    $$val = &amp;apos;soffritto&amp;apos;;
+}
+
+lopnor(\my $danjou);
+print &amp;quot;he is $danjou\n&amp;quot;;
+
+$ perl cool.pl
+he is soffritto&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;「&lt;code&gt;\my $vars&lt;/code&gt;」と書く事により変数の定義をしつつ戻り値で、その定義した変数のリファレンスを返す。&lt;/p&gt;&lt;p&gt;よって、関数の引数に「&lt;code&gt;\my $xxx&lt;/code&gt;」と書くとコンパクトに書ける。&lt;/p&gt;&lt;p&gt;が、これは&lt;abbr title="Template Toolkit"&gt;TT&lt;/abbr&gt;くらいでしか使ってるの見た事無い。&lt;/p&gt;&lt;p&gt;つぎのバトンはid:lestrratさん。&lt;/p&gt;&lt;/body&gt;
+</content:encoded>
+      <dcterms:modified>2008-12-16T11:03:38Z</dcterms:modified>
+      <guid isPermaLink="false">tag:perl-users.jp,2006:http://perl-users.jp/articles/advent-calendar/2008/02.html</guid>
+    </item>
+    <item>
+      <author>nobody@example.com</author>
+      <dc:creator>nobody@example.com</dc:creator>
+      <link>http://perl-users.jp/articles/advent-calendar/2008/01.html</link>
+      <description>定数の展開% perl -MO=Deparse,-print -e'sub foo() { 0 }; warn foo'
+sub foo () { 0 }
+warn 0;
+-e syntax OK「sub foo() { }」のように書くと、この関数が引数をとらないことを宣言できます。この関数が定数を返す場合、この関数は定数として展開されます。
+</description>
+      <dc:date>2008-12-16T11:03:38Z</dc:date>
+      <title>定数の展開</title>
+      <pubDate>Tue, 16 Dec 2008 11:03:38 -0000</pubDate>
+      <content:encoded>&lt;body&gt;&lt;h1&gt;定数の展開&lt;/h1&gt;&lt;pre&gt;&lt;code&gt;% perl -MO=Deparse,-print -e&amp;apos;sub foo() { 0 }; warn foo&amp;apos;
+sub foo () { 0 }
+warn 0;
+-e syntax OK&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;「&lt;code&gt;sub foo() { }&lt;/code&gt;」のように書くと、この関数が引数をとらないことを宣言できます。&lt;/p&gt;&lt;p&gt;この関数が定数を返す場合、この関数は定数として展開されます。&lt;/p&gt;&lt;/body&gt;
+</content:encoded>
+      <dcterms:modified>2008-12-16T11:03:38Z</dcterms:modified>
+      <guid isPermaLink="false">tag:perl-users.jp,2006:http://perl-users.jp/articles/advent-calendar/2008/01.html</guid>
+    </item>
+  </channel>
+</rss>

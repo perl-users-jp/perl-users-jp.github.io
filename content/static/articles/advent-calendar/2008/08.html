@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>ワンライナーで画像収集</title>
+    <link rel="stylesheet" href="http://perl-users.jp/articles/advent-calendar/adventcal.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+    <script type="text/javascript" src="http://perl-users.jp/articles/advent-calendar/adventcal.js"></script>
+</head>
+<body>
+<h1>ワンライナーで画像収集</h1>
+
+<p>某掲示板まとめブログのエッチな記事に載っている画像を収集したいときに、Perl ではワンライナー、つまり1行のコマンドで書くことができます。例えば、女の子の太もも画像 ( http://metiss.blog92.fc2.com/blog-entry-142.html ) にリンクされている画像をカレントディレクトリにダウンロードしたければ以下のようなコマンドをたたくだけです。</p>
+<pre>
+<code>
+  $perl -MLWP::Simple -MFile::Basename -e 'map{mirror($_,basename($_))} get($ARGV[0]) =~ m{&lt;a.*?href=&quot;(http://[^&quot;]+\.jpg)&quot;}gi;' http://metiss.blog92.fc2.com/blog-entry-142.html
+</code>
+</pre>
+<p>
+  どうでしょう。ダウンロードできましたか？このワンライナーから以下のことがわかりますね。
+</p>
+<ul>
+  <li><code>-M</code> で指定したモジュールの読み込み</li>
+  <li><code>-e</code> で指定したスクリプトを実行</li>
+  <li><code>@ARGV</code> に引数が入る</li>
+</ul>
+<p>
+  とまぁ、どこまでワンライナーでできるかやってみたわけですが、
+  普通に使う分には、以下のようなスクリプトをパス通ったところに置いて、いつでも画像収集しておけるようにすればうはうはですね。
+</p>
+<pre>
+<code>
+  #!/usr/bin/perl
+  use strict;
+  use LWP::Simple;
+  use File::Basename;
+
+  my $content = get(shift);
+  my @l = $content =~ m{&lt;a.*?href=&quot;(http://[^&quot;]+\.jpg)&quot;}gi;
+  map{mirror($_,basename($_))} @l;
+</code>
+</pre>
+<pre>
+<p>
+  こんな感じで使えます。
+</p>
+<code>
+  ./dl.pl http://metiss.blog92.fc2.com/blog-entry-142.html
+</code>
+</pre>
+<p>
+  Tipsというより便利スクリプトの紹介になってしまいしたことご了承くだされ。
+  さて、次のバトンは _33rpm さんに渡します。
+</p>
+</body>
+</html>
+

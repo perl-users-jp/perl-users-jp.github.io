@@ -1,0 +1,153 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+    <head profile="http://purl.org/net/ns/metaprof">
+        <!-- Document Metadata -->
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta http-equiv="Content-Language" content="ja" />
+        <meta http-equiv="Content-Style-Type" content="text/css" />
+        <meta http-equiv="Content-Script-Type" content="text/javascript" />
+        <meta http-equiv="imagetoolbar" content="no" />
+
+        <!-- Atom news feed -->
+
+        <link rel="alternate" type="application/rss+xml" title="RSS feed" href="http://coderepos.org/share/log/websites/perl-users.jp?limit=100&amp;mode=stop_on_copy&amp;format=rss" />
+        <link rel="stylesheet" type="text/css" href="/css/perl-users.jp.css" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+        <link rel="icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+
+        <title>パスワード設定をコードに書かない(Config::Pit) - モダンなPerl入門 - モダンなPerl入門</title>
+
+        <script src="http://www.google-analytics.com/urchin.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            _uacct = "UA-4463402-1";
+            urchinTracker();
+        </script>
+        <!-- script src="/js/codepress/codepress.js" type="text/javascript"></script -->
+    </head>
+    <body>
+        <div id="head-navigation"><a href="/">Perl-users.jp</a></div>
+<!-- content start -->
+        <h1>パスワード設定をコードに書かない(Config::Pit)</h1>
+        
+        <p>パスワード設定をコードに書かないようにするには Config::Pit をつかいます。</p>
+        
+        <h3>なぜ必要なの？</h3>
+        
+        <p>アカウント情報が必要なWebサービスを利用するスクリプトを作るとき、アカウントやパスワードをスクリプトのコードに直接書き込むと（ハードコーディング）、そのスクリプトがほかの人に見られてしまうことによりパスワードが漏洩してしまいます。</p>
+        <p>Config::Pitは、外部ファイルにWebサービスのアカウント情報を格納しておき、スクリプト側で必要なときに、読み出しできるようにします。これにより、スクリプト内にアカウント情報をハードコードすることがなくなり、スクリプト単体でのパスワード漏洩が防げます。</p>
+        
+        <p>例：コードを配布しようとして、</p>
+        
+        <blockquote cite="http://blog.dtpwiki.jp/dtp/2009/03/perl-5868.html"><pre><code>#!/usr/bin/perl
+ 
+use strict;
+use warnings;
+use utf8;
+use Encode;
+use WWW::Mechanize;
+ 
+my $username = 'ABC01234';
+my $password = 'password';
+ 
+my $mech = WWW::Mechanize-&gt;new();
+$mech-&gt;agent_alias( 'Windows Mozilla' );
+ 
+# main
+ 
+(my $text = decode( 'utf8', shift ) ) =~ tr/[\x00-\x1f\x7f]//d;
+login( $username, $password );
+post ( encode( 'utf8', $text ) );
+ 
+exit;
+ 
+ 
+sub login {
+  my $username = shift;
+  my $password = shift;
+  my $res = $mech-&gt;get('http://aboutme.jp/mypage');
+  $mech-&gt;set_visible( $username, $password );
+  $mech-&gt;submit();
+  if ( $mech-&gt;uri() eq 'https://aboutme.jp/account/login' ) {
+    die 'Login Failed.';
+  }
+  return;
+}
+ 
+sub post {
+  my $text = shift;
+  my $res = $mech-&gt;get('http://aboutme.jp/mypage');
+  $mech-&gt;form_number(2);
+  $mech-&gt;set_visible( $text );
+  $mech-&gt;submit();
+  return;
+}</code></pre></blockquote>
+        
+        <p>となっていると、アカウントやパスワードがまるみえです。アカウント情報の管理にConfig::Pitを使用することによって、コードからアカウント情報を分離できます。</p>
+
+        <p>アカウント情報が格納された設定ファイル自体は、~/.pit/ 内に格納されます。スクリプト単体からのパスワード漏れは防げますが、設定ファイルの取り扱いに注意する必要があります。</p>
+        
+        <h3>つかいかた</h3>
+        
+        <p>CPANからConfig::Pitをインストールすると、コマンドラインからppitが使えるようになりますが、ここでは、Perlからのアクセスの方法を紹介します。</p>
+
+        <h4>設定</h4>
+        
+        <pre><code>use strict;
+use warnings;
+use Config::Pit;
+ 
+# 設定
+Config::Pit::set("example.com", data =&gt; {
+  username =&gt; "foobar",
+  password =&gt; "barbaz",
+});</code></pre>
+        
+        <p>または、ワンライナー</p>
+        
+        <pre>$ <kbd>perl -MConfig::Pit -e'Config::Pit::set("example.com", data=&gt;{ username =&gt; "foobar", password =&gt; "barbaz" })'</kbd></pre>
+        
+        <h4>読み出し</h4>
+ 
+        <pre><code>use strict;
+use warnings;
+use Config::Pit;
+ 
+# 読み出し
+my $config = pit_get("example.com" , require =&gt; {
+    "username" => "your username on example", 
+    "password" => "your password on example", 
+});
+<span style="color: green;">die 'pit_get failed.' if !%$config;</span>
+my $username = $config-&gt;{username}<span style="color: green;"> or die 'username not found.'</span>;
+my $password = $config-&gt;{password}<span style="color: green;"> or die 'password not found.'</span>;
+print "username: $username, password: $password\n";</code></pre>
+
+        <p>Config::Pit::setで格納、pit_getで読み出します。</p>
+        <p>greenの箇所は、読み出しエラーチェックです。エラーチェックで止めない場合、$configは{}、$username, $passwordはundefとなります。</p>
+        <p>その他の使用方法は以下で確認してください。</p>
+        <ul>
+          <li>
+            <a href="http://search.cpan.org/~satoh/Config-Pit/lib/Config/Pit.pm">
+              Config::Pit - Manage settings - search.cpan.org</a
+            >
+          </li>
+        </ul>
+        
+        
+        <h3>使用例</h3>
+        
+        <ul>
+          <li>
+            <a href="http://perl-users.jp/articles/advent-calendar/2008/21.html">
+              Config::PitとWeb::ScraperとPlaggerで24時間365日のゲーム監視体制</a
+            >
+          </li>
+        </ul>
+
+<!-- content end -->
+        <hr />
+        <p><a href="/modern_introduction_perl/">目次へ</a></p>
+        <p>Last modified: $Date: 2008-05-22T09:21:23.154313Z $</p>
+    </body>
+</html>
+

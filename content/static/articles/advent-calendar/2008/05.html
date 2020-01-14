@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>効率的な変数宣言</title>
+    <link rel="stylesheet" href="http://perl-users.jp/articles/advent-calendar/adventcal.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+    <script type="text/javascript" src="http://perl-users.jp/articles/advent-calendar/adventcal.js"></script>
+</head>
+<body>
+<h1>効率的な変数宣言</h1>
+
+<p>
+<code>my %hash=();</code>より<code>my %hash;</code>の方が効率的です。
+</p>
+
+<p>
+どのぐらい効率的かというと:
+</p>
+
+<pre><code>$ perl -MO=Concise -e 'my %hash=()'
+7  &lt;@&gt; leave[1 ref] vKP/REFC -&gt;(end)
+1     &lt;0&gt; enter -&gt;2
+2     &lt;;&gt; nextstate(main 1 -e:1) v -&gt;3
+6     &lt;2&gt; aassign[t2] vKS -&gt;7
+-        &lt;1&gt; ex-list lK -&gt;4
+3           &lt;0&gt; pushmark s -&gt;4
+-           &lt;0&gt; stub lP -&gt;-
+-        &lt;1&gt; ex-list lK -&gt;6
+4           &lt;0&gt; pushmark s -&gt;5
+5           &lt;0&gt; padhv[%hash:1,2] lRM*/LVINTRO -&gt;6
+
+$ perl -MO=Concise,-exec -e 'my %hash=()'
+1  &lt;0&gt; enter
+2  &lt;;&gt; nextstate(main 1 -e:1) v
+3  &lt;0&gt; pushmark s
+4  &lt;0&gt; pushmark s
+5  &lt;0&gt; padhv[%hash:1,2] lRM*/LVINTRO
+6  &lt;2&gt; aassign[t2] vKS
+7  &lt;@&gt; leave[1 ref] vKP/REFC</code></pre>
+
+<pre><code>$ perl -MO=Concise -e 'my %hash'
+4  &lt;@&gt; leave[1 ref] vKP/REFC -&gt;(end)
+1     &lt;0&gt; enter -&gt;2
+2     &lt;;&gt; nextstate(main 1 -e:1) v -&gt;3
+3     &lt;0&gt; padhv[%hash:1,2] vM/LVINTRO -&gt;4
+
+$ perl -MO=Concise,-exec -e 'my %hash'
+1  &lt;0&gt; enter
+2  &lt;;&gt; nextstate(main 1 -e:1) v
+3  &lt;0&gt; padhv[%hash:1,2] vM/LVINTRO
+4  &lt;@&gt; leave[1 ref] vKP/REFC<code></pre>
+
+<p>
+というわけでopcodeでたった3つ分だけ効率的です。
+</p>
+
+<p>次はid:typesterさん</p>
+</body>
+</html>

@@ -1,0 +1,53 @@
+:cascade "include/layout.tx"
+
+: around main -> {
+    <h1>Perl5でできたプロダクト</h1>
+    <p>Perl5でできたプロダクトを紹介します。</p>
+    <!-- 非ライブラリを中心に -->
+    <hr />
+
+    <div class="row">
+        <div class="col-md-4">
+            <h1><a href="http://kazeburo.github.com/GrowthForecast/">GrowthForecast</a></h1>
+        <p>GrowthForecastは様々な値をWebAPI経由でグラフ化できるWebツールです。シンプルなAPIでリアルタイムにグラフを作成、更新でき、Webインターフェイスからグラフの表示をカスタマイズしたり、複数のメトリクスを重ね合わせたグラフを作成できます</p>
+        </div>
+        <div class="col-md-4">
+            <h1><a href="http://www.gnu.org/software/parallel/">GNU Parallel</a></h1>
+            <p>GNU Parallel は1つまたは複数のコンピューターでジョブを並行動作させるためのシェルツールです。</p>
+            <p><a href="http://blog.riywo.com/2011/04/19/022802">GNU Parallelがすごすぎて生きるのがつらい</a></p>
+        </div>
+        <div class="col-md-4">
+            <h1><a href="http://stf-storage.github.com/">STF</a></h1>
+        <p>STFはMySQL, Perl, memcached等を利用した分散オブジェクトストアです。何億個、何十億個という単位でファイルを格納可能。各ファイルは自動的に複製されデータロスを防ぎます。livedoorBlog等で画像ファイルを格納・配信するために利用されています。<a href="http://perl-users.jp/articles/advent-calendar/2011/hacker/22">解説記事</a>・<a href="http://lestrrat.ldblog.jp/archives/23209311.html">STFのワーカー自律分散</a></p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <h1><a href="https://code.google.com/p/mysql-master-ha/">MHA for mysql</a></h1>
+            <p>MySQL マスターのHA化を行うためのツールです。</p>
+            <p>最小限のダウンタイムでデータの不整合を防ぎつつ、マスターのフェイルオーバーを行います。</p>
+        </div>
+        <div class="col-md-4">
+            <h1><a href="https://metacpan.org/release/App-Ikachan">Ikachan</a></h1>
+            <p>botによるIRCへの自動投稿をHTTPサーバーを通すことによりIRC機能を実装する必要無く実現させてくれるプロキシ。ジョブの終了などの通知をHTTP POSTを送るだけでIRCに周知することが可能になり捗ります</p>
+        </div>
+        <div class="col-md-4">
+            <h1><a href="https://metacpan.org/module/Cinnamon">Cinnamon</a></h1>
+            <p>role/taskという枠組みと、コマンドをローカル/リモートで実行するという仕組みだけを提供する、シンプルなデプロイツールです。どんなプロダクトにも柔軟に対応できる、使いやすいツールです。</p>
+            <p><a href="http://d.hatena.ne.jp/naoya/20130118/1358477523">解説記事</a></p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <h1><a href="http://munin-monitoring.org/">Munin</a></h1>
+            <p>サーバリソース監視ツール。CPU負荷などのメトリクスを収集してグラフに出来ます</p>
+            <p>MuninはPerlとRRDtoolで構築されており、またプラグアンドプレイアーキテクチャになっているのでPerlや好きな言語でプラグインを書いてメトリクスを増やす事が出来ます</p>
+        </div>
+        <div class="col-md-4">
+        </div>
+        <div class="col-md-4">
+        </div>
+    </div>
+
+: }

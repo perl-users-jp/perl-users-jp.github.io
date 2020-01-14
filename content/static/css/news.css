@@ -1,0 +1,215 @@
+@charset "UTF-8";
+@import url(http://agilemedia.jp/embed/CSS/AMN-changelog.css);
+
+/* ページ全体の基本的な設定。背景色や文字色など */
+body { background-color: #ffffff; }
+
+/* リンク文字列に関する設定 */
+a:link { text-decoration: none; }
+a:visited { text-decoration: none; }
+
+/* トップタイトル */
+h1#index-page-title
+{
+        text-align: center;
+        border-color: #ff80ff;
+        border-style: solid;
+        border-width: 1px 0 1px 0;
+        padding: 10px;
+}
+
+h1#item-page-title
+{
+        background-image: url(image/yto-logo-hou.png);
+        background-position: center left;
+        background-repeat: no-repeat;
+        height: 81px;
+        border-color: #ff80ff;
+        border-style: solid;
+        border-width: 1px 0 1px 0;
+        padding: 10px 5px 10px 330px;
+}
+
+h1#item-page-title > a { color: #8b0000; }
+
+/* 一つの記事を囲む枠 */
+div.item {
+        padding: 5px 0px 5px 0px;
+        margin: 5px 0px 5px 0px;
+}
+
+/* item title in item page */
+div.ititle > h2 {
+        background-color: #ffe0ff;
+        border: 0;
+        text-align: right;
+        margin: 0;
+        padding: 3px;
+        font-size: small;
+}
+
+/* date title in index page */
+div.day > h2 {
+        padding: 10px;
+        border-color: #ff80ff;
+        border-style: solid;
+        border-width: 2px 0px 0px 20px;
+        margin: 0;
+}
+
+/* item title in index page */
+div.ititle > h3 {
+        border-style: dotted;
+        border-color: #ff80ff;
+        border-width: 3px 0 3px 0;
+        padding: 3px;
+        margin: 2px;
+}
+div.ititle > h3 > a { color: #8b0000; }
+div.ititle > h3 > a:hover { text-decoration: underline; }
+
+/* タイトルを除いた1日の日記本文全体の設定 (items) */
+div.items { padding: 0; margin: 0; }
+
+/* サブタイトルを含むセクション (item) の設定 */
+div.section {
+/*        border-color: #ffd0ff; */
+        border-color: #ffffff;
+        border-style: solid;
+        border-width: 1px;
+        line-height: 130%;
+        padding: 5px;
+        margin: 5px 0px 15px 0px;
+}
+
+div.section blockquote {
+        border-color: #808080;
+        border-style: solid;
+        border-width: 1px;
+        background-color: #f0f0f0;
+        font-size: small;
+        line-height: 120%;
+        margin: 3px;
+        padding: 3px;
+}
+
+div.section pre {
+        font-family: monospace;
+        white-space: pre;
+        line-height: 100%;
+        margin: 0;
+        padding: 0;
+        font-size: small;
+}
+
+div.section p { margin: 0; padding: 0; }
+div.section img { margin: 2px; }
+div.section table { border-collapse: collapse; }
+div.section td { border: solid 1px gray; padding: 3px; }
+
+.footer {
+        text-align: right;
+        font-size: x-small;
+        clear: both;
+        margin: 0em;
+}
+
+div.comment {
+        border-style: solid;
+        border-color: #ffd0ff;
+        border-width: 1px;
+        margin: 0.5em;
+        padding: 0.5em;
+        font-size: small;
+        background-color: #fff0ff;
+}
+
+
+/* Referrer area */
+div.referer {
+        font-size: x-small;
+        color: #808080;
+        background-color: #fff8ff;
+        margin-top: 0.5em;
+        padding: 0.2em;
+}
+div.referer a:link { color: #404040; }
+div.referer a:visited { color: #606060; }
+
+/* SBM area */
+div.sbm_area {
+        border: 0;
+        font-size: small;
+        text-align: right;
+        margin: 0;
+}
+div.sbm_area img { vertical-align: middle; }
+
+div.autopagerize_page_element { margin: 0; padding: 0; }
+
+/* structure:
+<div id="body">
+<div id="content"></div>
+<div id="links"></div>
+<div id="footer"></div>
+</div><!-- body -->
+*/
+#body {
+        margin: 0px auto 0px auto;
+        width: 950px;
+}
+#content {
+        float: left;
+        width: 540px;
+        overflow: hidden;
+        margin-left: 3px;
+        margin-right: 3px;
+}
+#links {
+        float: right;
+        width: 180px;
+        text-align: left;
+        margin-left: 3px;
+        margin-right: 3px;
+}
+#links2 {
+        float: right;
+        width: 180px;
+        text-align: left;
+        margin-left: 3px;
+        margin-right: 3px;
+}
+#footer {
+        clear: both;
+        margin-top: 5px;
+}
+
+.stdbox table { width: 100%; margin: 0; }
+.stdbox a { text-decoration: none; }
+.stdbox td { border: solid 1px #ff80ff; padding: 3px; font-size: x-small; line-height: 130%; }
+.stdbox ul { margin: 0; padding: 0; }
+.stdbox li { margin: 0 0 0 1em; }
+.stdbox dl { margin: 0; }
+.stdbox dd { margin: 0 0 0 1em; padding: 0; }
+div.stdbox {
+        margin-bottom: 10px;
+}
+
+div.funcbox {
+        border: solid 1px #ff80ff;
+        font-size: x-small;
+        padding: 3px;
+        margin: 2px 2px 10px 2px;
+        line-height: 120%;
+}
+
+.yztbl table { margin: 0; }
+.yztbl td { border: none; }
+
+.kereko-item { clear: both; padding: 2px; border-top: dotted 2px #bbb; }
+.kereko-price { color: #a52a2a; font-size: small; }
+.kereko-date { color: gray; font-size: small; }
+.kereko-shop { color: gray; font-size: small; }
+.kereko-image { float: left; margin-right: 5px; border-width: 0px; }
+.kereko-item a:link { text-decoration: none; }
+.raku-logo { padding-left: 2px; padding-right: 2px; font-weight: bold; color: white; background-color: red; }

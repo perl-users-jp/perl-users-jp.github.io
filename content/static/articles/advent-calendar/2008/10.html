@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>SQLiteを使ったテストのtips</title>
+    <link rel="stylesheet" href="http://perl-users.jp/articles/advent-calendar/adventcal.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+    <script type="text/javascript" src="http://perl-users.jp/articles/advent-calendar/adventcal.js"></script>
+</head>
+<body>
+<h1>SQLiteを使ったテストのtips</h1>
+
+<p>DB周りのモジュールを開発している場合、テストDBにSQLiteを使う事が良くあります。</p>
+
+<p>その際、普通であれば以下のようなテストコードを書くと思います</p>
+
+<pre><code>use Test::More tests =&gt; 1;
+use DBI;
+do {
+    # SQLiteで使うファイルを指定
+    my $dbh = DBI-&gt;connect('dbi:SQLite:./test.db','','');
+    $dbh-&gt;do(q{CREATE TABLE foo (id INT, name TEXT)});
+    $dbh-&gt;do(q{INSERT INTO foo (id, name) VALUES (10,'nekokak')});
+
+    my $sth = $dbh-&gt;prepare('SELECT * FROM foo');
+    $sth-&gt;execute;
+    my $row = $sth-&gt;fetchrow_hashref();
+    ok $row;
+    # 後始末としてファイルを削除
+    unlink './test.db';
+};
+</code></pre>
+
+<p>しかし、エラーが発生した場合、最後のunlinkが実行されずに、test.dbファイルが残ってしまい、
+テストスクリプトを再度実行すると、CREATE TABLEの部分でエラーが発生してしまいます。</p>
+
+<p>SQLiteではファイル名を指定しない場合、ファイルを作らずオンメモリで処理できるので、
+テストコードを書く際はファイルを指定しないようにすると良いでしょう。</p>
+
+<pre><code>use Test::More tests =&gt; 1;
+use DBI;
+do {
+    # SQLiteで使うファイルを指定せずオンメモリで処理
+    my $dbh = DBI-&gt;connect('dbi:SQLite:','','');
+    $dbh-&gt;do(q{CREATE TABLE foo (id INT, name TEXT)});
+    $dbh-&gt;do(q{INSERT INTO foo (id, name) VALUES (10,'nekokak')});
+
+    my $sth = $dbh-&gt;prepare('SELECT * FROM foo');
+    $sth-&gt;execute;
+    my $row = $sth-&gt;fetchrow_hashref();
+    ok $row;
+};
+</code></pre>
+
+<p>このようにファイルを指定せずに書けば、unlinkも必要なく、ゴミファイルが残る心配もありませんね。</p>
+
+<p>次は zigorou さん。</p>
+
+
+</body>
+</html>

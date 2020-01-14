@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Carp::Clan でエラーハンドリングのススメ</title>
+    <link rel="stylesheet" href="http://perl-users.jp/articles/advent-calendar/adventcal.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+    <script type="text/javascript" src="http://perl-users.jp/articles/advent-calendar/adventcal.js"></script>
+</head>
+<body>
+  <h1>Carp::Clan でエラーハンドリングのススメ</h1>
+  <div class="section">
+    <h2>Carp, Carp::Clan で共通のこと</h2>
+    <dl>
+      <dt>carp</dt>
+      <dd>呼び出し元の分かる warn</dd>
+      <dt>cluck</dt>
+      <dd>carp + stack backtrace</dd>
+      <dt>croak</dt>
+      <dd>呼び出し元の分かる die</dd>
+      <dt>confess</dt>
+      <dd>croak + stack backtrace</dd>
+    </dl>
+    <p>但し Carp の場合は <var>cluck</var> や <var>confess</var> を明示的に使うよりも、</p>
+    <pre><code>$ perl -MCarp=verbose target.pl
+</code></pre>
+    <p>
+      という使い方でも stacktrace を得ることが出来ます。Carp::Clan の場合は、
+    </p>
+    <pre class="lang-perl"><code>use Carp::Clan;
+
+$Carp::Clan::Verbose = 1 if $ENV{DEBUG};
+</code></pre>
+    <p>
+      のようなフラグで判別すると良いでしょう。
+    </p>
+  </div>
+  <div class="section">
+    <h2>Carp::Clan のススメ</h2>
+    <p>
+      Carp::Clan の場合ですと、デフォルトでメッセージとファイル名、行番号だけで無く、どの package のどのサブルーチン内でエラーが起きたかも分かります。
+    </p>
+    <pre><code>$ perl carp.pl
+warning message!!! at carp.pl line 17
+$ perl carp_clan.pl
+NS::A::do_a(): warning message!!! at carp_clan.pl line 19
+</code></pre>
+    <p>
+      という具合です。具体的なコードでは、
+    </p>
+    <pre class="lang-perl"><code>#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+package NS::A;
+
+use Carp::Clan;
+
+$Carp::Clan::Verbose = 1 if $ENV{DEBUG};
+
+sub do_a {
+    croak('warning message!!!');
+}
+
+package NS::B;
+
+sub do_b {
+    NS::A::do_a();
+}
+
+package NS::C;
+
+sub do_c {
+    NS::B::do_b();
+}
+
+package main;
+
+NS::C::do_c();
+</code></pre>
+    <p>
+      のような形になります。またエラーハンドリングの package 名に対する正規表現によるグルーピングもできます。詳しくは perldoc Carp::Clan を見て下さい。
+    </p>
+    <p>
+      次は id:kazuhooku さん。
+    </p>
+  </div>
+</body>
+</html>

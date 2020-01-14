@@ -1,0 +1,195 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+    <head profile="http://purl.org/net/ns/metaprof">
+        <!-- Document Metadata -->
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta http-equiv="Content-Language" content="ja" />
+        <meta http-equiv="Content-Style-Type" content="text/css" />
+        <meta http-equiv="Content-Script-Type" content="text/javascript" />
+        <meta http-equiv="imagetoolbar" content="no" />
+
+        <!-- Atom news feed -->
+
+        <link rel="alternate" type="application/rss+xml" title="RSS feed" href="http://coderepos.org/share/log/websites/perl-users.jp?limit=100&amp;mode=stop_on_copy&amp;format=rss" />
+        <link rel="stylesheet" type="text/css" href="/css/perl-users.jp.css" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+        <link rel="icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+
+        <title>Perl5 のオブジェクト指向を理解する - モダンなPerl入門</title>
+
+        <script src="http://www.google-analytics.com/urchin.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            _uacct = "UA-4463402-1";
+            urchinTracker();
+        </script>
+        <!-- script src="/js/codepress/codepress.js" type="text/javascript"></script -->
+    </head>
+    <body>
+        <div id="head-navigation"><a href="/">Perl-users.jp</a></div>
+<!-- content start -->
+<p>Inside Perl5 OO</p>
+
+<p>対象読者： 他の言語で OO したことあるっぽいひと/Perl4 でとまってるひと</p>
+
+<h2>Class をつくる</h2>
+
+<p>まずは点クラスをつくってみましょう</p>
+
+<pre><code>package Point;
+
+sub new {
+    my ($class, %args) = @_;   # 第１引数はクラス名
+    bless({%args}, $class);    # データを bless すると、オブジェクトになる
+}
+
+sub x {
+    my $self = shift;    # 第１引数は、インスタンス
+    $self-&gt;{x} = shift if @_;    # 引数があればセッター扱いになる
+    $self-&gt;{x};
+}
+
+sub y {
+    my $self = shift;
+    $self-&gt;{y} = shift if @_;
+    $self-&gt;{y};
+}
+</code></pre>
+
+<p>このようにして作ったクラスは、下記のようにして呼び出すことができます</p>
+
+<pre><code>my $p = Point-&gt;new(x =&gt; 1, y =&gt; 2);
+$p-&gt;x();      # ゲッター
+$p-&gt;x( 4 );   # セッター
+</code></pre>
+
+<p>簡単ですね。</p>
+
+<p>実は、この Point->new は</p>
+
+<pre><code>my $p = new Point(x =&gt; 1, y =&gt; 2);
+</code></pre>
+
+<p>とも書くことができます。このとき new は予約語でもなんでもありません。なんでも好きなメソッド名を使えます。不思議な言語ですね。</p>
+
+<h3>パース結果をみてみる</h3>
+
+<p>ソースコードを Perl5 がどのように解釈しているのかを確認するには、B::Deparse というモジュールを使います。下記のように実行すると、解釈結果が見えるので便利です。</p>
+
+<pre><code>% perl -MO=Deparse,-P -e 'new Point()'
+'Point'-&gt;new;
+</code></pre>
+
+<p>new が特別扱いされてないことも確認しましょう。</p>
+
+<pre><code>% perl -MO=Deparse,-P -e 'foo Point()'
+'Point'-&gt;foo;
+</code></pre>
+
+<p>OK いい感じです。</p>
+
+<h3>メソッドとパッケージ</h3>
+
+<pre><code>package Point;
+sub new { }
+</code></pre>
+
+<p>は実は、</p>
+
+<pre><code>sub Point::new { }
+</code></pre>
+
+<p>と同義です。</p>
+
+<h3>メソッドの呼び出し</h3>
+
+<p>さらにもう一歩すすめると</p>
+
+<pre><code>Point-&gt;new(x =&gt; 1, y =&gt; 2)
+</code></pre>
+
+<p>は</p>
+
+<pre><code>Point::new('Point', x =&gt; 1, y =&gt; 2)
+</code></pre>
+
+<p>と同じ。</p>
+
+<pre><code>$p-&gt;x( 3 )
+</code></pre>
+
+<p>は</p>
+
+<pre><code>Point::x( $p, 3 )
+</code></pre>
+
+<p>と同じです。</p>
+
+<p>実際、どっちでよんでも結果は変わりません。</p>
+
+<h3>継承</h3>
+
+<p>Point クラスを継承した Point3D というクラスを作ることを考えます。Perl5 で継承を行うには、下記のようにすればいいでしょう。</p>
+
+<pre><code>package Point3D;
+use base 'Point';
+
+sub z {
+    my $self = shift;
+    $self-&gt;{z} = shift if @_;
+    $self-&gt;{z};
+}
+</code></pre>
+
+<p>簡単ですね。</p>
+
+<pre><code>use base 親クラス名
+</code></pre>
+
+<p>と書くだけで、継承できます。しかしこれは</p>
+
+<pre><code>push @Point3D::ISA, 'Point';
+</code></pre>
+
+<p>と同じことです。</p>
+
+<pre><code>my $p = Point3D-&gt;new(x =&gt; 2);
+$p-&gt;x();
+</code></pre>
+
+<p>と呼んだとき、perl5 は、Point3D::x() を探し、見つからなければ @Point3D::ISA の中にはいっているクラス名を順番に探索し、Point::x() にいきつくということになります。</p>
+
+<h2>簡単にクラスをつくる</h2>
+
+<p>Perl5 のオブジェクト指向サポートは、素材の段階だと私は考えています。このまま使うのはちょっと大変です。</p>
+
+<p>そこで、なんとかしてくれる CPAN Module があるんです。</p>
+
+<h3>Class::Accessor::Fast</h3>
+
+<p>Class::Accessor::Fast を使うと</p>
+
+<pre><code>package Point;
+use base qw/Class::Accessor::Fast/;
+__PACKAGE__-&gt;mk_accessors('x', 'y');
+</code></pre>
+
+<p>これで、最初のコードと同じ機能をもつクラスをつくれます。</p>
+
+<h3>Moose</h3>
+
+<p>Moose を使うと、下記のように宣言的に書くことができます。</p>
+
+<pre><code>package Point;
+use Moose;
+
+has x =&gt; (is =&gt; 'rw');
+has y =&gt; (is =&gt; 'rw');
+</code></pre>
+
+
+<!-- content end -->
+        <hr />
+        <p><a href="/modern_introduction_perl/">目次へ</a></p>
+        <p>Last modified: $Date: 2008-10-26T05:38:56.231052Z $</p>
+    </body>
+</html>

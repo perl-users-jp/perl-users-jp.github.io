@@ -1,0 +1,78 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+    <head profile="http://purl.org/net/ns/metaprof">
+        <!-- Document Metadata -->
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta http-equiv="Content-Language" content="ja" />
+        <meta http-equiv="Content-Style-Type" content="text/css" />
+        <meta http-equiv="Content-Script-Type" content="text/javascript" />
+        <meta http-equiv="imagetoolbar" content="no" />
+
+        <!-- Atom news feed -->
+
+        <link rel="alternate" type="application/rss+xml" title="RSS feed" href="http://coderepos.org/share/log/websites/perl-users.jp?limit=100&amp;mode=stop_on_copy&amp;format=rss" />
+        <link rel="stylesheet" type="text/css" href="/css/perl-users.jp.css" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+        <link rel="icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+
+        <title>Perl を crash させる方法 - モダンなPerl入門</title>
+
+        <script src="http://www.google-analytics.com/urchin.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            _uacct = "UA-4463402-1";
+            urchinTracker();
+        </script>
+        <!-- script src="/js/codepress/codepress.js" type="text/javascript"></script -->
+    </head>
+    <body>
+        <div id="head-navigation"><a href="/">Perl-users.jp</a></div>
+<!-- content start -->
+<p>Perl を Crash させたい。そんな欲求を抑えきれないあなたのために、いくつかの方法を教えよう。</p>
+
+<h1>いろいろな crash</h1>
+
+<h2>unpack で不正アクセス</h2>
+
+<pre><code>perl -e 'unpack "p",0xdeadbeef'
+</code></pre>
+
+<p>pack において 'p' は A pointer to a null-terminated string. を意味する。不正なメモリ領域にアクセスすれば死ぬのはあたりまえである。</p>
+
+<h2>overload の中で再帰する</h2>
+
+<pre><code>perl -e 'use overload q{""}=&gt;sub{"$_[0]"};$a=bless{},main;"$a"'
+</code></pre>
+
+<p>overload の stringify させる部分などで無限ループにおちいると、segv する。</p>
+
+<p>このバグは昔から知られており、ticket が切られているが、なおっていない。</p>
+
+<h2>@INC の中の coderef で再帰する</h2>
+
+<pre><code>perl -E '$INC[0]=sub {die require B};require B'
+</code></pre>
+
+<p>@INC の中に coderef を入れると便利なのはみなさんご承知のとおりだが、この部分で再帰的に require すると segv する。</p>
+
+<h2>dl_unload_file</h2>
+
+<pre><code>perl -E 'use Encode; DynaLoader::dl_unload_file($_) for @DynaLoader::dl_librefs; encode('euc-jp', 'abcde');'
+</code></pre>
+
+<p>DynaLoader::dl_unload_file() して開放したあとに使おうとすると SEGV</p>
+
+<h2>@_ をいじってから goto</h2>
+
+<p>これは Perl5.8.4 以前に存在する有名な問題だが最新版ではなおっているので、とりあげない。</p>
+
+<h1>総括</h1>
+
+<p>意外と perl を segv させるのはむずかしい。微妙なところで再帰させるというのが一番容易だといえよう。</p>
+
+
+<!-- content end -->
+        <hr />
+        <p><a href="/modern_introduction_perl/">目次へ</a></p>
+        <p>Last modified: $Date: 2008-10-26T05:38:56.231052Z $</p>
+    </body>
+</html>

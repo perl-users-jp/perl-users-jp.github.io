@@ -1,0 +1,395 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+    <head profile="http://purl.org/net/ns/metaprof">
+        <!-- Document Metadata -->
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta http-equiv="Content-Language" content="ja" />
+        <meta http-equiv="Content-Style-Type" content="text/css" />
+        <meta http-equiv="Content-Script-Type" content="text/javascript" />
+        <meta http-equiv="imagetoolbar" content="no" />
+
+        <!-- Atom news feed -->
+
+        <link rel="alternate" type="application/rss+xml" title="RSS feed" href="http://coderepos.org/share/log/websites/perl-users.jp?limit=100&amp;mode=stop_on_copy&amp;format=rss" />
+        <link rel="stylesheet" type="text/css" href="/css/perl-users.jp.css" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+        <link rel="icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+
+        <title>エキスパートPerl</title>
+
+        <script src="http://www.google-analytics.com/urchin.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            _uacct = "UA-4463402-1";
+            urchinTracker();
+        </script>
+        <!-- script src="/js/codepress/codepress.js" type="text/javascript"></script -->
+    </head>
+    <body>
+        <div id="head-navigation"><a href="/">Perl-users.jp</a></div>
+<!-- content start -->
+
+<h1>附表1. Perl5 の OP Code(v5.8.8)</h1>
+
+<table>
+<tr><td>0</td><td>null</td><td>OP_NULL</td><td>null operation</td></tr>
+<tr><td>1</td><td>stub</td><td>OP_STUB</td><td>stub</td></tr>
+<tr><td>2</td><td>scalar</td><td>OP_SCALAR</td><td>scalar</td></tr>
+<tr><td>3</td><td>pushmark</td><td>OP_PUSHMARK</td><td>pushmark</td></tr>
+<tr><td>4</td><td>wantarray</td><td>OP_WANTARRAY</td><td>wantarray</td></tr>
+<tr><td>5</td><td>const</td><td>OP_CONST</td><td>constant item</td></tr>
+<tr><td>6</td><td>gvsv</td><td>OP_GVSV</td><td>scalar variable</td></tr>
+<tr><td>7</td><td>gv</td><td>OP_GV</td><td>glob value</td></tr>
+<tr><td>8</td><td>gelem</td><td>OP_GELEM</td><td>glob elem</td></tr>
+<tr><td>9</td><td>padsv</td><td>OP_PADSV</td><td>private variable</td></tr>
+<tr><td>10</td><td>padav</td><td>OP_PADAV</td><td>private array</td></tr>
+<tr><td>11</td><td>padhv</td><td>OP_PADHV</td><td>private hash</td></tr>
+<tr><td>12</td><td>padany</td><td>OP_PADANY</td><td>private value</td></tr>
+<tr><td>13</td><td>pushre</td><td>OP_PUSHRE</td><td>push regexp</td></tr>
+<tr><td>14</td><td>rv2gv</td><td>OP_RV2GV</td><td>ref-to-glob cast</td></tr>
+<tr><td>15</td><td>rv2sv</td><td>OP_RV2SV</td><td>scalar dereference</td></tr>
+<tr><td>16</td><td>av2arylen</td><td>OP_AV2ARYLEN</td><td>array length</td></tr>
+<tr><td>17</td><td>rv2cv</td><td>OP_RV2CV</td><td>subroutine dereference</td></tr>
+<tr><td>18</td><td>anoncode</td><td>OP_ANONCODE</td><td>anonymous subroutine</td></tr>
+<tr><td>19</td><td>prototype</td><td>OP_PROTOTYPE</td><td>subroutine prototype</td></tr>
+<tr><td>20</td><td>refgen</td><td>OP_REFGEN</td><td>reference constructor</td></tr>
+<tr><td>21</td><td>srefgen</td><td>OP_SREFGEN</td><td>single ref constructor</td></tr>
+<tr><td>22</td><td>ref</td><td>OP_REF</td><td>reference-type operator</td></tr>
+<tr><td>23</td><td>bless</td><td>OP_BLESS</td><td>bless</td></tr>
+<tr><td>24</td><td>backtick</td><td>OP_BACKTICK</td><td>quoted execution (``, qx)</td></tr>
+<tr><td>25</td><td>glob</td><td>OP_GLOB</td><td>glob</td></tr>
+<tr><td>26</td><td>readline</td><td>OP_READLINE</td><td>&lt;HANDLE&gt;</td></tr>
+<tr><td>27</td><td>rcatline</td><td>OP_RCATLINE</td><td>append I/O operator</td></tr>
+<tr><td>28</td><td>regcmaybe</td><td>OP_REGCMAYBE</td><td>regexp internal guard</td></tr>
+<tr><td>29</td><td>regcreset</td><td>OP_REGCRESET</td><td>regexp internal reset</td></tr>
+<tr><td>30</td><td>regcomp</td><td>OP_REGCOMP</td><td>regexp compilation</td></tr>
+<tr><td>31</td><td>match</td><td>OP_MATCH</td><td>pattern match (m//)</td></tr>
+<tr><td>32</td><td>qr</td><td>OP_QR</td><td>pattern quote (qr//)</td></tr>
+<tr><td>33</td><td>subst</td><td>OP_SUBST</td><td>substitution (s///)</td></tr>
+<tr><td>34</td><td>substcont</td><td>OP_SUBSTCONT</td><td>substitution iterator</td></tr>
+<tr><td>35</td><td>trans</td><td>OP_TRANS</td><td>transliteration (tr///)</td></tr>
+<tr><td>36</td><td>sassign</td><td>OP_SASSIGN</td><td>scalar assignment</td></tr>
+<tr><td>37</td><td>aassign</td><td>OP_AASSIGN</td><td>list assignment</td></tr>
+<tr><td>38</td><td>chop</td><td>OP_CHOP</td><td>chop</td></tr>
+<tr><td>39</td><td>schop</td><td>OP_SCHOP</td><td>scalar chop</td></tr>
+<tr><td>40</td><td>chomp</td><td>OP_CHOMP</td><td>chomp</td></tr>
+<tr><td>41</td><td>schomp</td><td>OP_SCHOMP</td><td>scalar chomp</td></tr>
+<tr><td>42</td><td>defined</td><td>OP_DEFINED</td><td>defined operator</td></tr>
+<tr><td>43</td><td>undef</td><td>OP_UNDEF</td><td>undef operator</td></tr>
+<tr><td>44</td><td>study</td><td>OP_STUDY</td><td>study</td></tr>
+<tr><td>45</td><td>pos</td><td>OP_POS</td><td>match position</td></tr>
+<tr><td>46</td><td>preinc</td><td>OP_PREINC</td><td>preincrement (++)</td></tr>
+<tr><td>47</td><td>i_preinc</td><td>OP_I_PREINC</td><td>integer preincrement (++)</td></tr>
+<tr><td>48</td><td>predec</td><td>OP_PREDEC</td><td>predecrement (--)</td></tr>
+<tr><td>49</td><td>i_predec</td><td>OP_I_PREDEC</td><td>integer predecrement (--)</td></tr>
+<tr><td>50</td><td>postinc</td><td>OP_POSTINC</td><td>postincrement (++)</td></tr>
+<tr><td>51</td><td>i_postinc</td><td>OP_I_POSTINC</td><td>integer postincrement (++)</td></tr>
+<tr><td>52</td><td>postdec</td><td>OP_POSTDEC</td><td>postdecrement (--)</td></tr>
+<tr><td>53</td><td>i_postdec</td><td>OP_I_POSTDEC</td><td>integer postdecrement (--)</td></tr>
+<tr><td>54</td><td>pow</td><td>OP_POW</td><td>exponentiation (**)</td></tr>
+<tr><td>55</td><td>multiply</td><td>OP_MULTIPLY</td><td>multiplication (*)</td></tr>
+<tr><td>56</td><td>i_multiply</td><td>OP_I_MULTIPLY</td><td>integer multiplication (*)</td></tr>
+<tr><td>57</td><td>divide</td><td>OP_DIVIDE</td><td>division (/)</td></tr>
+<tr><td>58</td><td>i_divide</td><td>OP_I_DIVIDE</td><td>integer division (/)</td></tr>
+<tr><td>59</td><td>modulo</td><td>OP_MODULO</td><td>modulus (%)</td></tr>
+<tr><td>60</td><td>i_modulo</td><td>OP_I_MODULO</td><td>integer modulus (%)</td></tr>
+<tr><td>61</td><td>repeat</td><td>OP_REPEAT</td><td>repeat (x)</td></tr>
+<tr><td>62</td><td>add</td><td>OP_ADD</td><td>addition (+)</td></tr>
+<tr><td>63</td><td>i_add</td><td>OP_I_ADD</td><td>integer addition (+)</td></tr>
+<tr><td>64</td><td>subtract</td><td>OP_SUBTRACT</td><td>subtraction (-)</td></tr>
+<tr><td>65</td><td>i_subtract</td><td>OP_I_SUBTRACT</td><td>integer subtraction (-)</td></tr>
+<tr><td>66</td><td>concat</td><td>OP_CONCAT</td><td>concatenation (.) or string</td></tr>
+<tr><td>67</td><td>stringify</td><td>OP_STRINGIFY</td><td>string</td></tr>
+<tr><td>68</td><td>left_shift</td><td>OP_LEFT_SHIFT</td><td>left bitshift (&lt;&lt;)</td></tr>
+<tr><td>69</td><td>right_shift</td><td>OP_RIGHT_SHIFT</td><td>right bitshift (&gt;&gt;)</td></tr>
+<tr><td>70</td><td>lt</td><td>OP_LT</td><td>numeric lt (&lt;)</td></tr>
+<tr><td>71</td><td>i_lt</td><td>OP_I_LT</td><td>integer lt (&lt;)</td></tr>
+<tr><td>72</td><td>gt</td><td>OP_GT</td><td>numeric gt (&gt;)</td></tr>
+<tr><td>73</td><td>i_gt</td><td>OP_I_GT</td><td>integer gt (&gt;)</td></tr>
+<tr><td>74</td><td>le</td><td>OP_LE</td><td>numeric le (&lt;=)</td></tr>
+<tr><td>75</td><td>i_le</td><td>OP_I_LE</td><td>integer le (&lt;=)</td></tr>
+<tr><td>76</td><td>ge</td><td>OP_GE</td><td>numeric ge (&gt;=)</td></tr>
+<tr><td>77</td><td>i_ge</td><td>OP_I_GE</td><td>integer ge (&gt;=)</td></tr>
+<tr><td>78</td><td>eq</td><td>OP_EQ</td><td>numeric eq (==)</td></tr>
+<tr><td>79</td><td>i_eq</td><td>OP_I_EQ</td><td>integer eq (==)</td></tr>
+<tr><td>80</td><td>ne</td><td>OP_NE</td><td>numeric ne (!=)</td></tr>
+<tr><td>81</td><td>i_ne</td><td>OP_I_NE</td><td>integer ne (!=)</td></tr>
+<tr><td>82</td><td>ncmp</td><td>OP_NCMP</td><td>numeric comparison (&lt;=&gt;)</td></tr>
+<tr><td>83</td><td>i_ncmp</td><td>OP_I_NCMP</td><td>integer comparison (&lt;=&gt;)</td></tr>
+<tr><td>84</td><td>slt</td><td>OP_SLT</td><td>string lt</td></tr>
+<tr><td>85</td><td>sgt</td><td>OP_SGT</td><td>string gt</td></tr>
+<tr><td>86</td><td>sle</td><td>OP_SLE</td><td>string le</td></tr>
+<tr><td>87</td><td>sge</td><td>OP_SGE</td><td>string ge</td></tr>
+<tr><td>88</td><td>seq</td><td>OP_SEQ</td><td>string eq</td></tr>
+<tr><td>89</td><td>sne</td><td>OP_SNE</td><td>string ne</td></tr>
+<tr><td>90</td><td>scmp</td><td>OP_SCMP</td><td>string comparison (cmp)</td></tr>
+<tr><td>91</td><td>bit_and</td><td>OP_BIT_AND</td><td>bitwise and (&amp;)</td></tr>
+<tr><td>92</td><td>bit_xor</td><td>OP_BIT_XOR</td><td>bitwise xor (^)</td></tr>
+<tr><td>93</td><td>bit_or</td><td>OP_BIT_OR</td><td>bitwise or (|)</td></tr>
+<tr><td>94</td><td>negate</td><td>OP_NEGATE</td><td>negation (-)</td></tr>
+<tr><td>95</td><td>i_negate</td><td>OP_I_NEGATE</td><td>integer negation (-)</td></tr>
+<tr><td>96</td><td>not</td><td>OP_NOT</td><td>not</td></tr>
+<tr><td>97</td><td>complement</td><td>OP_COMPLEMENT</td><td>1's complement (~)</td></tr>
+<tr><td>98</td><td>atan2</td><td>OP_ATAN2</td><td>atan2</td></tr>
+<tr><td>99</td><td>sin</td><td>OP_SIN</td><td>sin</td></tr>
+<tr><td>100</td><td>cos</td><td>OP_COS</td><td>cos</td></tr>
+<tr><td>101</td><td>rand</td><td>OP_RAND</td><td>rand</td></tr>
+<tr><td>102</td><td>srand</td><td>OP_SRAND</td><td>srand</td></tr>
+<tr><td>103</td><td>exp</td><td>OP_EXP</td><td>exp</td></tr>
+<tr><td>104</td><td>log</td><td>OP_LOG</td><td>log</td></tr>
+<tr><td>105</td><td>sqrt</td><td>OP_SQRT</td><td>sqrt</td></tr>
+<tr><td>106</td><td>int</td><td>OP_INT</td><td>int</td></tr>
+<tr><td>107</td><td>hex</td><td>OP_HEX</td><td>hex</td></tr>
+<tr><td>108</td><td>oct</td><td>OP_OCT</td><td>oct</td></tr>
+<tr><td>109</td><td>abs</td><td>OP_ABS</td><td>abs</td></tr>
+<tr><td>110</td><td>length</td><td>OP_LENGTH</td><td>length</td></tr>
+<tr><td>111</td><td>substr</td><td>OP_SUBSTR</td><td>substr</td></tr>
+<tr><td>112</td><td>vec</td><td>OP_VEC</td><td>vec</td></tr>
+<tr><td>113</td><td>index</td><td>OP_INDEX</td><td>index</td></tr>
+<tr><td>114</td><td>rindex</td><td>OP_RINDEX</td><td>rindex</td></tr>
+<tr><td>115</td><td>sprintf</td><td>OP_SPRINTF</td><td>sprintf</td></tr>
+<tr><td>116</td><td>formline</td><td>OP_FORMLINE</td><td>formline</td></tr>
+<tr><td>117</td><td>ord</td><td>OP_ORD</td><td>ord</td></tr>
+<tr><td>118</td><td>chr</td><td>OP_CHR</td><td>chr</td></tr>
+<tr><td>119</td><td>crypt</td><td>OP_CRYPT</td><td>crypt</td></tr>
+<tr><td>120</td><td>ucfirst</td><td>OP_UCFIRST</td><td>ucfirst</td></tr>
+<tr><td>121</td><td>lcfirst</td><td>OP_LCFIRST</td><td>lcfirst</td></tr>
+<tr><td>122</td><td>uc</td><td>OP_UC</td><td>uc</td></tr>
+<tr><td>123</td><td>lc</td><td>OP_LC</td><td>lc</td></tr>
+<tr><td>124</td><td>quotemeta</td><td>OP_QUOTEMETA</td><td>quotemeta</td></tr>
+<tr><td>125</td><td>rv2av</td><td>OP_RV2AV</td><td>array dereference</td></tr>
+<tr><td>126</td><td>aelemfast</td><td>OP_AELEMFAST</td><td>constant array element</td></tr>
+<tr><td>127</td><td>aelem</td><td>OP_AELEM</td><td>array element</td></tr>
+<tr><td>128</td><td>aslice</td><td>OP_ASLICE</td><td>array slice</td></tr>
+<tr><td>129</td><td>each</td><td>OP_EACH</td><td>each</td></tr>
+<tr><td>130</td><td>values</td><td>OP_VALUES</td><td>values</td></tr>
+<tr><td>131</td><td>keys</td><td>OP_KEYS</td><td>keys</td></tr>
+<tr><td>132</td><td>delete</td><td>OP_DELETE</td><td>delete</td></tr>
+<tr><td>133</td><td>exists</td><td>OP_EXISTS</td><td>exists</td></tr>
+<tr><td>134</td><td>rv2hv</td><td>OP_RV2HV</td><td>hash dereference</td></tr>
+<tr><td>135</td><td>helem</td><td>OP_HELEM</td><td>hash element</td></tr>
+<tr><td>136</td><td>hslice</td><td>OP_HSLICE</td><td>hash slice</td></tr>
+<tr><td>137</td><td>unpack</td><td>OP_UNPACK</td><td>unpack</td></tr>
+<tr><td>138</td><td>pack</td><td>OP_PACK</td><td>pack</td></tr>
+<tr><td>139</td><td>split</td><td>OP_SPLIT</td><td>split</td></tr>
+<tr><td>140</td><td>join</td><td>OP_JOIN</td><td>join or string</td></tr>
+<tr><td>141</td><td>list</td><td>OP_LIST</td><td>list</td></tr>
+<tr><td>142</td><td>lslice</td><td>OP_LSLICE</td><td>list slice</td></tr>
+<tr><td>143</td><td>anonlist</td><td>OP_ANONLIST</td><td>anonymous list ([])</td></tr>
+<tr><td>144</td><td>anonhash</td><td>OP_ANONHASH</td><td>anonymous hash ({})</td></tr>
+<tr><td>145</td><td>splice</td><td>OP_SPLICE</td><td>splice</td></tr>
+<tr><td>146</td><td>push</td><td>OP_PUSH</td><td>push</td></tr>
+<tr><td>147</td><td>pop</td><td>OP_POP</td><td>pop</td></tr>
+<tr><td>148</td><td>shift</td><td>OP_SHIFT</td><td>shift</td></tr>
+<tr><td>149</td><td>unshift</td><td>OP_UNSHIFT</td><td>unshift</td></tr>
+<tr><td>150</td><td>sort</td><td>OP_SORT</td><td>sort</td></tr>
+<tr><td>151</td><td>reverse</td><td>OP_REVERSE</td><td>reverse</td></tr>
+<tr><td>152</td><td>grepstart</td><td>OP_GREPSTART</td><td>grep</td></tr>
+<tr><td>153</td><td>grepwhile</td><td>OP_GREPWHILE</td><td>grep iterator</td></tr>
+<tr><td>154</td><td>mapstart</td><td>OP_MAPSTART</td><td>map</td></tr>
+<tr><td>155</td><td>mapwhile</td><td>OP_MAPWHILE</td><td>map iterator</td></tr>
+<tr><td>156</td><td>range</td><td>OP_RANGE</td><td>flipflop</td></tr>
+<tr><td>157</td><td>flip</td><td>OP_FLIP</td><td>range (or flip)</td></tr>
+<tr><td>158</td><td>flop</td><td>OP_FLOP</td><td>range (or flop)</td></tr>
+<tr><td>159</td><td>and</td><td>OP_AND</td><td>logical and (&amp;&amp;)</td></tr>
+<tr><td>160</td><td>or</td><td>OP_OR</td><td>logical or (||)</td></tr>
+<tr><td>161</td><td>xor</td><td>OP_XOR</td><td>logical xor</td></tr>
+<tr><td>162</td><td>cond_expr</td><td>OP_COND_EXPR</td><td>conditional expression</td></tr>
+<tr><td>163</td><td>andassign</td><td>OP_ANDASSIGN</td><td>logical and assignment (&amp;&amp;=)</td></tr>
+<tr><td>164</td><td>orassign</td><td>OP_ORASSIGN</td><td>logical or assignment (||=)</td></tr>
+<tr><td>165</td><td>method</td><td>OP_METHOD</td><td>method lookup</td></tr>
+<tr><td>166</td><td>entersub</td><td>OP_ENTERSUB</td><td>subroutine entry</td></tr>
+<tr><td>167</td><td>leavesub</td><td>OP_LEAVESUB</td><td>subroutine exit</td></tr>
+<tr><td>168</td><td>leavesublv</td><td>OP_LEAVESUBLV</td><td>lvalue subroutine return</td></tr>
+<tr><td>169</td><td>caller</td><td>OP_CALLER</td><td>caller</td></tr>
+<tr><td>170</td><td>warn</td><td>OP_WARN</td><td>warn</td></tr>
+<tr><td>171</td><td>die</td><td>OP_DIE</td><td>die</td></tr>
+<tr><td>172</td><td>reset</td><td>OP_RESET</td><td>symbol reset</td></tr>
+<tr><td>173</td><td>lineseq</td><td>OP_LINESEQ</td><td>line sequence</td></tr>
+<tr><td>174</td><td>nextstate</td><td>OP_NEXTSTATE</td><td>next statement</td></tr>
+<tr><td>175</td><td>dbstate</td><td>OP_DBSTATE</td><td>debug next statement</td></tr>
+<tr><td>176</td><td>unstack</td><td>OP_UNSTACK</td><td>iteration finalizer</td></tr>
+<tr><td>177</td><td>enter</td><td>OP_ENTER</td><td>block entry</td></tr>
+<tr><td>178</td><td>leave</td><td>OP_LEAVE</td><td>block exit</td></tr>
+<tr><td>179</td><td>scope</td><td>OP_SCOPE</td><td>block</td></tr>
+<tr><td>180</td><td>enteriter</td><td>OP_ENTERITER</td><td>foreach loop entry</td></tr>
+<tr><td>181</td><td>iter</td><td>OP_ITER</td><td>foreach loop iterator</td></tr>
+<tr><td>182</td><td>enterloop</td><td>OP_ENTERLOOP</td><td>loop entry</td></tr>
+<tr><td>183</td><td>leaveloop</td><td>OP_LEAVELOOP</td><td>loop exit</td></tr>
+<tr><td>184</td><td>return</td><td>OP_RETURN</td><td>return</td></tr>
+<tr><td>185</td><td>last</td><td>OP_LAST</td><td>last</td></tr>
+<tr><td>186</td><td>next</td><td>OP_NEXT</td><td>next</td></tr>
+<tr><td>187</td><td>redo</td><td>OP_REDO</td><td>redo</td></tr>
+<tr><td>188</td><td>dump</td><td>OP_DUMP</td><td>dump</td></tr>
+<tr><td>189</td><td>goto</td><td>OP_GOTO</td><td>goto</td></tr>
+<tr><td>190</td><td>exit</td><td>OP_EXIT</td><td>exit</td></tr>
+<tr><td>191</td><td>open</td><td>OP_OPEN</td><td>open</td></tr>
+<tr><td>192</td><td>close</td><td>OP_CLOSE</td><td>close</td></tr>
+<tr><td>193</td><td>pipe_op</td><td>OP_PIPE_OP</td><td>pipe</td></tr>
+<tr><td>194</td><td>fileno</td><td>OP_FILENO</td><td>fileno</td></tr>
+<tr><td>195</td><td>umask</td><td>OP_UMASK</td><td>umask</td></tr>
+<tr><td>196</td><td>binmode</td><td>OP_BINMODE</td><td>binmode</td></tr>
+<tr><td>197</td><td>tie</td><td>OP_TIE</td><td>tie</td></tr>
+<tr><td>198</td><td>untie</td><td>OP_UNTIE</td><td>untie</td></tr>
+<tr><td>199</td><td>tied</td><td>OP_TIED</td><td>tied</td></tr>
+<tr><td>200</td><td>dbmopen</td><td>OP_DBMOPEN</td><td>dbmopen</td></tr>
+<tr><td>201</td><td>dbmclose</td><td>OP_DBMCLOSE</td><td>dbmclose</td></tr>
+<tr><td>202</td><td>sselect</td><td>OP_SSELECT</td><td>select system call</td></tr>
+<tr><td>203</td><td>select</td><td>OP_SELECT</td><td>select</td></tr>
+<tr><td>204</td><td>getc</td><td>OP_GETC</td><td>getc</td></tr>
+<tr><td>205</td><td>read</td><td>OP_READ</td><td>read</td></tr>
+<tr><td>206</td><td>enterwrite</td><td>OP_ENTERWRITE</td><td>write</td></tr>
+<tr><td>207</td><td>leavewrite</td><td>OP_LEAVEWRITE</td><td>write exit</td></tr>
+<tr><td>208</td><td>prtf</td><td>OP_PRTF</td><td>printf</td></tr>
+<tr><td>209</td><td>print</td><td>OP_PRINT</td><td>print</td></tr>
+<tr><td>210</td><td>sysopen</td><td>OP_SYSOPEN</td><td>sysopen</td></tr>
+<tr><td>211</td><td>sysseek</td><td>OP_SYSSEEK</td><td>sysseek</td></tr>
+<tr><td>212</td><td>sysread</td><td>OP_SYSREAD</td><td>sysread</td></tr>
+<tr><td>213</td><td>syswrite</td><td>OP_SYSWRITE</td><td>syswrite</td></tr>
+<tr><td>214</td><td>send</td><td>OP_SEND</td><td>send</td></tr>
+<tr><td>215</td><td>recv</td><td>OP_RECV</td><td>recv</td></tr>
+<tr><td>216</td><td>eof</td><td>OP_EOF</td><td>eof</td></tr>
+<tr><td>217</td><td>tell</td><td>OP_TELL</td><td>tell</td></tr>
+<tr><td>218</td><td>seek</td><td>OP_SEEK</td><td>seek</td></tr>
+<tr><td>219</td><td>truncate</td><td>OP_TRUNCATE</td><td>truncate</td></tr>
+<tr><td>220</td><td>fcntl</td><td>OP_FCNTL</td><td>fcntl</td></tr>
+<tr><td>221</td><td>ioctl</td><td>OP_IOCTL</td><td>ioctl</td></tr>
+<tr><td>222</td><td>flock</td><td>OP_FLOCK</td><td>flock</td></tr>
+<tr><td>223</td><td>socket</td><td>OP_SOCKET</td><td>socket</td></tr>
+<tr><td>224</td><td>sockpair</td><td>OP_SOCKPAIR</td><td>socketpair</td></tr>
+<tr><td>225</td><td>bind</td><td>OP_BIND</td><td>bind</td></tr>
+<tr><td>226</td><td>connect</td><td>OP_CONNECT</td><td>connect</td></tr>
+<tr><td>227</td><td>listen</td><td>OP_LISTEN</td><td>listen</td></tr>
+<tr><td>228</td><td>accept</td><td>OP_ACCEPT</td><td>accept</td></tr>
+<tr><td>229</td><td>shutdown</td><td>OP_SHUTDOWN</td><td>shutdown</td></tr>
+<tr><td>230</td><td>gsockopt</td><td>OP_GSOCKOPT</td><td>getsockopt</td></tr>
+<tr><td>231</td><td>ssockopt</td><td>OP_SSOCKOPT</td><td>setsockopt</td></tr>
+<tr><td>232</td><td>getsockname</td><td>OP_GETSOCKNAME</td><td>getsockname</td></tr>
+<tr><td>233</td><td>getpeername</td><td>OP_GETPEERNAME</td><td>getpeername</td></tr>
+<tr><td>234</td><td>lstat</td><td>OP_LSTAT</td><td>lstat</td></tr>
+<tr><td>235</td><td>stat</td><td>OP_STAT</td><td>stat</td></tr>
+<tr><td>236</td><td>ftrread</td><td>OP_FTRREAD</td><td>-R</td></tr>
+<tr><td>237</td><td>ftrwrite</td><td>OP_FTRWRITE</td><td>-W</td></tr>
+<tr><td>238</td><td>ftrexec</td><td>OP_FTREXEC</td><td>-X</td></tr>
+<tr><td>239</td><td>fteread</td><td>OP_FTEREAD</td><td>-r</td></tr>
+<tr><td>240</td><td>ftewrite</td><td>OP_FTEWRITE</td><td>-w</td></tr>
+<tr><td>241</td><td>fteexec</td><td>OP_FTEEXEC</td><td>-x</td></tr>
+<tr><td>242</td><td>ftis</td><td>OP_FTIS</td><td>-e</td></tr>
+<tr><td>243</td><td>fteowned</td><td>OP_FTEOWNED</td><td>-o</td></tr>
+<tr><td>244</td><td>ftrowned</td><td>OP_FTROWNED</td><td>-O</td></tr>
+<tr><td>245</td><td>ftzero</td><td>OP_FTZERO</td><td>-z</td></tr>
+<tr><td>246</td><td>ftsize</td><td>OP_FTSIZE</td><td>-s</td></tr>
+<tr><td>247</td><td>ftmtime</td><td>OP_FTMTIME</td><td>-M</td></tr>
+<tr><td>248</td><td>ftatime</td><td>OP_FTATIME</td><td>-A</td></tr>
+<tr><td>249</td><td>ftctime</td><td>OP_FTCTIME</td><td>-C</td></tr>
+<tr><td>250</td><td>ftsock</td><td>OP_FTSOCK</td><td>-S</td></tr>
+<tr><td>251</td><td>ftchr</td><td>OP_FTCHR</td><td>-c</td></tr>
+<tr><td>252</td><td>ftblk</td><td>OP_FTBLK</td><td>-b</td></tr>
+<tr><td>253</td><td>ftfile</td><td>OP_FTFILE</td><td>-f</td></tr>
+<tr><td>254</td><td>ftdir</td><td>OP_FTDIR</td><td>-d</td></tr>
+<tr><td>255</td><td>ftpipe</td><td>OP_FTPIPE</td><td>-p</td></tr>
+<tr><td>256</td><td>ftlink</td><td>OP_FTLINK</td><td>-l</td></tr>
+<tr><td>257</td><td>ftsuid</td><td>OP_FTSUID</td><td>-u</td></tr>
+<tr><td>258</td><td>ftsgid</td><td>OP_FTSGID</td><td>-g</td></tr>
+<tr><td>259</td><td>ftsvtx</td><td>OP_FTSVTX</td><td>-k</td></tr>
+<tr><td>260</td><td>fttty</td><td>OP_FTTTY</td><td>-t</td></tr>
+<tr><td>261</td><td>fttext</td><td>OP_FTTEXT</td><td>-T</td></tr>
+<tr><td>262</td><td>ftbinary</td><td>OP_FTBINARY</td><td>-B</td></tr>
+<tr><td>263</td><td>chdir</td><td>OP_CHDIR</td><td>chdir</td></tr>
+<tr><td>264</td><td>chown</td><td>OP_CHOWN</td><td>chown</td></tr>
+<tr><td>265</td><td>chroot</td><td>OP_CHROOT</td><td>chroot</td></tr>
+<tr><td>266</td><td>unlink</td><td>OP_UNLINK</td><td>unlink</td></tr>
+<tr><td>267</td><td>chmod</td><td>OP_CHMOD</td><td>chmod</td></tr>
+<tr><td>268</td><td>utime</td><td>OP_UTIME</td><td>utime</td></tr>
+<tr><td>269</td><td>rename</td><td>OP_RENAME</td><td>rename</td></tr>
+<tr><td>270</td><td>link</td><td>OP_LINK</td><td>link</td></tr>
+<tr><td>271</td><td>symlink</td><td>OP_SYMLINK</td><td>symlink</td></tr>
+<tr><td>272</td><td>readlink</td><td>OP_READLINK</td><td>readlink</td></tr>
+<tr><td>273</td><td>mkdir</td><td>OP_MKDIR</td><td>mkdir</td></tr>
+<tr><td>274</td><td>rmdir</td><td>OP_RMDIR</td><td>rmdir</td></tr>
+<tr><td>275</td><td>open_dir</td><td>OP_OPEN_DIR</td><td>opendir</td></tr>
+<tr><td>276</td><td>readdir</td><td>OP_READDIR</td><td>readdir</td></tr>
+<tr><td>277</td><td>telldir</td><td>OP_TELLDIR</td><td>telldir</td></tr>
+<tr><td>278</td><td>seekdir</td><td>OP_SEEKDIR</td><td>seekdir</td></tr>
+<tr><td>279</td><td>rewinddir</td><td>OP_REWINDDIR</td><td>rewinddir</td></tr>
+<tr><td>280</td><td>closedir</td><td>OP_CLOSEDIR</td><td>closedir</td></tr>
+<tr><td>281</td><td>fork</td><td>OP_FORK</td><td>fork</td></tr>
+<tr><td>282</td><td>wait</td><td>OP_WAIT</td><td>wait</td></tr>
+<tr><td>283</td><td>waitpid</td><td>OP_WAITPID</td><td>waitpid</td></tr>
+<tr><td>284</td><td>system</td><td>OP_SYSTEM</td><td>system</td></tr>
+<tr><td>285</td><td>exec</td><td>OP_EXEC</td><td>exec</td></tr>
+<tr><td>286</td><td>kill</td><td>OP_KILL</td><td>kill</td></tr>
+<tr><td>287</td><td>getppid</td><td>OP_GETPPID</td><td>getppid</td></tr>
+<tr><td>288</td><td>getpgrp</td><td>OP_GETPGRP</td><td>getpgrp</td></tr>
+<tr><td>289</td><td>setpgrp</td><td>OP_SETPGRP</td><td>setpgrp</td></tr>
+<tr><td>290</td><td>getpriority</td><td>OP_GETPRIORITY</td><td>getpriority</td></tr>
+<tr><td>291</td><td>setpriority</td><td>OP_SETPRIORITY</td><td>setpriority</td></tr>
+<tr><td>292</td><td>time</td><td>OP_TIME</td><td>time</td></tr>
+<tr><td>293</td><td>tms</td><td>OP_TMS</td><td>times</td></tr>
+<tr><td>294</td><td>localtime</td><td>OP_LOCALTIME</td><td>localtime</td></tr>
+<tr><td>295</td><td>gmtime</td><td>OP_GMTIME</td><td>gmtime</td></tr>
+<tr><td>296</td><td>alarm</td><td>OP_ALARM</td><td>alarm</td></tr>
+<tr><td>297</td><td>sleep</td><td>OP_SLEEP</td><td>sleep</td></tr>
+<tr><td>298</td><td>shmget</td><td>OP_SHMGET</td><td>shmget</td></tr>
+<tr><td>299</td><td>shmctl</td><td>OP_SHMCTL</td><td>shmctl</td></tr>
+<tr><td>300</td><td>shmread</td><td>OP_SHMREAD</td><td>shmread</td></tr>
+<tr><td>301</td><td>shmwrite</td><td>OP_SHMWRITE</td><td>shmwrite</td></tr>
+<tr><td>302</td><td>msgget</td><td>OP_MSGGET</td><td>msgget</td></tr>
+<tr><td>303</td><td>msgctl</td><td>OP_MSGCTL</td><td>msgctl</td></tr>
+<tr><td>304</td><td>msgsnd</td><td>OP_MSGSND</td><td>msgsnd</td></tr>
+<tr><td>305</td><td>msgrcv</td><td>OP_MSGRCV</td><td>msgrcv</td></tr>
+<tr><td>306</td><td>semget</td><td>OP_SEMGET</td><td>semget</td></tr>
+<tr><td>307</td><td>semctl</td><td>OP_SEMCTL</td><td>semctl</td></tr>
+<tr><td>308</td><td>semop</td><td>OP_SEMOP</td><td>semop</td></tr>
+<tr><td>309</td><td>require</td><td>OP_REQUIRE</td><td>require</td></tr>
+<tr><td>310</td><td>dofile</td><td>OP_DOFILE</td><td>do "file"</td></tr>
+<tr><td>311</td><td>entereval</td><td>OP_ENTEREVAL</td><td>eval "string"</td></tr>
+<tr><td>312</td><td>leaveeval</td><td>OP_LEAVEEVAL</td><td>eval "string" exit</td></tr>
+<tr><td>313</td><td>entertry</td><td>OP_ENTERTRY</td><td>eval {block}</td></tr>
+<tr><td>314</td><td>leavetry</td><td>OP_LEAVETRY</td><td>eval {block} exit</td></tr>
+<tr><td>315</td><td>ghbyname</td><td>OP_GHBYNAME</td><td>gethostbyname</td></tr>
+<tr><td>316</td><td>ghbyaddr</td><td>OP_GHBYADDR</td><td>gethostbyaddr</td></tr>
+<tr><td>317</td><td>ghostent</td><td>OP_GHOSTENT</td><td>gethostent</td></tr>
+<tr><td>318</td><td>gnbyname</td><td>OP_GNBYNAME</td><td>getnetbyname</td></tr>
+<tr><td>319</td><td>gnbyaddr</td><td>OP_GNBYADDR</td><td>getnetbyaddr</td></tr>
+<tr><td>320</td><td>gnetent</td><td>OP_GNETENT</td><td>getnetent</td></tr>
+<tr><td>321</td><td>gpbyname</td><td>OP_GPBYNAME</td><td>getprotobyname</td></tr>
+<tr><td>322</td><td>gpbynumber</td><td>OP_GPBYNUMBER</td><td>getprotobynumber</td></tr>
+<tr><td>323</td><td>gprotoent</td><td>OP_GPROTOENT</td><td>getprotoent</td></tr>
+<tr><td>324</td><td>gsbyname</td><td>OP_GSBYNAME</td><td>getservbyname</td></tr>
+<tr><td>325</td><td>gsbyport</td><td>OP_GSBYPORT</td><td>getservbyport</td></tr>
+<tr><td>326</td><td>gservent</td><td>OP_GSERVENT</td><td>getservent</td></tr>
+<tr><td>327</td><td>shostent</td><td>OP_SHOSTENT</td><td>sethostent</td></tr>
+<tr><td>328</td><td>snetent</td><td>OP_SNETENT</td><td>setnetent</td></tr>
+<tr><td>329</td><td>sprotoent</td><td>OP_SPROTOENT</td><td>setprotoent</td></tr>
+<tr><td>330</td><td>sservent</td><td>OP_SSERVENT</td><td>setservent</td></tr>
+<tr><td>331</td><td>ehostent</td><td>OP_EHOSTENT</td><td>endhostent</td></tr>
+<tr><td>332</td><td>enetent</td><td>OP_ENETENT</td><td>endnetent</td></tr>
+<tr><td>333</td><td>eprotoent</td><td>OP_EPROTOENT</td><td>endprotoent</td></tr>
+<tr><td>334</td><td>eservent</td><td>OP_ESERVENT</td><td>endservent</td></tr>
+<tr><td>335</td><td>gpwnam</td><td>OP_GPWNAM</td><td>getpwnam</td></tr>
+<tr><td>336</td><td>gpwuid</td><td>OP_GPWUID</td><td>getpwuid</td></tr>
+<tr><td>337</td><td>gpwent</td><td>OP_GPWENT</td><td>getpwent</td></tr>
+<tr><td>338</td><td>spwent</td><td>OP_SPWENT</td><td>setpwent</td></tr>
+<tr><td>339</td><td>epwent</td><td>OP_EPWENT</td><td>endpwent</td></tr>
+<tr><td>340</td><td>ggrnam</td><td>OP_GGRNAM</td><td>getgrnam</td></tr>
+<tr><td>341</td><td>ggrgid</td><td>OP_GGRGID</td><td>getgrgid</td></tr>
+<tr><td>342</td><td>ggrent</td><td>OP_GGRENT</td><td>getgrent</td></tr>
+<tr><td>343</td><td>sgrent</td><td>OP_SGRENT</td><td>setgrent</td></tr>
+<tr><td>344</td><td>egrent</td><td>OP_EGRENT</td><td>endgrent</td></tr>
+<tr><td>345</td><td>getlogin</td><td>OP_GETLOGIN</td><td>getlogin</td></tr>
+<tr><td>346</td><td>syscall</td><td>OP_SYSCALL</td><td>syscall</td></tr>
+<tr><td>347</td><td>lock</td><td>OP_LOCK</td><td>lock</td></tr>
+<tr><td>348</td><td>threadsv</td><td>OP_THREADSV</td><td>per-thread value</td></tr>
+<tr><td>349</td><td>setstate</td><td>OP_SETSTATE</td><td>set statement info</td></tr>
+<tr><td>350</td><td>method_named</td><td>OP_METHOD_NAMED</td><td>method with known name</td></tr>
+<tr><td>351</td><td>custom</td><td>OP_CUSTOM</td><td>unknown custom operator</td></tr>
+</table>
+
+
+<!-- content end -->
+        <hr />
+        <p><a href="/modern_introduction_perl/">目次へ</a></p>
+        <p>Last modified: $Date: 2008-06-04T08:01:12.241090Z $</p>
+    </body>
+</html>
+
