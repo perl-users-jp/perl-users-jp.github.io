@@ -219,7 +219,8 @@ sub detect_format {
     my ($self, $src) = @_;
 
     my ($ext) = $src =~ m!\.([^.]+)$!;
-    return $ext eq 'md'       ? 'markdown'
+    return !$ext              ? undef
+         : $ext eq 'md'       ? 'markdown'
          : $ext eq 'markdown' ? 'markdown'
          : $ext eq 'txt'      ? 'hatena'
          : undef
