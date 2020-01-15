@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>#13 schema meta data api - Articles Advent Calendar 2011 Teng</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>#13 schema meta data api</h1>
+
+        <p>schema meta data apiとは、Teng用に作ったSchema情報をプログラマブルに処理出来る機構とは<br />
+思ってもらえればよいかと思います。<br />
+DBIx::Skinnyからnamespaceを変えてまで作るきっかけになった仕組みの一つです。</p><p>DBIx::Skinnyではschemaの情報を操作するAPIというものが存在しておらず、<br />
+schema情報として管理されているhashrefを直接さわらないと内部の情報を操作することができませんでした。<br />
+その為、PluginなどのDBIx::Skinnyコア以外のサードパーティモジュールでschema辺りをhackしたい場合に<br />
+DBIx::Skinny本体の内部の仕様変更に弱くあまりイケテナイ感じになってしまっていました。</p><p>後付でAPIを足すことも可能なのですが、<br />
+そもそものschema情報がオブジェクト化されておらず、単なるデータの集まりだったので大改修が必要だったのと、<br />
+Tengをつくりはじめたので、DBIx::Skinnyでは無理に対応しませんでした。</p><br />
+<p>ではTengのschema meta data apiの使い方を紹介します。<br />
+Tengのインスタンスにはschemaというアクセサがあり、$teng->schemaとすることで、<br />
+自分で定義もしくはLoaderが定義したProj::DB::Schemaのインスタンスにアクセスすることができます。</p><p>Teng::Schemaのドキュメントにあるように（<a href="http://search.cpan.org/dist/Teng/lib/Teng/Schema.pm）">http://search.cpan.org/dist/Teng/lib/Teng/Schema.pm）</a><br />
+何個かのメソッドが提供されています。</p><p>add_tableというメソッドを利用すれば、動的にtableの定義を追加することができます。<br />
+get_tableというメソッドを利用すれば、定義されているtable objectを取得することができますし、</p><p>add_table/get_tableともにTeng::Schema::Tableでインスタンス化されたオブジェクトを登録/取得することができます。</p><p>Teng::Schema::Tableは(<a href="http://search.cpan.org/dist/Teng/lib/Teng/Schema/Table.pm)">http://search.cpan.org/dist/Teng/lib/Teng/Schema/Table.pm)</a><br />
+各tableの情報を操作することが出来るようになっています。</p><p>add_deflator/add_inflatorメソッドではinflate/deflateの設定を動的に行うことができますし、<br />
+table/primary_keys/columns/row_classなどのアクセサでtable名/プライマリキー/カラム/Rowクラス名<br />
+などを取得、設定することができます。</p><p>こういったAPIを提供することで、Pluginなどの拡張を書く第三者は内部の実装の変更に基本左右されず、<br />
+またTengの開発者はAPIのI/Fだけ互換性を保てば、第三者のコードに影響を与えること無く内部を変更できるようになります。</p><br />
+<p>DBIx::Skinnyではinflate/deflateの設定はtable毎ではなく、schema全体の定義としていたため<br />
+.+_onや.+_atをDateTimeでinfalte/deflateするというのを一箇所書いておけばよかったですが、<br />
+Tengではtable毎にinflate/deflateの定義を書く必要があり、若干めんどくさかったりもします。<br />
+ここではそれを解消する一例を載せておきたいと思います。</p>
+
+    <pre class="code">for my $table_name (keys %{$teng-&gt;schema-&gt;tables}) {
+    my $table = $teng-&gt;schema-&gt;get_table($table_name);
+    $table-&gt;add_inflator(&#39;name&#39; =&gt; sub { warn Dumper \@_; });
+    $table-&gt;add_deflator(&#39;name&#39; =&gt; sub { warn Dumper \@_; });
+}</pre>
+<p>schema meta data apiはまだ開発途上なので、仕様が変わることもありますのでご注意ください。<br />
+ご覧のようにまだこなれてないですしね。</p><p>明日はschema dumperについて説明したいと思います</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

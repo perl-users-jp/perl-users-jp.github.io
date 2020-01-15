@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="bayashi">
+        <meta name="author" content="bayashi">
+        <title>HTTP通信を含むモジュールのテスト - Articles Advent Calendar 2011 Test</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>HTTP通信を含むモジュールのテスト</h1>
+
+        <p>こんにちは！こんばんは！寒いのがめっぽう苦手、<a href="http://twitter.com/bayashi">bayashi</a> です！</p><p>きょうは、HTTP通信を伴うモジュールのテストについて書いてみます！</p><p></p>
+
+<div class="section">
+    <h4>サンプルモジュール WWW::Foo8</h4>
+    <p>具体的に説明するために、<a href="https://github.com/perl-users-jp/perl-advent-calendar/tree/master/2011/test/2011-12-08/WWW-Foo8" target="_blank">WWW::Foo8</a> というモジュールを書きました！</p>
+
+    <pre class="code lang-perl">package WWW::Foo8;
+use strict;
+use warnings;
+
+our $VERSION = &#39;0.01&#39;;
+
+use Class::Accessor::Lite (
+    rw  =&gt; [qw/agent error/],
+);
+
+sub new {
+    my ($class, %args) = @_;
+
+    $args{agent} = _default_agent() unless $args{agent};
+    bless \%args, $class;
+}
+
+sub get {
+    my ($self, $uri) = @_;
+
+    my $response = $self-&gt;agent-&gt;get($uri);
+
+    if ($response-&gt;is_success) {
+        return $response-&gt;content;
+    }
+    else {
+        $self-&gt;error($response-&gt;status_line);
+        return;
+    }
+}
+
+sub _default_agent {
+    require Furl; return Furl-&gt;new;
+}
+
+1;
+
+__END__</pre>
+<p>簡単ですね！<br />
+以下のように get でどっかのページを取ってくるだけです。サンプルなので実用性とかありません。</p>
+
+    <pre class="code lang-perl">use WWW::Foo8;
+
+my $foo = WWW::Foo8-&gt;new;
+my $res = $foo-&gt;get(&#39;http://example.org&#39;);</pre>
+<p>というわけで、テストなのですが、ラインナップは以下のようになっております。</p>
+
+<ul>
+<li><a href="https://github.com/perl-users-jp/perl-advent-calendar/blob/master/2011/test/2011-12-08/WWW-Foo8/t/00_compile.t" target="_blank">00_compile.t</a></li>
+<li><a href="https://github.com/perl-users-jp/perl-advent-calendar/blob/master/2011/test/2011-12-08/WWW-Foo8/t/01_basic.t" target="_blank">01_basic.t</a></li>
+<li><a href="https://github.com/perl-users-jp/perl-advent-calendar/blob/master/2011/test/2011-12-08/WWW-Foo8/t/02_get_exception.t" target="_blank">02_get_exception.t</a></li>
+<li><a href="https://github.com/perl-users-jp/perl-advent-calendar/blob/master/2011/test/2011-12-08/WWW-Foo8/t/03_get.t" target="_blank">03_get.t</a></li>
+</ul><p>今回のテーマは HTTP 通信のテストなので、そのテストが含まれる <a href="https://github.com/perl-users-jp/perl-advent-calendar/blob/master/2011/test/2011-12-08/WWW-Foo8/t/03_get.t" target="_blank">03_get.t</a> に絞って、分解して解説します。</p><p></p>
+
+</div>
+<div class="section">
+    <h4>HTTP通信のテストあれこれ</h4>
+    
+<div class="section">
+    <h5>シンプルにアクセスして結果を見る</h5>
+    <p>最初に行うのは、一番簡単な方法です。以下のようになります。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+use LWP::Online &#39;:skip_all&#39;; # skip all test unless online
+use Test::More 0.88;
+
+use WWW::Foo8;
+
+# real access
+{
+    my $res = WWW::Foo8-&gt;new-&gt;get(&#39;http://example.org/&#39;);
+    like $res, qr{&lt;title&gt;IANA[^&lt;]+&lt;/title&gt;}, &#39;example.org&#39;;
+}
+
+done_testing;</pre>
+<p>単純に、実際に存在する URL にアクセスして結果を見ます。</p><p>この場合、対象 URL にリアルにアクセスすることになります。</p><p>開発時点ならいくらかのアクセスで済むかもしれませんが、例えばこのモジュールが CPAN にアップロードされ、CPAN testers で実行されたらどうなるでしょうか。多数のサーバでテストが走り、DDoS のような状況が発生するかもしれません(まあそれほど多数ではないかもしれないけど)。対象が大きいサイトなら、なんともないかもしれませんが、数に関わらず、はっきりいってこれはやめたほうがいいですね。先方に迷惑がかかります。</p>
+
+</div>
+<div class="section">
+    <h5>普段はコメントアウト</h5>
+    <p>というわけで、じゃあ、まあ自分の必要なときだけ走るように、コメントアウトすればいいんじゃないかと思いますね。</p>
+
+    <pre class="code lang-perl"># real access, however comment out
+{
+    my $res = WWW::Foo8-&gt;new-&gt;get(&#39;http://example.org/&#39;);
+    #like $res, qr{&lt;title&gt;IANA[^&lt;]+&lt;/title&gt;}, &#39;example.org&#39;;
+}</pre>
+<p>しかし、これでは毎度テストコードを編集しなければいけないので、はげしく手間がかかって面倒くさいです。<br />
+やっぱりやめたほうがいいですね。</p>
+
+</div>
+<div class="section">
+    <h5>条件付でアクセスするようにする</h5>
+    <p>それならば、条件付でテストを走らせるのはどうだろうとなります。</p>
+
+    <pre class="code lang-perl"># need env
+if ($ENV{WWW_FOO8_DO_TEST}) {
+    my $res = WWW::Foo8-&gt;new-&gt;get(&#39;http://example.org/&#39;);
+    like $res, qr{&lt;title&gt;IANA[^&lt;]+&lt;/title&gt;}, &#39;example.org&#39;;
+}
+
+# skip it!
+SKIP: {
+    skip &#39;no more DDoS&#39;, 1 unless $ENV{WWW_FOO8_DO_TEST};
+    my $res = WWW::Foo8-&gt;new-&gt;get(&#39;http://example.org/&#39;);
+    like $res, qr{&lt;title&gt;IANA[^&lt;]+&lt;/title&gt;}, &#39;example.org&#39;;
+}</pre>
+<p>上の例は if で囲っただけですが、下の例は Test::More で用意されている skip を活用しています。後者のほうが理由も書けて良いですね。このやり方なら、以下のようにした時だけ、実際にアクセスするテストが走りますね。</p>
+
+    <pre class="code">$ env WWW_FOO8_DO_TEST=1 perl -Ilib t/03_get.t</pre>
+<p>これで、迷惑と言われることは防げそうです。</p><p>しかし、これだと、例えば先方のサイトが落ちていたりするとテストができなかったり、テストドリブンなコーディングは難しくなります。また、先方のサイトがエラーのときの処理を書こうとしても、第三者のサイトで、そんなレスポンスを自由にしてもらうことはできないですね。当たり前です。</p><p>そうなると、ああ、手元に自分でコントロールできる対象サイトのフェイクがあればいいのに！ねえドラえもん！</p>
+
+</div>
+<div class="section">
+    <h5>フェイク HTTPD</h5>
+    <p>やっぱり頼るのは CPAN で、<a href="https://metacpan.org/module/Test::Fake::HTTPD">Test::Fake::HTTPD</a> を使えばその願いがかなえられそうです！</p>
+
+    <pre class="code lang-perl"># use fake HTTPD
+{
+    use Test::Fake::HTTPD;
+    {
+        my $fake_res = HTTP::Response-&gt;new(
+            200, &#39;ok&#39;, [&#39;Content-Type&#39; =&gt; &#39;text/html&#39;],
+            &#39;&lt;html&gt;&lt;head&gt;&lt;title&gt;IANA example.org&lt;/title&gt;&lt;/head&gt;&lt;body&gt;&lt;/body&gt;&lt;/html&gt;&#39;
+        );
+        my $httpd = run_http_server { $fake_res };
+        my $res = WWW::Foo8-&gt;new-&gt;get($httpd-&gt;endpoint);
+        like $res, qr{&lt;title&gt;IANA[^&lt;]+&lt;/title&gt;}, &#39;fake example.org&#39;;
+    }
+
+    {
+        my $httpd = run_http_server { HTTP::Response-&gt;new(404) };
+        my $foo = WWW::Foo8-&gt;new;
+        my $res = $foo-&gt;get($httpd-&gt;endpoint);
+        is $res, undef, &#39;fake 404&#39;;
+        is $foo-&gt;error, &#39;404 Not Found&#39;, &#39;error&#39;;
+    }
+
+    {
+        my $httpd = run_http_server { HTTP::Response-&gt;new(500) };
+        my $foo = WWW::Foo8-&gt;new;
+        my $res = $foo-&gt;get($httpd-&gt;endpoint);
+        is $res, undef, &#39;fake 500&#39;;
+        is $foo-&gt;error, &#39;500 Internal Server Error&#39;, &#39;error&#39;;
+    }
+}</pre>
+<p>cool ではないですか。自分色に染め上げた HTTP Response をすき放題取れます。これならいくら走らせても先方にアクセスしないし、レスポンスエラーのテストも書き放題です。TDDもできますね！オフラインでも問題ありません！</p><p>というわけで、個人的には先に紹介した、skip と両方書いて、実際の挙動を明示して確認しつつ、fake で仕様に沿った実装をじゃんじゃん進めるのがいいのかな、と思っている今日この頃です。</p><p></p>
+
+</div>
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>以上、HTTP通信するモジュールのテストについて書いてみました！</p><p>このアプローチは、なにも HTTP だけでなく、ほかの外部とほげほげする処理全般に当てはめて考えることができると思いますので、興味のある人は深追いすると良いと思います！<br />
+CPAN にもいろいろとモジュールが存在するようなので、探してみましょう！</p><p>ついでに、なければ書くといいと思います！</p><p>では、明日は charsbar さんです！お楽しみに！</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

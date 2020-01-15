@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="cho45">
+        <meta name="author" content="cho45">
+        <title>FormValidator::Simple::Plugin::V8 - バリデーションルールをサーバー/クライアントで共有するためのモジュール - Articles Advent Calendar 2011 Hacker</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>FormValidator::Simple::Plugin::V8 - バリデーションルールをサーバー/クライアントで共有するためのモジュール</h1>
+
+        
+<div class="section">
+    <h4>前置き</h4>
+    <p>こんにちは。cho45 です。もう本当に年末ですね。みなさん、意識は高まっていますか？ 僕は年末に向けて下がりつつあります。それはともかく、今回は FormValidator::Simple::Plugin::V8 というモジュールを紹介させて頂きます。</p><p>ウェブアプリケーションを開発するとき、だいたいの場合、サーバーサイドで入力にバリデーションをかけますよね。そんなとき便利な FormValidator::Simple というモジュールがあり、こちらはみなさんご存知かと思います。さらに近年ではフォームを submit する前にクライアントサイド JavaScript  でリアルタイムでエラーがわかって欲しいとう欲求もときどきあるというのも、ご存知の通りだと思います。</p><p>サーバーサイドを Perl、クライアントサイドを JavaScript で実装する場合、バリデーションルールをそれぞれの言語で実装する必要があります。正直だるいですよね？ 面倒ですよね？ というか両方テスト書くとかダルいよ。</p><p>そんなとき活躍するかもしれないのがこのモジュールです。</p>
+
+</div>
+<div class="section">
+    <h4>使いかた</h4>
+    
+<div class="section">
+    <h5>定義</h5>
+    <p>FormValidator::Simple::Plugin::V8 は単体では何もできません。このモジュールを継承して FormValidator::Simple::Plugin を作るところからはじまります。</p>
+
+    <pre class="code lang-perl">package FormValidator::Simple::Plugin::MyRules;
+use FormValidator::Simple::Plugin::V8 &#39;rules.js&#39;;</pre>
+<p>プラグインモジュール自体は以上のような簡素なものです。特になんもしてません。rules.js に実際のバリデーションルールを JavaScript で記述していきます。</p>
+
+    <pre class="code lang-javascript">// This is rules.js
+rule(&#34;NUMBER&#34;, function (str) {
+	str = String(str);
+	return (/^\d+$/).test(str);
+});</pre>
+<p>以上のように rule() 関数を使ってバリデーションルールを定義していきます。第一引数がバリデーションルール名、第二引数はバリデーションする関数で、引数にバリデートする値を受け、true (バリデーションOK) または false (バリデーションNG) を返します。</p>
+
+</div>
+<div class="section">
+    <h5>使用</h5>
+    <p>あとは、普通の FormValidator::Simple::Plugin と同じように使うだけです。</p>
+
+    <pre class="code lang-perl">use FormValidator::Simple qw/MyRules/;
+
+my $result = FormValidator::Simple-&gt;check( ... );</pre>
+<p>簡単でしょ？</p>
+
+</div>
+</div>
+<div class="section">
+    <h4>インストール</h4>
+    <p>JavaScript::V8 を使っていますので、うまいことそのモジュールを先にインストールする必要があります。幸い JavaScript::V8 の POD は親切なので、読んだ通りやればうまくいきそうです。とはいえ、永遠にうまくいくとは限らないので、やはりこのへんがこのモジュールを使う際のネックになりそうです。</p>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>今回は FormValidator::Simple::Plugin::V8 というバリデーションルールをサーバー/クライアントで共有するためのモジュールを紹介しました。現時点で筆者はプロダクション投入したことはありませんが、許される機会があれば使ってみたい気がします。また、HTML5 的な <a href="https://developer.mozilla.org/en/HTML/Forms_in_HTML#Constraint_Validation_API">Constraint Validation API</a> に何らかの形で対応とかするとかっこいいですね。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

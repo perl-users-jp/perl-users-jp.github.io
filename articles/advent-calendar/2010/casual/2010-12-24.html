@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="yappo">
+        <meta name="author" content="yappo">
+        <title>Smart::Args でバリデーションする。またはバリデーターとして必要な事 - Articles Advent Calendar 2010 Casual</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Smart::Args でバリデーションする。またはバリデーターとして必要な事</h1>
+
+        <p>めりめり！<a href="http://twitter.com.hisaichi5518">@yappo</a>です。うっかり Acme Trac を書いてたら、こっちの当番だったんです！</p>
+
+<div class="section">
+    <h4>Smart::Args とは</h4>
+    <p>実行時型チェック / パラメーターチェックが出来る便利なモジュールです。<br />
+現在、 Params::Validate がデファクトスタンダードっぽいんですが、速度が遅かったりするので正直微妙です。<br />
+まぁ、速度っていうか色々面倒い感じだなーって思ってきた人も多いと思います。</p>
+
+</div>
+<div class="section">
+    <h4>Smart::Args のインストール</h4>
+    
+    <pre class="code">    cpanm Smart::Args</pre>
+<p>CPANにも上がってるので簡単ですね！</p>
+
+</div>
+<div class="section">
+    <h4>Smart::Args の使い方</h4>
+    
+    <pre class="code lang-perl">use Smart::Args;
+sub foo {    
+    args my $p =&gt; &#39;Int&#39;,
+         my $q =&gt; { isa =&gt; &#39;Int&#39;, optional =&gt; 1 };
+    say $q ? &#34;$p, $q&#34; : $p;
+}
+
+foo(p =&gt; 1); # 1
+foo(p =&gt; 1, q =&gt; 2); # 1, 2</pre>
+<p>これまた簡単！</p><p>例えば、以下のようにすると</p>
+
+    <pre class="code lang-perl">foo(p =&gt; &#39;str&#39;);</pre>
+<p>以下のように怒られます。</p>
+
+<blockquote >
+    <p>Validation failed for 'Int' with value str at /Users/dankogai/perl5/perlbrew/perls/perl-5.13.7/lib/site_perl/5.13.7/Smart/Args.pm line 111<br />
+	   Smart::Args::_validate_by_rule('HASH(0x100826530)', 'p', 'Int', 'SCALAR(0x100859f08)') called at /Users/dankogai/perl5/perlbrew/perls/perl-5.13.7/lib/site_perl/5.13.7/Smart/Args.pm line 57<br />
+	   Smart::Args::args(undef, 'Int', undef, 'HASH(0x1008264e8)') called at ./xx.pl line 4<br />
+	   main::foo('p', 'str') called at ./xx.pl line 11</p>
+
+    
+</blockquote><p><br />
+isaは、Mouseのtype constraint名か任意のtype constraintオブジェクトを渡す事が出来ます。<br />
+<a href="http://search.cpan.org/dist/Mouse/lib/Mouse/Util/TypeConstraints.pm#Default_Type_Constraints">Mouse::Util::TypeConstraintsのDefault Type Constraints</a>とかですね。<br />
+URIかどうか確かめたい！という時はこうします。</p>
+
+    <pre class="code lang-perl">use Smart::Args;
+use MouseX::Types::URI;
+use URI;
+
+sub foo {
+    args my $uri =&gt; &#39;URI&#39;;
+}
+
+foo(uri =&gt; &#39;http://example.com/&#39;);</pre>
+<p>あらまあ、簡単。</p>
+
+    <pre class="code">use Smart::Args;
+use Mouse::Util::TypeConstraints;
+
+my $MyHash = subtype &#39;MyHash&#39;, as &#39;HashRef&#39;;
+coerce $MyHash,
+    from &#39;ArrayRef&#39;, via { +{ @{$_} } };
+
+sub foo{
+    args my $p =&gt; $MyHash;
+}
+
+foo(p =&gt; { a =&gt; 42 } );
+foo(p =&gt; [ a =&gt; 42 ] );</pre>
+<p>なんて事も出来ます。これは、<a href="http://perl-users.jp/articles/advent-calendar/2010/casual/10">もとネタから改変した</a>んですけども。</p><p>Smart::Args をもっと詳しく知りたい場合は<a href="http://search.cpan.org/dist/Smart-Args/lib/Smart/Args.pm">POD</a>とかを見ればいいと思います。</p>
+
+</div>
+<div class="section">
+    <h4>バリデーターとして必要な事</h4>
+    <p>既存の良く有るバリデータは</p>
+
+    <pre class="code lang-perl">my %args = foo(@_, argname1 =&gt; { ... config ... }, argname2 =&gt; { ...  config... });</pre>
+<p>のように使う事が良く有るんですが、例えば上の例で argname1 を取ろうとしていて $args{agrnaem1} とか typo してしまうと、 undef の値を使おうとして諸々不都合があります。<br />
+それに対する対策としては <a href="http://blog.nekokak.org/show?guid=xsl-73YN4BGMelT8MCAp_g">Sub::Argsで存在しないキーにアクセスしたらエラーに</a> のように %args に read only のフラグを付けて、存在しない key へのアクセスを抑制するという解決方法も取られていますが、そもそも</p>
+
+    <pre class="code lang-perl">my $argname1 = $args{argname1};</pre>
+<p>の用にして使うケースが多数なので、最初っから変数を作った方がよりスマートに書ける。<br />
+その辺はモジュール名で主張してますね。</p>
+
+</div>
+<div class="section">
+    <h4>黒魔術云々</h4>
+    <p>Smart::Args は黒魔術を多く使っているとか言う話もありますが、 PadWalker は一見黒魔術だけども、様々なモジュールで使われているし、実装自体も無茶してないのでそんなに恐れる物ではないでしょうし、 DB とか使って「うわぁ」とか思う人も居るけども、 Perl のデバッガ用の仕組みとしてきちんと整備されてるので、恐れる事は無いでしょう。</p><p>ちなみに PadWalker で args my $foo => 'Int'; したときの、変数名をパラメータの key として検出する為につかっていて、 DB は args 関数に @_ を引数として渡さなくても、呼び出し元の @_ を args の中から引っぱりだすために使っています。</p>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>Smart::Args かんたん、はやい、べんり！まだ使った事無いけど。<br />
+これだけべた褒めしておいてなんですが、このモジュールはリリースされて半年くらいです。<br />
+みんなでたくさん使って、さらにいいものにしていきましょう！</p><p>「OSSは使って育てるもの。」by <a href="http://twitter.com/#!/__gfx__/status/9988955441209346">@__gfx__</a></p><p>次は、<a href="http://www.twitter.jp/Songmu">Songmu</a>さんです！<br />
+ではでは、みなさんリアルな充を！</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

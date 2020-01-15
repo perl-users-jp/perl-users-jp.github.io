@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="ikasam_a">
+        <meta name="author" content="ikasam_a">
+        <title>Test::Exception で Death テスト - Articles Advent Calendar 2011 Test</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Test::Exception で Death テスト</h1>
+
+        <p>こんにちは。ikasam_a です。</p><p>今日は、以前のテスト分類のお話とは一転して Test::Exception というモジュールを紹介します。</p><p>これを使うと、実行中に die しちゃうようなコードを気軽にテストできます。</p><p>例えば、アイコンを作りたいんだけど不正な状態だったら例外投げちゃう感じのクラスがあるとしますね。例ですよ。そんなクラスのテストもこんな感じで書けるようになります。</p>
+
+    <pre class="code lang-perl">use Test::More;
+use Test::Exception;
+use My::Icon;
+
+lives_ok {
+    My::Icon-&gt;new(+{ name =&gt; &#39;ikasam_a&#39;, state =&gt; &#39;cute&#39; });
+} &#39;icon is cute&#39;;
+
+dies_ok {
+    My::Icon-&gt;new(+{ name =&gt; &#39;nekokak&#39;, state =&gt; &#39;cute&#39; });
+} &#39;icon is not cute&#39;;
+
+done_testing;</pre>
+<p>読んで字のごとくですね。lives_ok はブロックの中で例外が発生しなければ ok になります。一方 dies_ok 例外が発生すると ok になります。</p><p>このテストを実行するとこんな感じですね。</p>
+
+    <pre class="code">$ prove -lvc 01_cute.t
+01_cute.t .. 
+ok 1 - icon is cute
+ok 2 - icon is not cute
+1..2
+ok
+All tests successful.
+Files=1, Tests=2,  0 wallclock secs ( 0.02 usr  0.01 sys +  0.01 cusr  0.00 csys =  0.04 CPU)
+Result: PASS</pre>
+<p>簡単ですね。</p><p>Test::Exception には throws_ok というのもあって、これは発生した例外メッセージや例外オブジェクトのマッチングができるので、dies_ok より詳しい条件で例外チェックができます。</p>
+
+    <pre class="code lang-perl">throws_ok {
+    open my $fh, &#39;&lt;&#39;, &#39;not_existent_file&#39; or die $!;
+} qr/No such file/, &#39;does not open file&#39;;
+
+throws_ok { $foo-&gt;bar } &#39;Foo::Exception&#39;, &#39;$foo-&gt;bar raise &#34;Foo:Exception&#34; object&#39;;</pre>
+<p>例外が発生するかどうかをテストするには、eval してチェックして以下略、という書き方ももちろんできますが、Test::Exception を使うと上記のように簡潔にテストが書けていいですね。</p><p>また、似たようなモジュールに Test::Exit というのがあって、こちらは exit されたかどうかや終了コードを判定できるようになっています。状況に合わせて使うといいでしょう。</p><p>さて明日は誰でしょう？お楽しみに！</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

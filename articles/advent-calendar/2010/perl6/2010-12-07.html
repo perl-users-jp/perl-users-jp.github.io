@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="risou <risou.f@gmail.com>">
+        <meta name="author" content="risou <risou.f@gmail.com>">
+        <title>インタラクティブな実行環境を使おう - Articles Advent Calendar 2010 Perl6</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>インタラクティブな実行環境を使おう</h1>
+
+        <p>REPL(Read-Eval-Print Loop) は使い慣れない言語はもちろん、使い慣れた言語でも「あれ？　こう書いたらどうなるんだっけ？」という状況などで有用な環境です。</p><p>Perl 5 には、 Devel::REPL というインタラクティブに Perl を実行するためにモジュールがありますが、 Perl 6 は標準でインタラクティブな実行環境を備えています。</p>
+
+<div class="section">
+    <h4>使い方</h4>
+    <p>インタラクティブモードでの起動は、 perl6 コマンドをパラメータ、オプションなしで実行するだけ可能です。</p>
+
+    <pre class="code">$ perl6
+&gt;</pre>
+<p>perl6 コマンドを実行すると、「>」だけの行が表示されますね。ここでユーザからの perl スクリプトを受け付け、スクリプトの処理結果を標示してくれます。</p><p>たとえば2日目の記事にあった「12月25日まであと何日?」を計算するのは、以下のように書くだけです。</p>
+
+    <pre class="code">$ perl6
+&gt; Date.new(&#39;2010-12-25&#39;) - Date.today
+13
+&gt;</pre>
+<p>もちろん、モジュールを利用することもできます。5日目の記事で作った Foo.pm を使ってみましょう。</p>
+
+    <pre class="code">$ perl6
+&gt; use Foo
+P
+&gt; say Foo.new.foo;
+foo
+&gt;</pre>
+<p>簡単ですね。</p>
+
+</div>
+<div class="section">
+    <h4>注意</h4>
+    <p>REPL を使うにあたって、一つ注意しておくべきことがあります。本家の Perl 6 Advent Calendar でも <a href="http://perl6advent.wordpress.com/2010/12/04/the-sequence-operator/">Day 4 - The Sequence Operators</a> で少し触れられていますが、無限リストなどを評価するとレスポンスが返ってこなくなり、そこで止まってしまいます。</p>
+
+    <pre class="code">$ perl6
+&gt; my @fib := 0, 1, -&gt; $a, $b { $a + $b } ... *;
+
+^C
+$ </pre>
+<p>上の例では、 @fib に遅延評価リストを代入していますが、 REPL が入力したスクリプトの結果を出力しようとするために評価が行われてしまい、結果として無限にフィボナッチ数列の計算を続けてしまっています。以下のように書くことで、このような状況を回避できます。</p>
+
+    <pre class="code">$ perl6
+&gt; my @fib := 0, 1, -&gt; $a, $b { $a + $b } ... *; 1;
+1
+&gt;</pre>
+<p>REPLが出力する対象は、最後のステートメントなので、上記の場合、 "1;" が評価されて、 "1" が出力されます。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

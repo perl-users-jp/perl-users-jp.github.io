@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="xaicron <xaicron@cpan.org>">
+        <meta name="author" content="xaicron <xaicron@cpan.org>">
+        <title>Windows で複数の perl を使い分けよう！ - Articles Advent Calendar 2010 Win32</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Windows で複数の perl を使い分けよう！</h1>
+
+        <p>こんにちはこんにちは！ <a href="http://atnd.org/events/9803">MySQL Casual</a> でこの記事を書いている <a href="http://twitter.com/#!/xaicron">xaicron</a> です。MySQL とかよくわかってません。</p><p>さて、世間一般では、perlbrew を使わないでいいのは小学生までだよねーって感じになってますが、当然 Win32 で使うのは大変ですし、バイナリあるから使いたいよねって感じです。</p><p>そこで、以下のルールをもとに、strawberry perl をswitch するスクリプトを書いて使ってます。</p>
+
+<ul>
+<li>とりあえず、C:/strawberry とかに最初のインストール (またはインストール済みの PATH)</li>
+<li>新しい perl をインスコするときは、最近入れた perl を {ionstall_path}-{version} にしておく</li>
+</ul><p>そんでもって以下のスクリプトを実行します。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+use version;
+use File::Spec;
+use Getopt::Long qw/GetOptions/;
+
+sub usage;
+
+my $conf = do &#34;$ENV{HOME}/.pswrc&#34; || do &#34;$ENV{HOME}/_pswrc&#34; || {};
+
+my $base_dir = $conf-&gt;{base_dir} || &#39;C:/&#39;;
+my $dir_name = $conf-&gt;{dir_name} || &#39;strawberry&#39;;
+my $current_version = version-&gt;new($]);
+
+GetOptions(
+    &#39;l|list&#39; =&gt; \my $list,
+    &#39;h|help&#39; =&gt; \my $help,
+) or usage;
+
+usage if $help;
+
+show_list() &amp;&amp; exit if $list;
+
+main: {
+    my $target = shift || usage;
+
+    my $target_version = version-&gt;new($target);
+    if ($target_version eq $current_version) {
+        warn &#34;$target is current version\n&#34;;
+        exit 1;
+    }
+
+    my $target_dir = find_target_dir($target_version);
+    unless ($target_dir) {
+        warn &#34;$target_version is not installed!\n&#34;;
+        exit 1;
+    }
+
+    switch($target_dir);
+
+    print &#34;switched\n&#34;;
+
+    exit;
+}
+
+sub show_list {
+    opendir my $dh, $base_dir or die $!;
+    for my $dir (grep /^$dir_name/o, readdir $dh) {
+        my $version = find_version($dir);
+        print $version eq $current_version ? &#39;* &#39; : &#39;  &#39;, $version, &#34;\n&#34;;
+    }
+    closedir $dh;
+}
+
+sub find_target_dir {
+    my $target_version = shift;
+    my $target_dir;
+    opendir my $dh, $base_dir or die $!;
+    for my $dir (grep /^$dir_name/o, readdir $dh) {
+        my $version = find_version($dir);
+        if ($version eq $target_version) {
+            $target_dir = $dir;
+            last;
+        }
+    }
+    closedir $dh;
+    
+    return $target_dir;
+}
+
+sub find_version {
+    my $dir = shift;
+    my $cmd = File::Spec-&gt;catfile($base_dir, $dir, &#39;perl/bin/perl&#39;);
+    my $result = `$cmd -v`;
+    my ($version) = $result =~ /(v[0-9]+\.[0-9]+\.[0-9]+)/smx;
+    return version-&gt;new($version);
+}
+
+sub switch {
+    my ($dir) = @_;
+    my $target_dir  = File::Spec-&gt;catfile($base_dir, $dir);
+    my $current_dir = File::Spec-&gt;catfile($base_dir, $dir_name);
+    my $swap_dir    = File::Spec-&gt;catfile($current_dir. &#34;-$current_version&#34;);
+    
+    _rename($current_dir, $swap_dir);
+    _rename($target_dir, $current_dir);
+}
+
+sub _rename {
+    my ($from, $to) = @_;
+    rename $from, $to or die &#34;rename failed! $from -&gt; $to: $!&#34;;
+}
+
+sub usage {
+    print &lt;&lt; &#39;USAGE&#39;;
+multiple perl switch utility for strawberry-perl
+
+usage:
+    psw.pl [options] 5.12.1
+
+options:
+    -l, --list   Display installed perl list
+    -h, --help   Show this message
+
+USAGE
+
+    exit 1;
+}</pre>
+
+    <pre class="code">C:\&gt; psw.pl -l
+* v5.12.1
+  v5.10.1
+  v5.12.0</pre>
+<p>とか出て、今使ってるのが、perl 5.12.1 だとわかりますね！<br />
+switch したいときは、</p>
+
+    <pre class="code">C:\&gt; psw.pl 5.12.0
+switched
+
+C:\&gt; psw.pl -l
+* v5.12.0
+  v5.10.1
+  v5.12.1</pre>
+<p>とかなって 5.12.0 になりました。<br />
+やってることは、ディレクトリを rename してるだけですね。</p>
+
+    <pre class="code">C:/strawberry -&gt; C:/strawberry-5.12.1
+C:/strawberry-5.12.0 -&gt; C:/strawberry</pre>
+<p>としてるだけです。<br />
+こんな感じで簡単に perl を switch できてとっても便利です。</p><p>ただし、ActivePerl との共存の時は、PATH を書き換える bat を書いてます。<br />
+この辺はきっとそのうち誰かがもっといいの書いてくれるんじゃないかなーと思います。</p><p>明日は、遅れてやってきた writer、mayuki さんです！お楽しみに！！</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

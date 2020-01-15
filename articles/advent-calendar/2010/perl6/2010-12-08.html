@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="uasi <uasi@99cm.org>">
+        <meta name="author" content="uasi <uasi@99cm.org>">
+        <title>モジュールを公開してみよう - Articles Advent Calendar 2010 Perl6</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>モジュールを公開してみよう</h1>
+
+        <p>5日目の「<a href="http://perl-users.jp/articles/advent-calendar/2010/perl6/5">&#x30E2;&#x30B8;&#x30E5;&#x30FC;&#x30EB;&#x3092;&#x66F8;&#x3044;&#x3066;&#x307F;&#x3088;&#x3046;</a>」は読みましたか？モジュール書いてみましたか？もう書いた？すばらしい！</p><p>そうすると次は……公開してみたくなりますよね？</p><p>まだ書いていない人も……何か書きたい！公開したい！と思いませんか？</p><p>今日はそんな人のために、 Perl 6 モジュールを公開して <a href="http://modules.perl6.org/"></a> に登録するまでのステップを説明します。</p><p></p>
+
+<div class="section">
+    <h4>0. モジュールを書こう</h4>
+    <p>何はなくともモジュールを書きましょう。実用的なものを書くもよし、 Perl 5 や他の言語のモジュールを移植するのも勉強になりますし、おふざけモジュールだってかまいません。</p><p>適当なディレクトリ（以下 <code>$project</code> とします）を作って、モジュールを <code>$project/lib</code> 以下に置きます。</p><p>依存する Perl 6 のモジュールがあるなら、 <code>$project/deps.proto</code> にプロジェクト名を改行区切りで書きましょう。</p>
+
+<pre>perl6-File-Tools
+DateTime-Parse
+</pre><p>こんな感じです。</p>
+
+</div>
+<div class="section">
+    <h4>1. README を書こう</h4>
+    <p><code>$project/README</code> でモジュールの内容を説明しましょう。日本語で数行書くだけでもOKです。</p><p>実際のところ書かなくたっていいのですが…… README があるプロジェクトは <a href="http://modules.perl6.org">Perl 6 Modules Directory</a> に載るとバッヂが付きます<img src="http://modules.perl6.org/readme.png">！</p>
+
+</div>
+<div class="section">
+    <h4>2. テストを書こう</h4>
+    <p>何はなくともテストは大事。<code>$project/t</code> にテストファイルを置きましょう。</p><p>Perl 6 は言語仕様も実装も日々変化しています。仕様の変更や処理系のバグにすぐ気づくためにもテストを書いておきましょう。バッヂも付きます<img src="http://modules.perl6.org/tests.png"> :)</p>
+
+</div>
+<div class="section">
+    <h4>3. GitHub で公開しよう</h4>
+    <p><code>$project</code> を <a href="http://github.com/">GitHub</a> にアップロードしましょう。</p>
+
+</div>
+<div class="section">
+    <h4>4. モジュールリストに載せてもらおう</h4>
+    <p>書いたモジュールを <a href="http://modules.perl6.org"></a> に登録してもらいましょう。</p><p>僕（<a href="http://d.hatena.ne.jp/uasi/">uasi</a>）が <a href="http://github.com/uasi/messagepack-pm6">MessagePack.pm6</a> を書いたときは、モジュールリストは <a href="https://github.com/masak/proto">proto</a> のリポジトリで管理されていたのですが、 Perl 6 のモジュール書いたよーと Twitter でつぶやいたら向こうから載せてくれたのでした。</p><p>今だったら <a href="https://github.com/perl6/ecosystem">ecosystem</a> を fork して <a href="https://github.com/perl6/ecosystem/blob/master/projects.list">project.list</a> を書き換えて pull request を送るか、 irc.freenode.org の #perl6 チャンネルでお願いしてもいいかもしれません。</p>
+
+</div>
+<div class="section">
+    <h4>番外編. 分からないことはつぶやいてみよう</h4>
+    <p>Perl 6 でコードを書いていると分からないことが色々出てくると思います。</p>
+
+<ul>
+<li>Perl 5 のコレは Perl 6 でどう書くの？</li>
+<li>このコードが動かないんだけど何か間違ってる？それとも処理系のバグ？</li>
+<li>この言語仕様って変じゃない？</li>
+</ul><p>そんなときは Twitter でハッシュタグ <a href="http://twitter.com/#!/search/%23perl6">#perl6</a> をつけてつぶやいてみましょう。僕（<a href="http://twitter.com/uasi">@uasi</a>）に分かることであれば何かしらお答えします。</p><p>また、 <a href="https://github.com/masak/web">Web.pm</a> や <a href="https://github.com/masak/proto">proto</a> の開発者である Carl Mäsak さん（<a href="http://twitter.com/carlmasak">@carlmasak</a>）も、 #perl6 タグのついた発言を（日本語で書かれていても！）よく読んでいるようで、英語で返信してくれることがあります。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

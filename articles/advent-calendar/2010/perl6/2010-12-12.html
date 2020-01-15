@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="Nobuo Danjou <nobuo.danjou@gmail.com>">
+        <meta name="author" content="Nobuo Danjou <nobuo.danjou@gmail.com>">
+        <title>サブプロセスをforkしたい - Articles Advent Calendar 2010 Perl6</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>サブプロセスをforkしたい</h1>
+
+        <p>こんにちは、<a href="http://twitter.com/lopnor">@lopnor</a>です。 こないだサーバーのテストを書こうとしてforkする方法がわかったので、それをメモしておきます。</p>
+
+<div class="section">
+    <h3>とりあえず#perl6で聞いてみた</h3>
+    
+    <pre class="code">13:10:05 &gt;#perl6@freenode:lopnor&lt; is there any way to fork a process?
+13:11:41 &lt;#perl6@freenode:TiMBuS&gt; yes, if you use zavolaj you can call fork
+13:11:56 &lt;#perl6@freenode:TiMBuS&gt; https://github.com/jnthn/zavolaj
+13:12:02 &gt;#perl6@freenode:lopnor&lt; is it core in rakudo star?
+13:12:29 &lt;#perl6@freenode:TiMBuS&gt; not sure, but it&#39;s a simple single .pm file you can include
+13:12:52 &lt;#perl6@freenode:TiMBuS&gt; https://github.com/jnthn/zavolaj/blob/master/examples/unix-fork.p6 there&#39;s the example
+13:13:20 &gt;#perl6@freenode:lopnor&lt; oh, it&#39;s very easy!
+13:13:34 &gt;#perl6@freenode:lopnor&lt; thank you, i will try that
+13:13:36 &lt;#perl6@freenode:TiMBuS&gt; yeah i was surprised at how easy it was, as well
+13:14:00 &lt;#perl6@freenode:TiMBuS&gt; im not sure if it&#39;s very efficient. keep an eye on your memory usage
+13:14:55 &gt;#perl6@freenode:lopnor&lt; i wanted to fork for testing some server,
+13:15:03 &gt;#perl6@freenode:lopnor&lt; so it should be okay for me
+13:27:40 &gt;#perl6@freenode:lopnor&lt; TiMBuS: hm, the sample doesn&#39;t work in my mac,
+13:27:55 &gt;#perl6@freenode:lopnor&lt; saying &#34;Could not locate symbol &#39;fork&#39; in native library &#39;(resident)&#39;&#34;
+13:28:33 &gt;#perl6@freenode:lopnor&lt; i&#39;m using rakudo star 2010-11
+13:29:15 &lt;#perl6@freenode:TiMBuS&gt; you might need to specify the library name
+13:30:24 &gt;#perl6@freenode:lopnor&lt; what library name?
+13:32:31 &lt;#perl6@freenode:TiMBuS&gt; erm, whats fork in osx?
+13:32:43 &lt;#perl6@freenode:TiMBuS&gt; &#39;libc&#39; ?
+13:32:56 &gt;#perl6@freenode:lopnor&lt; ah,
+13:33:23 &gt;#perl6@freenode:lopnor&lt; sub fork() returns Int is native() { ... } 
+13:33:28 &gt;#perl6@freenode:lopnor&lt; this line should be
+13:33:54 &gt;#perl6@freenode:lopnor&lt; &#34;sub fork() returns Int is native(libc) { ... }&#34; or something,
+13:33:59 &gt;#perl6@freenode:lopnor&lt; right?
+13:34:07 &lt;#perl6@freenode:TiMBuS&gt; yeah
+13:34:31 &lt;#perl6@freenode:TiMBuS&gt; its a string, so  is native(&#39;libc&#39;)
+13:34:51 &gt;#perl6@freenode:lopnor&lt; thank you!
+13:34:56 &gt;#perl6@freenode:lopnor&lt; it ran
+13:40:18 &lt;#perl6@freenode:sorear&gt; is native&lt;libc&gt;
+13:41:23 &gt;#perl6@freenode:lopnor&lt; it also ran:)</pre>
+<p>ということで一発で教えてもらえました。</p>
+
+</div>
+<div class="section">
+    <h3>使ってみよう</h3>
+    <p>いま個人的に進めている<a href="http://github.com/lopnor/p6-plackdo">plackdo</a>というプロジェクトの中で書いたテストです。ソースは<a href="https://github.com/lopnor/p6-plackdo/blob/master/t/Handler-Standalone/fork.t">&#x3053;&#x3061;&#x3089;</a>です。</p>
+
+    <pre class="code">use Test;
+use NativeCall;
+use LWP::Simple;
+use Plackdo::Handler::Standalone;
+
+ok 1;
+
+sub fork returns Int is native&lt;libc&gt; { ... }
+
+my $pid = fork();
+if ($pid) {
+    is LWP::Simple.get(&#39;http://localhost:5000/&#39;), &#39;Hello, World&#39;;
+} else {
+    my $handler = Plackdo::Handler::Standalone.new;
+    $handler.run(sub (%env){
+        return [
+            200,
+            [
+                Content-Type =&gt; &#39;text/plain&#39;,
+                Content-Length =&gt; &#39;12&#39;,
+            ],
+            [&#39;Hello, World&#39;]
+        ];
+    });
+}
+run(&#34;kill $pid&#34;);
+
+done_testing;
+
+# vim: ft=perl6 :</pre>
+<p>zavolajはrakudo-star-2010-11に同梱されていたので、追加のインストールは不要でした。</p>
+
+    <pre class="code">use NativeCall;
+sub fork returns Int is native&lt;libc&gt; { ... }</pre>
+<p>これでfork()するとlibcのforkが呼ばれるようになります。実運用的にはこのsub forkを記述したモジュールを書いて使い回すのが現実的だと思います。そして、呼び出す側は</p>
+
+    <pre class="code">
+my $pid = fork();
+if ($pid) {
+# parent process
+    # do something
+    run(&#34;kill $pid&#34;); # kill the child
+} else {
+# child process
+}</pre>
+<p>こんな感じで、perl5とおんなじ感じです。</p>
+
+</div>
+<div class="section">
+    <h3>「perl6にはforkがない.......」そんなふうに考えていた時期が俺にもありました。</h3>
+    <p>enjoy!</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

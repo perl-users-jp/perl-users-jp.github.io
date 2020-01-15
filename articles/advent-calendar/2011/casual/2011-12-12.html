@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="toritori0318">
+        <meta name="author" content="toritori0318">
+        <title>カジュアルにperlデバッガを使って捗る - Articles Advent Calendar 2011 Casual</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>カジュアルにperlデバッガを使って捗る</h1>
+
+        <p>こんにちは。perlでほげほげするのが大好きなtoritori0318と申します。<br />
+さて突然ですが、みなさんはperlのデバッグをどのように行なっておりますでしょうか？</p><p>print＋Data::Dumper で十分！という方から、<br />
+epicやPadreといったIDEでデバッグしたいよね、<br />
+アプリで出してるログ使ってるよー、<br />
+はたまた漢ならperl標準デバッガ使うべし、<br />
+など、いろいろなご意見があるでしょう。</p><br />
+<p>自分はほとんどのケースでperl標準デバッガを使っています。<br />
+軽いし環境に依存しないし機能は十分だし最高！<br />
+ということで今回はPerl標準デバッガについて書いてみます。</p><p></p>
+
+<div class="section">
+    <h4>デバッガの起動</h4>
+    
+    <pre class="code">perl -d &lt;perlスクリプト&gt;</pre>
+<p>簡単ですね！</p><p></p>
+
+</div>
+<div class="section">
+    <h4>デバッガコマンドの基本</h4>
+    <p>もっと覚えるべきコマンドはたくさんありますが、<br />
+カジュアルに使う場合であればだいたいこのくらい覚えておけば十分かと思います。<a href="#fn1" title="足りない部分についてブログで補足する予定">*1</a></p><p></p>
+
+<div class="section">
+    <h5>実行系</h5>
+    
+<table>
+    <tr>
+    <td>c [行番号 or サブルーチン名]</td>
+    <td>指定された行またはサブルーチンまで処理を続ける</td>
+    </tr>
+    <tr>
+    <td>n</td>
+    <td>ステップオーバー。サブルーチンをまたがって実行</td>
+    </tr>
+    <tr>
+    <td>s</td>
+    <td>ステップイン。サブルーチンをたどって実行</td>
+    </tr>
+    <tr>
+    <td>r</td>
+    <td>ステップアウト。現在のサブルーチンを抜けるまで実行</td>
+    </tr>
+</table>
+</div>
+<div class="section">
+    <h5>出力系</h5>
+    
+<table>
+    <tr>
+    <td>p [expr]　　</td>
+    <td>指定された式の値をprintする</td>
+    </tr>
+    <tr>
+    <td>x [expr]　　</td>
+    <td>指定された式の内容をリストコンテキストで解釈し、その内容をprintする</td>
+    </tr>
+</table>
+</div>
+<div class="section">
+    <h5>ブレークポイント関連</h5>
+    
+<table>
+    <tr>
+    <td>b [行番号 or サブルーチン名]</td>
+    <td>ブレークポイントを設定</td>
+    </tr>
+    <tr>
+    <td>B [行番号]</td>
+    <td>指定された行番号のブレークポイントを削除する</td>
+    </tr>
+    <tr>
+    <td>B</td>
+    <td>すべてのブレークポイントを削除する</td>
+    </tr>
+</table>
+</div>
+<div class="section">
+    <h5>表示系</h5>
+    
+<table>
+    <tr>
+    <td>v　　　</td>
+    <td>周辺のソースコード確認。「.」を実行した後で「v」すると必ず現在行周辺のソースコードを確認できる</td>
+    </tr>
+</table>
+</div>
+<div class="section">
+    <h5>ブレークポイントの設定</h5>
+    <p>以下のソースコード内に書いておくと、その行がブレークポイントになります。</p>
+
+    <pre class="code">$DB::single = 1;</pre>
+<p>ifで条件設定したり、warnやdieなどシグナル検知して設定することも<br />
+もちろん可能です。</p><br />
+<br />
+<p>さて、ここまでの知識でデバッグがだいぶ捗ると思いますが、<br />
+もう少し便利にデバッガを使ってみたいですよね！<br />
+なのでもうちょっとだけ続くのじゃよ。</p><br />
+<p></p>
+
+</div>
+</div>
+<div class="section">
+    <h4>デバッガ用設定ファイルを使ってみる</h4>
+    <p>自分の場合ですが、デバッガに入った後必ず「{{ v」を実行します。<br />
+これを実行しておくとステップ実行しているときに毎回自動で周辺ソースコードを<br />
+表示してくれてだいぶ見やすくなります。</p><p>しかし、デバッガに入るときに毎回「{{ v」タイプするのは面倒ですよね！<br />
+そこでユーザホームディレクトリに .perldb というファイルを用意してあげると<br />
+デバッガのデフォルトの挙動を変更することができます。</p><p>たとえば上記の周辺ソースコード表示を行いたい場合は .perldb にこんなコードを書いておきます。<a href="#fn2" title="その他 .perldb の便利そうな記述については[https://gist.github.com/1455777:title=こちら]">*2</a></p>
+
+    <pre class="code lang-perl"># デバッガの初期化終了後に呼び出されるサブルーチン
+sub afterinit {
+    # @DB::typeaheadにpushしておくと、TTY出力を模倣してくれる
+    push @DB::typeahead, &#34;{{ v&#34;;
+}</pre>
+<p>または PERLDB_OPTS環境変数 を使っても似たような制御が可能です。<br />
+詳しくは後述のドキュメントをご参照下さい。</p><p></p>
+
+</div>
+<div class="section">
+    <h4>デバッガ自身をカスタマイズして自分色に染めてみる</h4>
+    <p>えーそんなの難しいよー＞＜<br />
+と思われるかもしれませんが、<br />
+実は以外と簡単にデバッガ自身のカスタマイズが行えるので紹介してみます。</p><p>まずはperl自身が使っているデバッガスクリプト「perl5db.pl」を適当なディレクトリにコピーしましょう。<a href="#fn3" title="perlbrewを使っているなら「find ~/perl5 -name 'perl5db.pl'」でファイルが見つかるでしょう">*3</a><br />
+そして、コピーしたファイルを適当にいじいじして<br />
+PERL5DB環境変数にカスタマイズスクリプトをロードする記述を入れてあげるだけです。</p>
+
+    <pre class="code">export PERL5DB=&#39;BEGIN { require &#34;myperl5db.pl&#34; }&#39;</pre>
+<p>今回はデモということで以下のようなお遊びプロンプトを作ってみました＼(^o^)／<br />
+<img src="https://github.com/perl-users-jp/perl-advent-calendar/raw/master/2011/casual/2011-12-12/image01.png" /><br />
+パッチは<a href="https://gist.github.com/1460861">&#x3053;&#x3061;&#x3089;</a>に置いておきますね。</p><p></p>
+
+</div>
+<div class="section">
+    <h4>正規表現／メモリ情報のデバッグ</h4>
+    <p>正規表現のデバッグやメモリ情報のデバッグなどもありますが、<br />
+ハックな内容になりそうなのでここでは紹介しません。<br />
+こちらも続きはドキュメントにて。</p><p></p>
+
+</div>
+<div class="section">
+    <h4>おまけ１</h4>
+    <p>perlでインタラクティブ実行したい時には<a href="http://search.cpan.org/~doy/Devel-REPL-1.003012/">Devel::REPL</a>のようなモジュールもありますが、<br />
+perl標準デバッガでも簡易的に実行できます。十分ですね。</p>
+
+    <pre class="code">perl -de 0</pre>
+
+</div>
+<div class="section">
+    <h4>おまけ２</h4>
+    <p>たとえばplack/psgiなアプリをデバッガ実行したい場合があるでしょう。<br />
+そんな時 「-S」 オプションを使うとplackupコマンドをフルパス指定する必要がなくなり、少しだけ捗りますね。<a href="#fn4" title="-Sオプション、実はさっき知りました＞＜">*4</a></p>
+
+    <pre class="code">perl -Sd plackup MyApp.psgi</pre>
+
+</div>
+<div class="section">
+    <h4>デバッグ関連ドキュメント(perldoc.jp)</h4>
+    <p>さて、いかがでしたでしょうか？意外とデバッガも奥が深いですね。<br />
+さらに貪りたい方は以下のドキュメントを参考にすると<br />
+いままで知らなかったことがたくさん発見できるかも知れませんね！<br />
+<a href="http://perldoc.jp/docs/perl/5.10.0/perldebtut.pod">http://perldoc.jp/docs/perl/5.10.0/perldebtut.pod</a><br />
+<a href="http://perldoc.jp/docs/perl/5.10.0/perldebug.pod">http://perldoc.jp/docs/perl/5.10.0/perldebug.pod</a></p><br />
+<br />
+<br />
+<p>次はissmさんです！</p>
+
+</div>HASH(0x5566cb1ff338)
+HASH(0x5566cb1e6478)
+HASH(0x5566cb1ff5a8)
+HASH(0x5566cb1ff998)
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="okamuuu">
+        <meta name="author" content="okamuuu">
+        <title>Groonga Casual Tutorial - Groongaをカジュアルに使ってみたい - Articles Advent Calendar 2011 Casual</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Groonga Casual Tutorial - Groongaをカジュアルに使ってみたい</h1>
+
+        <p>JPerl Advent Calendar 4日目を担当しますokamuraです。Advand Calendar は初参加なのでお手柔らかにお願いします。</p><p>皆さん帰宅後に俺々アプリを書いていますか？DBはSQLite派ですか？MySQL派ですか？私は最近Groongaという全文検索エンジンを使ってアプリを作っています(やや猪木口調で)。</p><p>ということで今回Groogaをカジュアルに使えるようになるためのチュートリアルを書いてみたいと思います。Groongaのインストール方法は割愛しますのでご了承下さい。</p>
+
+<div class="section">
+    <h4>ディレクトリ構成について前置き</h4>
+    <p>次のようなディレクトリ構成を想定して記事を書いて行きます。</p>
+
+    <pre class="code">groonga/
+groonga/db/
+script/</pre>
+<p>さくっと作ってしまいましょう。</p>
+
+    <pre class="code">% mkdir -p groonga/db/
+% mkdir script/</pre>
+
+</div>
+<div class="section">
+    <h4>DBschema</h4>
+    <p>今回はblogのようなデータモデルを使ったサンプルを紹介します。登場するテーブルは以下のとおりです。</p>
+
+<ul>
+<li>Keywrod</li>
+<li>Article</li>
+<li>Terms(語彙表)</li>
+</ul><p>それでは次のようなschemaファイルをカジュアルに作成してださい。</p>
+
+    <pre class="code"># groonga/schema.grn
+table_create Keyword TABLE_HASH_KEY ShortText
+column_create Keyword name COLUMN_SCALAR ShortText
+column_create Keyword display_fg COLUMN_SCALAR Bool
+
+table_create Article TABLE_HASH_KEY ShortText
+column_create Article title COLUMN_SCALAR ShortText
+column_create Article keywords COLUMN_VECTOR Keyword
+column_create Article content COLUMN_SCALAR Text
+column_create Article display_fg COLUMN_SCALAR Bool
+column_create Article published_at COLUMN_SCALAR Time
+column_create Article created_at COLUMN_SCALAR Time
+column_create Article updated_at COLUMN_SCALAR Time
+
+table_create --name Terms --flags TABLE_PAT_KEY|KEY_NORMALIZE --key_type ShortText --default_tokenizer TokenBigram
+column_create --table Terms --name article_title --flags COLUMN_INDEX|WITH_POSITION --type Article --source title
+column_create --table Terms --name article_keywords --flags COLUMN_INDEX|WITH_POSITION --type Article --source keywords
+column_create --table Terms --name keyword_name --flags COLUMN_INDEX|WITH_POSITION --type Keyword --source namecolumn_create --table Terms --name article_content --flags COLUMN_INDEX|WITH_POSITION --type Article --source content</pre>
+<p>次のコマンドを実行するとDBファイルとテーブルがカジュアルにできあがります。</p>
+
+    <pre class="code">% groonga -n groonga/db/test.db &lt; groonga/schema.grn</pre>
+
+</div>
+<div class="section">
+    <h4>初期データを作成</h4>
+    <p>つぎにサンプルとなるデータファイルを作成して下さい。</p>
+
+    <pre class="code"># groonga/data.grn
+load --table Keyword
+[
+  {
+    &#34;_key&#34;: &#34;perl&#34;,
+    &#34;name&#34;: &#34;Perl&#34;,
+    &#34;display_fg&#34;: true,
+  },  
+  {
+    &#34;_key&#34;: &#34;html5&#34;,
+    &#34;name&#34;: &#34;HTML5&#34;,
+    &#34;display_fg&#34;: false,
+  },  
+  {
+    &#34;_key&#34;: &#34;javascript&#34;,
+    &#34;name&#34;: &#34;javascript&#34;,
+    &#34;display_fg&#34;: true,
+  },
+  {
+    &#34;_key&#34;: &#34;php&#34;,
+    &#34;name&#34;: &#34;PHP&#34;,
+    &#34;display_fg&#34;: true,
+  },
+  {
+    &#34;_key&#34;: &#34;key&#34;,
+    &#34;name&#34;: &#34;hogehoge&#34;,
+    &#34;display_fg&#34;: true,
+  } 
+]
+load --table Article
+[
+   {
+    &#34;_key&#34;: &#34;key1&#34;,
+    &#34;title&#34;: &#34;perl&#34;,
+    &#34;keywords&#34;: [&#34;perl&#34;,&#34;php&#34;],
+    &#34;content&#34;: &#34;content1&#34;,
+    &#34;display_fg&#34;: true,
+  },
+  {
+    &#34;_key&#34;: &#34;key2&#34;,
+    &#34;title&#34;: &#34;title2&#34;,
+    &#34;keywords&#34;: [&#34;perl&#34;,&#34;php&#34;, &#34;javascript&#34;],
+    &#34;content&#34;: &#34;perl&#34;,
+    &#34;display_fg&#34;: true,
+  }
+]</pre>
+<p>カジュアルを装いつつ、次のコマンドでデータをloadします。</p>
+
+    <pre class="code">% groonga groonga/db/test.db &lt; groonga/data.grn </pre>
+<p>先ほどと違って-nという引数が指定されていないのは-nはdbファイルが存在していない時に使用するからです。</p>
+
+</div>
+<div class="section">
+    <h4>httpモードで起動する</h4>
+    <p>カジュアルな面持ちで次のコマンドを実行して下さい。</p>
+
+    <pre class="code">% groonga -s --default-command-version 2 --port 10041 --protocol http groonga/db/test.db</pre>
+<p>次に以下のURLをブラウジングして下さい。</p>
+
+    <pre class="code">http://localhost:10041/</pre>
+<p>Groongaは管理画面が最初から実装されています。テーブル一覧にサマリー,Article,Keyword,Termsが表示されていて、レコードを追加、編集、削除する事ができますので後で試して見て下さい。</p>
+
+</div>
+<div class="section">
+    <h4>Basicaly commands</h4>
+    <p>続いてGroongaをアプリから実行する時に使用するであろうコマンドを紹介します。このチュートリアルではselect,load,deleteを使います。とりあえず他のコマンドは覚えなくてもカジュアルに使う分には問題ない気がカジュアルにしています。</p><p>なお、Groongaはコマンドによって帰ってくるデータ構造がちょっと違いますので本家のドキュメントをご確認下さい。</p>
+
+<div class="section">
+    <h5>データをinsert</h5>
+    <p>RDBのようにcreateとupdateのコマンドが存在しますが、Groongaではloadしか存在しません。まずはloadコマンドを試してみます。script/load.plを作成してください。</p>
+
+    <pre class="code lang-perl">#!/usr/bin/env perl
+use strict;
+use warnings;
+use URI;
+use LWP::UserAgent;
+use JSON (); 
+
+my $port = $ENV{GROONGA_PORT} || 10041; 
+
+my $uri = URI-&gt;new(&#34;http://localhost:$port/d/load&#34;); 
+$uri-&gt;query_form(
+    table  =&gt; &#39;Article&#39;,
+    values =&gt; JSON::encode_json(
+        [   
+            {   
+                &#34;keywords&#34; =&gt; [ &#34;perl&#34;, &#34;javascript&#34;, &#34;php&#34; ],
+                &#34;_key&#34;     =&gt; &#34;new_record&#34;,
+                &#34;content&#34;  =&gt; &#34;this is new record.&#34;,
+                &#34;display_fg&#34; =&gt; &#34;0&#34;,
+                &#34;title&#34; =&gt; &#34;new record&#34;,
+            }   
+        ]
+    )
+);
+
+my $ua = LWP::UserAgent-&gt;new();
+my $res = $ua-&gt;get($uri);
+print $res-&gt;content if $res-&gt;is_success;</pre>
+<p>実行結果がjsonで返ってきました。[[リターンコード, 処理開始時間, 処理時間], 登録件数]となっています。</p>
+
+    <pre class="code">% perl script/load.pl
+[[0,1322889076.15943,0.056639],1]</pre>
+
+</div>
+<div class="section">
+    <h5>ifexistsオプション</h5>
+    <p>さて、Groongaではcreateもupdateも区別せずにloadのみとなっていますが、もし既存のレコードが存在しているとは知らずにloadすると上書きしてしまう事になります。それをさける為にはifexistsオプションを使います。</p><p>先ほどのscript/load.plをコピーします。</p>
+
+    <pre class="code">% cp script/load.pl script/create.pl</pre>
+<p>次のようにscript/load.plに1行を追加してください。</p>
+
+    <pre class="code">% diff -c script/load.pl script/create.pl  
+*** script/load.pl      2011-12-03 13:28:30.000000000 +0900
+--- script/create.pl    2011-12-03 14:00:21.000000000 +0900
+***************
+*** 10,15 ****
+--- 10,16 ----
+  my $uri = URI-&gt;new(&#34;http://localhost:$port/d/load&#34;); 
+  $uri-&gt;query_form(
+      table  =&gt; &#39;Article&#39;,
++     ifexists =&gt; 0,
+      values =&gt; JSON::encode_json(
+          [   
+              {  </pre>
+<p>実行します。ここで登録件数が0である事から既にレコードが存在していたため、登録をしないで処理を終えています。ひとまず上書き問題は回避できたのでカジュアル度が増したと思います。</p>
+
+    <pre class="code">% perl script/create.pl
+[[0,1322889691.12119,0.000299],0]</pre>
+
+</div>
+<div class="section">
+    <h5>単純なselect</h5>
+    <p>とりあえずKeywordテーブルのデータを全部欲しい場合は次のようにします。次のようなscript/select.plを作成します。</p>
+
+    <pre class="code lang-perl">#!/usr/bin/env perl
+use strict;
+use warnings;
+use URI;
+use LWP::UserAgent;
+
+my $port = $ENV{GROONGA_PORT} || 10041;
+
+my $uri = URI-&gt;new(&#34;http://localhost:$port/d/select&#34;); 
+$uri-&gt;query_form( table =&gt; &#39;Keyword&#39; );
+
+my $ua = LWP::UserAgent-&gt;new();
+my $res = $ua-&gt;get($uri);
+
+print $res-&gt;content if $res-&gt;is_success;</pre>
+<p>結果は次のようになります。</p>
+
+    <pre class="code">% perl script/select.pl
+[[0,1322889965.12739,0.005888],[[[5],[[&#34;_id&#34;,&#34;UInt32&#34;],[&#34;_key&#34;,&#34;ShortText&#34;],[&#34;name&#34;,&#34;ShortText&#34;],[&#34;display_fg&#34;,&#34;Bool&#34;]],[1,&#34;perl&#34;,&#34;Perl&#34;,true],[2,&#34;html5&#34;,&#34;HTML5&#34;,false],[3,&#34;javascript&#34;,&#34;javascript&#34;,true],[4,&#34;php&#34;,&#34;PHP&#34;,true],[5,&#34;hoge&#34;,&#34;hogehoge&#34;,true]]]]</pre>
+
+</div>
+<div class="section">
+    <h5>検索条件を指定してselect</h5>
+    <p>主キーである_keyをつかって1レコード取得したい場合は次のようにします。script/select2.plとしてファイルを作成して下さい。</p>
+
+    <pre class="code lang-perl">#!/usr/bin/env perl
+use strict;
+use warnings;
+use URI;
+use LWP::UserAgent;
+
+my $port = $ENV{GROONGA_PORT} || 10041;
+
+my $uri = URI-&gt;new(&#34;http://localhost:$port/d/select&#34;); 
+$uri-&gt;query_form( table =&gt; &#39;Keyword&#39;,  query =&gt; &#34;_key:perl&#34; );
+
+my $ua = LWP::UserAgent-&gt;new();
+my $res = $ua-&gt;get($uri);
+
+print $res-&gt;content if $res-&gt;is_success;</pre>
+<p>実行します。</p>
+
+    <pre class="code">:!perl script/select2.pl
+[[0,1322889965.14106,0.000735],[[[1],[[&#34;_id&#34;,&#34;UInt32&#34;],[&#34;_key&#34;,&#34;ShortText&#34;],[&#34;name&#34;,&#34;ShortText&#34;],[&#34;display_fg&#34;,&#34;Bool&#34;]],[1,&#34;perl&#34;,&#34;Perl&#34;,true]]]]</pre>
+
+</div>
+<div class="section">
+    <h5>検索語句を指定してselect</h5>
+    <p>script/select3.plとしてファイルを作成して下さい。</p>
+
+    <pre class="code lang-perl">#!/usr/bin/env perl
+use strict;
+use warnings;
+use URI;
+use LWP::UserAgent;
+
+my $port = $ENV{GROONGA_PORT} || 10041;
+
+my $uri = URI-&gt;new(&#34;http://localhost:$port/d/select&#34;); 
+$uri-&gt;query_form(
+    table         =&gt; &#39;Article&#39;,
+    match_columns =&gt; &#39;title,content&#39;,
+    query          =&gt; &#39;perl&#39;,
+    query_cache    =&gt; &#39;no&#39;,
+); 
+
+my $ua = LWP::UserAgent-&gt;new();
+my $res = $ua-&gt;get($uri);
+
+print $res-&gt;content if $res-&gt;is_success;</pre>
+<p>実行結果を確認します。</p>
+
+    <pre class="code">% perl script/select3.pl
+[[0,1322889965.15333,0.005095],[[[2],[[&#34;_id&#34;,&#34;UInt32&#34;],[&#34;_key&#34;,&#34;ShortText&#34;],[&#34;updated_at&#34;,&#34;Time&#34;],[&#34;title&#34;,&#34;ShortText&#34;],[&#34;published_at&#34;,&#34;Time&#34;],[&#34;keywords&#34;,&#34;Keyword&#34;],[&#34;display_fg&#34;,&#34;Bool&#34;],[&#34;created_at&#34;,&#34;Time&#34;],[&#34;content&#34;,&#34;Text&#34;]],[1,&#34;key1&#34;,0.0,&#34;perl&#34;,0.0,[&#34;perl&#34;,&#34;php&#34;],true,0.0,&#34;content1&#34;],[2,&#34;key2&#34;,0.0,&#34;title2&#34;,0.0,[&#34;perl&#34;,&#34;php&#34;,&#34;javascript&#34;],true,0.0,&#34;perl&#34;]]]]</pre>
+<p>検索語句の指定はTermテーブルを正しく作成していないと動作しませんのでカジュアルといえども抜かりなく作成しておく必要があります。</p>
+
+</div>
+<div class="section">
+    <h5>関連テーブルのカラムを指定してselect</h5>
+    <p>Article.keywords.nameを検索語句として検索したい場合。script/select4.plとしてファイルを作成して下さい。</p>
+
+    <pre class="code lang-perl">#!/usr/bin/env perl
+use strict;
+use warnings;
+use URI;
+use LWP::UserAgent;
+my $port = $ENV{GROONGA_PORT} || 10041;
+
+my $uri = URI-&gt;new(&#34;http://localhost:$port/d/select&#34;); 
+$uri-&gt;query_form(
+    table         =&gt; &#39;Article&#39;,
+    query          =&gt; &#39;keywords.name:hogehoge&#39;,
+    query_cache    =&gt; &#39;no&#39;,
+); 
+
+my $ua = LWP::UserAgent-&gt;new();
+my $res = $ua-&gt;get($uri);
+
+print $res-&gt;content if $res-&gt;is_success;</pre>
+<p>実行結果を確認します。</p>
+
+    <pre class="code">:!perl script/select4.pl
+[[0,1322889965.16729,0.003763],[[[1],[[&#34;_id&#34;,&#34;UInt32&#34;],[&#34;_key&#34;,&#34;ShortText&#34;],[&#34;updated_at&#34;,&#34;Time&#34;],[&#34;title&#34;,&#34;ShortText&#34;],[&#34;published_at&#34;,&#34;Time&#34;],[&#34;keywords&#34;,&#34;Keyword&#34;],[&#34;display_fg&#34;,&#34;Bool&#34;],[&#34;created_at&#34;,&#34;Time&#34;],[&#34;content&#34;,&#34;Text&#34;]],[3,&#34;key3&#34;,0.0,&#34;title2&#34;,0.0,[&#34;hoge&#34;],true,0.0,&#34;fuga fuga fuga&#34;]]]]</pre>
+
+</div>
+<div class="section">
+    <h5>delete</h5>
+    <p>Groongaでは1件ずつdeleteを行います。いまのところは複数同時に削除する事はできないようです。<br />
+deleteコマンドの説明はカジュアルに割愛させて頂きます。</p>
+
+</div>
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>このチュートリアルでは以下のことを学べていると思います。</p>
+
+<ul>
+<li>GroongaのDBファイルを作成</li>
+<li>Groonga Server を起動する</li>
+<li>主キーによるレコードのルックアップ</li>
+<li>検索条件指定によるレコードの検索</li>
+<li>レコードの更新</li>
+<li>レコードの削除(紹介していないけど)</li>
+</ul><p>とりあえず以上を覚えておけばカジュアルにgroogaを使えると思います。なお、今回紹介したコードはこちらでカジュアルに晒しているので参考にしてください。</p><p><a href="https://github.com/okamuuu/Casual-Groonga">https://github.com/okamuuu/Casual-Groonga</a></p><p>明日はnihenさんです。お楽しみに。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

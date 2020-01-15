@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>Pseudo closures in XS - Articles Advent Calendar 2010 English</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Pseudo closures in XS</h1>
+
+        <p>This article describes <strong>pseudo closures in XS</strong>, a.k.a. XS code templates, which creates XSUBs dynamically without compilation. Because XSUBs are typically much faster than pure Perl subroutines, creating XSUBs without compilation will be useful for high performance applications.</p><p></p>
+
+<div class="section">
+    <h3>Closure</h3>
+    <p>What are <em>closures</em>? A closure is a subroutine that consists of <em>binding (or external) data</em> and <em>code</em>, which allows us to create subroutines dynamically without compilation, used especially in class builders. The following example is a simplest closure that create a counter, which consists of <em>$i</em> and the increment operator (++):</p>
+
+    <pre class="code lang-perl">my $i       = 42;           # binding data
+my $closure = sub { $i++ }; # data + code</pre>
+<p>Although this is a technique to make subroutines dynamically, the dynamic part is only the binding <em>data</em>, while the code part is statically defined. Thus, this technique can be applied to XSUBs.</p><p>An XSUB is a Perl subroutine which has a C function, and a subroutine is a type of SV. In Perl internal world, any SVs are able to have struct MAGIC, which can have other SVs. That is, we can bind SVs to XSUBs. However, Perl API doesn't support closures directly, so I call this technique <strong>pseudo closures</strong>.</p>
+
+</div>
+<div class="section">
+    <h3>Implementation</h3>
+    <p>The actual implementation explained here is taken from Mouse, which is a Moose<br />
+compatible class builder with an XS implementation. The accessors Mouse provides are implemented in XS with this pseudo closure technique. Its basic idea is the same as Perl's: defining XSUBs statically, then binding Perl data to these XSUBs in run-time.</p><p>Take the rw accessor from <a href="http://git.shadowcat.co.uk/gitweb/gitweb.cgi?p=gitmo/Mouse.git;a=blob_plain;f=xs-src/MouseAccessor.xs;hb=master">Mouse/xs-src/MouseAccessors.xs</a> for example:</p>
+
+    <pre class="code lang-xs">/* snip */
+#define dMOUSE_self  SV* const self = \
+        mouse_accessor_get_self(aTHX_ ax, items, cv)
+/* snip */
+XS(XS_Mouse_accessor)
+{
+    /* setup XSUB args */
+    dVAR; dXSARGS;
+    dMOUSE_self; /* my $self = shift @_ */
+    MAGIC* const mg = (MAGIC*)XSANY.any_ptr; /* fetch the bound data */
+
+    SP -= items; /* PPCODE */
+    PUTBACK;
+
+    if(items == 1){ /* reader */
+        mouse_attr_get(aTHX_ self, mg);
+    }
+    else if (items == 2){ /* writer */
+        mouse_attr_set(aTHX_ self, mg, ST(1));
+    }
+    else{
+        mouse_throw_error(MOUSE_mg_attribute(mg), NULL,
+            &#34;Expected exactly one or two argument for an accessor of %&#34;SVf,
+            MOUSE_mg_slot(mg));
+    }
+}</pre>
+<p>This is the prototype of all the rw accessor (and of course, other accessors are defined in the file). The data part is attached as a MAGIC, but available from <em>XSANY.any_ptr</em> for convenience.</p><p>The following function is an XSUB generator which creates an XSUB and bind data to the XSUB:</p>
+
+    <pre class="code lang-xs">CV*
+mouse_accessor_generate(pTHX_ SV* const attr, XSUBADDR_t const accessor_impl){
+    AV* const xa = mouse_get_xa(aTHX_ attr);
+    CV* xsub;
+    MAGIC* mg;
+
+    xsub = newXS(NULL, accessor_impl, __FILE__);
+    sv_2mortal((SV*)xsub);
+
+    mg = sv_magicext((SV*)xsub, MOUSE_xa_slot(xa),
+        PERL_MAGIC_ext, &amp;mouse_accessor_vtbl, (char*)xa, HEf_SVKEY);
+
+    MOUSE_mg_flags(mg) = (U16)MOUSE_xa_flags(xa);
+
+    /* NOTE:
+     * although we use MAGIC for gc, we also store mg to
+     * CvXSUBANY for efficiency (gfx)
+     */
+    CvXSUBANY(xsub).any_ptr = (void*)mg;
+
+    return xsub;
+}</pre>
+<p><em>XS_Mouse_accessor</em> is passed to this function as an <em>accessor_impl</em> parameter. The <em>attr</em> parameter is an instance of Mouse::Meta::Attribute. The bound data are managed by the Perl interpreter, they are released in the same way as Perl's closures.</p><p>This technique might not be easy for everyone, but its power is fascinating. Enjoy metaprogramming in XS!</p>
+
+</div>
+<div class="section">
+    <h3>See Also</h3>
+    <p>This technique is already used in some CPAN modules, e.g. <a href="http://search.cpan.org/dist/Mouse">Mouse</a>.</p><p><a href="http://search.cpan.org/dist/Mouse/">http://search.cpan.org/dist/Mouse/</a><br />
+<a href="http://search.cpan.org/dist/Class-XSAccessor/">http://search.cpan.org/dist/Class-XSAccessor/</a></p>
+
+</div>
+<div class="section">
+    <h3>Author</h3>
+    <p>Fuji, Goro (gfx) - <a href="http://github.com/gfx/">http://github.com/gfx/</a></p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

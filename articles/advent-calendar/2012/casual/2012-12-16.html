@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="techno-cat">
+        <meta name="author" content="techno-cat">
+        <title>Scalar::Util::blessedでblessされちゃった判定するよ！ - Articles Advent Calendar 2012 Casual</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Scalar::Util::blessedでblessされちゃった判定するよ！</h1>
+
+        <p>カジュアルと言えば、Hokkaido.pm Casual#8が開催されたばっかりなので、どんな感じのことをやってるか少しだけ紹介しますね！</p>
+
+<div class="section">
+    <h4>bless</h4>
+    <p>#8で扱ったのは「モジュール定義入門」ということで、Perlでクラス定義とかオブジェクトの生成とかどうやるの？って内容で開催しました。</p>
+
+    <pre class="code lang-perl">package Foo;
+use strict;
+use warnings;
+
+sub new {
+    my $class = shift;
+    return bless {}, $class;
+}
+
+package Bar;
+use strict;
+use warnings;
+
+sub new {
+    my $class = shift;
+    return bless {}, &#39;NotBar&#39;;
+}
+
+package main;
+use strict;
+use warnings;
+use feature &#39;say&#39;;
+
+my $foo = Foo-&gt;new();
+say ref $foo;   # Foo
+
+my $bar = Bar-&gt;new();
+say ref $bar;   # NotBar
+
+my $hoge = bless {};
+say ref $hoge;  # main</pre>
+<p>こんな感じの結果が得られる訳ですが、newの第1引数にパッケージ名が入っているので、blessの第2引数に使うのが良く見られると思います。でも、第2引数に任意の文字列を与えたり、省略することも出来て、省略した場合は現在のパッケージ名が入るようです。</p>
+
+</div>
+<div class="section">
+    <h4>オブジェクトは単なるリファレンス</h4>
+    <p><a href="http://perldoc.jp/docs/perl/5.14.1/perlobj.pod">Perl &#x306E;&#x30AA;&#x30D6;&#x30B8;&#x30A7;&#x30AF;&#x30C8;</a>からタイトルを拝借した訳ですが、blessの第1引数にはリファレンスを渡します。なので、オブジェクトに他の言語でいうメンバ変数を持たせたい場合は、以下のように書きます。</p>
+
+    <pre class="code lang-perl">package Foo;
+use strict;
+use warnings;
+
+sub new {
+    my $class = shift;
+    return bless { a =&gt; 5 }, $class;
+}
+
+package main;
+use strict;
+use warnings;
+use feature &#39;say&#39;;
+
+my $foo = Foo-&gt;new();
+say $foo-&gt;{a}; # 5</pre>
+<p>ちなみにメソッドを定義して呼び出す手順はこんな感じ。</p>
+
+    <pre class="code lang-perl">package Bar;
+use strict;
+use warnings;
+
+sub new {
+    my $class = shift;
+    return bless {}, $class;
+}
+
+sub hoge {
+    return &#39;hello.&#39;;
+}
+
+package main;
+use strict;
+use warnings;
+use feature &#39;say&#39;;
+
+my $bar = Bar-&gt;new();
+say $bar-&gt;hoge(); # hello.</pre>
+
+</div>
+<div class="section">
+    <h4>メソッドからメンバ変数を参照する</h4>
+    <p>newを呼び出したときの引数をメンバ変数として確保して、それをメソッドから参照するにはこんな感じ。</p>
+
+    <pre class="code lang-perl">package Foo;
+use strict;
+use warnings;
+
+sub new {
+    my $class = shift;
+    return bless { a =&gt; shift }, $class;
+}
+
+sub hoge {
+    my $self = shift;
+    return $self-&gt;{a};
+}
+
+package main;
+use strict;
+use warnings;
+use feature &#39;say&#39;;
+
+my $foo = Foo-&gt;new( &#39;hello.&#39; );
+say $foo-&gt;hoge(); # hello.</pre>
+<p> ->演算子（アロー演算子）で呼び出すと第1引数にはオブジェクトが入っているので、そのオブジェクトを使ってメンバ変数を参照してるのがポイントです。</p>
+
+</div>
+<div class="section">
+    <h4>refを使って正体を確かめる</h4>
+    <p>組み込み関数のrefを使うとこんなことが出来ます。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+use feature &#39;say&#39;;
+
+my $array_ref = [ 0, 1, 2 ];
+my $hash_ref = { a =&gt; 1, b =&gt; 2 };
+my $obj = bless {}, &#39;MyClass&#39;;
+
+say ref $array_ref; # ARRAY
+say ref $hash_ref;  # HASH
+say ref $obj;       # MyClass</pre>
+<p>ちなみに、リファレンスじゃないもの（数字, 文字列, 配列, ハッシュとか）を渡すと空文字列が返ってきます。（<a href="http://perldoc.jp/func/ref">http://perldoc.jp/func/ref</a>参照）</p>
+
+</div>
+<div class="section">
+    <h4>blessされたものとそうじゃないものを区別するには？</h4>
+    <p>Scalar::Utilの出番ですね！</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+use feature &#39;say&#39;;
+
+use Scalar::Util &#39;blessed&#39;;
+
+my $array_ref = [ 0, 1, 2 ];
+my $hash_ref = { a =&gt; 1, b =&gt; 2 };
+my $obj = bless {}, &#39;MyClass&#39;;
+
+say blessed($array_ref) ? blessed($array_ref) : &#39;undef&#39;; # undef
+say blessed($hash_ref)  ? blessed($hash_ref)  : &#39;undef&#39;; # undef
+say blessed($obj)       ? blessed($obj)       : &#39;undef&#39;; # MyClass</pre>
+<p>blessされたものじゃない場合はundefが返ってくるので、undefをそのままsayするわけにはいかず、undefの場合は'undef'という文字列を出力しています。これでblessされたものか判別できますね！</p>
+
+</div>
+<div class="section">
+    <h4>おまけ</h4>
+    
+<div class="section">
+    <h5>blessできるのはハッシュリファレンスだけじゃない</h5>
+    <p>blessの第1引数にはリファレンスを渡すことになっていますが、もちろんハッシュリファレンス以外も渡せます。（Thanks! akiymさん）</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+use feature &#39;say&#39;;
+
+my $foo = bless [ 100, 101, 102 ], &#39;Foo&#39;;
+say $foo-&gt;[0];  # 100
+say $foo-&gt;[1];  # 101
+say $foo-&gt;[2];  # 102
+
+my $str = &#39;hello.&#39;;
+my $bar = bless \$str, &#39;Bar&#39;;
+say ${$bar};    # hello.</pre>
+
+</div>
+<div class="section">
+    <h5>corelistコマンド</h5>
+    <p>Scalar::Utilってコアモジュールなの？っていうときに便利なのが、corelistコマンド。Module::CoreListを入れると使えるそうです。（Thanks! aloelightさん）</p>
+
+    <pre class="code lang-shell">$ corelist Scalar::Util
+
+Scalar::Util was first released with perl v5.7.3
+$ corelist Module::CoreList
+
+Module::CoreList was first released with perl v5.8.9</pre>
+<p>という訳で、すでにv5.8.9からcorelistコマンドが使えるようですね！</p>
+
+</div>
+</div>
+<div class="section">
+    <h4>最後に</h4>
+    <p>毎月第3水曜日に、こんな感じの内容をみんなでわいわいやっております。もし興味があれば、ぜひ遊びに来てください！</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

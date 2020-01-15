@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>myのリファレンス</title>
+    <link rel="stylesheet" href="http://perl-users.jp/articles/advent-calendar/adventcal.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+    <script type="text/javascript" src="http://perl-users.jp/articles/advent-calendar/adventcal.js"></script>
+</head>
+<body>
+<h1>myのリファレンス</h1>
+<pre><code>$ cat cool.pl
+use strict;
+use warnings;
+sub lopnor {
+    my $val = shift;
+    $$val = 'soffritto';
+}
+
+lopnor(\my $danjou);
+print "he is $danjou\n";
+
+$ perl cool.pl
+he is soffritto</code></pre>
+<p>「<code>\my $vars</code>」と書く事により変数の定義をしつつ戻り値で、その定義した変数のリファレンスを返す。</p>
+<p>よって、関数の引数に「<code>\my $xxx</code>」と書くとコンパクトに書ける。</p>
+<p>が、これは<abbr title="Template Toolkit">TT</abbr>くらいでしか使ってるの見た事無い。</p>
+<p>つぎのバトンはid:lestrratさん。</p>
+</body>
+</html>

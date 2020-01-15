@@ -1,0 +1,22 @@
+h1 {
+    line-height: 26px;
+    text-decoration: underline;
+}
+h2 {
+    line-height: 26px;
+    text-decoration: underline;
+}
+
+div.section {
+    padding: 20px;
+    font-family: Meiryo;
+    border: 1px dotted gray;
+}
+
+pre {
+    padding-left: 2px;
+    border-width: 1px 1px 3px 3px;
+    border-style: solid;
+    border-color: #555555;
+    font-family: monospace;
+}

@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>キャッシュしよう</title>
+    <link rel="stylesheet" href="http://perl-users.jp/articles/advent-calendar/adventcal.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+    <script type="text/javascript" src="http://perl-users.jp/articles/advent-calendar/adventcal.js"></script>
+
+</head>
+<body>
+<h1>キャッシュしよう</h1>
+<p>京都観光で散財しすぎて貯金がないmalaです。こんにちは。キャッシュの話を書きます。</p>
+
+<h2>色んなキャッシュがあります</h2>
+<ul>
+<li>データベースから引く前にmemcachedから取得したり</li>
+<li>テンプレートエンジンのレンダリング結果をキャッシュしたり</li>
+<li>各種ウェブサービスのリクエスト結果をキャッシュしたり</li>
+<li>その他諸々CPUを食ったり時間のかかる処理をキャッシュしたり</li>
+</ul>
+<p>簡単に思いつくのはこの程度ですが、スケーラブルなウェブサイトを構築するには常識的に考えてそんなのキャッシュしねーだろうというようなものをキャッシュする必要があります。</p>
+
+<h2>DateTimeをキャッシュしよう</h2>
+<p>同じ時刻に対するDateTimeオブジェクトをキャッシュします。</p>
+<pre class="lang-perl"><code>package MyDateTime;
+use strict;
+use base qw(DateTime);
+
+my %CACHE;
+
+sub now {
+    my $class = shift;
+    $class-&gt;from_epoch(epoch =&gt; (scalar time), @_);
+}
+
+sub from_epoch {
+    my ($class, %args) = @_;
+    my $key = "from_epoch::".$args{epoch};
+    my $obj = $CACHE{$key};
+    return $obj-&gt;clone if (defined $obj);
+
+    my $self = $class-&gt;SUPER::from_epoch(%args);
+    $CACHE{$key} = $self;
+    return $self;
+}
+
+1;</code></pre>
+
+<p>手元のMacBook(Core Duo 2GHz/Perl 5.8.8)でベンチマークを取ってみた結果はこちら</p>
+<pre class="lang-html"><code>            (warning: too few iterations for a reliable count)
+              Rate        now now_cached
+now         3086/s         --       -95%
+now_cached 66667/s      2060%         --
+</code></pre>
+
+<p>現在時刻を生成しまくるという極端なケースですが、20倍ぐらい高速化することができます。
+オリジナルの<code>DateTime-&gt;now</code>を呼び出すと、DateTimeオブジェクトを一回生成するあたり、0.3msぐらいかかっているということがわかります。
+たかが0.3msですが、Feedを解析したりしていると10000件ぐらいのDateTimeオブジェクトを作ったりすることも良くありますから、合計で3秒かかったりして、結構無視できなかったりします。</p>
+
+<p>ちなみにこのコードはtimezone等、他の引数を全く考慮しておらず、かなりいい加減な代物ですから、注意してください。
+cloneしているのはDateTimeオブジェクトを破壊的に使う可能性があるからです。</p>
+
+<h2>Method::Cachedを使って手軽に高速化</h2>
+<p>こういったコードをいちいち書くのが面倒くさいのでbonnnuさんの<a href="http://coderepos.org/share/browser/lang/perl/Method-Cached/trunk">Method::Cached</a>を試してみました。memoizeとかmemoiseとか呼ばれる奴ですね。</p>
+
+<p>attributeを使ってキャッシュの有効期限と、引数のシリアライズルールを記述してやると、そのメソッドの結果がキャッシュされるようになります。</p>
+
+<p>サンプルコード。</p>
+<pre class="lang-perl"><code>package MyDateTime2;
+use strict;
+use base qw(DateTime);
+use Method::Cached;
+
+Method::Cached-&gt;set_domain(
+    datetime =&gt; {
+        storage_class =&gt; 'Cache::FastMmap'
+    }
+);
+
+sub now {
+    my $class = shift;
+    $class-&gt;from_epoch(epoch =&gt; (scalar time), @_);
+}
+
+sub from_epoch :Cached("datetime", 60, [SELF_SHIFT, HASH]){
+    my ($class, %args) = @_;
+    warn "called";
+    $class-&gt;SUPER::from_epoch(%args);
+}
+
+1;</code></pre>
+
+<p>benchmark.pl</p>
+<pre class="lang-perl"><code>#!/usr/bin/perl
+
+use strict;
+use DateTime;
+use MyDateTime;
+use MyDateTime2;
+use Data::Dumper;
+use Benchmark qw(cmpthese);
+
+use Cache::FastMmap;
+my $a = MyDateTime2-&gt;now;
+
+my $cache = Cache::FastMmap-&gt;new;
+$cache-&gt;set(datetime =&gt; $a);
+$cache-&gt;set(simple   =&gt; 1);
+
+cmpthese (10000, {
+    now =&gt; sub {DateTime-&gt;now},
+    now_cached =&gt; sub {MyDateTime-&gt;now},
+    now_cached2 =&gt; sub {MyDateTime2-&gt;now},
+    fastmmap =&gt; sub {$cache-&gt;get("datetime")},
+    fastmmap_simple =&gt; sub {$cache-&gt;get("simple")},
+});
+</code></pre>
+
+<p>結果はこちら。</p>
+<pre class="lang-html"><code>called at MyDateTime2.pm line 19.
+            (warning: too few iterations for a reliable count)
+            (warning: too few iterations for a reliable count)
+called at MyDateTime2.pm line 19.
+called at MyDateTime2.pm line 19.
+called at MyDateTime2.pm line 19.
+called at MyDateTime2.pm line 19.
+called at MyDateTime2.pm line 19.
+called at MyDateTime2.pm line 19.
+called at MyDateTime2.pm line 19.
+called at MyDateTime2.pm line 19.
+                   Rate now_cached2 fastmmap      now fastmmap_simple now_cached
+now_cached2      1553/s          --      -8%     -49%            -96%       -98%
+fastmmap         1686/s          9%       --     -45%            -95%       -97%
+now              3040/s         96%      80%       --            -92%       -95%
+fastmmap_simple 37037/s       2285%    2096%    1119%              --       -44%
+now_cached      66667/s       4193%    3853%    2093%             80%         --
+</code></pre>
+<p>残念ながらオリジナルのDateTimeよりも遅くなってしまいました。約半分の速度に落ちました。</p>
+<p>結果的に遅くなってますが10000回呼び出されているのに、オリジナルの<code>from_epoch</code>メソッドが呼び出されたのは8回ですので、同じ秒数である限り<code>from_epoch</code>がキャッシュを使っているのがわかります</p>
+<p>Cache::FastMmapからDateTimeオブジェクトを引くだけの処理で1686/sなので、キャッシュを引く処理が遅いということになります。Cache::FastMmapにシリアライズが不要なシンプルなデータをキャッシュした場合は37000/sが出ていますので、storableの速度が遅いのだと予想が付きます。元々速い処理をさらに高速化したいような場合だと、Storableの速度や関数の呼び出し速度が影響して、Cache::*系のモジュールを使っても高速化できないケースがあります。</p>
+
+<h2>クロージャとキャッシュ</h2>
+<p>あまり関係ないですが、キャッシュ関係のコードを書いていると「失敗したら代わりに何かする」系の処理に良く遭遇します。こういった処理はクロージャを使うと記述が楽になったりすることが多いです。</p>
+
+<p>今までこのように書いていたのを</p>
+<pre class="lang-perl"><code>sub hoge {
+    my $cache = MyCacheClass-&gt;new;
+    my $cache_key = "hoge";
+    if (defined (my $data = $cache-&gt;get($cache_key)){
+        # HIT CACHE
+        return $data;
+    }
+    my $result = Something-&gt;heavy();
+    $cache-&gt;set($cache_key =&gt; $result, 60 * 60 * 3); # 3hours
+    return $result;
+}
+</code></pre>
+<p>こんな風に書くのがマイブームです。</p>
+<pre class="lang-perl"><code>sub hoge {
+    my $cache = MyCacheClass-&gt;new;
+    my $cache_key = "hoge";
+    $cache-&gt;get_or_set($cache_key, sub {
+        Something-&gt;heavy();
+    }, 60 * 60 * 3);
+}</code></pre>
+
+<h2>関連してそうなCPANモジュール</h2>
+<ul>
+<li><a href="http://search.cpan.org/dist/Memoize/">http://search.cpan.org/dist/Memoize/</a></li>
+<li><a href="http://search.cpan.org/dist/Method-Cached/">http://search.cpan.org/dist/Method-Cached/</a></li>
+<li><a href="http://search.cpan.org/dist/Attribute-Cached/">http://search.cpan.org/dist/Attribute-Cached/</a></li>
+<li><a href="http://search.cpan.org/~dankogai/Attribute-Util-1.03/">http://search.cpan.org/~dankogai/Attribute-Util-1.03/</a></li>
+</ul>
+
+<p>次は<a href="http://d.hatena.ne.jp/youpy/">youpy</a>(ブラクラ注意)さんに回したいと思います。</p>
+
+<p><a href="./">Back</a></p>
+
+</body>
+</html>

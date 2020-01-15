@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="neko_gata_s(shinpei)">
+        <meta name="author" content="neko_gata_s(shinpei)">
+        <title>配列操作をカジュアルに - Articles Advent Calendar 2011 Casual</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>配列操作をカジュアルに</h1>
+
+        <p>こんにちは。新潟在住Perl人、neko_gata_sです。AdventCalendarの敷居を下げにきました。ものっそいカジュアルな話をします。今日はList::Utilについて書こうと思います。</p>
+
+<div class="section">
+    <h3>どちらが良いコード？</h3>
+    <p>さて、いきなりですが、以下のふたつのコードを比べてみてください。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+
+my @shugo_charas = qw/ran miki suu dia/;
+
+my @shugo_charas_uc;
+foreach my $shugo_chara (@shugo_charas) {
+    push @shugo_charas_uc, uc $shugo_chara;
+}</pre>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+
+my @shugo_charas = qw/ran miki suu dia/;
+
+my @shugo_charas_uc = map { uc $_ } @shugo_charas;</pre>
+<p>どちらのコードも、@shugo_charasに入った各要素を大文字に変換しているコードですが、どちらが「良いコード」でしょう？　私は、下のmapを使ったコードのほうが良いコードだと考えます。なぜなら、後者のほうが「配列を変換したい」という"意図"が汲み取りやすいからです。前者はforeachの中身を精査しなければ「古い配列を変換して新しい配列を作っている」という意図が汲み取れませんが、mapが使ってあればコードを読んだ瞬間に、「あ、配列を変換してるんだな」と気づくことができます。</p><p>なにが言いたいかというと、適切な配列操作関数を使うことで、自分が楽をできるだけではなく、コードの意図を読み手に伝えることもできるので捗りますねということが言いたいのです。</p><p>perlでよく使われる配列操作の関数はmapの他にgrepがあり、これは配列の中から条件に一致するような要素だけを抜き出すのに使います。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+
+my @gardians = (
+    {name =&gt; &#39;Amu&#39;,       chair =&gt; &#39;Joker&#39;},
+    {name =&gt; &#39;Tadase&#39;,    chair =&gt; &#39;King&#39; },
+    {name =&gt; &#39;Nadeshiko&#39;, chair =&gt; &#39;Queen&#39;},
+    {name =&gt; &#39;Kuukai&#39;,    chair =&gt; &#39;Jack&#39; },
+    {name =&gt; &#39;Yaya&#39;,      chair =&gt; &#39;Ace&#39;  },
+    {name =&gt; &#39;Rima&#39;,      chair =&gt; &#39;Queen&#39;},
+    {name =&gt; &#39;Kairi&#39;,     chair =&gt; &#39;Jack&#39; },
+    {name =&gt; &#39;Nagihiko&#39;,  chair =&gt; &#39;Jack&#39; },
+);
+
+my @jacks_chairs = grep { $_-&gt;{chair} eq &#39;Jack&#39; } @gardians;</pre>
+
+</div>
+<div class="section">
+    <h3>map, grepを超えて</h3>
+    <p>List::Utilを使うと、map,grepの他にも、いろんなことができます。それぞれ見ていきましょう。</p>
+
+<div class="section">
+    <h4>first</h4>
+    <p>条件に一致した最初の要素を取り出します。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+use List::Util qw/first/;
+
+my @gardians = (
+    {name =&gt; &#39;Amu&#39;,       chair =&gt; &#39;Joker&#39;},
+    {name =&gt; &#39;Tadase&#39;,    chair =&gt; &#39;King&#39; },
+    {name =&gt; &#39;Nadeshiko&#39;, chair =&gt; &#39;Queen&#39;},
+    {name =&gt; &#39;Kuukai&#39;,    chair =&gt; &#39;Jack&#39; },
+    {name =&gt; &#39;Yaya&#39;,      chair =&gt; &#39;Ace&#39;  },
+    {name =&gt; &#39;Rima&#39;,      chair =&gt; &#39;Queen&#39;},
+    {name =&gt; &#39;Kairi&#39;,     chair =&gt; &#39;Jack&#39; },
+    {name =&gt; &#39;Nagihiko&#39;,  chair =&gt; &#39;Jack&#39; },
+);
+
+my $first_jacks_chair = first { $_-&gt;{chair} eq &#39;Jack&#39; } @gardians;
+warn $first_jacks_chair-&gt;{name}; #Kuukai</pre>
+
+</div>
+<div class="section">
+    <h4>max</h4>
+    <p>配列の中で、数値コンテクストで最もおおきな要素を返します。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+use List::Util qw/max/;
+
+max 1..10; # 10</pre>
+
+</div>
+<div class="section">
+    <h4>maxstr</h4>
+    <p>配列の中で、文字列コンテクストで比較して最も大きな要素を返します。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+use List::Util qw/maxstr/;
+
+my @gardians = (
+    &#39;Amu&#39;,
+    &#39;Tadase&#39;,
+    &#39;Nadeshiko&#39;,
+    &#39;Kuukai&#39;,
+    &#39;Yaya&#39;,
+    &#39;Rima&#39;,
+    &#39;Kairi&#39;,
+    &#39;Nagihiko&#39;,
+);
+
+maxstr @gardians; # &#39;Yaya&#39;</pre>
+
+</div>
+<div class="section">
+    <h4>min</h4>
+    <p>maxの逆に数値コンテクストで最も小さいものを返します</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+use List::Util qw/min/;
+
+min 1..10; # 1</pre>
+
+</div>
+<div class="section">
+    <h4>minstr</h4>
+    <p>maxstrの逆で、配列の中で、文字列コンテクストで比較して最も小さな要素を返します。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+use List::Util qw/minstr/;
+
+my @gardians = (
+    &#39;Amu&#39;,
+    &#39;Tadase&#39;,
+    &#39;Nadeshiko&#39;,
+    &#39;Kuukai&#39;,
+    &#39;Yaya&#39;,
+    &#39;Rima&#39;,
+    &#39;Kairi&#39;,
+    &#39;Nagihiko&#39;,
+);
+
+minstr @gardians; # &#39;Amu&#39;</pre>
+
+</div>
+<div class="section">
+    <h4>shuffle</h4>
+    <p>配列をシャッフルします。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+use List::Util qw/shuffle/;
+
+my @gardians = (
+    &#39;Amu&#39;,
+    &#39;Tadase&#39;,
+    &#39;Nadeshiko&#39;,
+    &#39;Kuukai&#39;,
+    &#39;Yaya&#39;,
+    &#39;Rima&#39;,
+    &#39;Kairi&#39;,
+    &#39;Nagihiko&#39;,
+);
+
+my @shuffled = shuffle @gardians;</pre>
+
+</div>
+<div class="section">
+    <h4>sum</h4>
+    <p>足し算して合計を出します。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+use List::Util qw/sum/;
+
+sum 1..10; # 55</pre>
+<p>配列が空の場合はundefを返してしまうので、空の配列が渡されたときに0を返してほしい場合は0を最初に書いてあげると良いでしょう。</p>
+
+    <pre class="code lang-perl">sum 0, @list;</pre>
+
+</div>
+<div class="section">
+    <h4>reduce</h4>
+    <p>まず配列の最初のふたつの要素を取り出してブロックの $a, $bに適用します。そのブロックの返り値を$a,配列の次の値を$bに再度適応します。最後に評価された値を返り値とします。配列が空の場合undef,要素がひとつの場合その要素をそのまま返します。ちょっと説明が難しいので例を見たほうが早いかもです。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+use List::Util qw/reduce/;
+
+my @words = qw/Amulet Spade is my wife/;
+my $statement = reduce {our $a . &#39; &#39; . our $b} @words;</pre>
+<p>上のコードでは、join(' ', @words)と同じことをやっています。この場合joinを使ったほうが意図が明確になるためjoinを使うべきですが、今回はあえて説明のためにreduceを使っています。</p><p>reduceの実行がどのようになっているか詳細に見てみましょう。</p><p>まずは、配列の最初のふたつの要素'Amulet'と'Spade'が取り出され、それがブロック中の$aと$bに入ってきます。このときブロックの返り値は'Amulet Spade'となります。次はこの返り値である'Amulet Spade'と配列の次の要素である'is'が$aと$bに入るため、この時のブロックの返り値は'Amulet Spade is'となります。このように最後まで繰り返すと、最終的に'Amulet Spade is my wife'という値を得ることができます。List::Utilの他の関数では実現できないような操作も、reduceを使えば実現することができるわけです。</p>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>とってもカジュアルに、List::Utilの紹介をしてみました。これよりもいろんなことをしたい場合はList::MoreUtilsというモジュールもあるので、一度目を通しておくといいのではないでしょうか。今日の内容はとってもカジュアルでしたね！</p>
+
+</div>
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

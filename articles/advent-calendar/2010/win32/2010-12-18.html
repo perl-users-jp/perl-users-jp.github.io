@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="xaicron <xaicron@cpan.org>">
+        <meta name="author" content="xaicron <xaicron@cpan.org>">
+        <title>ファイル操作にまつわるエトセトラ - Articles Advent Calendar 2010 Win32</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>ファイル操作にまつわるエトセトラ</h1>
+
+        <p>最近なぜかタクティスクオウガを2個買った xaicron です。そういえば持っているのは PSP-1000 なので、そろそろ 3000 か Go が欲しいです。サンタさんはまだ僕のところに来るのかな？</p><p>今日は Windows でより便利かつポータブルにファイル操作をする方法とかをつらつらと書いていこうと思います。<br />
+思いついた順に適当に書いていくので、悪しからず。</p>
+
+<div class="section">
+    <h4>実は / が使える</h4>
+    <p>Windows の path 区切りは 「\」 であることは周知のとおりですが、実は 「/」 も扱えます。<br />
+「\」だとダブルクォートの時に重ね打ちしないといけないし、正規表現での変数展開でもよろしくない動きをしたりしてちょっと悲しいです。</p>
+
+    <pre class="code lang-perl">say &#34;C:\nekomimi-mode&#34;; # C:{改行}ekomimi-mode
+say &#34;C:\\nekomimi-mode&#34;; # C:\nekomimi-mode
+my $reg = &#39;C:\test&#39;;
+say &#39;C:\test\foo&#39; =~ /^$reg/ ? 1 : 0; # 0</pre>
+<p>2つ目の奴が 0 になってしまうのは \t が正規表現の中でタブとして扱われてしまうのでそうなってしまいます。<br />
+もし、path を含むようなものを正規表現に使いたい場合は、以下のように quotemeta を使うとよいです。</p>
+
+    <pre class="code lang-perl">my $reg = quotemeta &#39;C:\test&#39;;
+say &#39;C:\test\foo&#39; =~ /^$reg/ ? 1 : 0; # 1</pre>
+<p>「/」ならこういった心配もなくて安心ですね。</p>
+
+</div>
+<div class="section">
+    <h4>PATH を加工したい</h4>
+    <p>$ENV{PATH} の中身が欲しい時は File::Spec->path で行けますが、こいつになんか追加したり削除したりしてもう一度 $ENV{PATH} 形式にしたい場合はどうするか。<br />
+Windwos の PATH 区切りは 「;」ですから、</p>
+
+    <pre class="code lang-perl">use File::Spec;
+my @path = File::Spec-&gt;path;
+unshift @path, &#39;C:\foo\bar\bin&#39;;
+$ENV{PATH} = join &#39;;&#39;, @path;</pre>
+<p>こうすればいいでしょうか？<br />
+でもそれだと Windows でしか動きませんね。こういうときは $Config{path_sep} を使いましょう。</p>
+
+    <pre class="code lang-perl">use File::Spec;
+use Config;
+my @path = File::Spec-&gt;path;
+unshift @path, &#39;C:\foo\bar\bin&#39;;
+$ENV{PATH} = join $Config{path_sep}, @path;</pre>
+<p>これで、linux でも動きます。</p>
+
+</div>
+<div class="section">
+    <h4>which とか /dev/null とかないです。。。</h4>
+    <p>Windows の「三大ないです問題」に数えられる which, /dev/null をどうすればいいのか。</p><p>とあるコマンドがあるか調べたいときはよく</p>
+
+    <pre class="code lang-perl">if (!system &#39;which sl 2&amp;&gt;1 /dev/null&#39;) {
+    say &#39;sl command is installed. you are crazy??&#39;;
+}</pre>
+<p>のように書いてしまうと思いますが、Windows には which コマンドが標準でないですし、/dev/null もありません。<br />
+こういうときは、File::Which や File::Spec->devnull を使いましょう。</p>
+
+    <pre class="code lang-perl">use File::Spec;
+use File::Which qw(which);
+
+if (which &#39;sl&#39;) {
+    say &#39;sl command is installed. you are crazy??&#39;;
+}
+
+system &#39;foo &gt; &#39; . File::Spec-&gt;devnull;</pre>
+
+</div>
+<div class="section">
+    <h4>/tmp とかないです。。。</h4>
+    <p>「三大ないです問題」に数えられる（ry</p><p>/tmp とか無いので、以下のコードは動きません。</p>
+
+    <pre class="code lang-perl">system &#34;echo foo &gt; /tmp/$$.lock&#34;;</pre>
+<p>こういうときは、File::Sepc->tmpdir を使いましょう。</p>
+
+    <pre class="code lang-perl">use File::Spec;
+system &#34;echo foo &gt;&#34; . File::Spec-&gt;catfile(File::Spec-&gt;tmpdir, &#34;$$.lock&#34;);</pre>
+<p>また、一時ファイルを作りたい場合などは、File::Temp を使いましょう。</p>
+
+    <pre class="code lang-perl">use File::Temp qw(tempfile tempdir);
+my $tmpdir = tempdir CLEANUP =&gt; 1;
+my ($fh, $filename) = tempfile(DIR =&gt; $tmpdir);</pre>
+<p>こんな感じにしておくと、スコープが抜けたときにお掃除してくれたりして便利です。</p>
+
+</div>
+<div class="section">
+    <h4>機種依存文字を含んだファイルがどうやっても開けません</h4>
+    <p>Win32API::File を頑張って使えば開けますが、そんなに人生は長くないので、Win32::Unicode::Native を書きました。<br />
+詳しくは、<a href="http://perl-users.jp/articles/advent-calendar/2009/hacker/20.html">&#x53BB;&#x5E74;&#x306E;&#x8A18;&#x4E8B;</a>を参照ください。<br />
+内部的には全く変わってますが、インターフェースは一緒なのできっと大丈夫！</p><p>ちなみに、これを使うと全くポータブルじゃなくなりますのでご注意ください。</p>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>こんな感じのことをある程度気にして置くと、ポータブルなコードになるんじゃないかと思います！<br />
+さらに、「CPAN にあげたモジュールがなんか Windows だけこけるんだけど！！！！」ってことも減るんじゃないかとおもいます。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="dann">
+        <meta name="author" content="dann">
+        <title>Perl::Metrics::Lite - プラガブルなメトリクス測定モジュール - Articles Advent Calendar 2011 Hacker</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Perl::Metrics::Lite - プラガブルなメトリクス測定モジュール</h1>
+
+        <p>こんにちは。dann です。みなさん、意識は高まっていますか？ 僕は上々です。<br />
+今回は拙作の Perl::Metrics::Lite というモジュールを紹介させて頂きます。</p>
+
+<div class="section">
+    <h4>開発した動機</h4>
+    <p>Perl::MetricsやPerl::Metrics::Simpleなど、PerlのコードのMetricsを測定するツールがあるのですが、どれも使い勝手の点でいまいちです。</p><p>Perl::Metricsは測定項目をプラガブルに追加可能なのですが、APIがプリミティブすぎてMetricsを測定するには使いずらいです。</p><p>一方、Perl::Metrics::Simpleは、Perl::MetricsをよりユーザーフレンドリなAPIにして、名前の通りシンプルに使えるように作られているのですが、今度は測定項目が拡張可能になっておらず、特定のメトリックしか測定できませんでした。</p>
+
+</div>
+<div class="section">
+    <h4>Perl::Metrics::Lite - プラガブルなメトリクス測定モジュール</h4>
+    <p>従来のモジュールの問題点を解決するために、Perl::Metrics::SimpleとPerl::Metricsのいいとこどりをして、測定項目をプラガブルに追加できるPerl::Metrics::Simpleのような使い勝手のいいモジュールを作ってみました。<br />
+<a href="http://github.com/dann/p5-perl-metrics-lite">http://github.com/dann/p5-perl-metrics-lite</a></p><p>使い方はPerl::Metrics::Simpleと殆ど同じで、以下のように使います。</p>
+
+    <pre class="code lang-perl">use Perl::Metrics::Lite;
+my $analzyer   = Perl::Metrics::Lite-&gt;new;
+my $analysis   = $analzyer-&gt;analyze_files(@ARGV);
+my $file_stats = $analysis-&gt;file_stats;
+my $sub_stats = $analysis-&gt;sub_stats;</pre>
+<p>egディレクトリに実行可能な簡単なサンプルをいれてあるので、<br />
+是非実行して確認してみてください。<br />
+<a href="https://github.com/dann/p5-perl-metrics-lite/blob/master/eg/measureperl">https://github.com/dann/p5-perl-metrics-lite/blob/master/eg/measureperl</a></p>
+
+</div>
+<div class="section">
+    <h4>測定項目の拡張方法</h4>
+    <p>以下に幾つかFileとSubroutineのMetricsの測定のPluginのサンプルをいれています。<br />
+initとmeasureメソッドを実装する必要があります。measureメソッドのfileまたはsubroutineのPPI::Documentを操作して、必要なMetricsの計算を行います。</p>
+
+<ul>
+<li><a href="https://github.com/dann/p5-perl-metrics-lite/tree/master/lib/Perl/Metrics/Lite/Analysis/File/Plugin">https://github.com/dann/p5-perl-metrics-lite/tree/master/lib/Perl/Metrics/Lite/Analysis/File/Plugin</a></li>
+<li><a href="https://github.com/dann/p5-perl-metrics-lite/tree/master/lib/Perl/Metrics/Lite/Analysis/Sub/Plugin">https://github.com/dann/p5-perl-metrics-lite/tree/master/lib/Perl/Metrics/Lite/Analysis/Sub/Plugin</a></li>
+</ul>
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>Perl::Metrics::Liteにより、簡単にFileとSubroutineのMetricsを拡張して、測定項目を追加していくことが可能になりました。是非色々なMetricsの測定をしてみてください。</p><p>Enjoy measuring!</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

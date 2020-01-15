@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="songmu">
+        <meta name="author" content="songmu">
+        <title>Script::Ichigeki - 相手は死ぬ - Articles Advent Calendar 2012 Hacker</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Script::Ichigeki - 相手は死ぬ</h1>
+
+        <p><img src="http://perl-users.jp/articles/advent-calendar/img/aitehashinu.png" alt="相手は死ぬ" /></p>
+
+<p>@songmuです。Hackerではありませんが、僭越ながら書かせていただきます。</p>
+
+<p>運用とは戦いであり、オペレーションエンジニアたちは日々殺す殺されるの戦いを繰り広げています。
+殺る前に殺るしかない。可能なら一撃で。そこでScript::Ichigekiの出番です。</p>
+
+<p>Script::Ichigekiは一撃こっきりしか実行しないスクリプトを安全に実行するために作られたモジュールです。</p>
+
+<p>具体的には以下の要件を満たしてくれます。</p>
+
+<ul>
+<li>クリティカルな一発スクリプト(ゲームの報酬付与処理、データ修正処理等)を</li>
+<li>実行前に実行確認プロンプトを表示して</li>
+<li>実行ログを残しつつ</li>
+<li>再実行を防ぎたい(特にシェル履歴からの誤爆とか)</li>
+<li>後々の参照のために、スクリプト自体は残しておきたい</li>
+</ul>
+
+<p>使い方は簡単で、あなたが実行するplファイルに <code>use Script::Ichigeki;</code> と書くだけ。以下使用例。</p>
+
+<pre><code>% ls -A
+ichigeki.pl
+
+% cat ichigeki.pl
+#!/usr/bin/env perl
+use 5.014;
+use warnings;
+use utf8;
+
+use Script::Ichigeki;
+say 'run!';
+
+% perl ichigeki.pl                              # 実行
+Do you really execute `ichigeki.pl` ? (y/n) : y # 確認プロンプト表示
+run!
+
+% ls -A
+.ichigeki.pl.log        ichigeki.pl             # ログファイルが作成されている
+
+% cat .ichigeki.pl.log
+# This file is generated dy Script::Icigeki.
+start: 2012-12-13T21:35:50
+---
+run!
+
+---
+end: 2012-12-13T21:35:50
+
+% perl ichigeki.pl                              # ログファイルがあると再実行できない
+execute log file [./.ichigeki.pl.log] alredy exists!
+</code></pre>
+
+<p>なかなか便利なんじゃないかと思います。</p>
+
+<p>useにいくつか引数を渡すことも可能です。</p>
+
+<pre><code>#!/usr/bin/env perl
+use 5.014;
+use warnigns;
+use utf8;
+use Script::Ichigeki (
+    exec_date      =&gt; '2012-12-24', # 実行日を指定
+    confirm_dialog =&gt; 0,            # 確認プロンプトなど不要!
+);
+
+say 'リア充爆発しろ！';
+die 'ウッ、一撃';
+</code></pre>
+
+<p>このようにすれば、 <em>12月24日にしか実行されません</em> 。事前や事後の暴発を防げるので安心ですね。</p>
+
+<p>リモートで時間のかかる重要なスクリプトを流すときはscreenやnohupを使うのが定石ですが、デフォルトだとpromptを出すのでnohupで実行すると入力待ちで止まってしまいます。その場合は<code>confirm_dialog =&gt; 0,</code> としてpromptの表示をやめるか、screenやtmuxを使って実行するようにすると良いでしょう。</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

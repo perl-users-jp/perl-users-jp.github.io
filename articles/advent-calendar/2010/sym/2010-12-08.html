@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="oskimura">
+        <meta name="author" content="oskimura">
+        <title>Haskell(GHC)で記号プログラミング - Articles Advent Calendar 2010 Sym</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Haskell(GHC)で記号プログラミング</h1>
+
+        <p><a href="http://twitter.com/oskimura">oskimura</a>です。<br />
+<a href="http://haskell.org/ghc/">HaskellというかGHC</a>固有なのですが、実はGHCってcppオプションを使う事によってプリプロセッサを展開してくれます。(発見者はid:ranhaさんです)<br />
+なので、これを利用して記号プログラミングで"HELLO WORD!"を出力してみます。</p>
+
+    <pre class="code">#define _ 1
+#define __ main=print</pre>
+<p>１の定義とプリプロセッサを通す上でmain関数を呼ばなきゃいけないのでこうしました。</p><p>数値を文字列に変換するためにData.Charモジュールのchr関数を使いたいので、次の様にしました。</p>
+
+    <pre class="code">import Data.Char(chr)
+(%%) = chr</pre>
+<p>これで(%%)を使ってASCIIコードを文字に変換できます。<br />
+ここまでくるともう簡単ですねHelloWorldの本文を書いてみたいと思います</p>
+
+    <pre class="code">(&amp;&amp;&amp;)   = (_+_+_+_) ^ (_+_+_)               -- 64
+(@@)   = (&amp;&amp;&amp;) + (_+_) ^(_+_+_)             -- H
+(@@@)  = (&amp;&amp;&amp;) + (_+_+_+_+_)                -- E
+(@@@@) = (&amp;&amp;&amp;) + (_+_+_+_) * (_+_+_)        -- L
+(@@@@@) = (&amp;&amp;&amp;) + (_+_+_) * (_+_+_+_+_)     -- O
+(@@@@@@) = (_+_) ^ (_+_+_+_+_)              -- [SP]
+(@@@@@@@) =  (_+_+_)^(_+_+_+_)+(_+_+_)*(_+_)-- W
+(@@@@@@@@) =  (_+_+_)^(_+_+_+_)+_           -- R
+(@@@@@@@@@) = (_+_+_+_) ^ (_+_+_) + (_+_+_+_) * (_*_*_)  -- D
+(@@@@@@@@@@) = (_+_+_) ^ (_+_+_) + (_+_+_) * (_+_) -- !
+
+__ [(%%)(@@), (%%)(@@@),(%%)(@@@@),(%%)(@@@@),(%%)(@@@@@),(%%)(@@@@@@),(%%)(@@@@@@@),(%%)(@@@@@),(%%)(@@@@@@@@),(%%)(@@@@),(%%)(@@@@@@@@@),(%%)(@@@@@@@@@@)]</pre>
+<p>ASCIIコードを定義して数字に変換したものをリストにいれ、文字列としてあつかっているだけです。(Haskellで文字列は文字のリストです)<br />
+__は上で定義したmain = printですね。<br />
+つまり、このコードは次のコードと等価です。</p>
+
+    <pre class="code">main = print &#34;HELLO WORLD!&#34;</pre>
+<p>このように -cppオプションを付けて実行してみてください。</p>
+
+    <pre class="code">ghc -cpp symbolic.hs &amp;&amp; ./a.out</pre>
+<p>ね、簡単でしょ。</p><br />
+<p>ArrowやApplicativeを組み合わせるともっと記号記号したいろんなプログラミングが書けると思います。腕に自信のあるHaskellerは挑戦してみてください。<br />
+仕事でHaskellを使う機会があったら、みなさんもぜひ今回紹介したテクニックを使ってみてください。</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="nihen">
+        <meta name="author" content="nihen">
+        <title>続DBIとforkの関係 - Articles Advent Calendar 2011 Dbix</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>続DBIとforkの関係</h1>
+
+        
+<div class="section">
+    <h4>はじめに</h4>
+    <p>DBIxといえばSkinnyです。nihenです。<br />
+DBIｘトラックといいながらDBIの話でもよいみたいなので<a href="http://nihen.hatenablog.com/entry/2011/11/17/102557"></a>に書いたことの続編tipsを一つ書きますです。</p>
+
+</div>
+<div class="section">
+    <h4>DBI->connect_cachedとforkの罠</h4>
+    <p><a href="http://search.cpan.org/~timb/DBI-1.616/DBI.pm#connect_cached">DBI-&gt;connect_cached</a>は同一プロセスで生成された同一connectオプションのデータベースハンドルをキャッシュしてくれそれを返してくれる便利なものなのですが、これとforkの組み合わせにはやはり罠が存在します。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+
+use DBI;
+use Data::Dumper;
+
+my $dbh = DBI-&gt;connect_cached(&#39;dbi:mysql:sandbox&#39;, &#39;sandbox&#39;, &#39;sandbox&#39;)
+    or die $DBI::errstr;
+
+$dbh-&gt;do(q{DROP TABLE IF EXISTS users});
+$dbh-&gt;do(q{CREATE TABLE users (id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, name VARCHAR(255)) ENGINE=InnoDB});
+$dbh-&gt;do(q{INSERT INTO users (name) values(&#39;Masahiro Chiba&#39;)});
+
+$dbh-&gt;begin_work;
+$dbh-&gt;do(q{INSERT INTO users (name) values(&#39;nihen&#39;)});
+
+$dbh-&gt;rollback;
+print Dumper($dbh-&gt;selectall_arrayref(q{SELECT * FROM users}, { Slice =&gt; {}}));</pre>
+<p>さて、このようなコードがあったとします。DBI->connect_cachedを使っています。usersテーブルに'Masahiro Chiba'と'nihen'のレコードをINSERTしますが、後者はrollbackをしているので</p>
+
+    <pre class="code">$VAR1 = [
+          {
+            &#39;name&#39; =&gt; &#39;Masahiro Chiba&#39;,
+            &#39;id&#39; =&gt; &#39;1&#39;
+          }
+        ];</pre>
+<p>結果はこのようになります。<br />
+さて、ここでrollbackの前に、forkをしてなにやら同僚が作ったというグレートなモジュールの仕事をやらせることにしました。(実際にはParallel::ForkManagerなどを使い複数のプロセスを作ると思いますがこの例では説明のために一度のみforkしています）</p><p></p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+
+use DBI;
+use Data::Dumper;
+use Some::Great::Module;
+
+my $dbh = DBI-&gt;connect_cached(&#39;dbi:mysql:sandbox&#39;, &#39;sandbox&#39;, &#39;sandbox&#39;)
+    or die $DBI::errstr;
+
+$dbh-&gt;do(q{DROP TABLE IF EXISTS users});
+$dbh-&gt;do(q{CREATE TABLE users (id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, name VARCHAR(255)) ENGINE=InnoDB});
+$dbh-&gt;do(q{INSERT INTO users (name) values(&#39;Masahiro Chiba&#39;)});
+
+$dbh-&gt;begin_work;
+$dbh-&gt;do(q{INSERT INTO users (name) values(&#39;nihen&#39;)});
+
+if ( fork ) {
+    wait;
+}
+else {
+    $dbh-&gt;{InactiveDestroy} = 1;
+    Some::Great::Module-&gt;some_work();
+    exit(0);
+}
+
+$dbh-&gt;rollback;
+print Dumper($dbh-&gt;selectall_arrayref(q{SELECT * FROM users}, { Slice =&gt; {}}));</pre>
+<p><a href="http://nihen.hatenablog.com/entry/2011/11/17/102557"></a>で学んだ通り、fork後に子で$dbh->{InactiveDestroy}を設定しているので、子のexit時にも親の$dbhの接続は失われません。ふうこれで安心…と思い実行してみると…。</p>
+
+    <pre class="code">$VAR1 = [
+          {
+            &#39;name&#39; =&gt; &#39;Masahiro Chiba&#39;,
+            &#39;id&#39; =&gt; &#39;1&#39;
+          },
+          {
+            &#39;name&#39; =&gt; &#39;nihen&#39;,
+            &#39;id&#39; =&gt; &#39;2&#39;
+          },
+          {
+            &#39;name&#39; =&gt; &#39;guts&#39;,
+            &#39;id&#39; =&gt; &#39;3&#39;
+          }
+        ];</pre>
+<p>なんと、rollbackしているつもりのname => 'nihen'がINSERTされたままです。そこでSome::Great::Moduleの中身をみてみると。</p>
+
+    <pre class="code lang-perl">package Some::Great::Module;
+use strict;
+use warnings;
+
+use DBI;
+
+sub some_work {
+    my $dbh = DBI-&gt;connect_cached(&#39;dbi:mysql:sandbox&#39;, &#39;sandbox&#39;, &#39;sandbox&#39;)
+        or die $DBI::errstr;
+    $dbh-&gt;do(q{INSERT INTO users (id, name) values(3, &#39;guts&#39;)});
+}
+
+1;</pre>
+<p>という処理を行っていました。偶然にも同一のコネクトオプションをでDBI->connect_cachedをよんでいました。実はDBI->connect_cachedはforkを考慮しないため、親で作っていたdbhを子供が取得できてしまうのです。そのためnihenレコードは子供によりcommitされてしまっていたというわけです。これを回避するには、InactiveDestroyの設定と同一タイミングにおいてcacheのクリアを行うとよいです。cacheのクリアは</p>
+
+    <pre class="code lang-perl">my $CachedKids_hashref = $dbh-&gt;{Driver}-&gt;{CachedKids};
+%$CachedKids_hashref = () if $CachedKids_hashref;</pre>
+<p>で行えます。このコードを含めた最終的な修正コードは以下のようになります。</p><p></p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+
+use DBI;
+use Data::Dumper;
+use Some::Great::Module;
+
+my $dbh = DBI-&gt;connect_cached(&#39;dbi:mysql:sandbox&#39;, &#39;sandbox&#39;, &#39;sandbox&#39;)
+    or die $DBI::errstr;
+
+$dbh-&gt;do(q{DROP TABLE IF EXISTS users});
+$dbh-&gt;do(q{CREATE TABLE users (id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, name VARCHAR(255)) ENGINE=InnoDB});
+$dbh-&gt;do(q{INSERT INTO users (name) values(&#39;Masahiro Chiba&#39;)});
+
+$dbh-&gt;begin_work;
+$dbh-&gt;do(q{INSERT INTO users (name) values(&#39;nihen&#39;)});
+
+if ( fork ) {
+    wait;
+}
+else {
+    $dbh-&gt;{InactiveDestroy} = 1;
+    my $CachedKids_hashref = $dbh-&gt;{Driver}-&gt;{CachedKids};
+    %$CachedKids_hashref = () if $CachedKids_hashref;
+    Some::Great::Module-&gt;some_work();
+    exit(0);
+}
+
+$dbh-&gt;rollback;
+print Dumper($dbh-&gt;selectall_arrayref(q{SELECT * FROM users}, { Slice =&gt; {}}));</pre>
+<p><br />
+実行結果は</p>
+
+    <pre class="code">
+$VAR1 = [
+          {
+            &#39;name&#39; =&gt; &#39;Masahiro Chiba&#39;,
+            &#39;id&#39; =&gt; &#39;1&#39;
+          },
+          {
+            &#39;name&#39; =&gt; &#39;guts&#39;,
+            &#39;id&#39; =&gt; &#39;3&#39;
+          }
+        ];</pre>
+<p>と、期待通りになりました。</p>
+
+</div>
+<div class="section">
+    <h4>この例だと別にforkは関係ない</h4>
+    <p>ここまで書いてから自分も気づいたのですが、別にsome_work()はforkしなくても同じことがおきてしまいます。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+
+use DBI;
+use Data::Dumper;
+use Some::Great::Module;
+
+my $dbh = DBI-&gt;connect_cached(&#39;dbi:mysql:sandbox&#39;, &#39;sandbox&#39;, &#39;sandbox&#39;)
+    or die $DBI::errstr;
+
+$dbh-&gt;do(q{DROP TABLE IF EXISTS users});
+$dbh-&gt;do(q{CREATE TABLE users (id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, name VARCHAR(255)) ENGINE=InnoDB});
+$dbh-&gt;do(q{INSERT INTO users (name) values(&#39;Masahiro Chiba&#39;)});
+
+$dbh-&gt;begin_work;
+$dbh-&gt;do(q{INSERT INTO users (name) values(&#39;nihen&#39;)});
+
+Some::Great::Module-&gt;some_work();
+
+$dbh-&gt;rollback;
+print Dumper($dbh-&gt;selectall_arrayref(q{SELECT * FROM users}, { Slice =&gt; {}}));</pre>
+<p>の実行結果は</p>
+
+    <pre class="code">$VAR1 = [
+          {
+            &#39;name&#39; =&gt; &#39;Masahiro Chiba&#39;,
+            &#39;id&#39; =&gt; &#39;1&#39;
+          },
+          {
+            &#39;name&#39; =&gt; &#39;nihen&#39;,
+            &#39;id&#39; =&gt; &#39;2&#39;
+          },
+          {
+            &#39;name&#39; =&gt; &#39;guts&#39;,
+            &#39;id&#39; =&gt; &#39;3&#39;
+          }
+        ];</pre>
+<p>になってしまいます。ただしforkをしない場合にはそのdbhを同時に使うのは1プロセスだけですがforkをしていると親と子供が同時にそのdbhを使う可能性がありDBサーバとの通信が混ざり、トランザクションが絡まなくても問題が生じ得ます。</p><p>で、このforkしない場合で、別のよくわからないモジュールを呼ぶけどトランザクション中だったりする場合にconnect_cachedを安全にするためには</p>
+
+    <pre class="code lang-perl">{
+    local $dbh-&gt;{Driver}-&gt;{CachedKids} = $dbh-&gt;{Driver}-&gt;{CachedKids};
+    my $CachedKids_hashref = $dbh-&gt;{Driver}-&gt;{CachedKids};
+    %$CachedKids_hashref = () if $CachedKids_hashref;
+    Some::Great::Module-&gt;some_work();
+}</pre>
+<p>のように$dbh->{Driver}->{CachedKids}をlocalしてからキャッシュをクリアして呼ぶとよいでしょう。そこまでしてconnect_cached使いたいのかという気もしないでもないですが!</p>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>DBI->connect_cachedとforkの組み合わせの罠とその回避策を紹介しました。</p><p>自分は実はconnect_cachedを実運用で使ったことは無いのですが、独立したミドルウェアやプラグインを作る時などにパフォーマンスを考慮して使う場合があるかもしれません。そんな時にforkとの関係は大丈夫かな？とこのエントリのことを思い出していただければ幸いです。</p><p>さて明日は hirobanex さんです。んがんぐ</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

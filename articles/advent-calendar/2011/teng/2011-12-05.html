@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>#05 Teng::Row - Articles Advent Calendar 2011 Teng</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>#05 Teng::Row</h1>
+
+        <p>今日はTengでデータを取得した際に利用されるTeng::Rowについてを説明します。</p><p>先日までに説明したinsertメソッドやsingleメソッドで取得されるRowオブジェクトは、<br />
+Teng::Rowクラスを用いてオブジェクト化されています。</p><p>Teng::Rowクラスは、カラムデータをメソッド呼び出しで取得するなどの機能が備わっています。</p>
+
+    <pre class="code">my $row = $teng-&gt;single(&#39;name&#39;, +{id =&gt; 1});
+$row-&gt;id;   # 1
+$row-&gt;name; # nekokak</pre>
+<p>もし存在しないカラムをメソッドコールしてしまうと、</p>
+
+    <pre class="code">$row-&gt;age;</pre>
+<p>以下のような例外が発生し、処理が停止します。</p>
+
+    <pre class="code">Specified colum &#39;age&#39; not found in row (query: SELECT &#34;id&#34;, &#34;name&#34;
+FROM &#34;user&#34;
+WHERE (&#34;id&#34; = ?)
+LIMIT 1) at ./teng.pl line 19</pre>
+
+<div class="section">
+    <h3>get_column</h3>
+    <p>get_columnメソッドを利用すると、columnのナマデータを取得することができます。</p>
+
+    <pre class="code">my $row = $teng-&gt;single(&#39;user&#39;, +{id =&gt; 1});
+$row-&gt;get_column(&#39;name&#39;);</pre>
+<p>Tengではinflate / deflateという設定があり、その設定を行なっていると、<br />
+column情報をメソッド経由で取り出すとinflate処理を通過してしまい、ナマのデータではなくなってしまいます。<br />
+そこでinflate処理を行わないナマデータを取得する時などに利用することになります。</p>
+
+</div>
+<div class="section">
+    <h3>get_columns</h3>
+    <p>get_columnsメソッドを利用すると、SELECTしたカラムをまとめて取得することができます。</p>
+
+    <pre class="code">my $row = $teng-&gt;single(&#39;user&#39;, +{id =&gt; 1});
+use Data::Dumper;
+warn Dumper $row-&gt;get_columns;
+__END__
+$VAR1 = { 
+          &#39;name&#39; =&gt; &#39;nekokak&#39;,
+          &#39;id&#39; =&gt; 1
+        };</pre>
+<p>まとめて取り出したいときに大変便利ですね。</p>
+
+</div>
+<div class="section">
+    <h3>update</h3>
+    <p>Rowオブジェクトから直接update文を発行することもできます。</p>
+
+    <pre class="code">my $row = $teng-&gt;single(&#39;user&#39;, +{id =&gt; 1});
+$row-&gt;update(+{name =&gt; &#39;inukaku&#39;});
+# UPDATE user SET name = &#39;inukaku&#39; WHERE id = 1</pre>
+<p>Rowオブジェクト経由でupdateをかけると、現在のRowオブジェクトの値がuntrustedなデータになってしまいます。<br />
+というのもupdateする際にscalarrefを指定して更新をかけることができるため、<br />
+実際にdatabase側でどういった値になっているかは再度databaseに問い合わせる必要があります。</p><p>その際は、refetchメソッドを利用すると簡単にデータをdatabaseから引き直すことができます。</p>
+
+    <pre class="code">my $row = $teng-&gt;single(&#39;user&#39;, +{id =&gt; 1});
+$row-&gt;update(+{name =&gt; &#39;inukaku&#39;});
+my $new_row = $row-&gt;refetch();</pre>
+
+</div>
+<div class="section">
+    <h3>set_column / set_columns</h3>
+    <p>またupdateする際、いきなり</p>
+
+    <pre class="code">$row-&gt;update(+{name =&gt; &#39;inukaku&#39;});</pre>
+<p>と、指定してもいいのですが条件によって複数の値を更新する可能性がある場合に一時的にhashを作るなどしないといけないのですが、<br />
+set_columnメソッドを利用すれば、一時hashを作らずに更新することが可能です。</p>
+
+    <pre class="code">$row-&gt;set_column(name =&gt; &#39;inukaku&#39;);
+$row-&gt;set_column(id   =&gt; 10);
+$row-&gt;update();</pre>
+<p>もしくは</p>
+
+    <pre class="code">$row-&gt;set_column(
+    +{
+        id   =&gt; 10,
+        name =&gt; &#39;inukaku&#39;,
+    }
+);
+$row-&gt;update();</pre>
+<p>こすることで、set_columnで指定したデータを用いてupdateを行うことができます。</p>
+
+</div>
+<div class="section">
+    <h3>delete</h3>
+    <p>Rowオブジェクトからはupdateだけでなく直接deleteを発行することもできます。</p>
+
+    <pre class="code">my $row = $teng-&gt;single(&#39;user&#39;, +{id =&gt; 1});
+$row-&gt;delete();
+# DELETE FROM user WHERE id = 1</pre>
+<p>updateやdeleteはRowオブジェクト中にtableに対応するPRIMARY KEYを保持しておく必要があるので。<br />
+以下のように取得するcolumnを絞って取得したRowオブジェクトからは発行することはできません。</p>
+
+    <pre class="code">my $row = $teng-&gt;single(&#39;user&#39;, +{id =&gt; 1}, +{columns =&gt; [qw/name/]});
+$row-&gt;delete(); # can&#39;t get primary columns in your query. at ./teng.pl line 17</pre>
+<p><br />
+Teng::Rowオブジェクトの基本的な使い方はこのようになります。</p><p>明日は、検索系のメソッドをもう少し掘り下げて紹介しようと思います。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

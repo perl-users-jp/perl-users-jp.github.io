@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="Nishibayashi Takuji <takuji@senchan.jp>">
+        <meta name="author" content="Nishibayashi Takuji <takuji@senchan.jp>">
+        <title>Time::Piece::Plus - Time::Pieceに便利メソッドを - Articles Advent Calendar 2011 Hacker</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Time::Piece::Plus - Time::Pieceに便利メソッドを</h1>
+
+        
+<div class="section">
+    <h4>はじめに</h4>
+    <p>こんばんは、takuji31と申します。</p><p>今回はPerl歴2年弱の初心者である私が作った<a href="http://search.cpan.org/~takuji/Time-Piece-Plus-0.02/">Time::Piece::Plus</a>というモジュールを紹介します。Hacker(笑)となってしまった方はすみません。</p><p>さて皆さん、<a href="http://search.cpan.org/~msergeant/Time-Piece-1.20/Piece.pm">Time::Piece</a>というモジュールはご存知でしょうか？<br />
+既に<a href="http://perl-users.jp/articles/advent-calendar/2011/hacker/7">7&#x65E5;&#x76EE;&#x306E;&#x30C8;&#x30E9;&#x30C3;&#x30AF;</a>にて紹介されているのでご存知でない方はそちらを見ていただければと思います。</p><p>このTime::Piece、非常に軽快でシンプルが故に意外とかゆいところに手が届かないことがあるのではないでしょうか？<br />
+例えば<a href="http://search.cpan.org/~drolsky/DateTime-0.70/lib/DateTime.pm">DateTime</a>にあるtruncateメソッドはTime::Pieceにはありません。</p><p>例えば今日の0時を取得したい時は</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+use utf8;
+use 5.012001;
+use Time::Piece;
+
+my $now = localtime();
+
+my $today = localtime(Time::Piece-&gt;strptime($now-&gt;strftime(&#39;%Y/%m/%d 00:00:00&#39;), &#39;%Y/%m/%d %H:%M:%S&#39;));
+
+if($today &lt; $now) {
+    say &#34;$today &lt; $now&#34;;
+}
+
+#これをしたいだけなら$now-&gt;strftimeでもできるけど、出力確認のために書いてます。
+say $today-&gt;strftime(&#39;%Y年%m月%d日 %H:%M:%S&#39;); # 2011年12月12日 00:00:00
+</pre>
+<p>めんどくさいですね、わかりにくいですね？<br />
+<a href="http://search.cpan.org/~takuji/Time-Piece-Plus-0.02/">Time::Piece::Plus</a>ではこういったものを簡単に書けるようなメソッドを用意しています。</p>
+
+</div>
+<div class="section">
+    <h4>使い方</h4>
+    <p>使い方は簡単です</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+use 5.012001;
+use Time::Piece::Plus;
+
+my $now = localtime();
+
+my $today            = localtime-&gt;today();
+my $today_from_class = Time::Piece::Plus-&gt;today();
+
+if($today &lt; $now) {
+    say &#34;$today &lt; $now&#34;;
+}
+if($today_from_class &lt; $now) {
+    say &#34;$today &lt; $now&#34;;
+}
+if($today_from_class == $today) {
+    say &#34;$today_from_class == $today&#34;;
+}
+
+say $today-&gt;strftime(&#39;%Y年%m月%d日 %H:%M:%S&#39;); # 2011年12月12日 00:00:00
+</pre>
+<p>すごくシンプルになりました。わかりやすいっていいですよね！<br />
+<a href="http://search.cpan.org/~takuji/Time-Piece-Plus-0.02/">Time::Piece::Plus</a>には同様に1日前の0時、1日後の0時を取るメソッドも用意されています。<br />
+Cronで前日のデーターを集計したい時なんかに使えるんではないでしょうか。</p>
+
+</div>
+<div class="section">
+    <h4>MySQL関連のメソッド</h4>
+    <p>さて、<a href="http://search.cpan.org/~takuji/Time-Piece-Plus-0.02/">Time::Piece::Plus</a>ではこの他にMySQL関連のメソッドも用意しています。<br />
+ぽすぐれないの！MSSQLどこ？！という方はpatches welcomeです！</p><p>さて、Time::PieceのMySQL関連のモジュールといえば<a href="http://search.cpan.org/~kasei/Time-Piece-MySQL-0.06/lib/Time/Piece/MySQL.pm">Time::Piece::MySQL</a>というものが既にあります。</p><p>しかし、strptimeで解析するとUTCの時間で解析されて一度localtime関数を呼ばないとローカルのタイムゾーンに合わせてくれません。<br />
+これを回避するには一度localtime関数を呼んでTime::Pieceのインスタンスを作って、そこからstrptimeしてやるか、戻り値をlocaltime関数に引数として渡してやります。<br />
+ただこれも、Time::Pieceのlocaltime関数はコンテキストで戻り値が変わったり、Time::Piece1.16未満(Perl5.10や5.12のコアに含まれてます)ではこの呼び方でインスタンスを生成した時に、中身のArrar refの構造が壊れるというバグがあったりします。</p><p>後者はバージョン上げればいいじゃなーいと思われるかもしれませんが、上げられない環境もありますよね！はい、身近にあります。<br />
+そういうことを書くたびに考えるのは面倒なので、そこら辺をうまくやってくれるMySQL関連のメソッドを書きました。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+use 5.012001;
+use Time::Piece::Plus;
+
+my $mysql_datetime = &#34;2011-12-12 20:34:13&#34;;
+my $mysql_date = &#34;2011-12-12&#34;;
+
+my $datetime = Time::Piece::Plus-&gt;parse_mysql_datetime(str =&gt; $mysql_datetime, as_localtime =&gt; 1);
+my $date     = Time::Piece::Plus-&gt;parse_mysql_date(str =&gt; $mysql_date, as_localtime =&gt; 1);
+
+say $datetime;
+say $date;</pre>
+<p>シンプルですね！シンプルイズベストです。</p><p><a href="http://search.cpan.org/~takuji/Time-Piece-Plus-0.02/">Time::Piece::Plus</a>で素敵なMySQLライフを送ってください（？）</p><p></p>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p><a href="http://search.cpan.org/~takuji/Time-Piece-Plus-0.02/">Time::Piece::Plus</a>はかゆいところに手が届くモジュールになっていたかと思います。<br />
+まだ開発段階ですので、今後も更にかゆいところに手が届くモジュールを目指していきたいと思います。</p><p>ありがとうございました。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

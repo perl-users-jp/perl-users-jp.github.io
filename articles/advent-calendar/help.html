@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="hasegawayosuke">
+        <meta name="author" content="hasegawayosuke">
+        <title>Perl Advent Calendar 書き方 - Articles Advent Calendar</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Perl Advent Calendar 書き方</h1>
+
+        <p>このドキュメントは、perl-users.jp で公開されている Advent Calendar のwriter向けにカレンダー記事の公開方法について説明したものです。</p><p>この Advent Calendar は、一般利用者に対しては以下のURLで公開されます。<br/> <a href="http://perl-users.jp/articles/advent-calendar/2012/">http://perl-users.jp/articles/advent-calendar/2012/</a></p><p>トラックは以下のものがあります。</p>
+
+<ul>
+<li>Hacker Track</li>
+<li>Casual Track</li>
+</ul><p>各トラックの内容については、上記 URL および参加者募集要項等を見てください。</p><p>各トラックの記事は、GitHub 上にテキスト形式で配置します。<br /> <a href="https://github.com/perl-users-jp/perl-advent-calendar/tree/master/">https://github.com/perl-users-jp/perl-advent-calendar/tree/master/</a></p><p>例えば、記号トラックの2012年12月5日用の記事であれば、<br/> <a href="https://github.com/perl-users-jp/perl-advent-calendar/tree/master/2012/sym/2012-12-05.txt">https://github.com/perl-users-jp/perl-advent-calendar/tree/master/2012/sym/2012-12-05.txt</a> <br/>として git push することになります。</p><p>現在、上記リポジトリへの push 権は各トラックで主要な数名が保持していますので、</p>
+
+<ol>
+<li>githubにアカウントを持っているのであれば tokuhirom, yappo, kan_fushihara, takesako, xaicron, hasegawayosuke, makamaka, yusukebe, kazuho, lestrrat, dankogai, mattn あたりにお願いして権限を与えてもらう。連絡方法はIRC(#perl-casual@freenodeあたり)やTwitterでどうぞ。forkしてpull reqするのは面倒なので禁止です。</li>
+<li>持っていないかアカウントを晒したくない人は、すでに記事を push している人(GitHub上で見えますね)にお願いして push してもらう</li>
+</ol><p>という方法を採って下さい。<br />
+git がよくわからないという方は、自分の書くトラックの誰かにメール等で記事を渡して更新してもらうのが簡単だと思います(頻繁に更新する場合は権限をもらって自分でgitを使いましょう!)。</p><p>各記事をpushするタイミングは任意で行って構いません。期日になれば、perl-users.jpから記事へのリンクが自動的に張られます。<br />
+期日前でも、例えば <br/> <a href="http://perl-users.jp/articles/advent-calendar/2012/sym/5">http://perl-users.jp/articles/advent-calendar/2012/sym/5</a> <br/>のようにURLに直接アクセスすれば、該当記事(この例では12月5日の記事)を見ることができます。プレビューがわりに表示を確認しておきましょう。</p><p>GitHub 経由やURL直接アクセスで事前に記事が見られるのがイヤだという場合は、公開ギリギリまで push しないようにしてください。</p><p>記事は、はてな記法が使えますが、完全に互換というわけではありません。HTMLタグも利用可能です。</p><p>記事の先頭行はタイトルとして使用されます。以下に記述例を示します。</p>
+
+    <pre class="code">記事タイトル
+meta-author: 記事を書いた人
+meta-tags: 記事のカテゴリ
+
+記事本文
+･･･</pre>
+<p>記事タイトルは改行を含む事が出来ません。meta-author, meta-tags は主に RSS 配信に用いられます。RSS の author として設定されるので</p>
+
+    <pre class="code">記事タイトル
+meta-author: パール 太郎 &lt;jperl@example.com&gt;
+meta-tags: perl, win32
+
+記事本文
+･･･</pre>
+<p>という形式で記述します。meta-tags はカンマによる複数指定が可能です。なおどちらのメタ情報も省略は可能ですが、なるべく入れる様にして下さい。</p><p>その他、分からないことがあれば IRC で #perl-casual@freenode.net or <a href="http://search.twitter.com/search?q=%23perladvent">#perladvent@Twitter</a> あたりで気軽に尋ねてください。</p><p>書いた人：hsegawayosuke </p><p>※ツールが複数年対応となったので、リポジトリ url などが変わりました</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

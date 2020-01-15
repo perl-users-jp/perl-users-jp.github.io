@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="aloelight">
+        <meta name="author" content="aloelight">
+        <title>DBI::Profileでお手軽プロファイリング - Articles Advent Calendar 2011 Dbix</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>DBI::Profileでお手軽プロファイリング</h1>
+
+        <p><a href="http://twitter.com/aloelight">aloelight</a>です。<br />
+みなさん、DBIx書いてますか？私は5年以上はPerlを使っていますが、DBIxを書いたことがありません。CPANの既存ライブラリとDBIの基本機能で間に合ってしますからです。今日はDBI付属の機能の中からDBI::Profileを紹介したいと思います。</p>
+
+<div class="section">
+    <h4>どんな時に使うの？</h4>
+    <p>開発時には何気なく実行してたけど、なんかこの機能が遅いような気がする。そんなことありませんか？<br />
+MySQLではEXPLAINを使ってクエリの実行計画を確認することで、そのクエリがなぜ遅いかを判断することができますが、その前にどのクエリが遅いかを判断しなければいけません。お手軽さを求めるなら、DBI::Profileを使うのがいいんじゃないでしょうか。</p>
+
+</div>
+<div class="section">
+    <h4>使い方</h4>
+    <p>DBI::Profileの使い方はいくつかありますが、今回は$ENV{DBI_PROFILE}にセットする方法を使います。他には$dbh->{Profile}にセットする方法もあります。<br />
+設定できる値は以下の通りで、必要な情報を組み合わせることになります。詳しくはperldoc DBI::Profileを参照してください。</p><p> - DBI,          0x01<br />
+ - !Statement,   0x02<br />
+ - !MethodName,  0x04<br />
+ - !MethodClass, 0x08<br />
+ - !Caller<br />
+ - !Caller2,     0x10<br />
+ - !File<br />
+ - !File2<br />
+ - !Time<br />
+ - !Time~N</p><p>文字列と数値表記の2種類ありますので、好きな方を使ってください。私は環境変数からセットすることが多いので数値表記の方が好みです。実際には以下のように使っています。</p>
+
+    <pre class="code lang-bash">$ DBI_PROFILE=2 perl myscript.pl</pre>
+<p>この記事では以下のスクリプトをプロファイリングの対象として使います。例外処理は省略してあります。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+use DBI;
+
+my $dbh = DBI-&gt;connect(
+    &#39;dbi:SQLite:&#39;,
+    &#39;&#39;, &#39;&#39;,
+    {   RaiseError     =&gt; 1,
+        AutoCommit     =&gt; 1,
+        sqlite_unicode =&gt; 1,
+    }
+);
+
+$dbh-&gt;do($_)
+    for
+    q{CREATE TABLE t1 ( id integer primary key autoincrement, body text )},
+    q{INSERT INTO t1 (id, body) VALUES (1, &#39;foo&#39;)},
+    q{INSERT INTO t1 (id, body) VALUES (2, &#39;bar&#39;)};
+
+$dbh-&gt;selectall_arrayref( q{SELECT * FROM t1 WHERE id &lt; ?},
+    { Slice =&gt; {} }, 10 );
+
+$dbh-&gt;selectall_arrayref( q{SELECT * FROM t1 WHERE body = ?},
+    { Slice =&gt; {} }, &#39;foo&#39; );
+
+$dbh-&gt;disconnect;</pre>
+
+</div>
+<div class="section">
+    <h4>何はともあれProfileを取ってみる</h4>
+    
+    <pre class="code lang-bash">$ DBI_PROFILE=2 perl myscript.pl</pre>
+<p>上記コマンドを実行すると以下のような結果が得られます。</p>
+
+    <pre class="code">DBI::Profile: 0.001440s (16 calls) myscript.pl @ 2011-12-13 01:25:36
+&#39;&#39; =&gt;
+    0.000342s / 10 = 0.000034s avg (first 0.000263s, min 0.000000s, max 0.000263s)
+&#39;CREATE TABLE t1 ( id integer primary key autoincrement, body text )&#39; =&gt;
+    0.000693s
+&#39;INSERT INTO t1 (id, body) VALUES (1, &#39;foo&#39;)&#39; =&gt;
+    0.000100s
+&#39;INSERT INTO t1 (id, body) VALUES (2, &#39;bar&#39;)&#39; =&gt;
+    0.000078s
+&#39;SELECT * FROM t1 WHERE body = ?&#39; =&gt;
+    0.000081s / 2 = 0.000040s avg (first 0.000080s, min 0.000001s, max 0.000080s)
+&#39;SELECT * FROM t1 WHERE id &lt; ?&#39; =&gt;
+    0.000146s</pre>
+<p>この結果を見ると全体で0.001440s、その中でもCREATE TABLEが0.000693sかかっているのがわかります。<br />
+各クエリの実行時間と回数が記録されているので、どのクエリがボトルネックになっているかすぐわかりますね。</p><p>ちなみに『全部盛り』的な感じにすると以下のようになります。</p>
+
+    <pre class="code">$ DBI_PROFILE=31 perl myscript.pl
+
+DBI::Profile: 0.001600s (16 calls) myscript.pl @ 2011-12-13 01:30:31
+&#39;DBI&#39; =&gt;
+    &#39;&#39; =&gt;
+        &#39;STORE&#39; =&gt;
+            &#39;DBD::SQLite::db::STORE&#39; =&gt;
+                &#39;DBI.pm line 717&#39; =&gt;
+                    0.000005s / 3 = 0.000002s avg (first 0.000005s, min 0.000000s, max 0.000005s)
+                &#39;DBI.pm line 720 via myscript.pl line 11&#39; =&gt;
+                    0.000002s / 2 = 0.000001s avg (first 0.000002s, min 0.000000s, max 0.000002s)
+                &#39;DBI.pm line 736 via myscript.pl line 11&#39; =&gt;
+                    0.000002s
+        &#39;connect&#39; =&gt;
+            &#39;DBD::SQLite::dr::connect&#39; =&gt;
+                &#39;DBI.pm line 665&#39; =&gt;
+                    0.000374s
+        &#39;connected&#39; =&gt;
+            &#39;DBD::_::db::connected&#39; =&gt;
+                &#39;DBI.pm line 727&#39; =&gt;
+                    0.000003s
+        &#39;disconnect&#39; =&gt;
+            &#39;DBD::SQLite::db::disconnect&#39; =&gt;
+                &#39;myscript.pl line 32&#39; =&gt;
+                    0.000076s
+        &#39;disconnect_all&#39; =&gt;
+            &#39;DBD::SQLite::dr::disconnect_all&#39; =&gt;
+                &#39;DBI.pm line 744 via myscript.pl line 0&#39; =&gt;
+                    0.000001s
+    &#39;CREATE TABLE t1 ( id integer primary key autoincrement, body text )&#39; =&gt;
+        &#39;do&#39; =&gt;
+            &#39;DBD::SQLite::db::do&#39; =&gt;
+                &#39;myscript.pl line 21&#39; =&gt;
+                    0.000704s
+    &#39;INSERT INTO t1 (id, body) VALUES (1, &#39;foo&#39;)&#39; =&gt;
+        &#39;do&#39; =&gt;
+            &#39;DBD::SQLite::db::do&#39; =&gt;
+                &#39;myscript.pl line 21&#39; =&gt;
+                    0.000110s
+    &#39;INSERT INTO t1 (id, body) VALUES (2, &#39;bar&#39;)&#39; =&gt;
+        &#39;do&#39; =&gt;
+            &#39;DBD::SQLite::db::do&#39; =&gt;
+                &#39;myscript.pl line 21&#39; =&gt;
+                    0.000078s
+    &#39;SELECT * FROM t1 WHERE body = ?&#39; =&gt;
+        &#39;DESTROY&#39; =&gt;
+            &#39;DBD::SQLite::db::DESTROY&#39; =&gt;
+                &#39;&#39; =&gt;
+                    0.000001s
+        &#39;selectall_arrayref&#39; =&gt;
+            &#39;DBD::SQLite::db::selectall_arrayref&#39; =&gt;
+                &#39;myscript.pl line 29&#39; =&gt;
+                    0.000098s
+    &#39;SELECT * FROM t1 WHERE id &lt; ?&#39; =&gt;
+        &#39;selectall_arrayref&#39; =&gt;
+            &#39;DBD::SQLite::db::selectall_arrayref&#39; =&gt;
+                &#39;myscript.pl line 26&#39; =&gt;
+                    0.000146s</pre>
+<p>表示される情報が多すぎるような気がしますが、クエリの実行箇所も出ています。クエリが実行されているファイル名と行数がわかると対処が楽になります。<br />
+ちなみに実行箇所とクエリだけなら DBI_PROFILE='!Statement:!File' のような指定でも十分です。</p>
+
+</div>
+<div class="section">
+    <h4>独自のProfileクラスの設定</h4>
+    <p>今まではDBI::Profileを使ってきましたが、自分で独自のProfileクラスを設定することができます。しかし、私は独自クラスを作ったことがないので、DBIに標準でついてくるDBI::ProfileDumperを紹介します。</p><p>DBI::Profile以外のクラスを設定するのも簡単で、以下のように出力する情報の種類の後に"/"を付け、指定します。</p>
+
+    <pre class="code lang-bash">$ DBI_PROFILE=&#39;!Statement:!File/DBI::ProfileDumper&#39; perl myscript.pl</pre>
+<p>実際に上記コマンドを実行しても、何も表示されないかと思いますが安心してください。DBI::ProfileDumperはSTDERRのかわりに、カレントディレクトリのdbi.profに情報を出力します。</p><p>実際に出力した結果が以下になります。</p>
+
+    <pre class="code">DBI::ProfileDumper 2.013956
+Path = [ !Statement, !File ]
+Program = myscript.pl
+
++ 1
++ 2 DBI.pm
+= 9 0.000326871871948242 0.000310897827148438 0 0.000310897827148438 1323707874.05873 1323707874.0605
++ 2 myscript.pl
+= 1 7.29560852050781e-05 7.29560852050781e-05 7.29560852050781e-05 7.29560852050781e-05 1323707874.06035 1323707874.06035
++ 1 INSERT INTO t1 (id, body) VALUES (2, &#39;bar&#39;)
++ 2 myscript.pl
+= 1 8.60691070556641e-05 8.60691070556641e-05 8.60691070556641e-05 8.60691070556641e-05 1323707874.05999 1323707874.05999
++ 1 SELECT * FROM t1 WHERE id &lt; ?
++ 2 myscript.pl
+= 1 0.000162839889526367 0.000162839889526367 0.000162839889526367 0.000162839889526367 1323707874.06009 1323707874.06009
++ 1 CREATE TABLE t1 ( id integer primary key autoincrement, body text )
++ 2 myscript.pl
+= 1 0.000735044479370117 0.000735044479370117 0.000735044479370117 0.000735044479370117 1323707874.05913 1323707874.05913
++ 1 SELECT * FROM t1 WHERE body = ?
++ 2
+= 1 9.5367431640625e-07 9.5367431640625e-07 9.5367431640625e-07 9.5367431640625e-07 1323707874.06043 1323707874.06043
++ 2 myscript.pl
+= 1 8.79764556884766e-05 8.79764556884766e-05 8.79764556884766e-05 8.79764556884766e-05 1323707874.06026 1323707874.06026
++ 1 INSERT INTO t1 (id, body) VALUES (1, &#39;foo&#39;)
++ 2 myscript.pl
+= 1 0.000111103057861328 0.000111103057861328 0.000111103057861328 0.000111103057861328 1323707874.05987 1323707874.05987</pre>
+<p>見ての通り、何がなんだかわかりません。dbi.profファイルは直接閲覧するのではなく、付属のdbiprofコマンドの引数に渡すことで人間用の表示になります。出力結果が長いので一部省略しますが、以下のような感じになります。</p>
+
+    <pre class="code">$ dbiprof dbi.prof
+
+DBI Profile Data (DBI::ProfileDumper 2.013956)
+
+  Program       : myscript.pl
+  Path          : [ !Statement, !File ]
+  Total Records : 8 (showing 8, sorted by total)
+  Total Count   : 16
+  Total Runtime : 0.001584 seconds
+
+#####[ 1 ]###########################################################
+  Count         : 1
+  Time          : 0.000735 seconds
+  Key 1         : CREATE TABLE t1 ( id integer primary key autoincrement, body text )
+  Key 2         : myscript.pl
+
+#####[ 2 ]###########################################################
+  Count         : 9
+  Total Time    : 0.000327 seconds
+  Longest Time  : 0.000311 seconds
+  Shortest Time : 0.000000 seconds
+  Average Time  : 0.000036 seconds
+  Key 1         :
+  Key 2         : DBI.pm
+
+#####[ 3 ]###########################################################
+  Count         : 1
+  Time          : 0.000163 seconds
+  Key 1         : SELECT * FROM t1 WHERE id &lt; ?
+  Key 2         : myscript.pl
+
+#####[ 4 ]###########################################################
+  Count         : 1
+  Time          : 0.000111 seconds
+  Key 1         : INSERT INTO t1 (id, body) VALUES (1, &#39;foo&#39;)
+  Key 2         : myscript.pl
+</pre>
+<p>これでずいぶん見やすくなったのではないでしょうか。これを素に実行計画を確認すると色々と捗るのではないかと思います。</p>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>DBI::Profileを使ったプロファイリングのメリットは、そのお手軽さにあります。DBI::ProfileはDBIのディストリに含まれているので、追加でライブラリをインストールしなくても使えるはずです。しかし、計測対象が多くなるとノイズ増えるというデメリットがあります。そのような場合はDBIx Trackでも既出の<a href="http://perl-users.jp/articles/advent-calendar/2011/dbix/9">DBIx::QueryLog</a>や<a href="http://search.cpan.org/perldoc?DBIx%3A%3AProfileManager">DBIx::ProfileManager</a>を使うといいではないでしょうか。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

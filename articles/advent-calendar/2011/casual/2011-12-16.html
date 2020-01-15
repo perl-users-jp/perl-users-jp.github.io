@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="aska">
+        <meta name="author" content="aska">
+        <title>dropbox-api-command - DropboxでLinuxライクなコマンド操作を - Articles Advent Calendar 2011 Casual</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>dropbox-api-command - DropboxでLinuxライクなコマンド操作を</h1>
+
+        <p>はい、One Page Appsの@su_askaです。</p><p>今日はちゃんとPerlの話をしようと思います。</p><p>DropboxというとクライアントOSにインストールして使用するイメージが強いですが、自分のサーバー上でも利用したい場合もあります。</p><p>Linux用のパッケージもあるので全部同期して構わなければそれをインストールする方法もあるのですが、デーモンまで上げるのはちょっと大袈裟だなーというシチュエーションもありますよね！</p><p>例えば...</p>
+
+<ul>
+<li>個人契約のサーバーで運用しているDBのバックアップ</li>
+<li>期間削除</li>
+</ul><p>そんな時はdropbox-api-commandの出番です！（迫真</p><p><a href="https://github.com/s-aska/dropbox-api-command">https://github.com/s-aska/dropbox-api-command</a></p><p>インストールの仕方や細かい使用方法は上記URLを参照下さい。</p>
+
+<div class="section">
+    <h4>豊富なコマンド群</h4>
+    <p>linuxライクな</p>
+
+<ul>
+<li>ls</li>
+<li>**find**</li>
+<li>**sync**</li>
+<li>cp</li>
+<li>mv</li>
+<li>rm</li>
+<li>mkdir</li>
+<li>get</li>
+<li>put</li>
+<li>uid</li>
+</ul><p>API単体の操作はcurlでも可能ですがrsyncっぽい処理を自作するのはなかなか面倒です!</p>
+
+<div class="section">
+    <h5>syncの使用例 ( remote => local )</h5>
+    <p>delete ( -d ), dry run ( -n ), verbose ( -v ) に作り手のこだわりを感じますね!!</p>
+
+    <pre class="code">&gt; dropbox-api sync dropbox:/product/checker/src /tmp/product -dnv
+remote_base: /product/chrome-extentions/checker/src
+local_base: /private/tmp/product
+** download **
+skip background.html
+download /private/tmp/product/external.png
+download /private/tmp/product/icon-32.png
+download /private/tmp/product/icon-128.png
+skip icon.gif
+skip jquery-1.4.2.min.js
+skip main.js
+skip manifest.json
+skip options.html
+skip popup.html
+skip reset.css
+** delete **
+skip background.html
+remove background.html.tmp
+skip icon.gif
+skip jquery-1.4.2.min.js
+skip main.js
+skip manifest.json
+skip options.html
+skip popup.html
+skip reset.css</pre>
+
+</div>
+</div>
+<div class="section">
+    <h4>今なら親切なマニュアル付き</h4>
+    <p>意外とこの手のプロダクトはgithubに置きっ放しで作者以外使い方がわからなかったりオプションの説明が抜けていたりするものも少なくないのですが、このプロダクトはすべてのコマンド・オプション・実行結果のサンプルをREADMEに張っていますし、helpサブコマンドから各コマンドの使用方法を参照することができます。</p>
+
+</div>
+<div class="section">
+    <h4>アプリケーションへの組み込み</h4>
+    <p>Dropbox API v1.0 対応の WebService::Dropbox をご利用下さい。</p><p><a href="https://metacpan.org/module/WebService::Dropbox">https://metacpan.org/module/WebService::Dropbox</a></p><p>すべてのREST APIに対応するメソッドがあり対応する名前がそのまま、日本語のエスケープ処理等気にせずdecodeされたutf8文字列でファイル名を投げれるので凄くストレスフリーですね!</p><br />
+<p>明日は Werlのダメ人間 さんです。お楽しみに！</p><p><a onclick="document.getElementById('omake').style.display = 'block'">おまけ</a></p><p><div id="omake" style="display: none"></p><p>※以下ボツネタ</p>
+
+</div>
+<div class="section">
+    <h3>plackupでワンライナー</h3>
+    
+<div class="section">
+    <h4>envをげろげろーってするやつ</h4>
+    
+    <pre class="code lang-perl">plackup -e &#34;sub { use Data::Dumper;warn Dumper(@_);[200, [], [&#39;ok&#39;]] }&#34;</pre>
+
+</div>
+<div class="section">
+    <h4>give me 適当なヘッダー</h4>
+    
+    <pre class="code lang-perl">plackup -e &#34;sub { [404, [&#39;X-XRDS-Location&#39;, &#39;http://www.example.jp/xrds&#39;], [&#39;404&#39;]] }&#34;</pre>
+
+</div>
+<div class="section">
+    <h4>CPANにUPする前に欠かせない紳士のPODチェック</h4>
+    
+    <pre class="code lang-perl">plackup -MDocLife::Pod -e &#39;DocLife::Pod-&gt;new( root =&gt; &#34;./lib&#34; )-&gt;to_app&#39;</pre>
+
+</div>
+</div>
+<div class="section">
+    <h3>ワンライナーの探し方（過去自分で書いた）</h3>
+    <p>gistに上げてAPIをブラウザでアクセスしてCtrl-F</p><p><a href="https://api.github.com/users/s-aska/gists">https://api.github.com/users/s-aska/gists</a> (s-askaの所はあなたのIDにしてね!)</p><p>description埋めてないとこれでも探せないZe☆</p>
+
+</div>
+<div class="section">
+    <h3>ガラケーサイト with Plack::Session</h3>
+    <p>Amon2::Setup::Flavor::MobileJP ! ※詳しくはamon2トラック参照</p><p>Amon2::Setup::Flavor::MobileJP !! ※大 (ry</p><p>Plack::MiddlewareでSession使う必要があり、</p><p><a href="HTTP::SessionからURIに埋めるヤツを複写して使っていたのですが、">HTTP::SessionからURIに埋めるヤツを複写して使っていたのですが、</a></p><p>今はcpanに上げています。</p><p>Plack::Session::State::URI使うとcookieダメな子も安心!</p><p>※CookieいけるときはCookieで的な事まではしてないです、ごめんよみんな</p>
+
+    <pre class="code lang-perl">enable &#39;Plack::Middleware::Session&#39;,
+    %{ $config-&gt;{Session} },
+    state =&gt; Plack::Session::State::URI-&gt;new(
+        session_id_name =&gt; &#39;sss&#39;,
+    );</pre>
+
+</div>
+<div class="section">
+    <h3>MySQL Casual with Teng</h3>
+    <p>jsonの値MySQLに突っ込みたい時に xxx_json 的なカラムは自動en/decodeする的なコード</p><p>よくある_onをDateTimeにする奴とかと一緒な感じですね。 (詳しくはtengトラック参照)</p><p>やり方は色々あります、以下はあくまでサンプルという事でお願いします。</p>
+
+    <pre class="code lang-perl">sub db {
+    my $c = shift;
+    unless ( defined $c-&gt;{db} ) {
+        my $conf = $c-&gt;config-&gt;{DBI}
+          or die &#34;missing configuration for &#39;DB&#39;&#34;;
+        my $dbh = DBI-&gt;connect(@$conf);
+        my $schema = Teng::Schema::Loader-&gt;load(
+            namespace =&gt; &#39;MyApp::DB&#39;,
+            dbh =&gt; $dbh
+        );
+        for my $table (values %{ $schema-&gt;tables }) {
+            for my $column (grep /_json$/, @{ $table-&gt;columns }) {
+                $table-&gt;add_inflator($column, sub {
+                    $_[0] ? decode_json(shift) : {}
+                });
+                $table-&gt;add_deflator($column, sub {
+                    encode_json(shift)
+                });
+            }
+        }
+        $c-&gt;{db} = MyApp::DB-&gt;new(
+            dbh    =&gt; $dbh,
+            schema =&gt; $schema
+        );
+    }
+    return $c-&gt;{db};
+}</pre>
+
+<ul>
+<li>スキーマから定義</li>
+<li>_json で終わるカラム名は自動 en/decode</li>
+<li>カラム拡張とかもしたいので MyApp::DB は書いてある</li>
+</ul>
+</div>
+<div class="section">
+    <h3>Perlのススメ</h3>
+    <p>このエントリーを見てくれた人の中には</p><p>「実は私まだPerl Mongerじゃ...」という方もいるかも知れません（居ないよ!!）</p><p>なので色々紹介してみましょう!!</p>
+
+<div class="section">
+    <h4>書</h4>
+    <p>みんなもどんどん書いてみよう!</p>
+
+<ul>
+<li>初めてのPerl</li>
+<li>続・初めてのPerl</li>
+<li>モダンPerl入門</li>
+<li>Perl CPANモジュールガイド</li>
+<li>体系的に学ぶ 安全なWebアプリケーションの作り方</li>
+</ul>
+</div>
+<div class="section">
+    <h4>環境</h4>
+    <p>今更感満載ですがこれが全部揃わないことにはperlの開発は始まりません!!</p>
+
+<ul>
+<li>perlbrew ... システムPerlで開発しちゃらめーーー</li>
+<li>cpanm ... モジュールのインストールはもちろん</li>
+<li>carton ... バージョン管理もバッチリ</li>
+<li>Plack ... mod_perlはオワコン</li>
+<li>git ... 商用のVCS使ったことねーから!!</li>
+<li>TextMate ... EmacsやVimが人気ですが個人的にはTextMateが好みです</li>
+<li>MBP ... やっぱり開発はUnixが望ま...、おっと<a href="http://mattn.kaoriya.net">mattn</a>さんの影が</li>
+<li>水 ... 長時間開発する際は適度な水分補給を忘れずに</li>
+</ul>
+</div>
+<div class="section">
+    <h4>超頻用Module</h4>
+    <p>アプリ書く時にほぼ毎回全部使う奴ですね!!!</p>
+
+<ul>
+<li>Amon2 ... 紳士はCatalystと聞くと重たい気持ちになる</li>
+<li>JSON ... 紳士はXMLなんて使わないんです（ｷﾘｯ</li>
+<li>Xslate ... 紳士はTTとかマジ勘弁</li>
+<li>Furl ... LWP使っていいのは小学生まで</li>
+<li>Teng ... Liteな時は Amon2::DBI, DBIx::Simple あたりがオススメ</li>
+</ul>
+</div>
+<div class="section">
+    <h4>集い</h4>
+    <p>#perl-casual@freenode.netや各地PM、最近はTwitterもあるので気軽にやり取りできるようになりました。</p><p>まずはビールからという人はPMに顔を出すのが一番手っ取り早いと懐います、あとMySQL Casualとかいいと思います、私は泥酔して@myfinderさんにご迷惑を（ｒｙ</p><p>あとはPerl話沢山聴きたい時はYAPCですが年に一回でチケットが売り切れ続出なので早目にチェックするといいと思います、トークするとチケット無料です、やったね！（ｒｙ</p>
+
+</div>
+<div class="section">
+    <h4>今年の戦果</h4>
+    <p>1記事書かせて頂いた記念に自分の成果物を晒したいと思います!</p><p>来年もいっぱいなにか作ってると思います!!</p>
+
+<ul>
+<li>DocLife ... cpan/githubのお供に</li>
+<li>dropbox-api-command ... Linux環境でデーモンじゃなくてスクリプトでDropbox扱いたい時に</li>
+<li>bookma!{ぶ) ... <a href="http://bookma.org/">http://bookma.org/</a></li>
+<li>MarkdownBinder ... <a href="http://doc.7kai.org/">http://doc.7kai.org/</a> (wikiっぽいMarkdownビューア )</li>
+<li>MarkdownDiary ... <a href="http://blog.7kai.org/">http://blog.7kai.org/</a> (blogっぽいMarkdownビューア )</li>
+<li>7kai Tasks ...<a href="https://tasks.7kai.org/">https://tasks.7kai.org/</a> (ソーシャルタスク管理サービス)</li>
+</ul><p></div></p>
+
+</div>
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

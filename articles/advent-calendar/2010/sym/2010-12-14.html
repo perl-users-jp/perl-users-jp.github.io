@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="masa">
+        <meta name="author" content="masa">
+        <title>VB.NETイミディエイトウィンドウで記号プログラミング - Articles Advent Calendar 2010 Sym</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>VB.NETイミディエイトウィンドウで記号プログラミング</h1>
+
+        <p>こんにちは masa (<a href="http://twitter.com/masa141421356">@masa141421356</a>)です。<br />
+竹迫さんのPythonのネタを見てVB.NETでも "saru"を記号だけで出力できるつぶやいたところ<br />
+意外と反響があったので記事を書いてみました。よろしくおねがいします。</p>
+
+<div class="section">
+    <h5>1.VB.NETで記号プログラミングをするには</h5>
+    <p>VB.NETは言語仕様上普通の方法では記号だけでプログラムを記述する方法がありません。</p><p>しかし、VB.NETのイミディエイトウィンドには古いBASICでPRINT文のエイリアスとして用意されていた</p>
+
+    <pre class="code">? expression</pre>
+<p>が今でも</p>
+
+    <pre class="code lang-vb">Debug.Print(expression)</pre>
+<p>のエイリアスに形を変えて生き残っているので、これを使って記号だけでコードを実行させることにします。</p>
+
+</div>
+<div class="section">
+    <h5>2.記号だけで作成できるリテラル</h5>
+    <p>VB.NETの構文では記号だけを使って記述できるリテラルは文字列だけなので、それを使って何とかして英数字<br />
+を作る方法を考えます。</p>
+
+</div>
+<div class="section">
+    <h5>3.&amp;演算子を活用しよう</h5>
+    <p>&amp;演算子は文字列と文字列ではない値の組み合わせの場合は、自動的に一方の値を文字列へ変換します。</p><p>つまり、</p>
+
+    <pre class="code lang-vb">?&#34;&#34; &amp; (式)</pre>
+<p>を</p>
+
+    <pre class="code lang-vb">?(式).ToString()</pre>
+<p>の代わりに使用することが可能です。</p>
+
+</div>
+<div class="section">
+    <h5>4.Booleanを文字列に変換しよう</h5>
+    <p>文字列と文字列の比較の結果はBooleanになるので、これを利用して値の文字列表現を得ることが出来ます</p>
+
+    <pre class="code lang-vb">&#34;&#34;&amp;(&#34;&#34;=&#34;&#34;) → &#34;&#34; &amp; True → &#34;True&#34;
+&#34;&#34;&amp;(&#34;&#34;&gt;&#34;&#34;) → &#34;&#34; &amp; False → &#34;False&#34;</pre>
+
+</div>
+<div class="section">
+    <h5>5.数字を使わずに数値を生成する</h5>
+    <p> + - * / ^ 等の数値演算の演算子と Boolean を組み合わせて使うと True は -1, False は 0<br />
+として計算が行われるので、これを使用していろいろな数値を生成することが可能です。</p>
+
+    <pre class="code lang-vb">?-(&#34;&#34;&gt;&#34;&#34;) → 0
+?-(&#34;&#34;=&#34;&#34;) → 1
+?-(&#34;&#34;=&#34;&#34;)-(&#34;&#34;=&#34;&#34;) → 2</pre>
+<p>生成した数値を "" と&演算子で結合することで、"0"～"9"の数字が生成できます。</p>
+
+</div>
+<div class="section">
+    <h5>6.文字列の任意の位置の文字を切り出す</h5>
+    
+    <pre class="code lang-vb">文字列(整数)</pre>
+<p>を使うと</p>
+
+    <pre class="code lang-vb">文字列.charAt(整数)</pre>
+<p>と同じ様に指定位置の文字を切り出すことが可能なので、これを使って</p>
+
+    <pre class="code lang-vb">?(&#34;&#34;&amp;(&#34;&#34;&gt;&#34;&#34;))(-(&#34;&#34;=&#34;&#34;)-(&#34;&#34;=&#34;&#34;)-(&#34;&#34;=&#34;&#34;))
+→ (&#34;&#34; &amp; False)(-True-True-True)
+→ &#34;False&#34;(3) → &#34;s&#34;c</pre>
+<p>の様にして "True", "False" に含まれる "a", "e", "F", "l", "r", "s", "T", "u" を切り出すことが出来ます</p>
+
+</div>
+<div class="section">
+    <h5>7."saru"を作ってみよう</h5>
+    <p>ここまで説明した内容を組み合わせると "saru" を作ることが可能です。</p>
+
+    <pre class="code lang-vb">&#34;saru&#34;　= &#34;False&#34;(3) &amp; &#34;False&#34;(1) &amp; &#34;True&#34;(1) &amp; &#34;True&#34;(2)</pre>
+<p>なので</p>
+
+    <pre class="code lang-vb">?(&#34;&#34;&amp;(&#34;&#34;&gt;&#34;&#34;))(-(&#34;&#34;=&#34;&#34;)-(&#34;&#34;=&#34;&#34;)-(&#34;&#34;=&#34;&#34;))&amp;(&#34;&#34;&amp;(&#34;&#34;&gt;&#34;&#34;))(-(&#34;&#34;=&#34;&#34;))&amp;(&#34;&#34;&amp;(&#34;&#34;=&#34;&#34;))(-(&#34;&#34;=&#34;&#34;))&amp;(&#34;&#34;&amp;(&#34;&#34;=&#34;&#34;))(-(&#34;&#34;=&#34;&#34;)-(&#34;&#34;=&#34;&#34;))
+→ &#34;saru&#34;</pre>
+<p>となります。</p>
+
+</div>
+<div class="section">
+    <h5>8.応用編：特殊な数値の文字列表現を使う</h5>
+    <p> 0/0 が NaN になることを利用して</p>
+
+    <pre class="code lang-vb">?(&#34;&#34; &amp; ((&#34;&#34;=&#34;&#34;)/(&#34;&#34;=&#34;&#34;)))(-(&#34;&#34;&gt;&#34;&#34;))
+→ &#34;N&#34;</pre>
+<p>で "N" を生成することが可能です。また、大きな数値の文字列表現が指数表示になることを利用すると "E" も生成することが可能です。</p><p>1/0 の文字列表現から "Infinitiy" が取れそうなのですが、残念ながら無限大の文字列表現は "∞"<br />
+になってしまうので英数字の取り出しには使用できません。</p>
+
+</div>
+<div class="section">
+    <h5>9.まとめ</h5>
+    
+<ul>
+<li>イミディエイトウィンドウは?が使えるので記号プログラミングに使用できる</li>
+<li>&amp;演算子を活用すればToStringメソッドを使わなくても文字列に変換できる</li>
+<li>Booleanから数値型への暗黙の型変換を活用すると色々な数値を得ることが出来る。</li>
+<li>CharAtメソッドを使わなくても文字列から一文字を切り出すことが出来る</li>
+</ul>
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

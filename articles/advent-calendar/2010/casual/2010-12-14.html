@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="punytan <punytan@cpan.org>">
+        <meta name="author" content="punytan <punytan@cpan.org>">
+        <title>書き捨てスクリプトを書くときに便利なモジュールとPragmatic Module - Articles Advent Calendar 2010 Casual</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>書き捨てスクリプトを書くときに便利なモジュールとPragmatic Module</h1>
+
+        <p>先月末から原稿を書こう書こうと延ばし延ばしきて当日に書いている私こと<a href="http://linknode.net">punytan</a>です。</p><p>みなさん、書き捨てスクリプト書いてますか？書いてますよね。<br />
+書き捨てのつもりがいつの間にかオプションを取るようになっていて、使うときに「オプションなんだっけ…?」なんてことよくありますよね。ありますね。</p>
+
+<div class="section">
+    <h3>そんなときは</h3>
+    <p>Getopt::Long と Pod::Usage を組み合わせて使うと POD で Usage を書く事ができます。便利！</p>
+
+    <pre class="code lang-perl">use Getopt::Long;
+use Pod::Usage;
+
+my $man = 0;
+my $help = 0;
+
+GetOptions(&#39;help|?&#39; =&gt; \$help, man =&gt; \$man) or pod2usage(2);
+pod2usage(1) if $help;
+pod2usage(-exitstatus =&gt; 0, -verbose =&gt; 2) if $man;
+
+__END__
+
+=head1 NAME
+
+sample - Using Getopt::Long and Pod::Usage
+
+=head1 SYNOPSIS
+
+sample [options] [file ...]
+
+Options:
+-help            brief help message
+-man             full documentation
+
+=head1 OPTIONS
+
+=over 8
+
+=item B&lt;-help&gt;
+
+Print a brief help message and exits.
+
+=item B&lt;-man&gt;
+
+Prints the manual page and exits.
+
+=back
+
+=head1 DESCRIPTION
+
+B&lt;This program&gt; will read the given input file(s) and do something
+useful with the contents thereof.
+
+=cut</pre>
+<p>とまぁ本題はそこそこに</p>
+
+</div>
+<div class="section">
+    <h3>use common::sense;</h3>
+    <p>common::sense という便利なモジュールを紹介したいと思います。</p>
+
+    <pre class="code lang-perl">use common::sense;</pre>
+<p>とすると</p>
+
+    <pre class="code lang-perl">use utf8;
+use strict qw(vars subs);
+use feature qw(say state switch);
+no warnings;
+use warnings qw(FATAL closed threads internal debugging pack malloc
+                portable prototype inplace io pipe unpack regexp
+                deprecated glob digit printf layer
+                reserved taint closure semicolon);
+no warnings qw(exec newline unopened);</pre>
+<p>と同等の機能を、省タイピングかつ省メモリで得ることができる、書き捨てにはもってこいのプラグマです。<br />
+もちろん、書き捨てでないものでも自己責任で使ってもいいと思いますよ！</p><p>github で利用数を検索すると<a href="https://github.com/search?langOverride=Perl&language=&q=use+common+sense&repo=&start_value=1&type=Code&x=0&y=0">5177件</a>ほど見つかるので利用率の高いモジュールではないでしょうか。</p>
+
+<div class="section">
+    <h4>実装はどうなっているんだろう</h4>
+    
+    <pre class="code">perldoc -m common::sense</pre>
+<p>してソースを確認してみると</p>
+
+    <pre class="code lang-perl">package common::sense;
+
+our $VERSION = &#39;3.3&#39;;
+
+# overload should be included
+
+sub import {
+   # use warnings
+   ${^WARNING_BITS} ^= ${^WARNING_BITS} ^ &#34;\x3c\x3f\x33\x00\x0f\xf3\x0f\xc0\xf0\xfc\x33\x00&#34;;
+   # use strict, use utf8;
+   $^H |= 0x800600;
+   # use feature
+   $^H{feature_switch} =
+   $^H{feature_say}    =
+   $^H{feature_state}  = 1;
+}
+
+1;</pre>
+<p>とあります。なんだこれは!</p>
+
+    <pre class="code">perldoc -v $^H</pre>
+<p>してもよく分からないのですが、 $^H は Perl parser への hints で、よくわからない場合は弄らない方が身のためだと(言う旨が) Programming Perl にかかれています。</p>
+
+</div>
+<div class="section">
+    <h4>どうやって生成しているのか</h4>
+    <p>答えは<a href="http://cpansearch.perl.org/src/MLEHMANN/common-sense-3.3/sense.pm.PL"> インストール前の dist </a> をみるとわかります</p><p>__DATA__ 以下がテンプレートになっており、 printf() を使って sense.pm を出力しています。</p><p>これは、$^H の perldoc に</p>
+
+    <pre class="code">Its availability, behavior, and contents are subject to change without notice.</pre>
+<p>と記述があるので、バージョン 3.1 からこれへの対策が入ったようです。</p>
+
+</div>
+</div>
+<div class="section">
+    <h3>注意点</h3>
+    <p>warnings プラグマは大量のカテゴリを持っているため、全て把握することは難しいと思います。<br />
+perllexwarn から抜粋するといっぱい！</p>
+
+    <pre class="code"> all
+ |
+ +- closure
+ +- deprecated
+ +- exiting
+ +- glob
+ +- io -----------+
+ |                +- closed
+ |                +- exec
+ |                +- layer
+ |                +- newline
+ |                +- pipe
+ |                +- unopened
+ +- imprecision
+ +- misc
+ +- numeric
+ +- once
+ +- overflow
+ +- pack
+ +- portable
+ +- recursion
+ +- redefine
+ +- regexp
+ +- severe -------+
+ |                +- debugging
+ |                +- inplace
+ |                +- internal
+ |                +- malloc
+ +- signal
+ +- substr
+ +- syntax -------+
+ |                +- ambiguous
+ |                +- bareword
+ |                +- digit
+ |                +- illegalproto
+ |                +- parenthesis
+ |                +- precedence
+ |                +- printf
+ |                +- prototype
+ |                +- qw
+ |                +- reserved
+ |                +- semicolon
+ +- taint
+ +- threads
+ +- uninitialized
+ +- unpack
+ +- untie
+ +- utf8
+ +- void</pre>
+<p>とくに</p>
+
+    <pre class="code lang-perl">{
+    use common::sense;
+
+    my $string = &#39;いろはにほへと&#39;;
+    print $string, &#34;\n&#34;;
+}
+
+{
+    use strict;
+    use warnings;
+    use utf8;
+
+    my $string = &#39;いろはにほへと&#39;;
+    print $string, &#34;\n&#34;;
+}</pre>
+<p>のような適当なコードでも、 common::sense の方では use warnings qw(utf8); となっていないため、 "Wide character in print at" の warnings が出力されないので、この様な違いについては注意をする必要があると思われます。ご利用は計画的に！</p><p>明日はモダンPerlの裏側を知り尽くした<a href="http://twitter.com/koba04">koba04</a>さんですっ！</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

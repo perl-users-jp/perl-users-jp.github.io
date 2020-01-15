@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="bayashi">
+        <meta name="author" content="bayashi">
+        <title>App::YG - ログをう゛ぁーてぃかるぱみゅぱみゅしちゃう！！ - Articles Advent Calendar 2012 Hacker</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>App::YG - ログをう゛ぁーてぃかるぱみゅぱみゅしちゃう！！</h1>
+
+        <p>やあハッキングモンスターのみんな、元気かーい？ ぼくは普通です。</p><p>きょうはみんなでログをう゛ぁーてぃかるぱみゅぱみゅしちゃうぞ！あ、こんにちは bayashi です。</p><p>さて、ログは見てるかい？cat してるかい？ tail してるかい？ GB単位のログを vim で開いてフリーズさせてやいないかい？ログは吐いたら終わりじゃいけないぜ！ちゃんとうぉっちしないと鬼がでちゃうぞ！！</p><p>とはいえ、そんなログも、たいていは1行につらつらと書かれてて見るのがつらいね！！例えばこんなやつだ。</p>
+
+    <pre class="code">$ tail log
+127.0.0.1 - bayashi [10/Oct/2000:13:55:36 -0700] &#34;GET /apache_pb.gif HTTP/1.0&#34; 200 2326 &#34;http://www.example.com/start.html&#34; &#34;Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0; .NET CLR 2.0.50727; .NET CLR 3.0.4506.2152; .NET CLR 3.5.30729)&#34;
+127.0.0.1 - bayashi [10/Oct/2000:13:55:38 -0700] &#34;GET / HTTP/1.0&#34; 200 6789 &#34;http://www.example.com/docs/2.2/logs.html&#34; &#34;Mozilla/5.0 (Windows NT 5.1; rv:12.0) Gecko/20100101 Firefox/12.0&#34;
+127.0.0.1 - bayashi [10/Oct/2000:13:55:39 -0700] &#34;GET /apache_pc.gif HTTP/1.0&#34; 200 1234 &#34;http://www.example.com/start.html&#34; &#34;Mozilla/5.0 (iPhone; U; CPU iPhone OS 4_3_2 like Mac OS X; ja-jp) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8H7 Safari/6533.18.5&#34;</pre>
+<p>こういうのを何千行も見て無意識に脳内パーズして目grepしてたら、頭がおかしくなってゾンビになりかけるだろ？</p><p>だからぼくは、yg っていうコマンドを使ってこうしてみるんだ！！</p>
+
+    <pre class="code">$ yg log
+******************** 1 ********************
+     Host: 127.0.0.1
+    Ident: -
+ Authuser: bayashi
+     Date: 10/Oct/2000:13:55:36 -0700
+  Request: GET /apache_pb.gif HTTP/1.0
+   Status: 200
+    Bytes: 2326
+  Referer: http://www.example.com/start.html
+UserAgent: Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0; .NET CLR 2.0.50727; .NET CLR 3.0.4506.2152; .NET CLR 3.5.30729)
+
+******************** 2 ********************
+     Host: 127.0.0.1
+    Ident: -
+ Authuser: bayashi
+     Date: 10/Oct/2000:13:55:38 -0700
+  Request: GET / HTTP/1.0
+   Status: 200
+    Bytes: 6789
+  Referer: http://www.example.com/docs/2.2/logs.html
+UserAgent: Mozilla/5.0 (Windows NT 5.1; rv:12.0) Gecko/20100101 Firefox/12.0
+
+******************** 3 ********************
+     Host: 127.0.0.1
+    Ident: -
+ Authuser: bayashi
+     Date: 10/Oct/2000:13:55:39 -0700
+  Request: GET /apache_pc.gif HTTP/1.0
+   Status: 200
+    Bytes: 1234
+  Referer: http://www.example.com/start.html
+UserAgent: Mozilla/5.0 (iPhone; U; CPU iPhone OS 4_3_2 like Mac OS X; ja-jp) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8H7 Safari/6533.18.5</pre>
+<p>どうだい？わいるどだろぉ？！</p>
+
+<div class="section">
+    <h4>App::YG</h4>
+    <p>yg コマンドは App::YG っていうモジュールをインストールしたらくっついてくるぞ！！</p>
+
+    <pre class="code lang-sh">$ sudo cpan App::YG</pre>
+<p>これでいつでも yg を使ってログをう゛ぁーてぃかるぱみゅぱみゅできちゃうぞ！簡単すぎますね！！</p><p>でも実は、ラベルを付けて縦表示というのはどんなログでもできるというわけじゃあないぞ！！できると思った？！できません！！テヘペロ！残念でした！！</p><p>いまのところ、apache / apache combined / apache error / nginx main がう゛ぁーてぃかるぱみゅぱみゅできるぞ！もし他のログ形式に対応したい場合は App::YG::Foo::Bar のようなものを書いて、</p>
+
+    <pre class="code lang-sh">$ yg -p foo-bar hoge.log</pre>
+<p>という風に、パーザに指定すればOK!!</p><p>結構面倒だね！こんなんじゃ使いたくないよ！！ってボクも思っちゃいました！！あちゃー＞＜</p>
+
+<div class="section">
+    <h5>さくっと縦分割</h5>
+    <p>でもやっぱり諦めたくない！諦めたらそこでPONPONPONですよ！！</p><p>というわけで、ログなんてだいたいタブ区切りとかですよね！！だからもうそういうのは適当にさくっとやっちゃえばいいんですよ！！</p><p>d オプションでぱみゅれます。</p>
+
+    <pre class="code">$ yg -d -n fuga.log
+******************** 1 ********************
+1: 2012-11-27 14:34:08
+2: [warn]
+3: MyDoc/wiki/perl/robots could not find MyDoc/wiki/perl/robots at dev/MyApp/lib/MyApp/C/MyApp/Wiki.pm line 31.\n
+4: METHOD:&#39;GET&#39;
+5: REQ:&#39;/wiki/perl/robots.txt&#39;
+6: IP:&#39;***.***.***.***&#39;
+7: UA:&#39;libwww-perl/6.04&#39;
+8: REF:&#39;&#39;
+9: (MyApp::F::Entry L15)
+
+******************** 2 ********************
+1: 2012-11-27 14:34:08
+2: [warn]
+3: Wiki Not Found
+4: METHOD:&#39;GET&#39;
+5: REQ:&#39;/wiki/perl/robots.txt&#39;
+6: IP:&#39;***.***.***.***&#39;
+7: UA:&#39;libwww-perl/6.04&#39;
+8: REF:&#39;&#39;
+9: (MyApp::C::MyApp::Wiki L33)
+
+******************** 3 ********************
+1: 2012-11-27 14:34:08
+2: [warn]
+3: MyDoc/wiki/robots could not find MyDoc/wiki/robots at dev/MyApp/lib/MyApp/C/MyApp/Wiki.pm line 31.\n
+4: METHOD:&#39;GET&#39;
+5: REQ:&#39;/wiki/robots.txt&#39;
+6: IP:&#39;***.***.***.***&#39;
+7: UA:&#39;libwww-perl/6.04&#39;
+8: REF:&#39;&#39;
+9: (MyApp::F::Entry L15)</pre>
+<p>やったね、たえちゃん！！(-n はラベルの代わりに項目番号を出すオプションです。)</p><p>ちなみに、yg は標準入力を受けてう゛ぁーてぃかるぱみゅぱみゅることもできるぞ！！</p>
+
+    <pre class="code">$ cat page.log | yg</pre>
+
+</div>
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>まあぶっちゃけ、ログなんてどうせ grep して絞り込んで目的のもの以外みてねーよという人が多いかもしれませんが、だらだら流してみてる場合なんかにはこういうのが有効かもしれないぞ！！</p><p>詳しいオプションは yg -h か man yg で参照するとお得！！ あなたの予想に反して、無駄に多くのオプションが用意されていてびっくり仰天することうけあいだ！！</p><p>というわけで、このモジュールが少しでもみなさまのお役に立てれば幸いだぞ！ bayashi でした！！</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

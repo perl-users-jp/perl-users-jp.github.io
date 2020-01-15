@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="koba04">
+        <meta name="author" content="koba04">
+        <title>カジュアルにデータを確率とか優先度で処理する - Articles Advent Calendar 2012 Casual</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>カジュアルにデータを確率とか優先度で処理する</h1>
+
+        <p>こんにちは、こんにちは。カジュアルにPerl使っている<a href="https://twitter.com/koba04">koba04</a> です。</p><br />
+<p>Webアプリを作っていて、確率で処理を分けたり複数の要素を重み付けて選びたいことってありませんか？</p><p>真っ先に浮かぶのはガチャみたいなものですが、それ以外にもランダムでバナーを出し分けてみたり、接続するサーバーを重み付けて選んだり色々と使い道が思い浮かびます。</p><br />
+<p>そんな時に使える二つのモジュールをご紹介したいと思います。<br />
+詳しくは下記の作者の方のブログを見てください。</p>
+
+<ul>
+<li><a href="http://unknownplace.org/memo/2012/07/17/1/">Sub::Rate</a></li>
+<li><a href="http://blog.livedoor.jp/xaicron/archives/53091000.html">Data::WeightedRoundRobin</a></li>
+</ul><p>以上！ でもいいのですが..順番に紹介してみたいと思います。</p><p></p>
+
+<div class="section">
+    <h4>モジュールなしで実装</h4>
+    <p>優先度を付けてデータを選びたい時はrandを使っての実装が思い浮かびますが、バグりそうな気もするし面倒だし出来れば書きたくないです。<br />
+(書き方が悪いという説もある)</p>
+
+    <pre class="code lang-perl"># 結果をdumpする関数
+sub dump_total {
+    my ($cb) = @_;
+
+    my $total;
+    for (1..1000) {
+        my $menu = $cb-&gt;();
+        if ( !exists $total-&gt;{$menu} ) {
+            $total-&gt;{$menu} = 0;
+        }
+        ++$total-&gt;{$menu};
+    }
+    say Dumper $total;
+}</pre>
+
+    <pre class="code lang-perl">my $rate = [
+    { rate =&gt; 40, value =&gt; &#34;寿司&#34; },
+    { rate =&gt; 20, value =&gt; &#34;ラーメン&#34; },
+    { rate =&gt; 20, value =&gt; &#34;焼肉&#34; },
+    { rate =&gt; 15, value =&gt; &#34;パスタ&#34; },
+    { rate =&gt; 5,  value =&gt; &#34;コンビニ&#34; },
+];
+
+my $from = 0;
+my $total = 0;
+my $targets = [];
+for my $menu ( @$rate ) {
+    my $to = $from + $menu-&gt;{rate};
+    push @$targets, { from =&gt; $from, to =&gt; $to, value =&gt; $menu-&gt;{value} };
+    $from += $menu-&gt;{rate};
+    $total += $menu-&gt;{rate};
+}
+
+my $pick = sub {
+    my $num = int( rand($total) + 1 );
+    for my $target ( @$targets ) {
+        if ( $target-&gt;{from} &lt; $num &amp;&amp; $target-&gt;{to} &gt;= $num ) {
+            return $target-&gt;{value};
+        }
+    }
+};
+
+say $pick-&gt;();
+dump_total($pick);</pre>
+
+    <pre class="code">寿司
+$VAR1 = {
+          &#39;パスタ&#39; =&gt; 151,
+          &#39;焼肉&#39; =&gt; 192,
+          &#39;コンビニ&#39; =&gt; 47,
+          &#39;ラーメン&#39; =&gt; 193,
+          &#39;寿司&#39; =&gt; 417
+        };</pre>
+
+</div>
+<div class="section">
+    <h4>Sub::Rate</h4>
+    <p><a href="http://search.cpan.org/~typester/Sub-Rate/">http://search.cpan.org/~typester/Sub-Rate/</a><br />
+typesterさんのSub::Rateを使うと、こんな感じでmax_rateとそれぞれのrateによって関数を返してくれます。<br />
+シンプルに書けてとてもいいですね。</p>
+
+    <pre class="code lang-perl"># default max_rate  == 100
+my $rate = Sub::Rate-&gt;new;
+$rate-&gt;add( 40 =&gt; sub { &#34;寿司&#34; });
+$rate-&gt;add( 20 =&gt; sub { &#34;ラーメン&#34; });
+$rate-&gt;add( 20 =&gt; sub { &#34;焼肉&#34; });
+$rate-&gt;add( 15 =&gt; sub { &#34;パスタ&#34; });
+$rate-&gt;add( default =&gt; sub { &#34;コンビニ&#34; });
+my $func = $rate-&gt;generate;
+
+say $func-&gt;();
+dump_total($func);</pre>
+
+    <pre class="code">Sub::Rate
+焼肉
+$VAR1 = {
+          &#39;パスタ&#39; =&gt; 153,
+          &#39;焼肉&#39; =&gt; 194,
+          &#39;コンビニ&#39; =&gt; 42,
+          &#39;寿司&#39; =&gt; 406,
+          &#39;ラーメン&#39; =&gt; 205
+        };</pre>
+<p><br />
+またアタリ・ハズレの処理を作りたい場合もdefaultを使って簡単に出来ます。</p>
+
+    <pre class="code lang-perl">my $rate = Sub::Rate-&gt;new;
+# 5%でよっちゃんイカがもう一個もらえる
+$rate-&gt;add( 5 =&gt; sub { &#34;よっちゃんイカアタリ&#34;  });
+$rate-&gt;add( default =&gt; sub { &#34;ハズレ&#34; });
+my $func = $rate-&gt;generate;
+
+say $func-&gt;();
+dump_total($func);</pre>
+
+    <pre class="code">ハズレ
+$VAR1 = {
+          &#39;よっちゃんイカアタリ&#39; =&gt; 47,
+          &#39;ハズレ&#39; =&gt; 953
+        };</pre>
+<p><br />
+さらにSub::Rateではrateを決定する処理をコンストラクタで変更することも出来るので寿司がいやな人はこんなことも...</p>
+
+    <pre class="code lang-perl">my $rate = Sub::Rate-&gt;new(rand_func =&gt; sub {
+    my ($max_rate) = @_;
+    # no sushi!!!!
+    return 40 + rand($max_rate);
+});
+$rate-&gt;add( 40 =&gt; sub { &#34;寿司&#34; });
+$rate-&gt;add( 20 =&gt; sub { &#34;ラーメン&#34; });
+$rate-&gt;add( 20 =&gt; sub { &#34;焼肉&#34; });
+$rate-&gt;add( 15 =&gt; sub { &#34;パスタ&#34; });
+$rate-&gt;add( default =&gt; sub { &#34;コンビニ&#34; });
+my $func = $rate-&gt;generate;
+
+say $func-&gt;();
+dump_total($func);</pre>
+
+    <pre class="code">コンビニ
+$VAR1 = {
+          &#39;パスタ&#39; =&gt; 153,
+          &#39;焼肉&#39; =&gt; 205,
+          &#39;ラーメン&#39; =&gt; 196,
+          &#39;コンビニ&#39; =&gt; 446
+        };</pre>
+<p><br />
+また、モジュールにはSub::Rate::NoMaxRateというのもあってこちらだとmax_rateを計算しなくても使うことが出来ます。</p>
+
+    <pre class="code lang-perl"># my $rate = Sub::Rate::NoMaxRate-&gt;new(max_rate =&gt; 10000);
+my $rate = Sub::Rate::NoMaxRate-&gt;new;
+$rate-&gt;add( 4000 =&gt; sub { &#34;寿司&#34; });
+$rate-&gt;add( 200 =&gt; sub { &#34;ラーメン&#34; });
+$rate-&gt;add( 20 =&gt; sub { &#34;焼肉&#34; });
+$rate-&gt;add( 10 =&gt; sub { &#34;パスタ&#34; });
+$rate-&gt;add( 1 =&gt; sub { &#34;コンビニ&#34; });
+my $func = $rate-&gt;generate;
+
+say $func-&gt;();
+dump_total($func);</pre>
+
+    <pre class="code">寿司
+$VAR1 = {
+          &#39;パスタ&#39; =&gt; 2,
+          &#39;焼肉&#39; =&gt; 1,
+          &#39;ラーメン&#39; =&gt; 54,
+          &#39;寿司&#39; =&gt; 943
+        };</pre>
+<p><del>ただ、今のversion(0.04)だとrateの合計がmax_rate(default==100)を超えるとエラーになってしまうようなので、max_rate以上になるときは上記のようにmax_rateを予め大きくしておく必要があります。</del></p>
+
+<ul>
+<li>NoMaxRateの場合はmax_rateを意識しなくてadd出来たほうが便利かなと思ったのでpull reqしてみました。
+<ul>
+<li>これは0.05で修正されているのでNoMaxRateを使いたい場合は0.05以上を使うといいと思います。typesterさんありがとうございました!</li>
+</ul></li>
+</ul>
+</div>
+<div class="section">
+    <h4>Data::WeightedRoundRobin</h4>
+    <p><a href="http://search.cpan.org/~xaicron/Data-WeightedRoundRobin/">http://search.cpan.org/~xaicron/Data-WeightedRoundRobin/</a><br />
+xaicronさんのData::WeightedRoundRobinを使うとこんな感じでそれぞれのweightによってvalueを返してくれます。(もちろん関数も返せます)</p>
+
+    <pre class="code lang-perl">my $dwr = Data::WeightedRoundRobin-&gt;new([
+    { weight =&gt; 4, value =&gt; &#34;寿司&#34; },
+    { weight =&gt; 2, value =&gt; &#34;ラーメン&#34; },
+    { weight =&gt; 2, value =&gt; &#34;焼肉&#34; },
+    { weight =&gt; 1.5, value =&gt; &#34;パスタ&#34; },
+    { weight =&gt; 0.5, value =&gt; &#34;コンビニ&#34; },
+]);
+
+say $dwr-&gt;next;
+dump_total(sub { $dwr-&gt;next });</pre>
+
+    <pre class="code">寿司
+$VAR1 = {
+          &#39;パスタ&#39; =&gt; 145,
+          &#39;焼肉&#39; =&gt; 193,
+          &#39;コンビニ&#39; =&gt; 53,
+          &#39;ラーメン&#39; =&gt; 224,
+          &#39;寿司&#39; =&gt; 385
+        };</pre>
+<p>こちらも簡単に書けていいですね!</p><br />
+<p>どちらのモジュールを選んでも同じことが出来るのでどう使い分けるのかは好みになってくるのかなと思いますが、単純に値を返したい場合はData::WeightedRoundRobin、実行する処理を分けたい場合やハズレを作りたい場合などはSub::Rateを使うといいのかなぁとなんとなく思ったりしました。<br />
+あと名前が短いのでSub::Rateとか...。</p><br />
+<p>今回使ったサンプルスクリプトはこれです。<br />
+<a href="https://gist.github.com/4183087">https://gist.github.com/4183087</a></p><br />
+<p>こういう小粒ながら便利なモジュールはとても嬉しいですね。<br />
+そして寿司もいいですね!</p><br />
+<p>あしたはokamuuuさんです。楽しみですね!</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

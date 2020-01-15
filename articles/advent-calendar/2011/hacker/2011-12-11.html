@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="piarra">
+        <meta name="author" content="piarra">
+        <title>データ分散とインデックス最適化のためのハッシュ関数の利用 - Articles Advent Calendar 2011 Hacker</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>データ分散とインデックス最適化のためのハッシュ関数の利用</h1>
+
+        
+<div class="section">
+    <h4>はじめに</h4>
+    <p>こんにちは、piarra です。みなさん、意識は高まっていますか？私は上々です。<br />
+という書き出しをやめたくてやめられなかったのが心残りです。</p><p>昨年までは、Casual Trackで寄稿させていただいていましたが、今年はYAPCで話したこともあり、Hacker Trackに初挑戦させていただきます。得意のMD5暗算法とその習得法について解説したいと思っていたところですが、より日常に役立つ方がよいかと思い、MD5やその他のハッシュ関数の活用法について少し触れてみたいと思います。</p>
+
+</div>
+<div class="section">
+    <h4>データサンプル</h4>
+    <p>DBMSを考慮せず、以下のようなデータサンプルがあったと考えてみましょう。</p>
+
+    <pre class="code">+----+-----------------------+
+| id | url                   |
++----+-----------------------+
+|  1 | http://www.google.com |
+|  2 | http://www.yahoo.com  |
+|  3 | http://www.bing.com   |
+|  4 | http://www.baido.com  |
+|  5 | http://www.blekko.com |
+|  6 | http://www.naver.com  |
++----+-----------------------+</pre>
+<p>上のデータはどこにでもありそうなURLの一覧です。データ管理上、通常なんら問題を感じることはありませんが、インデックスの立場から考えると、「http：//www.」までの11文字が全データで共通しており、前方からのインデックス作成が不効率であることが考えられます。100万から億単位の大規模なデータを扱う時代においては、あまりにも不効率でDBMSによってはインデックスに偏りができてしまったり、インデックスがほとんど機能しない可能性が推測されます。</p>
+
+</div>
+<div class="section">
+    <h4>インデックス最適化のためのハッシュ関数の利用</h4>
+    <p>MySQLにも標準で実装されているMD5関数を利用すると、このデータをもう少しインデックス効率のよいデータに変えることができます。<br />
+SQLで書くと以下のような形です。</p>
+
+    <pre class="code lang-SQL">INSERT INTO urls (url, digest) 
+VALUES (&#39;http://www.google.com&#39;, LEFT(MD5(&#39;http://www.google.com&#39;), 8));</pre>
+<p>こうすることで、インデックス効率のよいデータに変わりました。</p>
+
+    <pre class="code lang-SQL">+----+-----------------------+----------+
+| id | url                   | digest   |
++----+-----------------------+----------+
+|  1 | http://www.google.com | ed646a33 |
+|  2 | http://www.yahoo.com  | c5f7ac7a |
+|  3 | http://www.bing.com   | 9cbc5ee4 |
+|  4 | http://www.baido.com  | 05c3f985 |
+|  5 | http://www.blekko.com | 39ce0427 |
+|  6 | http://www.naver.com  | 52b9e317 |
++----+-----------------------+----------+</pre>
+<p>検索する際には以下のようなSQLを書くとよいですね。</p>
+
+    <pre class="code lang-SQL">SELECT * FROM urls 
+ WHERE digest = LEFT(MD5(&#39;http://www.google.com&#39;), 8) AND url = &#39;http://www.google.com&#39;;</pre>
+<p>urlではなく、digestにインデックスをはることで、効率よく分散しデータ量的にもコンパクトなインデックスを生成することができます。<br />
+※MD5は安全ではないので、SHA1を使うべきだということをおっしゃる方がいるかもしれません。しかしながら、ここで重要なのはハッシュ関数のセキュリティではなく、ハッシュ関数の計算コストと一様性(ハッシュ関数の出力が出力範囲全体に渡り一様に分布するという性質)であり、よりパフォーマンスのよいMD5がチョイスとしては適切と考えています。</p>
+
+</div>
+<div class="section">
+    <h4>より効率よくインデックスするために</h4>
+    <p>インデックスデータはメモリ効率が重要ですから、データ件数が増えてくると、上記のようなchar(8byte)のインデックスは少しメモリ効率が悪いように感じるケースがでてきます。そういった場合は、int型(4byte)に変換して入れるのが望ましいです。<br />
+※binary型も考えられますが、メンテナンス効率の面で、ここではint型を推奨します。</p>
+
+    <pre class="code lang-SQL">INSERT INTO urls (url, digest)
+VALUES (&#39;http://www.google.com&#39;, CONV(LEFT(MD5(&#39;http://www.google.com&#39;), 8), 16, 10));</pre>
+<p>検索する際には以下のようなSQLを書くとよいですね。</p>
+
+    <pre class="code lang-SQL">SELECT * FROM urls 
+ WHERE digest = CONV(LEFT(MD5(&#39;http://www.google.com&#39;), 8), 16, 10) AND url = &#39;http://www.google.com&#39;;</pre>
+<p>しかしながら、ここまで来ると、ちょっとSQLにアレルギーを感じる人も増えてくるでしょう。ここまでの演算をDBサーバーに委ねてしまってよいのかと少し心配にもなりますし、perlハッカーやcasualなperlerならperlでなんとかしたいとも感じるはずです。</p>
+
+</div>
+<div class="section">
+    <h4>use Digest::MurmurHash</h4>
+    <p>Austin Appleby氏により考案されたMurmurHashは、衝突困難性と一様性に優れ、かつ計算コストがMD5等よりも圧倒的に優れたハッシュ関数でその出力範囲はint型の範囲に限定されています。<br />
+MurmurHashはToru Maesaka氏によりPerlのXSモジュールDigest::MurmurHashとして公開されており、カジュアルに利用することができます。<br />
+上記のようなINSERTをPerlを用いて行うと以下のような形になります。すっきりしますね。</p>
+
+    <pre class="code lang-perl">use DBI;
+use Digest::MurmurHash qw(murmur_hash);
+my $url = &#39;http://www.google.com&#39;;
+my $dbh = DBI-&gt;connect(&#39;dbi:mysql:test&#39;);
+my $sth = $dbh-&gt;prepare(&#34;INSERT INTO urls (url, digest) VALUES (?, ?)&#34;);
+$sth-&gt;execute($url, murmur_hash($url));</pre>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>今回は特にインデックス効率の悪いデータを例にとって、効率の良いインデックスについて考えました。実際には、インデックス効率の良いデータの方がむしろ少ないものです。大規模データを効率よく管理するためには、ハッシュ関数を用いたdigest値を使うのは定石と言えるかもしれません。<br />
+また、ハッシュ関数は、MD5という基本的なものから、MurmurHashといった特殊なものまで様々です。インデックスをint型に収めたいだけであれば、MD5の部分データでも十分に事足りる可能性があります。MySQL等のDBMS単体で利用できるというメリットも大きいでしょう。データの分散性や計算コストを優先するのであれば、MurmurHashやより簡易的な独自のハッシュ関数を用いるのもありかと思います。この記事を通して、ハッシュ関数の可能性について、少しでも感じてもらえたら嬉しいです。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

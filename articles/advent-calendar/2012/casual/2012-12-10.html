@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="tomi-ru">
+        <meta name="author" content="tomi-ru">
+        <title>PHPのアプリだけどperlでテストするんだぜ？（ワイルドだry - Articles Advent Calendar 2012 Casual</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>PHPのアプリだけどperlでテストするんだぜ？（ワイルドだry</h1>
+
+        <p>アドベントカレンダーをご覧のみなさん、こーんにーちわ！　<a href="http://twitter.com/tomita">&#x30C8;&#x30DF;&#x30FC;&#x30EB;</a> です (`･ω´･)ノ</p><p>今年はずっと、Voyage Group 社内のいろんな子会社名義で、スマートフォン向けアプリのバックエンドAPIばっかり作てました。直近のやつはひさびさの PHP で書くことに (o_o)</p><p>最終的に、複数の言語を使ってみることはエンジニア人生にとって有益とおもう。PHPでちゃんと書いてみてあらためてそう思った。始めは非効率だけど外国行ってカタコトでコミュニケーションする楽しさがあるし学ぶことがある。言語そのものだけじゃなく文化（コミュニティやエコサイクル）ごと見るの大事。ただ、何か慣れた “ホーム” ツールがあるとどこで何する上でもいい。ぼくの場合は perl にだいぶ助けられますた。</p><p>たとえばテストね。クライアントアプリ開発側と API 仕様にぎったら、まず先に Bahavior のテストを書いてしまってから開発に入る。PHP の場合 Behat とかあるよーと教えてもらったのだけど、特定のPHPソースを temporary で動かすサーバーも欲しくて（残念ながら php -S が使えない環境だったので（お察しください））perl で php アプリをテストするの書いて使ったりした。</p>
+
+    <pre class="code lang-perl">package tests::lib::APITest;
+use strict;
+use warnings;
+use utf8;
+use open qw/:utf8 :std/;
+use Test::More;
+use Test::Base -base;
+use Test::TCP;
+use JSON -support_by_pp;
+use LWP::UserAgent;
+use Try::Tiny;
+
+our @EXPORT = qw( run_test );
+
+sub run_test_httpd {
+    my $temp   = File::Temp-&gt;newdir;
+    my $server = Test::TCP-&gt;new(
+        code =&gt; sub {
+            my $port = shift;
+            note(&#34;exec test apache port:$port, temp:$temp&#34;);
+            exec &#34;/usr/sbin/apache2 -X -D FOREGROUND -C &#39;PidFile $temp/apache2.pid&#39; -C &#39;Listen $port&#39; -f tests/apache.conf&#34;;
+            die &#34;Can not execute test apache: $!&#34;;
+        }
+    );
+}
+
+sub run_tests {
+    my $agent  = shift || LWP::UserAgent-&gt;new();
+    my $server = run_test_httpd();
+    
+    filters {
+        query_form =&gt; &#39;yaml&#39;,
+        headers    =&gt; &#39;yaml&#39;,
+        expected   =&gt; &#39;relaxed_json_decode&#39;,
+    };
+    
+    run {
+...</pre>
+<p>tests/apache.conf はこんな風なの</p>
+
+<pre>LogFormat "# %h %l %u %t \"%r\" %>s %b %D \"%{Referer}i\" \"%{User-Agent}i\"" combined
+ErrorLog  "| cat"
+CustomLog "| cat" combined
+
+Include /etc/apache2/mods-enabled/*.load
+Include /etc/apache2/mods-enabled/dir.conf
+Include /etc/apache2/mods-enabled/setenvif.conf
+Include /etc/apache2/mods-enabled/mime.conf
+Include /etc/apache2/mods-enabled/php5.conf
+
+DocumentRoot ./public_html
+</pre><p>専用の Test::Httpd::Apache2 とかもあるのだけど、<a href="https://metacpan.org/module/Test%3A%3ATCP">Test::TCP</a> は覚えておけば memcached とかテストに要るサーバー temporary で起動する系全般につぶしがきいてイイ。愛用してます。サンプルコードの下の方にあるけど API のテストするときは Test::Base も未だに愛用してる。以下みたいなやつを並べる。</p>
+
+    <pre class="code">=== error: data missmatch
+--- method: POST
+--- path: /foo/bar
+--- headers
+X-FugaFuga-Agent: iOS 1.0.0
+X-HogeHoge: Hogege
+--- post_content
+{
+    &#34;foo&#34;:&#34;bar&#34;,
+}
+--- expected
+subtest &#39;foooooo&#39; =&gt; sub {
+    ......
+};
+--- expected_json
+{
+    &#34;error&#34;: {&#34;code&#34;:999, &#34;message&#34;:&#34;Foobar failed&#34;},
+    &#34;result&#34;: null,
+}</pre>
+<p>あとベンチマーク。「ユーザーつくって〜　ポストして〜　ポストして〜　」みたいな、ab 一発でできることをちょっと超えたシナリオをベンチマークしたいとき、不慣れな JMeter で作り込みせずとも <a href="https://metacpan.org/module/Parallel%3A%3ABenchmark">Parallel::Benchmark</a> は慣れた LWP/Mechanize/Furl で書けるのがいい。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+use utf8;
+use Data::Dump qw/dump/;
+use Furl;
+use Parallel::Benchmark;
+
+use App::Options (
+    option =&gt; {
+        task  =&gt; { default =&gt; &#39;get&#39; },
+        child =&gt; { type =&gt; &#39;integer&#39;, default =&gt; 1 },
+        time  =&gt; { type =&gt; &#39;integer&#39;, default =&gt; 3 },
+        debug =&gt; { type =&gt; &#39;boolean&#39;, default =&gt; 0 },
+    }
+);
+
+{ # Storable trick to save Furl instance
+    no warnings &#39;once&#39;;
+    $Storable::Deparse = 1;
+    $Storable::Eval    = 1;
+}
+
+my $scenarios = {
+    renzoku_post =&gt; sub {
+        my ($self, $id) = @_;
+        check($self-&gt;stash-&gt;{ua}-&gt;post(...));
+        check($self-&gt;stash-&gt;{ua}-&gt;post(...));
+
+        return 1;
+    }
+};
+
+my $bench = Parallel::Benchmark-&gt;new(
+    setup =&gt; sub {
+        my ($self, $id) = @_;
+        $self-&gt;stash-&gt;{ua} = Furl-&gt;new(
+            agent   =&gt; &#34;bench process #$id&#34;,
+            headers =&gt; [
+                &#39;Accept-Encoding&#39; =&gt; &#39;gzip&#39;,
+                ...
+            ],
+            timeout =&gt; 5,
+        );
+    },
+    benchmark   =&gt; $scenarios-&gt;{ $App::options{task} },
+    concurrency =&gt; $App::options{child},
+    time        =&gt; $App::options{time},
+    debug       =&gt; $App::options{debug},
+);
+
+$bench-&gt;run;</pre>
+<p>こんなふうで。さいきん <a href="https://metacpan.org/module/Test%3A%3ABase%3A%3ALess">Test::Base::Less</a> が出たので、Test::Base ベースの構文で書いた Bahavior テスト読んでサクっとベンチマークするやつあったら便利そうなんで試す。</p><p>今年もいろんなモジュールにお世話になりました。ありがとうございます。あと<a href="http://www.amazon.co.jp/gp/product/486267108X/">&#x81EA;&#x5206;&#x3067;&#x66F8;&#x3044;&#x305F;&#x4F8B;&#x306E;&#x672C;</a>、超自分で未だつかってて、今でもだいぶ役立つ気がするんで最後に宣伝しておきます！</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

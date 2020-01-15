@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="koji**(koji_magi) <kojiel@gmail.com>">
+        <meta name="author" content="koji**(koji_magi) <kojiel@gmail.com>">
+        <title>Acme::DragonBall - つっかもうぜ！ドラ○ンボール！ - Articles Advent Calendar 2011 Acme</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Acme::DragonBall - つっかもうぜ！ドラ○ンボール！</h1>
+
+        <p>オッス！オラkoji_magi！<br />
+過去日付の記事を書くと誰かとコンフリクトしそうで、オラわくわくしてきたぞ！</p>
+
+<div class="section">
+    <h4>「アニメっぽい流れだったので」</h4>
+    <p><a href="https://github.com/koji--/p5-acme-dragonball">Acme::DragonBall</a></p><p>はい、というわけで今回も20分で作ってみました。ネタに時代を感じるのは察してください。<br />
+ドラゴンボールといえば、ドラゴンレーダーですよね。<br />
+そんでもってボールは星の数が一から七まであります。<br />
+そこで、テキスト中の*の数を数えてドラゴンボールにHitしたらsayしてくれる<br />
+radarを作りました。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+use Acme::DragonBall qw(radar);
+
+radar(&#34;asdf*hdshaf*osd**hfa&#34;); # &#39;四星球みっけ！&#39;</pre>
+<p>全部の球を集めるとシェンロンも呼べます。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+use Acme::DragonBall qw(radar);
+
+radar(&#34;*&#34; x 28); # &#39;★ ★ ★  ！！！いでよ、神龍！！！！ ★ ★ ★ ★&#39;</pre>
+<p>ちなみにドラゴンボールに無い星数だと、懐かしの台詞や単語がランダムに飛び出します。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+use Acme::DragonBall qw(radar);
+
+radar(&#34;red sousui&#34;); # &#39;レッドリボン軍だ！&#39;</pre>
+<p>さて、今回のAcmeは如何でしたでしょうか？<br />
+参加者さんが少なめで、Acmeトラックも対ベジータ戦の悟空なみに苦戦中です。<br />
+Acmeトラックはいつでも貴方の参戦をお待ちしております。</p><p>みんな、オラに<del>ネタ</del>元気を分けてくれ！</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

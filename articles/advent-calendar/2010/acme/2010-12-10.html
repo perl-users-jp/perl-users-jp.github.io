@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="bayashi <bayashi@cpan.org>">
+        <meta name="author" content="bayashi <bayashi@cpan.org>">
+        <title>Acme::Yomeru - Articles Advent Calendar 2010 Acme</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Acme::Yomeru</h1>
+
+        <p>こんちには 、 みさなん 、<a href="http://twitter.com/#!/bayashi">bayashi</a> です。<br />
+さくむて かなぜど ひいて いですないか 。<br />
+おかだらは くれれぐも  お だいじに 。</p><p>げきんが あれば こーども かける ！<br />
+げきんが あれば AKB48も うたえる ！</p><p>さて 、 あれ 、 なだんか へんすでね 。<br />
+あれれ 、 よく わせかまりんが 、 この ぶょんしう 、  よめて いすまか ？<br />
+よめますね 。 なぜか よすまめね 。<br />
+かなり びみかょうも しせんまれが 、 よめすまね 。<br />
+よなめい ひとは 、 がばっんて よんで くさだい 。</p><p>はい 、 そでうす 。 いちじ わいだに なった 「 なぜか よめる ぶょしんう 」です 。<br />
+きうょは 、 この ような なぜか よめ る ぶうしょんを せせいい する<br />
+もじゅーるを しかょうい します 。<br />
+もう 、 かんの よい かたは きづいて いかると おいすもまが 、<br />
+いっ ぱつ ねたのなで 、 ほとんうに 、 これ いじょう な にも ありせまん 。<br />
+う ひ ー ＞＜</p><br />
+<p>[<a href="https://github.com/bayashi/Acme-Yomeru">Acme::Yomeru</a>]</p>
+
+    <pre class="code lang-perl">    #!/usr/bin/perl
+    use strict;
+    use warnings;
+    use utf8;
+
+    use Acme::Yomeru;
+    use Acme::Yomeru::Parser::TextMeCab;
+
+    my $yomeru = Acme::Yomeru-&gt;new(
+        text =&gt; &#39;これは、奇妙な日本語フィルタだよ。&#39;,
+    );
+
+    print $yomeru-&gt;cambridgize;</pre>
+<p>基本は Text::MeCab を利用して形態素解析してコンバートしますが、以下のように、Yahoo API を利用する方法もあります。<br />
+しかし、そもそも Text::MeCab がないとインストールさえままならないんじゃないかどうかはよく確認していませんが、なんだかそれ風なつくりを目指していた時期がありました。</p>
+
+    <pre class="code lang-perl">    use Acme::Yomeru;
+    use Acme::Yomeru::Parser::YahooAPI;
+
+    my $yomeru = Acme::Yomeru-&gt;new(
+        text   =&gt; &#39;これは、奇妙な日本語フィルタだよ。&#39;,
+        parser =&gt; Acme::Yomeru::Parser::YahooAPI-&gt;new(
+            api_key =&gt; &#39;YOUR_APP_ID&#39;,
+        ),
+    );
+
+    print $yomeru-&gt;cambridgize;</pre>
+
+<ul>
+<li>フィルタ部分は一目瞭然</li>
+<li>無駄に Moose で書かれています</li>
+<li>テスト充実させたい → まさかの PODでコメントアウト状態</li>
+</ul><p>Acme もじゅーる だすいき！！</p><p>というわけで、明日は、、あれ、明日は、誰なんだ？ 誰か、誰かが書くでしょう！</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

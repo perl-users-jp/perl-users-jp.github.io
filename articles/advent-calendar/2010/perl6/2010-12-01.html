@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="Nobuo Danjou <nobuo.danjou@gmail.com>">
+        <meta name="author" content="Nobuo Danjou <nobuo.danjou@gmail.com>">
+        <title>Perl6を入れてみよう！ - Articles Advent Calendar 2010 Perl6</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Perl6を入れてみよう！</h1>
+
+        <p>遅れてやってきたperl6トラック、現在12月10日です。ここから一気に追い上げていきたいと思います！よろしくお願いします！</p><p>まずはperl6を使える環境を作らないといけないですね。「そんなの面倒だよ」という方はdanさんの<a href="http://colabv6.dan.co.jp/lleval.html">lleval</a>で試してみるのもいいでしょう。</p>
+
+<div class="section">
+    <h4>インストール</h4>
+    <p><a href="https://github.com/rakudo/star/downloads">https://github.com/rakudo/star/downloads</a> にソースがあるので落としてきます。7月から毎月リリースされていますので、最新のものを選びましょう。以前インストールしたけどHDDの肥やしにしちゃってる方も、この際ですから最新版をインストールしてみましょう。そしてなんと、Windows用のインストーラもあります！Windowsユーザーの方はぜひインストールしてみてください。Windowsマシンが手元にないので、今回はunixっぽいシステムに入れることにします。<br />
+インストールするにはCコンパイラ、make、perl-5.8.4以降が必要なので、事前に準備しておきましょう。また、Unicodeをちゃんと扱うためにはICUライブラリが必要になります。Fedoraだとyumで入れておくのが楽でしょう。</p>
+
+    <pre class="code">$ sudo yum -y install libicu-devel</pre>
+<p>では、~/tmpディレクトリをつくってそこにインストールしてみましょう。</p>
+
+    <pre class="code">$ cd
+$ mkdir tmp
+$ wget https://github.com/downloads/rakudo/star/rakudo-star-2010.11.tar.gz
+$ tar xf rakudo-star-2010.11.tar.gz
+$ cd rakudo-star-2010.11
+$ perl Configure.PL --gen-parrot
+$ make
+$ make install</pre>
+<p>これでインストール完了です！<br />
+そしてPATHを通しておきましょう。.zshenvや.bashrcなどに以下のように追記し、設定を読み込みましょう。</p>
+
+    <pre class="code">export PATH=&#34;$HOME/.perl6/bin:$HOME/tmp/rakudo-star-2010.11/install/bin:$PATH&#34;</pre>
+
+    <pre class="code">$ source ~/.zshenv</pre>
+<p>さぁ、記念すべきperl6の最初の実行です！</p>
+
+    <pre class="code">$ perl6 -v
+
+This is Rakudo Perl 6, version 2010.11 built on parrot 2.10.1Null PMC access in get_bool()
+current instr.: &#39;perl6;Perl6;Compiler;version&#39; pc 326465 (src/gen/perl6-grammar.pir:16967)
+called from Sub &#39;perl6;PCT;HLLCompiler;command_line&#39; pc 1855 (compilers/pct/src/PCT/HLLCompiler.pir:917)
+called from Sub &#39;perl6;Perl6;Compiler;main&#39; pc 326404 (src/gen/perl6-grammar.pir:16945)</pre>
+<p>ん？？？なんかでてる。。。。<br />
+とにかく実行できました！では、明日からばりばりPerl6を使っていきましょう！</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

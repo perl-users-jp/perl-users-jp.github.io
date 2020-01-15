@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>はじめの一歩 - Articles Advent Calendar 2010 Meta_adcal</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>はじめの一歩</h1>
+
+        <p>今回このadvent calendar appを作ろうぜと言い出した張本人のkanです。<br />
+言い出しっぺの法則に従って、とりあえずadvent calendarを最低限やれるとこまで自分が作ることになったのですが、さて「最低限」てどんだけだよという問題があります。<br />
+そもそも今回は最大25人が1日ずつ機能を追加していくところが面白いので、下手に機能を充実しすぎると、やりたかったことが既に実現できてるという悲しい事態になります。かと言って適当に作りすぎては他の人も何をやったら良いかさっぱりでしょう……。</p><p>と、悩んでる間に少しでも作ったほうが良いですね。まずはざっくりと全体像を考えました</p>
+
+<div class="section">
+    <h4>Plackベースで</h4>
+    <p>2010年にperlでweb appを作るのに使わない手はないですね。PSGIに対応したWAF(Web Application Framework)を使うことも検討しましたが、後の人のために素でゴリゴリ書いていくことにしました。カレンダーが完成する頃には誰かがAmonとかKamuiベースに作り替えてるかもしれませんがw</p>
+
+</div>
+<div class="section">
+    <h4>データはファイルで持つ</h4>
+    <p>sqliteを使っても良いし、流行りのNoSQLなKVSを使っても良いのですが、これらを使用すると必然的に書き込み画面を作らないといけません。そして、一応企画ものなので簡易的にも認証機構くらいは用意しておかないと面倒なことになるかもしれません。その辺が面倒なので記事データはファイルベースで保持することにしました。まあこれに関しても誰かが(ry</p>
+
+</div>
+<div class="section">
+    <h4>機能自体は極力シンプルに</h4>
+    
+<ul>
+<li>複数のトラックを持つ</li>
+<li>トラック毎に12/1から12/25の記事を表示する(該当日以降に)</li>
+</ul><p>ざっくばらんに言うとこの機能しか持っていません。そもそも最初は複数トラックも持てなかったのですが、今回のjperl advent calendar(豪華7本立てです)のために対応しました。対応したとはいっても、ディレクトリを掘るとtrackが増えるというシンプルなものです。</p><br />
+<p>方針が決まったので作り始めます。moduleやappの雛形作りの道具は色々ありますが、今回はyappoさんのModule::Setupを使うことにしました。appの名前はベタですがApp::AdventCalendarにしようと思います。</p>
+
+    <pre class="code lang-sh">module-setup App::AdventCalendar</pre>
+<p>これだけで基本的なファイルが作られます。AdventCalendar.pmにhandlerメソッドを追加してみます。</p>
+
+    <pre class="code lang-perl">sub handler {
+    my $env = shift;
+
+    return [ 200, [&#39;Content-Type&#39; =&gt; &#39;text/html&#39;], [ &#39;hello&#39; ] ];
+}</pre>
+<p>これを利用した app.psgi ファイルを作ります。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+use utf8;
+use lib &#39;lib&#39;;
+
+use App::AdventCalendar;
+
+my $app = sub { App::AdventCalendar::handler(@_) }
+
+$app;</pre>
+<p>あとはplackupを実行すれば、<a href="http://localhost:5000/">http://localhost:5000/</a> で「hello」と出力されるのを確認できます。</p>
+
+    <pre class="code lang-sh">plackup -R . app.psgi</pre>
+
+<ul>
+<li>Rオプションを使うとファイルを変更した時に自動でrestartがかかって便利ですね。</li>
+</ul><p>一日目はここで時間切れだったので、とりあえず github に commitしたのでした。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

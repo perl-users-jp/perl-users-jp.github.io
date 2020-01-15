@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="Kenji Matsumura <mazkeng@gmail.com>">
+        <meta name="author" content="Kenji Matsumura <mazkeng@gmail.com>">
+        <title>More Easily To Write Perl By Vim. - Articles Advent Calendar 2010 English</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>More Easily To Write Perl By Vim.</h1>
+
+        <p>Which the editors do you use, Vim or Emacs? They are the most popular text editor. I guess that you surely use either.<br />
+This airticle is about Vim editor, I present some plugins for writing Perl conveniently. ( I hope someone refers about writing by Emacs. )<br />
+The plugins that I tried are as follows.</p>
+
+<ul>
+<li>vim-perl</li>
+<li>autocomplpop</li>
+<li>perldoc.vim</li>
+</ul>
+<div class="section">
+    <h3>Vim-perl</h3>
+    <p>Vim-perl, written by Andy Lester, is syntax plugin for Perl. It shows you the suitable code that become colorful to comprehend sentence. So it becomes easy to understand to learn Prel more. <br />
+The installation is very easy to use it. First, download the distributed modules from <a href="https://github.com/petdance/vim-perl">here</a>. Then,</p>
+
+    <pre class="code">% make install</pre>
+<p>Just do it only. These modules are deployed to your '~/.vim/' directory. The syntax is reflected at once. And the syntax supports Perl6.</p><p></p>
+
+</div>
+<div class="section">
+    <h3>Autocomplpop</h3>
+    <p>Autocomplpop, written by Takeshi NISHIDA, is a writing suportment plugin. You are sure to think that you don't want to type same word many times. Autocomlpop opens the list matching some words when you just type two charactors. So you can choice one from the list, automaticaly complete typing that word. </p><p>Installation is as follows:</p>
+
+<ol>
+<li>Download the distribution from <a href="http://www.vim.org/scripts/script.php?script_id=1879">here</a>, and unzip it.</li>
+<li>Unzip and copy the directories and files to your '~/.vim/'. </li>
+</ol><p>It's so easy, too. Autocomplpop is one of good plugin to solve the problem.</p><p></p>
+
+</div>
+<div class="section">
+    <h3>Perldoc.vim</h3>
+    <p>Perldoc.vim, written by Yuichi Tateno and expanded by Mattn, is to refer to Perl documentation on editor. Perl has the huge document volum about functions and CPAN modules. You can refer them at anytime and anywhere. It's possible to refer them simply and speedy by using Perldoc.vim</p><p>Installation is as follows:</p>
+
+<ol>
+<li>Download 'perldoc.vim' from <a href="https://github.com/mattn/perldoc-vim">here</a>.</li>
+<li>Copy to '~/.vim/plugin/'.</li>
+</ol><p>Type the following command, when you refer a module.</p>
+
+    <pre class="code">:Perldoc &lt;MODULE NAME&gt;</pre>
+<p>And when you refer a standerd function,</p>
+
+    <pre class="code">:Preldoc -f &lt;FUNCTION NAME&gt;</pre>
+<p>It show a document of the terget module or function. And type "s", you can see source code of the module. Also when console is on another keyword, type "K", link and show you a document of the another module.</p><p></p>
+
+</div>
+<div class="section">
+    <h3>Summary</h3>
+    <p>I have known that there are a lot of tools to support coding. Please let me know your experience if you have more suitable.<br />
+Thanks.<br />
+Regards,</p><p></p>
+
+</div>
+<div class="section">
+    <h3>Autoher</h3>
+    <p>Kenji Matsumura (<a href="http://twitter.com/mazkeng">mazkeng</a>)</p>
+
+</div>
+<div class="section">
+    <h3>References</h3>
+    
+<ul>
+<li><a href="https://github.com/petdance/vim-perl">https://github.com/petdance/vim-perl</a></li>
+<li><a href="http://www.vim.org/scripts/script.php?script_id=1879">http://www.vim.org/scripts/script.php?script_id=1879</a></li>
+<li><a href="http://blog.blueblack.net/item_164">http://blog.blueblack.net/item_164</a></li>
+<li><a href="https://github.com/mattn/perldoc-vim">https://github.com/mattn/perldoc-vim</a></li>
+<li><a href="http://mattn.kaoriya.net/software/lang/perl/20100901231137.htm">http://mattn.kaoriya.net/software/lang/perl/20100901231137.htm</a></li>
+</ul>
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

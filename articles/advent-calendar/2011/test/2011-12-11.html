@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="dann">
+        <meta name="author" content="dann">
+        <title>Jenkinsで継続的メトリクス測定のすすめ - Articles Advent Calendar 2011 Test</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Jenkinsで継続的メトリクス測定のすすめ</h1>
+
+        <p>Perl Test Track 11日目です</p>
+
+<div class="section">
+    <h4>はじめに</h4>
+    <p>こんばんは、家で凍死しそうなので、そろそろセラムヒートでも買おうと思っているdannです</p><p>Test Track 11日目です！ ikasam_a さんから「Jenkinsの話を書いて！」と言われたので、ACDD(Advent Calendar Driven Development) という手法で作った、メトリクス測定ツールとJenkinsへのインテグレーションについての話をします。</p>
+
+</div>
+<div class="section">
+    <h4>メトリクスを測定すると捗るぞ</h4>
+    <p>大きなチームで開発する時に、数百行の謎メソッドができたりとかあったりしますよね（涙）</p><p>僕は、Working Effectively With Legacy CodeやClean Codeを読んでいること前提にチームの人がコードを書いていると思っていたら、あれ？という場面があったりします。こういうときは、品質の問題を測定できるようにすると、数値レベルで具体的にした共通認識ができ、レビューが捗ります。</p>
+
+</div>
+<div class="section">
+    <h4>今回測定したメトリクス</h4>
+    <p>メトリクスを測定するなんていうと、用語の定義が間違ってる喝！とSoftware Engineeringの専門家に怒られちゃうわけですが、そこは気にせずメトリクスを測定って言うことにします。</p><p>今回測定したのは、以下の二つのメトリクスです。</p>
+
+<ul>
+<li>メソッドの行数</li>
+<li>Cyclomatic Complexity</li>
+</ul><p>メソッドの行数は、そのまんまですね。Cyclomatic Complexityは10を超えていると複雑すぎなので、分割を検討した方が良いというのが一つ一般的な指標になってます。</p><p>これらのメトリクスは、Perl::Metrics::Simpleというモジュールで簡単に取得できます。ではこれをJenkinsに統合しましょう。</p>
+
+</div>
+<div class="section">
+    <h4>Jenkinsでのメトリクス監視の方法</h4>
+    <p>これらのメトリクスの測定結果をどのようにJenkinsに統合するかです。今まで、自分の日記のJenkinsのエントリを読んでもらっている人は、勘のいい方は気づいてるんじゃないかと思うんですが、Javaのツールにマッピングすればいいんですね。</p><p>この分野は、静的言語でもあることから、Javaは周辺ツールがとても充実しており、今回はそのうちの一つであるCheckStyleのXMLに測定結果をマッピングしてみました。これにより、チェック結果のViewをそのまま流用できるわけです。</p><p>作ってみたマッピングするツールは以下の通りです。</p>
+
+    <pre class="code lang-perl">#!/usr/bin/perl
+use strict;
+use warnings;
+
+use Perl::Metrics::Simple;
+use Text::MicroTemplate::DataSection;
+use Text::Xslate;
+
+#====================================================
+# Config
+#====================================================
+our $MAX_CYCLOMATIC_COMPLEXITY = 10;
+our $MAX_SUB_LENGTH            = 50;
+
+#====================================================
+# Logic
+#====================================================
+main();
+exit;
+
+sub main {
+    my $check_result = check_style( ¥@ARGV );
+    make_report($check_result);
+}
+
+sub check_style {
+    my $paths    = shift;
+    my $analzyer = Perl::Metrics::Simple-&gt;new;
+    my $analysis = $analzyer-&gt;analyze_files(@ARGV);
+}
+
+sub make_report {
+    my $check_result   = shift;
+    my $checkstyle_xml = make_check_style_report($check_result);
+    write_file($checkstyle_xml);
+}
+
+sub make_check_style_report {
+    my $check_result = shift;
+
+    my $tx = Text::Xslate-&gt;new(
+        path =&gt; [ Data::Section::Simple-&gt;new()-&gt;get_data_section(), ], );
+
+    my $sub_stats = convert_substats_to_file_unit($check_result);
+    my %vars = (
+        sub_stats         =&gt; $sub_stats,
+        metric_threshold =&gt; {
+            max_sub_length=&gt; $MAX_SUB_LENGTH,
+            max_cyclomatic_complexity =&gt; $MAX_CYCLOMATIC_COMPLEXITY,
+        }
+    );
+    my $report = $tx-&gt;render( &#39;checkstyle-result.tx&#39;, ¥%vars );
+    return $report;
+}
+
+sub convert_substats_to_file_unit {
+    my $check_result = shift;
+    my $sub_stats = {};
+    foreach my $sub (@{ $check_result-&gt;subs}) {
+        $sub_stats-&gt;{$sub-&gt;{path}} ||= [];
+        push @{$sub_stats-&gt;{$sub-&gt;{path}}}, $sub ;
+    } 
+    return $sub_stats;
+}
+
+sub write_file {
+    my $report = shift;
+    my $io = IO::File-&gt;new( &#39;checkstyle-result.xml&#39;, &#39;w&#39; );
+    $io-&gt;print($report);
+    $io-&gt;close;
+}
+
+__DATA__
+
+@@ checkstyle-result.tx
+&lt;checkstyle version=&#34;5.1&#34;&gt;
+: for $sub_stats.keys() -&gt; $file_path {
+  &lt;file name=&#34;&lt;: $file_path :&gt;&#34;&gt;
+  : for $sub_stats[$file_path] -&gt; $sub_stat {
+    : next if !$sub_stat
+    : if $sub_stat.lines &gt;= $metric_threshold.max_sub_length {
+      &lt;error line=&#34;1&#34; column=&#34;1&#34; severity=&#34;error&#34; message=&#34;&#39;&lt;: $sub_stat.name :&gt;&#39; method length is &lt;: $sub_stat.lines :&gt; lines.&#34; source=&#34;com.puppycrawl.tools.checkstyle.checks.sizes.MethodLengthCheck&#34;/&gt;
+    : } elsif $sub_stat.mccabe_complexity &gt;= $metric_threshold.max_cyclomatic_complexity {
+      &lt;error line=&#34;1&#34; column=&#34;1&#34; severity=&#34;error&#34; message=&#34;&#39;&lt;: $sub_stat.name :&gt;&#39; cyclomatic complexity is &lt;: $sub_stat.mccabe_complexity :&gt;.&#34; source=&#34;com.puppycrawl.tools.checkstyle.checks.metrics.CyclomaticComplexityCheck&#34;/&gt;
+    : }
+  : }
+  &lt;/file&gt;
+: }
+&lt;/checkstyle&gt;</pre>
+
+</div>
+<div class="section">
+    <h4>使い方</h4>
+    <p>上記のスクリプトのconfigurationの設定を最初にします。<br />
+CCが10、sub lengthが50行という設定だと、以下のように書きます。</p>
+
+    <pre class="code lang-perl">our $MAX_CYCLOMATIC_COMPLEXITY = 10;
+our $MAX_SUB_LENGTH            = 50;</pre>
+<p>以下のようにスクリプトの引数にlibディレクトリを指定します。そうすると、workspaceにcheckstyle-result.xmlが生成されます。</p>
+
+    <pre class="code lang-sh">checkstyle.pl lib</pre>
+<p>後は、Jenkinsにcheckstyle pluginをいれておけば、ビルド時に自動でcheckstyleのViewにメトリクスでの測定結果が表示されます。</p>
+
+</div>
+<div class="section">
+    <h4>おまけ</h4>
+    <p>以下のようにPerl::Metrics::Simple::Analysis::Fileを変更することでメソッドの行数を取得することが可能になります。上記のcheckstyle.plでは、line numberは1という固定値になってますが、以下の変更を加えてcheckstyle.plのテンプレートを変更すれば、行数のマッピングも出来ます。そうすることで、check_styleのDetailのレポートから直接ソースコードの街頭メソッドにジャンプすることができるようになります。</p>
+
+    <pre class="code lang-perl">--- Perl/Metrics/Simple/Analysis/File.pm.orig	2011-12-10 13:49:45.000000000 +0900
++++ Perl/Metrics/Simple/Analysis/File.pm	2011-12-10 13:34:52.000000000 +0900
+@@ -327,6 +327,7 @@
+             name              =&gt; $sub-&gt;name,
+             lines             =&gt; $sub_length,
+             mccabe_complexity =&gt; $self-&gt;measure_complexity($sub),
++            line_number       =&gt; $sub-&gt;line_number,
+             };
+     }
+     return \@subs;</pre>
+
+</div>
+<div class="section">
+    <h4>メトリクス測定の効果</h4>
+    <p>メトリクスの測定をCIに組み込むことの効果には以下のようなものがあります。</p>
+
+<ul>
+<li>継続的にメトリクスをチェックすることができ、問題を早期に発見できる</li>
+<li>Jenkinsおじさんが自動でチェックしてくれるので、レビューの工数が削減できる</li>
+<li>指摘をJenkinsおじさんがしてくれるのでレビュー時に人間関係が悪化しない</li>
+<li>Jenkinsおじさんに指摘されないように気をつけるため、全員のコードが綺麗になる</li>
+</ul>
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>メトリクスの測定で、レビュー対象を早期に摘出するとコード品質をあげることが可能になります。早期に問題を見つけるのは、テストやビルドだけでなく、こういった静的解析による機械的なレビューによってもあげることが可能なわけです。</p><p>これらのメトリクスによる定量評価もCIに組み込むことでその価値を発揮します。性能だけでなく、品質もある一定線は定量評価が可能であり、人感じるのではなく、測定によって定量評価をすすめることで、改善効果を実感することができます。</p><p>CheckStyleのチェック項目は数多く存在しますが、Perl::Metrics::SimpleをベースにしてJava版と同じようにモジュール化をすることで、より高度なチェックも可能になります。興味のある方は是非トライしてみてください。</p><p>2003年頃からCruise Control ->  Continuum -> Hudson (Jenkins) とCIシステムを使ってきたわけですが、当時はJava界隈ではよく使われてましたが、あまりPerlのプロジェクトでは使われていませんでした。今では、Jenkinsの素晴らしいQualityから、Perlのプロジェクトでも大分使われるようになってきていますね。遅筆ではありますが、今後もJava界隈で今までに培ったCIの使い方のノウハウを、Perlのプロジェクトでも活かす方法を書いていきたいところです。</p><p>では、Enjoy Jenkins!</p><p>次回は、tsucchi さんです！</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="Nobuo Danjou <nobuo.danjou@gmail.com>">
+        <meta name="author" content="Nobuo Danjou <nobuo.danjou@gmail.com>">
+        <title>コマンドラインツールをつくってみよう - Articles Advent Calendar 2010 Perl6</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>コマンドラインツールをつくってみよう</h1>
+
+        <p>昨日Perl6をインストールしました。「さて何をしよう。特にすることがない！」というのがPerl6に限らず言語を勉強する際の最大の障害だと思います。題材重要ですね。<br />
+今回は「12月25日まであと何日?」というのを調べるスクリプトを書いてみましょうか。</p>
+
+    <pre class="code">#!/usr/bin/env perl6
+# days_till_christmas.pl
+use v6;
+
+sub MAIN (:$date = Date.today) {
+    my $howmany = Date.new(&#39;2010-12-25&#39;) - Date.new($date);
+    say &#34;$howmany days till christmas&#34;;
+}</pre>
+<p>あれ。こんだけだ。できちゃいましたね。実行してみましょう。</p>
+
+    <pre class="code">$ perl6 days_till_christmas.pl
+15 days till christmas
+
+$ perl6 days_till_christmas.pl --date &#39;2010-12-02&#39;
+23 days till christmas
+
+$ perl6 days_till_christmas.pl &#39;2010-12-02&#39;
+Usage:
+days_till_christmast.pl [--date=value-of-date]
+</pre>
+<p>おおー、ちゃんと動きました！</p><p>このスクリプトで主張したかったことは</p>
+
+<ul>
+<li>perl6のshebangは#!/usr/bin/env perl6が無難だと思います。</li>
+<li>perl6のコードを書いたらuse v6;しましょう。</li>
+<li>コマンドラインから実行するとMAINサブルーチンが実行されます。</li>
+<li>シグニチャが強力。これだけでperl5でのGetopt::Longみたいなことができました。
+<ul>
+<li>Usageまで出してくれちゃいます。</li>
+<li>perl5での「my $date = shift || DateTime->today->ymd;」が要りません。</li>
+</ul></li>
+<li>日付はDateモジュールを使います。でも組み込みなのでuse Date;は不要です。</li>
+<li>メソッド呼び出しは「->」ではなくて、「.」です。1タイプ減りました！</li>
+<li>sayメソッドはもうおなじみですね！</li>
+<li>あら意外。perl5に似てる気がする！</li>
+</ul><p>こんな辺りでしょうか。こんな短いスクリプトでもいろいろわかって面白いですね！</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

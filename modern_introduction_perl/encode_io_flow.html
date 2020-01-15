@@ -1,0 +1,78 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+    <head profile="http://purl.org/net/ns/metaprof">
+        <!-- Document Metadata -->
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta http-equiv="Content-Language" content="ja" />
+        <meta http-equiv="Content-Style-Type" content="text/css" />
+        <meta http-equiv="Content-Script-Type" content="text/javascript" />
+        <meta http-equiv="imagetoolbar" content="no" />
+
+        <!-- Atom news feed -->
+
+        <link rel="alternate" type="application/rss+xml" title="RSS feed" href="http://coderepos.org/share/log/websites/perl-users.jp?limit=100&amp;mode=stop_on_copy&amp;format=rss" />
+        <link rel="stylesheet" type="text/css" href="/css/perl-users.jp.css" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+        <link rel="icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+
+        <title>Unicodeにまつわる入出力のフローについて - モダンなPerl入門 - モダンなPerl入門</title>
+
+        <script src="http://www.google-analytics.com/urchin.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            _uacct = "UA-4463402-1";
+            urchinTracker();
+        </script>
+        <!-- script src="/js/codepress/codepress.js" type="text/javascript"></script -->
+    </head>
+    <body>
+        <div id="head-navigation"><a href="/">Perl-users.jp</a></div>
+<!-- content start -->
+<h1>Unicode にまつわる入出力のフローについて</h1>
+
+<p>Perl プログラムの処理フローは下記のようになる。</p>
+
+<ul>
+<li>入力して decode</li>
+<li>処理</li>
+<li>encode して出力</li>
+</ul>
+
+<p>もし入力がバイナリであって、それをバイナリとして操作するのならば decode するべきではないですが。
+そうではないすべてのケースで  decode するべきです。</p>
+
+<p>データがどのようにエンコードされえいるかを知らなくてはきちんとデータを decode することはできません。
+もし、あなたがどのようなエンコーディングをつかうかを選択できるならば UTF-8 を選ぶのがよいでしょう。</p>
+
+<pre><code>my $foo   = decode('UTF-8', get 'http://example.com/');
+my $bar   = decode('ISO-8859-1', readline STDIN);
+my $xyzzy = decode('Windows-1251', $cgi-&gt;param('foo'));
+</code></pre>
+
+<p>あなたはこのような処理をすることにより、バイトではなく文字をあつかうようになりました。
+これは、substr や length などの組み込み関数にも適用されるので便利です。</p>
+
+<pre><code>$body = encode('UTF-8', $body);
+</code></pre>
+
+<p>もしあなたがバイト列の長さを知りたいのならば、encode すればよいです。encode されて
+バイト列になった文字列にたいしては <B>length</B> は文字数ではなくバイト数をかえします。
+文字数は文字列でのみ数えられるので、バイト列から文字数をかぞえることはできません。</p>
+
+<pre><code>my $byte_count = length $body;
+</code></pre>
+
+<p>あなたのつかっているプロトコルが文字列エンコーディングの情報のやりとりをサポートしている
+ならば、その情報をつかいましょう。たとえば E-mail と HTTP は MIME ヘッダをサポートしていて
+<B>Content-Type</B> ヘッダを取得することができます。バイト数がわかっちゃう <B>Content-Length</B>
+ヘッダもあります。</p>
+
+<pre><code>    "Content-Type: text/plain; charset=UTF-8",
+        "Content-Length: $byte_count"
+</code></pre>
+
+<!-- content end -->
+        <hr />
+        <p><a href="/modern_introduction_perl/">目次へ</a></p>
+        <p>Last modified: $Date: 2008-05-22T09:21:23.154313Z $</p>
+    </body>
+</html>

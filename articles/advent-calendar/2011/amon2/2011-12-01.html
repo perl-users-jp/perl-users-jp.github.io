@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="tokuhirom">
+        <meta name="author" content="tokuhirom">
+        <title>Amon2 と JavaScript - Articles Advent Calendar 2011 Amon2</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Amon2 と JavaScript</h1>
+
+        <p>こんにちは！tokuhirom です！</p><p>Ark アドベントカレンダーをやるということなので、Amon2 アドベントカレンダーもやろうかとおもいます。</p><p>しかし、こちらはあんなにしっかりしたものをかく余裕がないので、ぺろーっとかくかんじにしようかとおもいます。</p><p>初日からネタがつきたので Amon2 と JavaScript の話をかこうかとおもいます。あまりこのへんかいたことなかったですよね。</p><p>現代の Web Application においては、JS をつかわないことはほとんどないといっても過言ではないでしょう。<br />
+ある程度の規模のウェブアプリケーションでは、JS が必須となっております。</p><p>そこで Amon2 では JS のサポートをしっかりやっていきたいとかんがえているわけです。<br />
+まあ、JS のサポートといっても、jQuery のコードを Amon2 にバンドルしておくとかそういった程度のことなわけですけど。</p><p>そういったレベルのことをキチッ、キチッとやっていくことが framework においては重要じゃないかな、とおもっているなうです。</p><p>僕がかんがえるに、「<B>Web Application Framework は中心的関心事に集中させるためのもの</B>」なので、中心的関心事に集中することをさまたげる要因はすべて排除していきたい所存なのであります。</p>
+
+<div class="section">
+    <h3>Why jQuery?</h3>
+    <p>いや、とくに他に選択肢ないし。。 やはり基礎となるライブラリはユーザー数がおおくないと、エッジケースでのバグがあったりしそうでこわいですよね。</p><p>Zepto とかもあるけど、まあ jQuery がおもくてこまっているということもとくにないので、いいかなと。</p><p>prototype.js とか MooTools とかも最近はつかってる人みないですしね。</p>
+
+</div>
+<div class="section">
+    <h3>なんで添付してるの?なんで Google Ajax API じゃないの?</h3>
+    <p>Google の CDN とかつかうようにしておけば別に jQuery を添付する必要はないんですが、オフラインで開発しようとおもったときにめんどくさいので、標準添付しております。</p>
+
+</div>
+<div class="section">
+    <h3>他のライブラリは添付しないの?</h3>
+    <p>実は Twitter の Bootstrap についているスクリプトをいくつかバンドルしてあります。</p><p>このへんにつかいかたのってるので参照してください。</p><p><a href="http://twitter.github.com/bootstrap/#javascript">http://twitter.github.com/bootstrap/#javascript</a></p>
+
+</div>
+<div class="section">
+    <h3>今後の予定は?</h3>
+    <p>よくつかうものについて標準添付したいなとおもっています。毎度さがすのめんどくさいんです。</p><p>具体的には以下のあたりのものをそろえていきたいな、とかんがえています。</p>
+
+<ul>
+<li>sprintf</li>
+<li>Date.prototype.strftime</li>
+<li>JS 用のテンプレートエンジン</li>
+<li>Function.prototype.bind とか ES5 系のやつ</li>
+</ul><p>現在ライブラリの選定などをおこなっていて、だいたいきまりつつあるんで、作業がおわったらリリースされる予定です。</p><p>JS のライブラリとかは、セットアップスクリプトの範疇なのでちょいちょい仕様かえてもいいというところで、しばらくはちょっとずつ調整がはいるかとはおもいますけれど。</p>
+
+</div>
+<div class="section">
+    <h3>まとめ</h3>
+    <p>しょっぱなから Perl 関係なかった!</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

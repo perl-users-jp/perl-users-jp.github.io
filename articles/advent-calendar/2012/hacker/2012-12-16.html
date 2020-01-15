@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="karupanerura">
+        <meta name="author" content="karupanerura">
+        <title>HTMLのバリデーションをよしなにやりたくてHTML::Lint::Pluggable書いた - Articles Advent Calendar 2012 Hacker</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>HTMLのバリデーションをよしなにやりたくてHTML::Lint::Pluggable書いた</h1>
+
+        <p>今日はクリスマスイブ？お前は何を言っているんだ。<br />
+今日はまだ12月16日じゃないか。イチャ付くにはまだ早いぜ。<br />
+チキンうめええええええええええええええええええええええええええええ！！！１１１１<br />
+ｍｇｍｇ、ｍｇｍｇ、あ、かるぱなんとかこと、かるぱねるらです。ｍｇｍｇ</p><br />
+<p>今日はぼくがてきとーに開発しながらカジュアルにHTMLのsyntaxをチェックするために、<br />
+モジュールをでっちあげた話をするよ！</p>
+
+<div class="section">
+    <h4>HTMLバリデーションをするCPANモジュール</h4>
+    <p>ぼくが調べてみたところによると、HTML::TidyとHTML::Lintというやつがあるようです。<br />
+しかし、HTML::Tidyは2010年から更新されておらず、実質HTML::Lintだけという雰囲気でした。</p><br />
+<p>ところで、HTML::Tidyですが、HTML4のsyntaxにしか対応していません。<br />
+つまり、HTML5で新しく追加されたタグや属性を使っていると大量にエラーが出てしまいます。</p><br />
+<p>また、日本のガラケー向けに用意したHTMLなんかは各キャリアが独自で作った属性とかがあったりして、<br />
+「こんな属性しらないよ！」って怒られてしまいます。</p><p>更に、マルチバイト文字など、適切にエンコードさえしていればHTMLエスケープが不要な文字も、<br />
+HTMLエスケープしろと怒られてしまいます。<br />
+これでは日本語のサイトではなかなか使い物になりません。</p><p>そのため、このようなケースに対応すべく、HTML::Lint::Pluggableというものをでっちあげました！</p>
+
+</div>
+<div class="section">
+    <h4>HTML::Lint::Pluggable</h4>
+    <p>HTML::Lintですが、メソッド単位で見ると割とhookしやすい構成になっており、<br />
+IFは用意されていませんが、構造的にはParserを差し替えられるようになっていたりもします。</p><p>標準で添付されているHTML::Lint::Pluggable::WhiteListでは、<br />
+エラーが見つかった際に呼ばれるcallbackであるgripeにhookする事により、<br />
+一部のエラーのみを無視させています。<br />
+これによって非常にカジュアルにHTMLのバリデーションをさせる事が出来ます。</p><br />
+<p>これはdocomoが提供しているistyle属性を許可する例です。<a href="#fn1" title="ドキュメンテーションするのを忘れていましたが、各エラーで$paramに渡ってくる値は、現状%HTML::Lint::Error::errorsの値を見て書くというワイルドな仕様になっております。">*1</a></p>
+
+    <pre class="code lang-perl">use HTML::Lint::Pluggable;
+
+my $lint = HTML::Lint::Pluggable-&gt;new;
+$lint-&gt;load_plugin(WhiteList =&gt; +{
+    rule =&gt; +{
+        &#39;attr-unknown&#39; =&gt; sub {
+            my $param = shift;
+            if ($param-&gt;{tag} =~ /input|textarea/ &amp;&amp; $param-&gt;{attr} eq &#39;istyle&#39;) {
+                return 1;
+            }
+            else {
+                return 0;
+            }
+        },
+    },
+});
+$lint-&gt;parse($text);</pre>
+<p>こんな具合でカジュアルに特定のエラーを無視する事が出来ます。</p><br />
+<p>他にも、HTML5で追加された属性やタグを許可するHTML::Lint::Pluggable::HTML5や、<a href="#fn2" title="HTML5の場合、HTML5用のパーサーを作って、標準のパーサーをそれに挿げ替えるほうがベターな策ですが、ホワイトリスト式の方が実装コストが圧倒的に低く、実用上はこれでほぼ問題無い為こうなっています。">*2</a><br />
+HTML::Entitiesでエスケープされない文字を許可するHTML::Lint::Pluggable::TinyEntitesEscapeRuleを標準で付けています。</p>
+
+<div class="section">
+    <h5>Plugin機構について</h5>
+    <p>上のコードをみてもらったらちらっと分かると思うのですが、instance単位でプラグインを読み込めるようになっています。<br />
+プラグインはinstance単位でメソッドをoverride出来るようになっています。<br />
+これはinside-outと呼ばれるテクニックを使って実現しています。<br />
+inside-outについては、id:dan さんの記事が分かりやすいです。( <a href="http://blog.livedoor.jp/dankogai/archives/50783623.html">http://blog.livedoor.jp/dankogai/archives/50783623.html</a> )<br />
+HTML::Lint::PluggableではFieldHashというものを用いてinside-outを実現しています。<br />
+FieldHashはinstanceをHashにキーとすると、instanceが破棄されたタイミングでそのinstanceをキーにしたハッシュの中身も破棄してくれる特殊なHashです。<br />
+FieldHashについては、id:gfx さんの記事に詳しく書かれています。( <a href="http://d.hatena.ne.jp/gfx/20090202/1233550724">http://d.hatena.ne.jp/gfx/20090202/1233550724</a> )</p><p>instance単位のoverrideの実装としては、メソッドを実際にoverrideするのは1度だけで、<br />
+FieldHashにメソッドの実体を保持しつつ、それを呼ぶような作りになっています。<br />
+文章で説明するのがむずかしいのでコードこぴぺします。日本語むずかしい！</p>
+
+    <pre class="code lang-perl">fieldhash my %OVERRIDED_CODES;
+my %ROOTCODE;
+sub override {
+    my($self, $method, $code) = @_;
+    my $class = ref($self) or croak(&#39;this method can called by instance only.&#39;);
+
+    $OVERRIDED_CODES{$self}          ||= +{};
+    $ROOTCODE{$class}                ||= +{};
+    $OVERRIDED_CODES{$self}{$method} ||= $ROOTCODE{$class}{$method} || $class-&gt;can($method);
+    $OVERRIDED_CODES{$self}{$method}   = $code-&gt;($OVERRIDED_CODES{$self}{$method});
+
+    unless ($ROOTCODE{$class}{$method}) {
+        my $orig = $ROOTCODE{$class}{$method} = $class-&gt;can($method);
+        my $method_code = sub {
+            my $self = shift;
+
+            if (exists $OVERRIDED_CODES{$self}) {
+                my $super = $OVERRIDED_CODES{$self}{$method};
+                return $self-&gt;$super(@_) if $super;
+            }
+
+            return $self-&gt;$orig(@_);
+        };
+
+        no strict &#39;refs&#39;;
+        *{&#34;${class}::${method}&#34;} = $method_code;
+    }
+}</pre>
+<p>instance単位でメソッドのオーバーライドを行う方法としては、他にはANONクラスを使う方法などがあります。(MooseはANONクラスを使っています)<br />
+たぶんANONクラスを使う方法の方が一般的です。<br />
+興味がある方はMooseやClass::MOPなどのソースを読んでみると良いでしょう。</p>
+
+</div>
+</div>
+<div class="section">
+    <h4>Plack::Middleware::HTMLLint(::Pluggable)?</h4>
+    <p>こんなHTML::Lint(::Pluggable)ですが、いちいちワンライナーやらスクリプトを書き捨てて使うのはめんどくさいです。<br />
+また、コンソールを触る事が出来ない人には使う事ができません。</p><p>そこで、このチェックをPlack::Middlewareでやる事によってエラーを常に可視化出来るようにしました。<br />
+これを使うとこんな具合でどのようなエラーがあるのかを表示させる事が出来ます。</p>
+
+    <pre class="code lang-perl">use Plack::Builder;
+
+my $error_html = q{
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;&lt;title&gt;hoge&lt;/title&gt;&lt;/head&gt;
+&lt;body bgcolor=&#34;#000&#34; style=&#34;color: #FFF&gt;&lt;header&gt;&lt;h1&gt;fuga&lt;/h1&gt;&lt;/header&gt;&lt;hoge&gt;&lt;/hoge&gt;&lt;/body&gt;
+&lt;/html&gt;
+};
+
+builder {
+    enable_if { $ENV{PLACK_ENV} eq &#39;development&#39; } &#39;HTMLLint::Pluggable&#39;, plugins =&gt; +{
+        html5 =&gt; [qw/HTML5/],
+    };
+
+    sub {
+        my $env = shift;
+        # ...
+        return [
+            200,
+            [&#39;Content-Type&#39; =&gt; &#39;text/html&#39;],
+            [$error_html]
+        ];
+    };
+};</pre>
+<p>istyle属性のエラーうぜー！！ってなったときは以下のように無視させる事も出来ます。</p>
+
+    <pre class="code lang-perl">use Plack::Builder;
+
+my $error_html = q{
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;&lt;title&gt;hoge&lt;/title&gt;&lt;/head&gt;
+&lt;body bgcolor=&#34;#000&#34; style=&#34;color: #FFF&gt;&lt;header&gt;&lt;h1&gt;fuga&lt;/h1&gt;&lt;/header&gt;&lt;hoge&gt;&lt;/hoge&gt;&lt;/body&gt;
+&lt;/html&gt;
+};
+
+builder {
+    enable_if { $ENV{PLACK_ENV} eq &#39;development&#39; } &#39;HTMLLint::Pluggable&#39;, plugins =&gt; +{
+        html5 =&gt; [qw/HTML5/, WhiteList =&gt; +{
+            rule =&gt; +{
+                &#39;attr-unknown&#39; =&gt; sub {
+                    my $param = shift;
+                    if ($param-&gt;{tag} =~ /input|textarea/ &amp;&amp; $param-&gt;{attr} eq &#39;istyle&#39;) {
+                        return 1;
+                    }
+                    else {
+                        return 0;
+                    }
+                },
+            },
+        }],
+    };
+
+    sub {
+        my $env = shift;
+        # ...
+        return [
+            200,
+            [&#39;Content-Type&#39; =&gt; &#39;text/html&#39;],
+            [$error_html]
+        ];
+    };
+};</pre>
+<p>デザインがダサい事もこのモジュールの特徴で<a href="#fn3" title="わざとではないです">*3</a>、こんなものを表示させっぱなしにしたい人も居ないはずなので、<br />
+HTMLの構文エラーが出たままコミットされる事が減り、消えるのも早くなります。（ぼくが実際に弊社内で運用してみた体感です）</p><p><img src="https://github.com/perl-users-jp/perl-advent-calendar/raw/master/2012/hacker/2012-12-16/error.png" alt="sample_image" /></p><p>こんな具合でカジュアルにHTMLの構文チェックが出来るといろいろと捗るのではないでしょうか！</p>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>今回はHTML::Lint(::Pluggable)とPlack::Middleware::HTMLLint(::Pluggable)を使ってカジュアルにHTMLの構文チェックを行う方法を紹介しました。<br />
+また、FieldHashを使ったinside-outテクニックによるinstance単位のメソッドのoverrideの方法を紹介しました。<br />
+instance単位でプラグイン読み込める機構が嬉しい場面は稀ですが、こういう原理で作る事ができるという事は覚えておいて損は無いかと思います。<br />
+また、instance単位でこういう事をやる場合、こうやって自作するよりMo[ou]seのRoleを使って作った方が断然楽なのでオススメです。</p><p>次回はサンタさんですかね？イエス・キリストですかね？お楽しみに！！</p>
+
+</div>HASH(0x5566cb2663c8)
+HASH(0x5566cb266488)
+HASH(0x5566cb2664e8)
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

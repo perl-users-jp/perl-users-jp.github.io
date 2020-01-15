@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>Class::Accessor::Lite - yet another accessor builder - Articles Advent Calendar 2010 English</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Class::Accessor::Lite - yet another accessor builder</h1>
+
+        <p>Why do accessor builders modify @ISA? Doesn't it slow down method invocation? <a href="http://search.cpan.org/dist/Class-Accessor-Lite/">Class::Accessor::Lite</a> is a yet-another accessor builder.  The blurbs are:</p>
+
+<ul>
+<li>compatible interface with <a href="http://search.cpan.org/dist/Class-Accessor-Fast/">Class::Accessor::Fast</a></li>
+<li>does not alter @ISA</li>
+<li>no dependencies</li>
+<li>can set up read-only and / or write-only accessors and constructors</li>
+</ul><p>There is also a fancy interface (like <a href="http://search.cpan.org/dist/Object-Tiny/">Object::Tiny</a>) to construct the accessors.  The following code snippet should be self-explanatory.</p>
+
+    <pre class="code lang-perl">package MyClass;
+
+use Class::Accessor::Lite (
+    new =&gt; 1,                # create constructor
+    rw  =&gt; [ qw(foo bar) ],  # r/w accessor
+    ro  =&gt; [ qw(baz) ],
+    wo  =&gt; [ qw(hoge) ],
+);</pre>
+<p>This entry was written by <a href="http://search.cpan.org/~kazuho/">Kazuho Oku</a>.  His weblog can be found at: <a href="http://blog.kazuhooku.com/">blog.kazuhooku.com</a>.</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

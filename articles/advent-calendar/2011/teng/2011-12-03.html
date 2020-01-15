@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>#03 insert / fast_insert - Articles Advent Calendar 2011 Teng</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>#03 insert / fast_insert</h1>
+
+        <p>昨日でTengを利用するのに必要なクラス定義は終了しているので早速<br />
+次のステップとして新しいレコードをデータベースに登録する<br />
+INSERTの方法を紹介します。</p><p></p>
+
+<div class="section">
+    <h3>insertメソッド</h3>
+    <p><br />
+SQLのINSERT文を実行するには以下のようにします。</p>
+
+    <pre class="code">my $row = $teng-&gt;insert(&#39;user&#39;, +{id =&gt; 1, name =&gt; &#39;nekokak&#39;});</pre>
+<p>このようにすると、</p>
+
+    <pre class="code">INSERT INTO user (id,name) VALUES(1,&#39;nekokak&#39;);</pre>
+<p>というようなSQLが実行され、データベースに新しい行が登録されます。</p><p>Tengのinsertメソッドの返り値として、insertしたtableに対応するRowクラスでインスタンス化された<br />
+Rowオブジェクトがかえってきますので、</p>
+
+    <pre class="code">$row-&gt;id;   # 1
+$row-&gt;name; # nekokak</pre>
+<p>といったようにアクセスすることが可能です。</p><p>Tengのinsertメソッドではinsertに利用したrowデータを元にRowオブジェクトを生成していますが、<br />
+rowオブジェクトが必要でない場合、無駄なコストが発生します。</p><p></p>
+
+</div>
+<div class="section">
+    <h3>fast_insertメソッド</h3>
+    <p>その場合はfast_insertメソッドを利用するとよいでしょう。<br />
+fast_insertメソッドの引数はinsertメソッドと全く同じで、返却値がことなるだけです。<br />
+fast_insertの時の返却値はlast insert idとなります。</p>
+
+    <pre class="code">my $id = $teng-&gt;fast_insert(&#39;user&#39;, +{id =&gt; 2, name =&gt; &#39;xaicron&#39;});</pre>
+
+</div>
+<div class="section">
+    <h3>bulk_insertメソッド</h3>
+    <p>大量のデータをまとめてINSERTしたい場合、insertメソッド、fast_insertメソッドでは<br />
+毎回INSERT文を発行することになるので、パフォーマンスの劣化が激しくなります。<br />
+大量のデータをまとめてINSERTする場合はbulk_insertメソッドを利用してください。</p><p></p>
+
+    <pre class="code">$teng-&gt;bulk_insert(&#39;user&#39;, [
+    +{ id =&gt; 3, name =&gt; &#39;zigorou&#39;},
+    +{ id =&gt; 4, name =&gt; &#39;hidek48&#39;},
+]);</pre>
+<p>bulk_insertメソッドを利用するるとバックエンドのRDBMSに応じて適切なINSERT文を生成し、<br />
+実行することができます。<br />
+これにより、高速なデータ登録が可能となります。</p><p>bulk_insertメソッドは昔のバージョンではPlugin扱いとなっていましたが、<br />
+現在はPluginをloadしなくても利用できるようになっています。</p><br />
+<p>INSERTの実行方法を紹介しました。</p><p>自分で</p>
+
+    <pre class="code">INSERT INTO user (id,name) VALUES(?,?);</pre>
+<p>のようなSQLをかいて実行するよりもかなり楽にかけるようになってますよね。<br />
+今回の例ではcolumn数が少ないので生SQLでもそんなに難しくはないですが、<br />
+多くのcolumnを持つtableのINSERT文を書くのは結構面倒です。<br />
+さらに、通常?を使ったプレスホルダを利用することになりますが、<br />
+?と実際に対応するデータの順番がずれると変なレコードが作られてしまったりするので、<br />
+ORMだったりクエリビルダーでINSERT文を生成すると大分楽になるとおもいます。</p><p>明日は今日登録したデータを取得する色々な方法を紹介しようとおもいます。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

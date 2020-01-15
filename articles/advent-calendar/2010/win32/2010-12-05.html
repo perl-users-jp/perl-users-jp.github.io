@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="techno-cat">
+        <meta name="author" content="techno-cat">
+        <title>オススメしないperlの実行方法 - Articles Advent Calendar 2010 Win32</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>オススメしないperlの実行方法</h1>
+
+        <p>お仕事では、100% Windowsなtechno-cat(@techno_neko)デス。</p>
+
+<div class="section">
+    <h3>今回は、オススメしないperlの実行方法を紹介します。</h3>
+    <p>みなさんは、wsfをご存知でしょうか？</p>
+
+<blockquote cite="http://msdn.microsoft.com/ja-jp/library/cc392507.aspx">
+    <p>Windows スクリプト (*.wsf) ファイルは、XML (Extensible Markup Language) コードを含むテキスト ドキュメントです。Windows スクリプト ファイルでは、スクリプトの柔軟性を向上するいくつかの機能がサポートされています。Windows スクリプト ファイルはエンジンに依存しないので、Windows スクリプト互換の任意のスクリプト エンジンで作成したスクリプトを Windows スクリプト ファイルに含めることができます。Windows スクリプト ファイルは、一種のコンテナとして機能します。</p>
+
+    
+    <cite><a href="http://msdn.microsoft.com/ja-jp/library/cc392507.aspx">http://msdn.microsoft.com/ja-jp/library/cc392507.aspx</a></cite>
+    
+</blockquote><p>だそうなので、さっそくperlをスクリプト エンジンとしたwsfを書いちゃいましょう。</p><br />
+<p>まずは、いつもの。</p>
+
+    <pre class="code">&lt;job&gt;
+&lt;script language=&#34;PerlScript&#34;&gt;
+
+$WScript-&gt;Echo(&#34;hello world.&#34;);
+
+&lt;/script&gt;
+&lt;/job&gt;</pre>
+<p>これをテキストエディタにコピペして、"hello.wsf"というファイル名で保存してみましょう。<br />
+見慣れないアイコンが表示されるはずです。<br />
+ダブルクリックすると、スクリプトが実行されて、メッセージボックスが表示されます。</p><p><br /><br />
+さらに、複数のファイルをドラッグ＆ドロップして処理する場合はこんな感じ。</p>
+
+    <pre class="code">&lt;job&gt;
+&lt;script language=&#34;PerlScript&#34;&gt;
+
+my $args = $WScript-&gt;Arguments;
+for (my $i=0; $i&lt;$args-&gt;Count; $i++) {
+	foo( $args-&gt;Item(0) );
+}
+
+sub foo {
+	my $arg = shift;
+	# $WScript-&gt;Echo( $arg );
+}
+&lt;/script&gt;
+&lt;/job&gt;</pre>
+<p>一度に複数のファイルを処理したい場合や、<br />
+BATファイル(*.bat)を書くまでもない場合は非常に便利です。<br />
+こんな簡単にperlを実行できるなんて、夢が広がりますね！</p><br />
+<p></p>
+
+</div>
+<div class="section">
+    <h3>ですが、次はオススメしない理由です。</h3>
+    <p>結論から言うと、日本語のコメントを入れると、意味不明なエラーが出ます。</p>
+
+    <pre class="code">&lt;job&gt;
+&lt;script language=&#34;PerlScript&#34;&gt;
+
+# メッセージボックスを表示！
+$WScript-&gt;Echo(&#34;hello world.&#34;);
+
+&lt;/script&gt;
+&lt;/job&gt;</pre>
+<p><br /><br />
+こんな感じで、ファイルの先頭で文字コード指定したり、</p>
+
+    <pre class="code">&lt;?XML version=&#34;1.0&#34; standalone=&#34;yes&#34; encoding=&#34;euc-jp&#34; ?&gt;</pre>
+<p>可能な限りいろいろ試してもダメでした。<br />
+これが許容できるなら使えそうなもんですが、私はperlスクリプトファイル(*.pl)をJScriptファイル(*.js)から呼び出す方法をオススメしています。<br />
+理由は、コマンド プロンプトから呼び出してデバッグが出来るからです。</p><p>という訳で、オススメしないよ！っていうMSWin32Tipsでした！！</p><p>次は、 @songmu さんデス！</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

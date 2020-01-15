@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="Songmu">
+        <meta name="author" content="Songmu">
+        <title>Plack::Middlewareの使い所 - Articles Advent Calendar 2011 Casual</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Plack::Middlewareの使い所</h1>
+
+        <h3>2011-12-08 00:40追記</h3>
+
+<p>@karupaneruraさんに指摘されて、s/Plack::Middleware::Conditionals/Plack::Builder::Conditionals/ しました。ありがとうございます。@kazeburoさんすみませんでした。</p>
+
+<hr />
+
+<p>こんにちは。<a href="http://twitter.com/songmu">Songmu</a>です。鎌倉の面白法人でPerlでソーシャルゲームの開発をおこなっています。
+「<a href="http://www.kayac.com/service/socialgame/baseball-nettou/index.html">ぼくらの甲子園熱闘編</a>」や「<a href="http://www.kayac.com/service/socialgame/690">ぼくらのワールドリーグ</a>」の開発に携わっております。</p>
+
+<p>アプリはArk + DBIx::Class + Text::MicroTemplate::Extendedという構成で作ることが多いのですが、
+今回はソーシャルゲーム開発で活用しているPlack関連モジュールを2つ紹介させていただきます。</p>
+
+<p>ちなみに<a href="http://tech.kayac.com/ark-advent-calendar-2011/">Arkのadvent calendar</a>もやっておりますので、併せて読んでもらえると嬉しいです。</p>
+
+<h2>Plack::Middleware::Auth::OAuth</h2>
+
+<p>OAuthの署名チェックは少し面倒です。これをアプリケーション内でやろうとするのはいろいろな意味で筋悪です。</p>
+
+<ul>
+<li>アプリの本質から離れたコードが入ってしまう</li>
+<li>フレームワーク側で透過的に文字コード変換等をしてくれる場合、逆に署名検証が困難になる</li>
+</ul>
+
+<p>と言った理由からです。こういった処理は、PlackのMiddleware層でやるべき処理です。</p>
+
+<p>すでにhidekさんが書かれた <a href="https://github.com/hidek/Plack-Middleware-Auth-OAuth">Plack::Middleware::Auth::OAuth</a>がgithubに上がっているのでそれを使うと良いと思います。</p>
+
+<p>psgiファイルをPlack::Builderを使って以下のように書くことができます。</p>
+
+<pre><code>use Plack::Builder;
+...
+builder {
+    enable 'Plack::Middleware::Auth::OAuth',
+        'consumer_key'    =&gt; 'your_consumer_key',
+        'consumer_secret' =&gt; 'your_consumer_secret',
+        'validate_post'   =&gt; 1;
+    $app;
+};
+</code></pre>
+
+<p>これで解決です。簡単ですね。これでアプリケーション側では特にOAuthを意識する必要はなくなりました。</p>
+
+<p>ただ、これだと全てのアクセスにOAuth認証が必要になってしまい困る局面が出てきます。</p>
+
+<p>例えば死活監視のためのURLを用意し、監視スクリプトに定期的にアクセスして貰う場合などです。</p>
+
+<p>この場合監視スクリプト側がAuthヘッダーを付けてリクエストを送るのは現実的ではありません。
+実装コストの問題や、たとえ実装ができたとしてもconsumer_key等の秘匿情報を監視スクリプト側に持たせたくないからです。</p>
+
+<p>なので、enable_ifを使って、特定条件の場合にのみMiddlewareを読みこませるようしてみましょう。</p>
+
+<pre><code>builder {
+    enable_if {$_[0]-&gt;{PATH_INFO} !~ m!^/ping(?:$|/)!}
+        'Plack::Middleware::Auth::OAuth',
+        'consumer_key'    =&gt; 'your_consumer_key',
+        'consumer_secret' =&gt; 'your_consumer_secret',
+        'validate_post'   =&gt; 1;
+    $app;
+};
+</code></pre>
+
+<p>上記の例だと、/ping 以下にアクセスした際にはOAuth認証を通さないようにしています。</p>
+
+<p>/pingはDBのレコードを一行引き、問題なかったら200を返すようなURLです。それにより一気通貫のアプリケーションの死活監視を行うことができます。</p>
+
+<h2>Plack::Builder::Conditionals</h2>
+
+<p>さて、問題は解決しましたが、<code>$_[0]-&gt;{PATH_INFO}</code>みたいな生に近い情報を書くのは綺麗じゃないと思うかもしれません。</p>
+
+<p>その場合は、kazeburoさん作の<a href="http://search.cpan.org/dist/Plack-Builder-Conditionals/">Plack::Builder::Conditionals</a>を使うと綺麗に書くことができます。</p>
+
+<pre><code>use Plack::Builder::Conditionals;
+
+builder {
+    enable match_if path('!', qr!^/ping(?:$|/)!),
+        'Plack::Middleware::Auth::OAuth',
+        'consumer_key'    =&gt; 'your_consumer_key',
+        'consumer_secret' =&gt; 'your_consumer_secret',
+        'validate_post'   =&gt; 1;
+    $app;
+};
+</code></pre>
+
+<p>コードの見通しが良くなりました。</p>
+
+<h2>まとめ</h2>
+
+<p>アプリケーションの処理を書いているときにアプリケーション側で頑張るのではなく、</p>
+
+<ul>
+<li>フレームワークのPluginレベル</li>
+<li>PlackのMiddleware層</li>
+</ul>
+
+<p>で解決できないかを考えると、アプリケーションをシンプルにできることがあります。
+特に、アプリケーションの本質とは関係ない処理をガリガリ実装してしまっている時に視点を広げてみると幸せになれることがあります。</p>
+
+<p>また、便利だからといって、Plack::Middlewareをたくさん読み込ませると逆にpsgiファイルの見通しが悪くなってしまうことがあります。
+そういう時は、Plack::Builder::Conditionalsを使うと良いでしょう。</p>
+
+<p>さて、明日はhisaichi5518さんです。おや、会社の後輩ですね。お楽しみに。</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

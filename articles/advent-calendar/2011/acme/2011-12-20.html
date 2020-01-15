@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="makamaka">
+        <meta name="author" content="makamaka">
+        <title>Acme何thing?　解答編 - Articles Advent Calendar 2011 Acme</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Acme何thing?　解答編</h1>
+
+        <p><a href="http://twitter.com/maka2_donzoko">makamaka</a>です。これは前日の続きですので、まずは19日分の記事に目を通してからお読みください。</p><p>問題は次の通りでした。</p>
+
+    <pre class="code">Acme::Anything
+Acme::Everything
+Acme::Nothing
+Acme::Something
+
+これらのうち、2011年12月19日現在CPANに存在していないモジュールはどれでしょう？</pre>
+<p>昨日はそのうち一つのサンプルをみてみました。今日は残り２つをみます。</p><br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<p>下記のコードをご覧ください。useしてるモジュールは一つです。</p>
+
+    <pre class="code">use 5.014;
+use Acme::Everything;
+
+say JSON-&gt;new-&gt;encode([&#39;ok&#39;]);</pre>
+<p>実行できますね？　でもJSONなんていつロードしたのかしら？　ロードしてないのに使えてる……　そう、このモジュールを一度useすれば、実行時にCPANからダウンロードしてくれるのです！　CPANPLUS使ってます。</p><p>さあ、最後です。</p>
+
+    <pre class="code">use 5.014;
+use Acme::Nothing;
+use Carp;
+use JSON;
+Carp::carp(&#34;&gt;&lt;&#34;);</pre>
+<p>ちゃんと動きませんね……。　Acme::Nothingはどんなモジュールをuseしてもロードしてくれなくなります。これもAcme::Anythingで使われてた@INCにサブルーチンリファレンスを仕込むテクニックを使ってます。</p><br />
+<p>はい、というわけでCPANに存在しないのは「Acme::Something」が正解になります。</p><p>誰ぞAcme::Somethingに挑戦してみてはいかがでしょうか！？　ではでは。</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

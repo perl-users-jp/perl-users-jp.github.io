@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="Nobuo Danjou <nobuo.danjou@gmail.com>">
+        <meta name="author" content="Nobuo Danjou <nobuo.danjou@gmail.com>">
+        <title>モジュールを書いてみよう - Articles Advent Calendar 2010 Perl6</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>モジュールを書いてみよう</h1>
+
+        <p>昨日は既存のモジュールを使ってみました。今日は自分で新しいモジュールを書いてみましょう。例が思いつかなかったので、こんなスクリプトを実行すると'foo'と帰ってくる、そんなFoo.pmを書いてみましょう。</p>
+
+    <pre class="code">#!/usr/bin/env perl6
+use v6;
+use Foo;
+
+my $f = Foo.new;
+say $f.foo;</pre>
+
+<div class="section">
+    <h3>コードを書く</h3>
+    <p>まずfooディレクトリにtとlibディレクトリを切ります。</p>
+
+    <pre class="code">$ cd ~/tmp
+$ mkdir foo
+$ cd foo
+$ mkdir lib t
+$ ls
+lib  t</pre>
+<p>ではt/01-usage.tとしてテストを書きましょう。</p>
+
+    <pre class="code">use v6;
+use Test;
+use Foo;
+
+ok my $f = Foo.new;
+isa_ok $f, Foo;
+is $f.foo, &#39;foo&#39;;
+
+done_testing;
+
+# vim: set ft=perl6</pre>
+<p>こんな感じでしょうか。perl 5 とおんなじ感じですね。lib/Foo.pmも書いてみます。</p>
+
+    <pre class="code">use v6;
+
+class Foo {
+    method foo {
+        return &#39;foo&#39;;
+    }
+}
+
+# vim: set ft=perl6</pre>
+<p>んー、お題が良くなかったですが、こんな感じですね。これだけなので特に問題ないと思います。</p>
+
+</div>
+<div class="section">
+    <h3>ビルドする</h3>
+    <p>さて、Perl 5 ではMakefile.PLというのを書いて、以下のようにしてビルドするのがよくある手順でした。</p>
+
+    <pre class="code">$ perl Makefile.PL
+$ make
+$ make test
+$ make install</pre>
+<p>Perl 6 ではどうなんでしょう？Makefile.PLは書きません。そしてperl Makefile.PLするかわりにufoコマンドというのを実行します。実際にインストールの手順を行ってみると、こんな出力が得られます。</p>
+
+    <pre class="code">$ ufo
+
+$ make
+mkdir -p `dirname &#39;blib/lib/Foo.pir&#39;`
+env PERL6LIB=/home/danjou/tmp/foo/blib/lib:/home/danjou/tmp/foo/lib: perl6 --target=pir --output=blib/lib/Foo.pir lib/Foo.pm
+mkdir -p `dirname &#39;blib/lib/Foo.pm&#39;`
+cp lib/Foo.pm blib/lib/Foo.pm
+
+$ make test
+env PERL6LIB=/home/danjou/tmp/foo/blib/lib:/Users/danjou/tmp/foo/lib: prove -e &#39;perl6&#39; -r t/
+t/01-usage.t .. ok   
+All tests successful.
+Files=1, Tests=3,  1 wallclock secs ( 0.02 usr  0.00 sys +  0.86 cusr  0.35 csys =  1.23 CPU)
+Result: PASS
+
+$ make install
+mkdir -p `dirname &#39;/home/danjou/.perl6/lib/Foo.pm&#39;`
+install lib/Foo.pm /home/danjou/.perl6/lib/Foo.pm
+mkdir -p `dirname &#39;/home/danjou/.perl6/lib/Foo.pir&#39;`
+install blib/lib/Foo.pir /home/danjou/.perl6/lib/Foo.pir
+</pre>
+<p>これからわかることは、</p>
+
+    <pre class="code">env PERL6LIB=/home/danjou/tmp/foo/blib/lib:/home/danjou/tmp/foo/lib: \
+    perl6 \
+        --target-pir \
+        --output=blib/lib/Foo.pir lib/Foo.pm</pre>
+<p>というところで、</p>
+
+<ul>
+<li>PERL6LIBというのがPerl 5でのPERL5LIBのように@INCにパスを追加する環境変数</li>
+<li>Foo.pmをFoo.pirに、perl6のコードをparrotのコードにコンパイルしている</li>
+</ul>
+    <pre class="code">env PERL6LIB=/home/danjou/tmp/foo/blib/lib:/Users/danjou/tmp/foo/lib: \
+    prove -e &#39;perl6&#39; -r t/</pre>
+<p>というところで、</p>
+
+<ul>
+<li>テストはPERL6LIBにlibとblibを追加してprove -e 'perl6'で実行している</li>
+</ul>
+    <pre class="code">mkdir -p `dirname &#39;/home/danjou/.perl6/lib/Foo.pm&#39;`
+install lib/Foo.pm /home/danjou/.perl6/lib/Foo.pm
+mkdir -p `dirname &#39;/home/danjou/.perl6/lib/Foo.pir&#39;`
+install blib/lib/Foo.pir /home/danjou/.perl6/lib/Foo.pir</pre>
+<p>というところで、</p>
+
+<ul>
+<li>インストール先は昨日出てきた「$HOME/.perl6/lib」以下だった</li>
+</ul><p>という辺りだと思います。昨日の.pirの説明が間違っていたことがわかりました。すいませんでした。訂正しておきます。</p><p>これで、自作モジュールを自由に使えるようになりました。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

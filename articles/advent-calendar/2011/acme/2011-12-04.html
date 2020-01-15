@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="techno-cat">
+        <meta name="author" content="techno-cat">
+        <title>実践 Acme::Spinner - Articles Advent Calendar 2011 Acme</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>実践 Acme::Spinner</h1>
+
+        <p>Win32 Trackが懐かしい techno-cat (@techno_neko) デス。</p>
+
+<div class="section">
+    <h3>探し求めていたモジュールはAcmeでした</h3>
+    <p>画像データを扱うと、なかなか結果が返って来なくて。それで、プログレスバーみたいなのがあればいいなーって思ってたのですが、そんな大げさじゃなくていいから、動いてるよって教えてくれるモジュールを探してました。<br /></p><p>そして、ついに見つけてしまったのです、Acme::Spinnerを。</p>
+
+</div>
+<div class="section">
+    <h3>使い方</h3>
+    
+    <pre class="code lang-perl">use strict;
+use Acme::Spinner;
+
+# 時間のかかる処理
+my $spinner = Acme::Sipnner-&gt;new();
+for my $i (0..100) {
+	print STDERR $spinner-&gt;next . &#34;\r&#34;;
+
+	# いろいろやる
+
+}</pre>
+<p>すると、</p>
+
+    <pre class="code">|
+\
+-
+/</pre>
+<p>の順番でアニメーションする。</p>
+
+</div>
+<div class="section">
+    <h3>ちゃんとやる</h3>
+    <p>ちゃんとアニメーションさせるには、</p>
+
+    <pre class="code lang-perl">print STDERR $spinner-&gt;next . &#34;\r&#34;;</pre>
+<p>が呼ばれるタイミングだったり、回数を制御しなきゃいけなくて、<br />
+例えば画像をモノクロに変換する処理の場合はこんな感じ。</p>
+
+    <pre class="code lang-perl">use warnings;
+use strict;
+use Imager;
+use Acme::Spinner;
+
+my $img = Imager-&gt;new( file=&gt;$ARGV[0] ) or
+	die Imager-&gt;errstr();
+
+my $spinner = Acme::Spinner-&gt;new();
+for my $y (0..$img-&gt;getheight-1) {
+
+	# ここで出力タイミングを制御
+	# この例だと、16の倍数で1回出力
+	if ( ($y &amp; 0x0F) == 0 ) {
+		print STDERR $spinner-&gt;next . &#34;\r&#34;;
+	}
+
+	my @colors = $img-&gt;getscanline( y=&gt;$y );
+	my @pixels = ();
+	foreach my $color (@colors) {
+		my ($red, $green, $blue, $alpha) = $color-&gt;rgba;
+ 
+		my $y = $red + $green + $green + $blue;
+		$y = int( $y / 4 );
+ 
+		push @pixels, ( $y, $y, $y, $alpha );
+	}
+	$img-&gt;setscanline( y=&gt;$y, pixels=&gt;pack(&#39;C*&#39;, @pixels) );
+}
+ 
+$img-&gt;write( file=&gt;&#39;result.jpg&#39; ) or
+	die &#34;Cannot write: &#34;,$img-&gt;errstr;
+ 
+__END__</pre>
+<p>注意点としては、<br />
+STDERRにprintし過ぎるとアニメーションが急に遅くなる（？）ので、結果を見ながら出力頻度を調整しました。</p>
+
+</div>
+<div class="section">
+    <h3>まとめ</h3>
+    <p>ね、便利でしょ。（棒）</p><p>さ〜て、明日はどなたでしょうか？？？</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

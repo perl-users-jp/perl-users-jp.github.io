@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>AnySan with Twitter - Articles Advent Calendar 2011 Anysan</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>AnySan with Twitter</h1>
+
+        <p>お兄さんじゃないよ、えにいさんだよ。</p><p>このトラックに参加したい人は <a href="http://atnd.org/events/22890">http://atnd.org/events/22890</a> からどしどし頼むぜ！</p><p>初日に AnySan は Twitter や FriendFeed にも対応していると言いましたね、実際これらは IRC と同じくらいシンプル&同じインターフェィスで使えるんだ。</p><p>今日はシンプルに Twitter を使って、自分宛に @ を飛ばされた時に返事を返すコードを紹介しますね。</p>
+
+    <pre class="code">use strict;
+use warnings;
+use utf8;
+
+use AnySan;
+use AnySan::Provider::Twitter;
+use Config::Pit;
+
+my $username = shift;
+
+my $config = pit_get(&#34;example.com&#34;, require =&gt; {
+    consumer_key    =&gt; &#39;your twitter consumer_key&#39;,
+    consumer_secret =&gt; &#39;your twitter consumer_secret&#39;,
+    token           =&gt; &#39;your twitter access_token&#39;,
+    token_secret    =&gt; &#39;your twitter access_token_secret&#39;,
+});
+
+my $twitter = twitter
+    %{ $config },
+    method          =&gt; &#39;userstream&#39;,
+    ;
+
+AnySan-&gt;register_listener(
+    acotie =&gt; {
+        event =&gt; &#39;timeline&#39;,
+        cb =&gt; sub {
+            my $receive = shift;
+            return unless $receive-&gt;message;
+            return unless $receive-&gt;message =~ /^\@$username\s*(.+)$/;
+            $receive-&gt;send_reply(
+                sprintf &#39;@%s txh %s&#39;, $receive-&gt;from_nickname, $1
+            );
+        },
+    },
+);
+
+AnySan-&gt;run;</pre>
+<p>このスクリプトを response.pl として保存した場合は</p>
+
+    <pre class="code">$ perl response.pl Yappo</pre>
+<p>などとして実行します。</p><p>consumer_key, consumer_secret, token, token_secret などは Twitter の OAuth する時に必要な情報を入れて下さいね。<br />
+これらの情報はスクリプト中に直接書いておくと大変な事になるから Config::Pit を使って別の場所に保存しています。</p>
+
+    <pre class="code">my $twitter = twitter
+    %{ $config },
+    method          =&gt; &#39;userstream&#39;,
+    ;</pre>
+<p>で method を指定していますが、詳しくは<a href="http://search.cpan.org/dist/AnyEvent-Twitter-Stream/lib/AnyEvent/Twitter/Stream.pm">AnyEvent::Twitter::Stream</a> のドキュメントを見て下さい。<br />
+また、具体的な設定例等は今後紹介するね。</p><p>以下の設定を追加しないと、動かないので注意して欲しいです。<br />
+ </p>
+
+    <pre class="code">        event =&gt; &#39;timeline&#39;,</pre>
+<p>将来的に tweet 一覧以外のイベントに対応する時に別の値を入れて hook させる用になる予定です。</p><p>OAuth の為の API Key 等を保存する為に Config::Pit を使って少々ややこしいとは思いますが、昨日の IRC の時と同じように関心ごとに集中してコードが書けると思います。</p>
+
+<div class="section">
+    <h4>まとめ</h4>
+    <p>IRC と同じように Twitter の Bot も手軽にかけるという事を紹介しました。具体的な応用方法はまだ紹介していませんが、 AnySan に興味を持ってもらう為に完結に紹介しました。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

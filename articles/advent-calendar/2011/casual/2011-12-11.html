@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="memememomo">
+        <meta name="author" content="memememomo">
+        <title>Mojolicious::Liteでウェブツールを作ろう - Articles Advent Calendar 2011 Casual</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Mojolicious::Liteでウェブツールを作ろう</h1>
+
+        <p>こんにちは、memememomoです。ゆるふわと聞いたので勢いで参加しました。<br />
+最近はPHPをメインで書いていて、perlは補助ツールなどを作るときに使っています。なので本当にゆるふわにperlを使っています。<br />
+perlはいいですよね。便利なモジュールがたくさんあるので、サクッとスクリプトが書けてしまいます。<br />
+自分の場合、スクリプトは一つのファイルでパパッと書いちゃうことが多いです。<br />
+今回ご紹介するMojolicious::Liteは、一つのファイルにウェブアプリを書くことができるフレームワークです。</p><p></p>
+
+<div class="section">
+    <h4>インストール</h4>
+    <p>Mojolicious::Liteのインストールは簡単です。</p>
+
+<blockquote >
+    <p>$ sudo sh -c "curl -L cpanmin.us | perl - Mojolicious"</p>
+
+    
+</blockquote><p>これだけです。perlbrew環境ならsudoも要りませんね。</p><p></p>
+
+</div>
+<div class="section">
+    <h4>アプリの記述</h4>
+    <p>おもむろにエディタを立ち上げて、以下のようなコードを書きます。</p>
+
+    <pre class="code lang-perl">use Mojolicious::Lite;
+use utf8;
+
+# GETメソッドで「/hello」にアクセスしたときに行う処理を書く
+get &#39;/hello&#39; =&gt; sub {
+   my $self = shift;
+
+   # パラメータ取得
+   my $name = $self-&gt;param(&#39;name&#39;);
+
+   # テンプレートに使う変数をセット
+   $self-&gt;stash(&#39;name&#39; =&gt; $name);
+
+   # 描画
+   $self-&gt;render();
+} =&gt; &#39;index&#39;;
+
+# アプリ起動
+app-&gt;start;
+
+# 以下テンプレート(Mojo::Template)
+__DATA__
+
+@@ index.html.ep
+&lt;html&gt;
+&lt;head&gt;
+&lt;title&gt;Hello, &lt;%= $name %&gt;&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+こんにちは、&lt;%= $name %&gt;さん
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+<p><br />
+アプリケーション本体はすべて一つのファイルに記述します。HTMLテンプレートも同じファイルに記述します。<br />
+これを「app.pl」というファイル名で保存し、付属のmorboという開発用ウェブサーバでアプリケーションを動かします。</p>
+
+<blockquote >
+    <p>$ morbo app.pl</p>
+
+    
+</blockquote><p>すると「<a href="http://127.0.0.1:3000/」にアクセスできるようになります。">http://127.0.0.1:3000/」にアクセスできるようになります。</a><br />
+ブラウザで「<a href="http://127.0.0.1:3000/hello?name=memememomo」にアクセスすると「Hello,">http://127.0.0.1:3000/hello?name=memememomo」にアクセスすると「Hello,</a> memememomo」というメッセージが表示されます。<br />
+このように、CLIのスクリプトを書く感じで、一つのファイルでウェブアプリが書けてしまいます。<br />
+ちょっとしたウェブツールならこれで気軽に作れますよね。</p><br />
+<p>例えばBase64のデコードとエンコードを試せるウェブツールを作るとしたら、以下のように書けます。</p>
+
+    <pre class="code lang-perl">use Mojolicious::Lite;
+use utf8;
+use Mojo::ByteStream &#39;b&#39;;
+
+# フォームページを表示
+get &#39;/&#39; =&gt; &#39;index&#39;;
+
+# base64に変換
+post &#39;/base64&#39; =&gt; sub {
+    my $self = shift;
+
+    # パラメータ取得
+    my $data = $self-&gt;param(&#39;data&#39;);
+    my $enc  = $self-&gt;param(&#39;enc&#39;);
+
+    my $result;
+    if ( $self-&gt;param(&#39;submit&#39;) eq &#39;エンコード&#39; ) {
+
+        # 文字コード変換
+        $data = b($data)-&gt;encode($enc);
+
+        # エスケープ
+        $result = b($data)-&gt;b64_encode;
+    }
+
+    elsif ( $self-&gt;param(&#39;submit&#39;) eq &#39;デコード&#39; ) {
+
+        # アンエスケープ
+        $result = b($data)-&gt;b64_decode;
+
+        # 文字コード変換
+        $result = b($result)-&gt;decode($enc);
+    }
+
+    # 結果をテンプレートにセット
+    $self-&gt;stash(&#39;result&#39; =&gt; $result);
+
+    # 描画
+    $self-&gt;render();
+} =&gt; &#39;base64&#39;;
+
+# アプリ起動
+app-&gt;start;
+
+# テンプレートの記述（Mojo::Template）
+__DATA__
+
+@@ layouts/default.html.ep
+&lt;html&gt;
+&lt;head&gt;&lt;title&gt;&lt;%= $title %&gt;&lt;/title&gt;&lt;/head&gt;
+&lt;body&gt;
+&lt;div class=&#34;container&#34;&gt;
+&lt;h1&gt;&lt;%= $title %&gt;&lt;/h1&gt;
+&lt;%= content %&gt;
+&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+@@ index.html.ep
+% layout &#39;default&#39;, title =&gt; &#39;Base64変換&#39;;
+&lt;form action=&#34;&lt;%= url_for(&#39;base64&#39;) %&gt;&#34; method=&#34;post&#34;&gt;
+&lt;table&gt;
+&lt;tr&gt;
+    &lt;td&gt;&lt;textarea name=&#34;data&#34; cols=&#34;40&#34; rows=&#34;15&#34;&gt;&lt;/textarea&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+    &lt;td align=&#34;center&#34;&gt;
+       &lt;input type=&#34;radio&#34; name=&#34;enc&#34; value=&#34;sjis&#34; checked&gt;sjis&amp;nbsp;
+       &lt;input type=&#34;radio&#34; name=&#34;enc&#34; value=&#34;utf8&#34;&gt;utf8&lt;br&gt;
+       &lt;input type=&#34;submit&#34; name=&#34;submit&#34; value=&#34;エンコード&#34;&gt;&amp;nbsp;
+       &lt;input type=&#34;submit&#34; name=&#34;submit&#34; value=&#34;デコード&#34;&gt;
+    &lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/form&gt;
+
+@@ base64.html.ep
+% layout &#39;default&#39;, title =&gt; &#39;変換結果&#39;;
+&lt;a href=&#34;&lt;%= url_for(&#39;index&#39;) %&gt;&#34;&gt;戻る&lt;/a&gt;&lt;br /&gt;
+変換結果：&lt;%= $result %&gt;</pre>
+<p>これを起動すると、テキストフォームが表示されます。<br />
+フォームに文字列を入力して「エンコード」を押すと、Base64エンコードされた文字が表示されます。</p><br />
+<p>ページ遷移があるウェブアプリを書くときも、複数のファイルを行ったり来たりする必要がないので気軽で良いですね。</p><br />
+<p></p>
+
+</div>
+<div class="section">
+    <h4>デプロイ</h4>
+    <p>作ったウェブツールをデプロイします。</p><br />
+<p>CGIで動かすのであれば、ファイルの拡張子を.cgiにして、公開ディレクトリに置くだけです。</p><br />
+<p>PSGIに対応しているので、以下のようにStarmanでも起動することができます。</p>
+
+<blockquote >
+    <p>$ starman app.pl</p>
+
+    
+</blockquote><p><br />
+付属の本番用サーバhypnotoadでも起動できます。</p>
+
+<blockquote >
+    <p>$ hypnotoad app.pl</p>
+
+    
+</blockquote><p><br />
+デプロイについての詳しい方法は、以下のページの「Deployment」の項目に載っています。<br />
+<a href="https://github.com/kraih/mojo/wiki">https://github.com/kraih/mojo/wiki</a></p><br />
+<p></p>
+
+</div>
+<div class="section">
+    <h4>大規模になったら？</h4>
+    <p>ツールを作り込んでいて、プログラムが巨大になってしまうこともあるでしょう。<br />
+そうなると、一つのファイルでプログラムが書かれているのは見づらいですよね。<br />
+そのときは、大規模開発用フレームワークであるMojoliciousに簡単に移行できます。<br />
+使い方はMojolicious::Liteとほぼ同じなので、知識が生かせるのがうれしいですね。</p><p>移行するためのツールもついています。<br />
+以下のコマンドを実行すると、__DATA__以下のテンプレートを複数のファイルに分割してくれます。</p>
+
+<blockquote >
+    <p>$ perl app.pl inflate</p>
+
+    
+</blockquote><p>Mojolicious::LiteからMojoliciousへの移行については、以下のページに詳しく書いてあります。<br />
+<a href="http://mojolicio.us/perldoc/Mojolicious/Guides/Growing">Mojolicious&#xFF1A;&#xFF1A;Guides&#xFF1A;&#xFF1A;Growing - Growing</a></p><br />
+<p>プロトタイプをMojolicious::Liteで一気に書いて、Mojoliciousに移行する、という使い方もできますね。</p><br />
+<p></p>
+
+</div>
+<div class="section">
+    <h4>おわりに</h4>
+    <p>一つのファイルでウェブアプリが書けるMojolicious::Liteをご紹介しました。<br />
+Mojolicious::Liteで書き方を覚えると、ちょっとしたウェブツールをさくっと作れることもできます。<br />
+また、大規模開発でMojoliciousを使うときにも知識を生かすことができます。<br />
+ぜひ使ってみてください。</p><p>以上です。</p><p>明日は、toritori0318さんです！</p><br />
+<p></p>
+
+</div>
+<div class="section">
+    <h4>参考</h4>
+    <p>Mojoliciousのマニュアルは分かりやすく書かれています。<br />
+<a href="http://mojolicio.us/perldoc">Mojolicious&#xFF1A;&#xFF1A;Guides - Mojolicious guide to the galaxy</a><br />
+<a href="https://github.com/yuki-kimoto/mojolicious-guides-japanese/wiki">Mojolicious&#x30C9;&#x30AD;&#x30E5;&#x30E1;&#x30F3;&#x30C8; &#x65E5;&#x672C;&#x8A9E;&#x8A33; - GitHub</a></p><br />
+<p>マニュアルでは分からないことはperlcodesampleさんのページが参考になるかもしれません。<br />
+<a href="http://d.hatena.ne.jp/perlcodesample/20110402/1305602329">Mojolicious &#x30EA;&#x30D5;&#x30A1;&#x30EC;&#x30F3;&#x30B9; - &#x30B5;&#x30F3;&#x30D7;&#x30EB;&#x30B3;&#x30FC;&#x30C9;&#x306B;&#x3088;&#x308B;Perl&#x5165;&#x9580;</a></p><br />
+<p>サンプルを読むと、Mojoliciousにどういう機能があるのか分かります。<br />
+<a href="https://github.com/kraih/mojo/wiki/Example-applications">Example applications - GitHub</a></p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

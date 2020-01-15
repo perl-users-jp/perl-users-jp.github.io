@@ -1,0 +1,137 @@
+<!doctype html><html lang="ja"><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>一行野郎(one-liner)はperlにおまかせ</title>
+<link rel="stylesheet" href="http://perl-users.jp/articles/advent-calendar/adventcal.css" type="text/css" media="screen">
+<link rel="stylesheet" href="http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen">
+<script type="text/javascript" src="http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+<script type="text/javascript" src="http://perl-users.jp/articles/advent-calendar/adventcal.js"></script>
+</head>
+
+<body>
+<div class="hentry">
+    <h1 class="entry-title">一行野郎(one-liner)はperlにおまかせ</h1>
+    <div class="entry-content">
+        <h2>序文</h2>
+<ul style="list-style-image:url(http://www.kotono8.com/favicon.ico)">
+<li><a target="_blank" href="http://www.kotono8.com/2008/12/21if-programming-languages-were-religions.html">もしもプログラミング言語が宗教だったら……（全訳版）［絵文録ことのは］2008/12/21</a></li>
+</ul>
+        <p>によると、ブードゥー教徒らしい
+        <span class="vcard">
+            <span class="fn nickname">dankogai</span>
+        </span>
+        です。
+ブードゥー教徒らしく、「上司があなたに金曜夜21時に緊急の仕事を命ずるときにしばしば使われる」呪文をここでまとめておくことにします。
+</p>
+<h2>基本中の基本</h2>
+<p>コマンドとしての<code>perl</code>は、スイッチがない場合、引数はスクリプト名として扱われます。</p>
+<pre class="lang-sh"><code><span class="nocode">% </span>cat hello.pl
+<span class="nocode">print "Hello, world!\n";
+% </span>perl hello.pl
+<span class="nocode">Hello, world!
+% </span></code></pre>
+<p>コマンドライン中の文字列をスクリプトとして解釈させるには、<code>-e</code>を使います。</p>
+<pre class="lang-sh"><code><span class="nocode">% </span>perl -e'print "Hello, World!\n"'
+<span class="nocode">Hello, world!
+% </span></code></pre>
+<p>ちなみに、<code>perl</code>とコマンド名だけで起動すると、標準入力をスクリプトとして返します。</p>
+<pre class="lang-sh"><code><span class="nocode">% </span>perl
+<span class="nocode">print 1+1, "\n";
+[<kbd>ctrl-D</kbd>]
+2
+% </span></code></pre>
+<p>なお、ここまでの挙動は<code>ruby</code>も同じです。</p>
+<h2>強制改行</h2>
+<p>Perlには、長らくRubyの<code>puts</code>相当が不在でした。その代わり、<code>-l</code>をコマンドライン指定すると<code>print</code>が<code>puts</code>代わりになります。</p>
+<pre class="lang-sh"><code><span class="nocode">% </span>perl -e'print "Hello, World!"'
+<span class="nocode">Hello, World! %
+% </span>perl -le'print "Hello, World!"'
+<span class="nocode">Hello, World!
+% </span></code></pre>
+<p>実は<code>-l</code>には<code>print</code>を強制改行させるだけではなく、行を強制<code>chomp</code>する機能もあるのですが、これに関しては後述します。</p>
+<p>5.10.0 以降では、<code>say</code>が加わったので、それを使うことも出来ます。ただし、これをワンライナーから利用するには<code>-e</code>ではなく<code>-E</code>を指定する必要があります。</p>
+<pre class="lang-sh"><code><span class="nocode">% </span>perl -e'say "Hello, World!"'
+<span class="nocode">String found where operator expected at -e line 1, near "say "Hello, World!""
+        (Do you need to predeclare say?)
+syntax error at -e line 1, near "say "Hello, World!""
+Execution of -e aborted due to compilation errors.
+% </span>perl -E'say "Hello, World!"'
+<span class="nocode">Hello, World!
+</span></code></pre>
+<h2>-M<i>Module</i>でモジュールを利用</h2>
+<p>コマンドラインでモジュールを使うには、<code>-e'use Module; ...'</code>としてもよいのですが、<code>-M<i>Module</i></code>とすることも出来ます。こちらの方が一般的です。</p>
+<p>たとえば、以下のワンライナーは<code>http://www.dan.co.jp/</code>の内容を標準出力に書き出します。(もちろん<a target="_blank" href="http://search.cpan.org/perldoc?LWP">LWP</a>がインストールされていれば)。</p>
+<pre class="lang-sh"><code><span class="nocode">% </span>perl -MLWP::Simple -le'print get shift' http://www.dan.co.jp/
+</code></pre>
+<h3>-MO=Deparseでスクリプト化</h3>
+<p>ここで、<code>-MO=Deparse</code>も覚えておきましょう。<code>perl</code>にはさまざまなコマンドラインスイッチがあるので、複雑なものを利用した場合、実際に実行されるコードがどうなっているのかわかりにくくなったりしますが、これを使えば「もしコマンドラインではなく、スクリプトだったらどうなるか」を確認することできます。</p>
+<pre class="lang-sh"><code><span class="nocode">% </span>perl -MO=Deparse -le'print "Hello, World!"'
+<span class="nocode">BEGIN { $/ = "\n"; $\ = "\n"; }
+print 'Hello, World!';
+-e syntax OK
+% </span></code></pre>
+<h2><code>-n</code>で一行づつ処理、<code>-p</code>でそれを<code>print</code></h2>
+<p>ワンライナーの用途で最も多いのが、テキストを一行ずつ処理するというもの。この時使うと便利なのが<code>-n</code>と<code>-p</code>。通常どちらも<code>-l</code>と組み合わせて使います。</p>
+<p>例: 行番号を表示</p>
+<pre class="lang-sh"><code><span class="nocode">% </span>perl -nle'print "$.:$_"' script.pl
+<span class="nocode">1:while(&lt;&gt;){
+2:    print "$.:$_"
+3:}
+</span></code></pre>
+<p><code>find</code>と組み合わせて<code>perl</code>を使う時にも、これが大活躍します。詳しくは</p>
+<ul style="list-style-image:url(http://www.dan.co.jp/favicon.ico)">
+<li><a target="_blank" href="http://blog.livedoor.jp/dankogai/archives/51008266.html">404 Blog Not Found:perl - the best friend of find(1)</a></li>
+</ul>
+<p>もあわせてご覧ください。なお、このオプションは<code>ruby</code>にも受け継がれています。</p>
+<h2>-iでファイルをまとめて書き換え</h2>
+<p>ここまでの例では、結果は全て標準出力でしたが、<code>-i</code>を指定すると、ファイルの出力は入力元となったファイル自身になります。たとえば</p>
+<pre class="lang-sh"><code><span class="nocode">% </span>perl -i -ple's/\r\n/\n/g' *.txt
+</code></pre>
+<p>で、DOS式の改行(<code>\r\n</code>)をすべてUnix式(<code>\n</code>)に変更できます。</p>
+<p>元のファイルを上書きせず残しておきたい場合は、<code>-i<i>.ext</i></code>とします。</p>
+<pre class="lang-sh"><code><span class="nocode">% </span>perl -i.bak -ple's/\r\n/\n/g' *.txt
+</code></pre>
+<p>とすると、元のファイルは<code>.txt.bak</code>として残されます。ちなみに<code>-i<i>.bak</i></code>の後、</p>
+<pre class="lang-sh"><code><span class="nocode">% </span>find . -type f -name \*.bak | perl -nle'$o=$_;s/\.bak$//;rename $o,$_'
+</code></pre>
+<p>とすれば、「アンドゥ」したのと同じことになります。</p>
+
+<h2>-aでawkっぽく</h2>
+<p><code>-n</code>または<code>-p</code>さらに<code>-a</code>を加えると、AWKっぽい処理も可能になります。ただし、<code>$1</code>, <code>$2</code>といった、<code>awk</code>ではフィールド変数にあたる変数はPerlではregexpで使われているので、フィールドは<code>@F</code>という配列に格納されます。</p>
+<p>例: PIDを列挙する</p>
+<pre class="lang-sh"><code><span class="nocode">% </span>ps aux | perl -anle'print $F[1]'
+</code></pre>
+<p>このオプションも、<code>ruby</code>に移植されています(<code>ruby</code>の場合は配列オブジェクト$F)。</p>
+<h2>Unicode使うなら-CIO</h2>
+<p>Perl 5.8.1から加わったオプションです。Perl 5.8からは、UTF-8を単なるバイト列ではなく文字列としても扱うようになりましたが、下位互換性を保つため、<code>STDIN</code>や<code>STDOUT</code>といった標準ファイルハンドルは、何もしなければバイト列扱いで、これを切り替えるには<code>binmode STDIN, ':utf8';</code>などとしなければなりません。スクリプトならたかだか一行ですが、ワンライナーにはそれでもかったるい。<code>-C</code>はその悩みを解消します。ちなみに<code>I</code>は入力を、<code>O</code>は出力をそれぞれ切り替えます。</p>
+<p>口で言うとまだるっこしいのですが、以下を見ればその意味がおわかりいただけるかと。</p>
+<pre class="lang-sh"><code><span class="nocode">% </span>perl -MHTML::Entities -ple'$_=encode_entities($_)'
+<span class="nocode">Dan Kogai (小飼弾)
+Dan Kogai (&amp;aring;&amp;deg;&amp;#143;&amp;eacute;&amp;pound;&amp;frac14;&amp;aring;&amp;frac14;&amp;frac34;)
+% </span>perl -CIO -MHTML::Entities -ple'$_=encode_entities($_)'
+<span class="nocode">Dan Kogai (小飼弾)
+Dan Kogai (&amp;#x5C0F;&amp;#x98FC;&amp;#x5F3E;)
+</span></code></pre>
+<p>最近の端末エミュレーターは、OS X標準装備の<code>Terminal.app</code>も含めてUTF-8にはじめから対応しているものが多いので、日本語処理もワンライナーでやりやすくなりました。ぜひ活用してみましょう。</p>
+<h2>まとめ</h2>
+<p>このようにワンライナーに強いのが<code>perl</code>の美点の一つです。私のshellのhistoryには、こうして出来たone-linerがどっさりたまっています。</p>
+<pre class="lang-sh"><code><span class="nocode">% </span>echo $SHELL
+<span class="nocode">/bin/tcsh
+% </span>echo histdup
+<span class="nocode">erase
+% </span>echo $savehist
+<span class="nocode">1024
+% </span>history | perl -nle'/perl/ and $p++;END{print $p}'
+<span class="nocode">257
+</span></code></pre>
+<p>なんと1/4がワンライナーでした。みなさんも是非。</p>
+<p>そうそう。次はid:malaにてお願いします。</p>
+<p>Dan the One-Liner Monger</p>
+<p>See Also:</p>
+<ul style="list-style-image:url(http://search.cpan.org/favicon.ico)">
+<li><a target="_blank" href="http://search.cpan.org/perldoc?perlrun">perldoc perlrun</a></li>
+</ul>
+    </div>
+</div>
+<p><a href="./">Back</a></p>
+</body>
+</html>

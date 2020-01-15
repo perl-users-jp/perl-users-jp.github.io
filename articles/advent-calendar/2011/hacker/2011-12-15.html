@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="syohex">
+        <meta name="author" content="syohex">
+        <title>Text::AAlib - すべての画像を AAに - Articles Advent Calendar 2011 Hacker</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Text::AAlib - すべての画像を AAに</h1>
+
+        
+<div class="section">
+    <h4>前置き</h4>
+    <p>こんにちは. <a href="http://twitter.com/#!/syohex">syohex</a>です. みなさん意識は高まっていますか ? 私は, 上々です. 今回は拙作の <a href="https://github.com/syohex/p5-Text-AAlib">Text::AAlib</a>というモジュールを紹介します.<br />
+これは Perlバインディングを書く練習のために書いているモジュールです. 最近は <a href="https://github.com/syohex/emacs-quickrun">quickrun.el</a>の開発に時間を取られて, ちょこちょことしか開発できないんですが, 主要な部分はできつつあります.</p><p>Text::AAlibは <a href="http://aa-project.sourceforge.net/aalib/">aalib</a>の Perlバインディングです. それなりに小さくかつ Perlバインディングが存在しないものを探した結果見つけたものです. aalibはその名の通り, AsciiArtを作成するためのライブラリです. 単体でも利用できるのですが, Perlであれば <a href="http://search.cpan.org/~tonyc/Imager-0.86/Imager.pm:Imager">http://search.cpan.org/~tonyc/Imager-0.86/Imager.pm:Imager</a>モジュールと併用することで画像の AA化を簡単に行うことができます.</p><p></p>
+
+</div>
+<div class="section">
+    <h4>実装にあたり</h4>
+    <p>いろいろ Cで aalibのサンプル書いてみて試したところ, やたらと SEGVが発生しました. あまりユーザフレンドリーなライブラリではないという印象で, 使う側が注意しないといけないことが結構多いです. 初めはただ Perlから使えればいいやって思ったんですけど, Perl側でそのあたりの問題も極力回避できた方がいいかなって思って, そのようにしています. エラーチェックは増えていますが, プログラム自体が落ちてしまうということは減っていると思います.</p><p>あとは使いやすくというところを意識して, 開発を行っています.</p><p></p>
+
+</div>
+<div class="section">
+    <h4>サンプルコード</h4>
+    <p>flush, closeは呼ばない場合 オブジェクト破棄時(DESTROY)で呼ぶことになっているので, 不要といえば不要です. レンダリングのパラメタを細かく設定したい場合は renderメソッドが使えます. 実装済みですが, どのパラメータがどう働くかがまだ理解できていないのです. とりあえず使いたいのであれば, fastrenderメソッドでよいかと思います.</p>
+
+    <pre class="code lang-perl">#!perl
+use strict;
+use warnings;
+
+use Imager;
+use Text::AAlib qw(:all);
+
+my $file = shift or die &#34;Usage: $0 image_file&#34;;
+my $img = Imager-&gt;new(file =&gt; $file);
+
+my ($width, $height) = ($img-&gt;getwidth, $img-&gt;getheight);
+
+my $aa = Text::AAlib-&gt;new(
+    file   =&gt; &#39;a.txt&#39;,
+    width  =&gt; $width,
+    height =&gt; $height,
+);
+
+for my $i (0..($width-1)) {
+    for my $j (0..($height-1)) {
+        my $color = $img-&gt;getpixel(x =&gt; $i, y =&gt; $j);
+        my $value = ($color-&gt;hsv)[2];
+        $aa-&gt;putpixel(
+            x =&gt; $i, y =&gt; $j, color =&gt; (255 * $value),
+        );
+    }
+}
+
+$aa-&gt;fastrender();
+$aa-&gt;flush;
+$aa-&gt;close;</pre>
+
+</div>
+<div class="section">
+    <h4>実行結果</h4>
+    <p><a href="http://blog.yappo.jp/yappo/archives/000764.html">&quot;Perl-users.jp&#x5275;&#x8A2D;&#x8005; &#x5927;&#x6CA2;Yappo&#x548C;&#x5B8F; &#x304B;&#x3089;&#x306E;&#x7DCA;&#x6025;&#x306E;&#x304A;&#x9858;&#x3044;&#x3092;&#x304A;&#x8AAD;&#x307F;&#x4E0B;&#x3055;&#x3044;&quot;</a>の画像を AAにしてみました. でかい画像だったのでフォントを小さく設定して全体を表示するようにしています. それらしいですね(??).</p><p></p>
+
+    <pre class="code">  % perl aalib.pl
+  % cat a.txt</pre>
+<p><img src="https://github.com/perl-users-jp/perl-advent-calendar/raw/master/2011/hacker/2011-12-15/image01.png" alt="yappo_onegai" width="85%" /></p><p></p>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>Text::AAlibという aalibの Perlバインディングについて紹介しました. 現在開発中ですので, ご意見, 問題が見つかった等ございましたら, githubの issueトラッカまでお願いします.</p><p>以前なんかの雑誌で, Rubyのバインディングの書き方が載っていて, Perlもこんな感じで書けたらなぁって思ったことがありましたが, 実際書いてみると別にあんまり変わらないなって思いました. 最近出てくるライブラリって Pythonや Rubyはあるけど, Perlはないってこともあるので, 皆さんも 「Perlからも使いてぇ」ってライブラリがあったらチャレンジしてみるのはいかがでしょうか.</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

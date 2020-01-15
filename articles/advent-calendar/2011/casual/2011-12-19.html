@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="taiju <higashi@taiju.info>">
+        <meta name="author" content="taiju <higashi@taiju.info>">
+        <title>Smart::Matchで快適スマートマッチ - Articles Advent Calendar 2011 Casual</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Smart::Matchで快適スマートマッチ</h1>
+
+        <p>こんにちは。Perlで遊ぶと言うより、 未だ、Perlに遊ばれているtaiju (<a href="http://d.hatena.ne.jp/jdg/">id:jdg</a>) です。</p><p>YAPC::Asia TOKYO2011に参加したので、爪あとを残すべく、Perl Advent Calendar 2011に参加することにしました。</p><p>さて、Perl5.10から導入されたスマートマッチですが、これをより快適に使えるモジュールがないか、CPANで探してみたところ、<a href="https://metacpan.org/module/Smart::Match">Smart::Match</a>というモジュールが見つかりましたので、ご紹介したいと思います。</p><p>Smart::Matchはスマートマッチを快適に使うためのユーティリティをたくさん提供しているモジュールのようで、デフォルトで比較演算子でスマートマッチが採用される、switch文などで便利に使えそうなユーティリティがたくさん導入されています。</p>
+
+<div class="section">
+    <h4>junctive</h4>
+    <p>Perl6のJunctionのような動作をするユーティリティ群です。</p><p>any, all, none, oneが該当します。</p>
+
+    <pre class="code lang-perl">use 5.010;
+use strict;
+use warnings;
+Smart::Match qw/:junctive :number positive negative/;
+
+# any
+given (1) {
+  say &#39;matched!&#39; when any(1,2,3);
+}
+
+# all
+given (1) {
+  say &#39;matched!&#39; when all(1, number, positive);
+}
+
+# none
+given (1) {
+  say &#39;matched!&#39; when none(&#39;a&#39;, 2, []);
+}
+
+# one
+given (1) {
+  say &#39;matched!&#39; when one(odd, even, negative);
+}</pre>
+<p>Junctionのように、スマートマッチ演算子以外で使うことは想定されていないので、その点は注意です。<br />
+スマートマット演算子以外でも使いたい場合は、<a href="https://metacpan.org/module/Perl6::Junction">Perl6::Junction</a>が使えます。</p>
+
+</div>
+<div class="section">
+    <h4>definite</h4>
+    <p>必ずマッチするか、必ずマッチしない比較関数を提供するユーティリティ群です。</p><p>always, neverが該当します。</p>
+
+    <pre class="code lang-perl">use 5.010;
+use strict;
+use warnings;
+Smart::Match qw/:definite/;
+
+# always
+given (1) {
+  say &#39;matched!&#39; when always;
+}
+given (undef) {
+  say &#39;matched!&#39; when always;
+}
+
+# never
+given (1) {
+  say &#39;not matched!&#39; when not never;
+}
+given (undef) {
+  say &#39;not matched!&#39; when not never;
+}</pre>
+
+</div>
+<div class="section">
+    <h4>boolean</h4>
+    <p>真偽値になるかどうかを判定する時に使えるユーティリティ群です。</p><p>true, falseが該当します。</p>
+
+    <pre class="code lang-perl">use 5.010;
+use strict;
+use warnings;
+Smart::Match qw/:boolean/;
+
+# true
+given (1) {
+  say &#39;matched!&#39; when true;
+}
+given (&#39;foo&#39;) {
+  say &#39;matched!&#39; when true;
+}
+
+# false
+given (0) {
+  say &#39;not matched!&#39; when false;
+}
+given (&#39;&#39;) {
+  say &#39;not matched!&#39; when false;
+}</pre>
+
+</div>
+<div class="section">
+    <h4>numeric</h4>
+    <p>数に関する判定に使えるユーティリティ群です。</p><p>number, integer, even, odd, more_than, less_than, at_least, at_mostが該当します。</p>
+
+    <pre class="code lang-perl">use 5.010;
+use strict;
+use warnings;
+Smart::Match qw/:numeric all/;
+
+# number
+given (1) {
+  say &#39;matched!&#39; when number;
+}
+
+# integer
+given (1) {
+  say &#39;matched!&#39; when integer;
+}
+given (1.5) {
+  say &#39;not matched!&#39; when not integer;
+}
+
+# even
+given (2) {
+  say &#39;matched!&#39; when even;
+}
+
+# odd
+given (1) {
+  say &#39;matched!&#39; when odd;
+}
+
+# more_than
+given (1) {
+  say &#39;matched!&#39; when more_than(0);
+}
+
+# less_than
+given (-1) {
+  say &#39;matched!&#39; when less_than(0);
+}
+
+# at_least
+given (1) {
+  say &#39;matched!&#39; when all(at_least(0), at_least(1));
+}
+
+# at_most
+given (-1) {
+  say &#39;matched!&#39; when all(at_least(0), at_least(-1));
+}</pre>
+
+</div>
+<div class="section">
+    <h4>compare</h4>
+    <p>値の比較に使えるユーティリティ群です。</p><p>numwise, stringwise, hashwiseが該当します。</p>
+
+    <pre class="code lang-perl">use 5.010;
+use strict;
+use warnings;
+Smart::Match qw/:compare/;
+
+# numwise
+given (1) {
+  say &#39;matched!&#39; when numwise(1);
+}
+
+# stringwise
+given (&#39;foo&#39;) {
+  say &#39;matched!&#39; when stringwise(&#39;foo&#39;);
+}
+
+# hashwise
+given ({ foo =&gt; 1, bar =&gt; 2}) {
+  say &#39;matched!&#39; when hashwise({ foo =&gt; 1, bar =&gt; 2});
+}</pre>
+
+</div>
+<div class="section">
+    <h4>meta</h4>
+    <p>Smart::Match自身を拡張するユーティリティ群です。</p><p>match, delegateが該当します。</p>
+
+    <pre class="code lang-perl">use 5.010;
+use strict;
+use warnings;
+use Smart::Match qw/:meta integer odd always/;
+
+# match
+use constant fizz =&gt; match { scalar integer and $_ % 3 == 0 };
+use constant buzz =&gt; match { scalar integer and $_ % 5 == 0 };
+use constant fizzbuzz =&gt; match { scalar integer and $_ % 15 == 0 };
+
+sub say_fizzbuzz {
+  for (1..100) {
+    given ($_) {
+      say &#34;fizzbuzz&#34; when fizzbuzz;
+      say &#34;fizz&#34; when fizz;
+      say &#34;buzz&#34; when buzz;
+      say $_ when always;
+    }
+  }
+}
+say_fizzbuzz;
+
+# delegate
+use constant nabe =&gt; delegate { $_ =~ /3/ ? 3 : $_ } fizz;
+sub say_nabeatsu {
+  for (1..40) {
+    given ($_) {
+      say &#34;aho!&#34; when nabe;
+      say  $_ when always
+    }   
+  }
+}
+say_nabeatsu;</pre>
+
+</div>
+<div class="section">
+    <h4>string</h4>
+    <p>文字列に関するユーティリティ群です。</p><p>string, string_lengthが該当します。</p>
+
+    <pre class="code lang-perl">use 5.010;
+use strict;
+use warnings;
+use Smart::Match qw/:string/;
+
+# string
+given (&#39;foo&#39;) {
+  say &#39;matched!&#39; when string;
+}
+
+# string_length
+given (&#39;foo&#39;) {
+  say &#39;matched!&#39; when string_length(3);
+}</pre>
+
+</div>
+<div class="section">
+    <h4>refs</h4>
+    <p>オブジェクトの比較に使えるユーティリティ群です。</p><p>object, instance_of, ref_typeが該当します。</p>
+
+    <pre class="code lang-perl">use 5.010;
+use strict;
+use warnings;
+use Smart::Match qw/:refs/;
+
+# object
+given (bless([], &#39;main&#39;)) {
+  say &#39;matched!&#39; when object;
+}
+
+# instance_of
+given (bless([], &#39;main&#39;)) {
+  say &#39;matched!&#39; when instance_of(&#39;main&#39;);
+}
+
+# ref_type
+given ([]) {
+  say &#39;matched!&#39; when ref_type(&#39;ARRAY&#39;);
+}</pre>
+
+</div>
+<div class="section">
+    <h4>arrays</h4>
+    <p>配列に関するユーティリティ群です。</p><p>array, array_length, tuple, head, sequence, contains, sortedが該当します。</p>
+
+    <pre class="code lang-perl">use 5.010;
+use strict;
+use warnings;
+use Smart::Match qw/:arrays positive negative/;
+
+# array
+given ([]) {
+  say &#39;matched!&#39; when array;
+}
+
+# array_length
+given ([1,2,3]) {
+  say &#39;matched!&#39; when array_length(3);
+}
+
+# tuple
+given ([1,-1,1]) {
+  say &#39;matched!&#39; when tuple(positive, negative, positive);
+}
+
+# head
+given ([1,2,3]) {
+  say &#39;matched!&#39; when head(1,2);
+}
+
+# sequence
+given ([1,2,-1]) {
+  say &#39;not matched!&#39; when not sequence(positive);
+}
+
+# contains
+given ([1,2,3]) {
+  say &#39;not matched!&#39; when not contains(1,2,4);
+}
+
+# sorted
+given ([1,3,2]) {
+  say &#39;matched!&#39; when sorted([1,2,3]);
+}</pre>
+
+</div>
+<div class="section">
+    <h4>hashes</h4>
+    <p>ハッシュに関するユーティリティ群です。</p><p>hash, hash_keys, hash_values, sub_hashが該当します。</p>
+
+    <pre class="code lang-perl">use 5.010;
+use strict;
+use warnings;
+use Smart::Match qw/:hashes contains/;
+
+# hash
+given ({}) {
+  say &#39;matched!&#39; when hash;
+}
+
+# hash_keys
+given ({ foo =&gt; 1, bar =&gt; 2 }) {
+  say &#39;matched!&#39; when hash_keys(contains(&#39;foo&#39;));
+}
+
+# hash_values
+given ({ foo =&gt; 1, bar =&gt; 2 }) {
+  say &#39;matched!&#39; when hash_values(contains(1));
+}
+
+# sub_hash
+given ({ foo =&gt; 1, bar =&gt; 2 }) {
+  say &#39;matched!&#39; when sub_hash({ foo =&gt; 1 });
+}</pre>
+
+</div>
+<div class="section">
+    <h4>direct</h4>
+    <p>値の比較とポインタの比較の関数を持ったユーティリティ群です。</p><p>address, valueが該当します。</p>
+
+    <pre class="code lang-perl">use 5.010;
+use strict;
+use warnings;
+use Smart::Match qw/:direct/;
+
+# address
+my $sub = sub {};
+given ($sub) {
+  say &#39;not matched!&#39; when not address(sub {});
+}
+
+# value
+given ([1,2,3]) {
+  say &#39;matched!&#39; when value([1,2,3]);
+}
+given ({ foo =&gt; 1, bar =&gt; 2 }) {
+  say &#39;matched!&#39; when value({ foo =&gt; 1, bar =&gt; 2 });
+}
+given (1) {
+  say &#39;matched!&#39; when value(1);
+}
+given ($sub) {
+  say &#39;not matched!&#39; when not value(sub {});
+}</pre>
+
+</div>
+<div class="section">
+    <h4>その他</h4>
+    <p>他にも、positive, negative, rangeというユーティリティ関数があります。これらはグループにまとめられていません。作者のミスなのかもしれませんが。</p>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>version1未満ですし、ちょっと不安定な部分もある感じですが、Perl5.10以降が使える案件で、switch文を簡潔に書きたい際に、一部利用するのはいいかなと思いました。</p><p>次は、sakurako_sさんです。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

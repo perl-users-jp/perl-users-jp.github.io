@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>Testing TCP servers with Test::TCP - Articles Advent Calendar 2010 English</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Testing TCP servers with Test::TCP</h1>
+
+        <p>Hi, I'm tokuhirom.</p><p>Test::TCP is a very useful library to testing TCP servers and/or clients.</p><p>Yesterday, I released Test::TCP 1.08! And so, the version contains new OO-ish interface support.</p>
+
+    <pre class="code">use Test::TCP;
+
+my $server = Test::TCP-&gt;new(
+    code =&gt; sub {
+        my $port = shift;
+        ...;
+    },
+);
+my $client = MyClient-&gt;new( host =&gt; &#39;127.0.0.1&#39;, port =&gt; $server-&gt;port );
+undef $server;    # kill server process on DESTROY</pre>
+<p>Also, you can run the multiple servers in one script.</p>
+
+    <pre class="code">use Test::TCP;
+
+my $server = Test::TCP-&gt;new(
+    code =&gt; sub {
+        my $port = shift;
+        ...;
+    },
+);
+my $server2 = Test::TCP-&gt;new(
+    code =&gt; sub {
+        my $port = shift;
+        ...;
+    },
+);
+my $client = MyClient-&gt;new( host =&gt; &#39;127.0.0.1&#39;, port =&gt; $server-&gt;port );
+undef $server;    # kill child process on DESTROY</pre>
+<p>Enjoy!</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

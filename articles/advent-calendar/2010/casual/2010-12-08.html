@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="Masahiro Chiba(nihen)">
+        <meta name="author" content="Masahiro Chiba(nihen)">
+        <title>Kolonでかこう - Articles Advent Calendar 2010 Casual</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Kolonでかこう</h1>
+
+        <p>nihenです。こんにちは。 今年もブクマ数ビリを目指したいとおもいます！</p><p>Perl界隈で今年はText::Xslateというテンプレートエンジンが流行っています。</p><p>しかしこのXslateで現在主流に使われているSyntaxはTTerse<a href="#fn1" title="現在のテンプレートエンジンのデファクトスタンダードであるTemplate-Toolkit互換のSyntax">*1</a>であり、XslateネィティブともいえるKolonはまだあまり使われていないというのが現状のようです。</p><p>というわけで今回はKolonの使い方の基本を紹介します。</p>
+
+<div class="section">
+    <h4>Perlコード側</h4>
+    
+    <pre class="code lang-perl">
+use Text::Xslate;
+use Hash::MultiValue;
+my $tx = Text::Xslate-&gt;new();
+my $var = {
+    foo =&gt; &#39;xslate&#39;,
+    bar =&gt; {
+        baz    =&gt; &#39;111&#39;,
+        bazbaz =&gt; &#39;112&#39;,
+    },
+    baz  =&gt; [5, 6, 7],
+    hoge =&gt; Hash::MultiValue-&gt;new(foo =&gt; &#39;kolon&#39;),
+};
+$tx-&gt;render(&#39;foo.tx&#39;, $var);
+</pre>
+
+</div>
+<div class="section">
+    <h4>基本</h4>
+    <p>Kolonのコードはテンプレート中に以下の二種類の方法によって記述できます。</p>
+
+    <pre class="code lang-perl">&lt;: kolon-code :&gt;</pre>
+
+    <pre class="code lang-perl">: kolon-code</pre>
+<p>前者は&lt;:と:&gt;の間にコードが書けます。後者は:から行を始めることによってその行全体がコードになります。この書き方ができるのはTTerseに対するメリットですね!</p><p></p>
+
+</div>
+<div class="section">
+    <h4>変数の出力</h4>
+    <p>ハッシュ、配列の要素へのアクセスやオブジェクトのメソッド呼び出しが当然のように可能です。</p>
+
+    <pre class="code lang-perl">
+&lt;: $foo :&gt; &lt;!-- xslate --&gt;
+&lt;: $bar.baz :&gt; &lt;!-- 111 --&gt;
+&lt;: $bar[bazbaz] :&gt; &lt;!-- 112 --&gt;
+&lt;: $baz.1 :&gt; &lt;!-- 6 --&gt;
+&lt;: $baz[2] :&gt; &lt;!-- 7 --&gt;
+&lt;: $hoge.get(&#39;foo&#39;) :&gt; &lt;!-- kolon --&gt;
+</pre>
+<p>こんな感じですね。Kolon特有の話ではないですがXslateではデフォルトで<br />
+出力される値はhtml-escapeされます。メールなどに使う場合でescapeしたくない場合は</p>
+
+    <pre class="code lang-perl">my $tx = Text::Xslate-&gt;new(type =&gt; &#39;text&#39;);</pre>
+<p>のようにするとよいです。</p><p></p>
+
+</div>
+<div class="section">
+    <h4>条件制御</h4>
+    <p>if-elsif-elseとgiven-whenが使えます。</p>
+
+    <pre class="code lang-perl">
+: if $foo == &#39;xslate&#39; {
+    xslate!
+: } elsif $bar.baz == &#39;111&#39; {
+: } else {
+: }
+
+: given $foo {
+:     when &#39;xslate&#39; {
+        kolon!
+:     }
+:     default {
+:     }
+: }
+</pre>
+
+</div>
+<div class="section">
+    <h4>ループ制御</h4>
+    <p>forとwhileが使えます。</p>
+
+    <pre class="code lang-perl">: for $bar -&gt; $item {
+    &lt;: $item :&gt;
+:
+: while $itr.next() -&gt; $item {
+    &lt;: $item :&gt;
+:</pre>
+<p>for文では</p>
+
+    <pre class="code lang-perl">&lt;: $~item.index :&gt;</pre>
+<p>のように書くことによってループインデックスが取得できます。他にはcycleというのがあってこれが結構便利です。</p>
+
+    <pre class="code lang-perl">: for $baz -&gt; $item {
+    &lt;tr class=&#34;&lt;: $~item.cycle(&#39;even&#39;, &#39;odd&#39;) :&gt;&#34;&gt;&lt;td&gt;&lt;: $item :&gt;&lt;/td&gt;&lt;/tr&gt;
+: }</pre>
+<p>のように書くと</p>
+
+    <pre class="code lang-perl">&lt;tr class=&#34;even&#34;&gt;&lt;td&gt;5&lt;/td&gt;&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;&lt;td&gt;6&lt;/td&gt;&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;&lt;td&gt;7&lt;/td&gt;&lt;/tr&gt;</pre>
+<p>のように出力されます。よくあるtableの1行毎に色を変える等の処理に使えます。</p>
+
+</div>
+<div class="section">
+    <h4>カスケード</h4>
+    <p>Kolonの特徴のひとつであるカスケードです。テンプレートを継承して、定義されている一部を書き換えて表示することができます。</p><p>base.txという継承元を作成し</p>
+
+    <pre class="code lang-perl">head
+: block main -&gt; {}
+foot</pre>
+<p>以下のようにfoot.txでbase.txを継承した上でmain blockの部分に挿し込みができます。</p>
+
+    <pre class="code lang-perl">: cascade base
+: around main -&gt; {
+    content!
+: }</pre>
+<p>上記の出力は以下のようになります。</p>
+
+    <pre class="code lang-perl">head
+    content!
+foot</pre>
+<p>12月9日になってしまいそうなのでここらへんにしておきます。<br />
+その他詳しい説明は<a href="http://search.cpan.org/~gfuji/Text-Xslate/lib/Text/Xslate/Syntax/Kolon.pm">Text::Xslate::Syntax::KolonのPOD</a>を参照してください。</p>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>というわけでこんなに簡単で直感的なKolonのユーザがもっと増えてくれると嬉しいなーと思います。<br />
+明日はみなさんお待ちかねのotsuneさんです。んがんぐ。</p><p></p>
+
+</div>
+<div class="section">
+    <h4>おまけ</h4>
+    <p>Kolon限定の話ではなく、Text::Xslateの話なのですがちょっとしたtipsを紹介します。</p><p>production環境においてのXslateのcacheはみなさん2にしておられると思うのですが、その際preforkなアプリケーションサーバを使っている場合に以下のall_cache_txのようなメソッドにfork前に$txを渡しておくとよいです。</p>
+
+    <pre class="code lang-perl">sub all_cache_tx {
+    my $tx = shift;
+    my $env = $ENV{PLACK_ENV} || &#39;development&#39;;
+
+    return if $env eq &#39;development&#39;;
+
+    all_cache_remove_tx($tx);
+
+    foreach my $path ( @{$tx-&gt;{path}} ) {
+        dir($path)-&gt;recurse(callback =&gt; sub {
+            my $file = shift;
+            if ( $file =~ m{^$path/(.*$tx-&gt;{suffix})$} ) {
+                $tx-&gt;load_file($1);
+            }
+        });
+    }
+}
+
+sub all_cache_remove_tx {
+    my $tx = shift;
+
+    my $dir = $tx-&gt;{cache_dir} . &#34;&#34;;
+    dir($dir)-&gt;recurse(callback =&gt; sub {
+        my $file = shift;
+        if ( $file =~ /^$dir(?:.*$tx-&gt;{suffix}c)$/ ) {
+            unlink $file;
+        }
+    });
+}</pre>
+<p>all_cache_txは$txで読み込まれる可能性のあるテンプレートファイルをすべてキャッシュにロードします。その後forkするとCopy On Write的にうれしい感じになると思います。</p><p>また、_all_cache_remove_txは、すべてのコンパイル済みファイルを削除しています。cache => 2でコンパイル済みファイルがあるとインスタンス生成後1回目の呼び出しであっても無条件にコンパイル済みファイルを使用してしまうためこのように最初にすべて削除しています。</p><p>更新のあったファイルに関連するテンプレートのコンパイル済みファイルのみを削除するほうがスマートだと思いますが面倒なのですべてけしているという感じす。</p>
+
+</div>HASH(0x5566cb02c2c0)
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="hide_o_55">
+        <meta name="author" content="hide_o_55">
+        <title>perl の locale 設定と autolocale - Articles Advent Calendar 2011 Hacker</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>perl の locale 設定と autolocale</h1>
+
+        <p>こんにちは、<a href="http://twitter.com/hide_o_55">hide_o_55</a>と申します。みなさん、意識は高まっていますか？ 私は上々です。<br />
+今日は、perl の locale 設定に関する仕組みと拙作の <a href="https://metacpan.org/module/autolocale">autolocale</a> モジュールの紹介をします。</p>
+
+<div class="section">
+    <h4>perl の locale 設定</h4>
+    <p>みなさん、perl の locale 設定がいつ行われるかご存知でしょうか？</p><p>実は、perl インタプリタのコンストラクタで行われています。</p><p>perlのコンストラクタは perl.c の perl_construct() です。この perl_construct() から locale.c の Perl_init_i18nl10n() を呼び出し、locale 関係の初期化を行なっています。</p><p>まず、シェルの環境変数 $LANG がセットされている場合は $LANG の値を locale として設定を試みます。設定が失敗した場合は、環境変数 $LC_CTYPE、$LC_COLLATE、$LC_NUMERIC、$LC_ALL について対応する locale のカテゴリへの設定を試みます。<br />
+(なお、上記は perl-5.14.2 の時点の挙動です)</p><p>perl インタプリタが環境変数に基づいて locale 設定を行うのはインタプリタの初期化時のみであるため、perl コードで %ENV を変更しても反映されません。</p><p>perl コードから locale 設定を行う場合は以下のようにする必要があります。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+use POSIX qw(locale_h)
+
+setlocale( LC_ALL, &#34;C&#34; );</pre>
+
+</div>
+<div class="section">
+    <h4>autolocale</h4>
+    <p>次に拙作 autolocale の紹介をさせて頂きます。<br />
+autolocale は上記のような状況を踏まえて、$ENV{"LANG"} が変更された時に自動的に locale 設定を変更するプラグマモジュールです。</p>
+
+<div class="section">
+    <h5>使い方</h5>
+    <p>使い方は以下のようになります。</p>
+
+    <pre class="code lang-perl">use autolocale;
+  
+$ENV{&#34;LANG&#34;} = &#34;ja_JP.UTF8&#34;; # locale 設定が &#34;ja_JP.UTF8&#34; に変更
+my $time;
+{
+    local $ENV{&#34;LANG&#34;} = &#34;C&#34;;# locale 設定が &#34;C&#34; に変更
+    $time = localtime;
+}
+# スコープが変わり、$ENV{&#34;LANG&#34;} の値が &#34;ja_JP.UTF8&#34; に戻り、locale 設定も&#34;ja_JP.UTF8&#34; に
+  
+no autolocale; # locale の自動設定を無効化
+$ENV{&#34;LANG&#34;} = &#34;en_US&#34;; # locale 設定は変更されない</pre>
+<p>上記のように、autolocle を使用することで localtime() など locale 設定によって出力が変わる関数のためにレキシカルスコープで locale 設定を変えることができます。</p>
+
+</div>
+<div class="section">
+    <h5>autolocale の仕組み</h5>
+    <p>autolocale の挙動を実現するために利用しているのは %^H と、tie(もしくはVariable::Magic) です。</p><p>%^H はヒントハッシュなどと呼ばれるレキシカルスコープの変数です。%^H は以下のように使用しています。</p>
+
+    <pre class="code lang-perl">sub import {
+    $^H{&#34;autolocale&#34;} = 1;
+    cast $ENV{&#34;LANG&#34;}, $wiz;
+}
+
+sub unimport {
+    $^H{&#34;autolocale&#34;} = 0;
+}</pre>
+<p>このようにすることで、use autolocale、no autolocale で$^H{"autolocale"} の値を制御できます。そして、特定のスコープの %^H は (caller($level))[10] で取り出すことができますので、$^H{"autolocale"} の値により自動で locale 設定を実行するか否かを判別しています。</p><p>次に、tie についてですがこれは、$ENV{"LANG"} の更新にフック処理を仕掛けるために使用しています。なお、Variable::Magic が使用できる場合は Variable::Magic を使用し、使用できない場合は Tie::Scalar を使用することで Pure Perl でも使えるようになっています。</p>
+
+</div>
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>今日は perl の locale 設定と、autolocale モジュールについて紹介しました。locale 設定に関しては perl のソースコードを読んで知ったものなので、みなさんも perl のソースコードを読んでみると新たな発見があるかもしれませんので挑戦してみてはいかがでしょうか？</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

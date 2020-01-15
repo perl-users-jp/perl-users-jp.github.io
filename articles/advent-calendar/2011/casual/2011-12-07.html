@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="karupanerura">
+        <meta name="author" content="karupanerura">
+        <title>かゆいところに手が届くマイナーCPANモジュールランキング - Articles Advent Calendar 2011 Casual</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>かゆいところに手が届くマイナーCPANモジュールランキング</h1>
+
+        <p>use strict;<br />
+use warnings;</p><p>print << 'PERL_ADVENT_CALENDAR_JAPAN_2011_DAY_7';<br />
+こんばんわ！こんばんわ！id:karupaneruraです！<br />
+Perl Advent Calendar Japan 2011の7日目を書かせて頂きます！お手柔らかに！</p><br />
+<p>さてさて、みなさんCPANモジュール使ってますか？使ってますよね？僕は大好きです！<br />
+そんな、みんな大好きCPANモジュールの中から僕が独断と偏見で選ぶ、<br />
+『かゆいところに手が届くマイナーCPANモジュールランキング』を作ってみました！</p><p></p>
+
+<div class="section">
+    <h3>かゆいところに手が届くマイナーCPANモジュールランキング</h3>
+    
+<div class="section">
+    <h4>5位. Perl::MinimumVersion</h4>
+    
+<dl>
+<dt>マイナー度</dt>
+<dd>***</dd>
+<dt>使える度</dt>
+<dd>****</dd>
+<dt>面白い度</dt>
+<dd>****</dd>
+<dt>何番煎じ度</dt>
+<dd>***</dd>
+<dt>かっこいい度</dt>
+<dd>****</dd>
+</dl><p><br />
+これはPerlスクリプト、あるいはモジュールがどのバージョン以上で動作するかなどを調べるためのモジュールです。<br />
+これをインストールするとperlverというコマンドもインストールされるので、それを使って簡単に試す事が出来ます。</p><p>以下のような結果が得られます。</p>
+
+    <pre class="code lang-sh">$ perlver lib
+   -----------------------------------------------------------  
+ | file                         | explicit | syntax | external |
+ | ----------------------------------------------------------- |
+ | lib/Class/VirtualAccessor.pm | v5.6_0   | v5.6.0 | n/a      |
+ | ----------------------------------------------------------- |
+ | Minimum explicit version : v5.6_0                           |
+ | Minimum syntax version   : v5.6.0                           |
+ | Minimum version of perl  : v5.6_0                           |
+   -----------------------------------------------------------  </pre>
+<p>explicitがコードの中で、use 5.060_000;などと指定しているバージョン、<br />
+syntaxがこのコードの構文がどのバージョン以上でサポートされているものなのかを示しています。<br />
+こんなかんじにとってもカジュアルにモジュールなどがどのversionのPerlで動くのか調べる事が出来て便利ですね！</p><p></p>
+
+</div>
+<div class="section">
+    <h4>4位. Data::Dumper::Names</h4>
+    
+<dl>
+<dt>マイナー度</dt>
+<dd>**</dd>
+<dt>使える度</dt>
+<dd>****</dd>
+<dt>面白い度</dt>
+<dd>****</dd>
+<dt>何番煎じ度</dt>
+<dd>***</dd>
+<dt>かっこいい度</dt>
+<dd>***</dd>
+</dl><p><br />
+皆さんご存知Data::Dumperの出力を変数名を自動取得した上で吐いてくれるモジュールです。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+
+use Data::Dumper::Names;
+
+my %hoge = (
+   foo =&gt; 1,
+   bar =&gt; 2,
+);
+my $hogeref = \%hoge;
+
+print Dumper \%hoge;
+print Dumper $hogeref;</pre>
+<p>とかやると</p>
+
+    <pre class="code lang-perl">%hoge = (
+          &#39;bar&#39; =&gt; 2,
+          &#39;foo&#39; =&gt; 1
+        );
+$hogeref = {
+             &#39;bar&#39; =&gt; 2,
+             &#39;foo&#39; =&gt; 1
+           };</pre>
+<p>って感じで吐いてくれます。<br />
+色々なところにData::Dumperを仕込んだときにどこで吐かれたDumpなのか一目瞭然ですね！</p><br />
+<p>やっている事がシンプルな為か2008年から更新されていませんが、CPAN Testersでも殆どPASSしてますし、<br />
+デバッグ用途であれば心配は殆ど不要だと思います。</p><p></p>
+
+</div>
+<div class="section">
+    <h4>3位. Benchmark::ProgressBar</h4>
+    
+<dl>
+<dt>マイナー度</dt>
+<dd>**</dd>
+<dt>使える度</dt>
+<dd>***</dd>
+<dt>面白い度</dt>
+<dd>****</dd>
+<dt>何番煎じ度</dt>
+<dd>***</dd>
+<dt>かっこいい度</dt>
+<dd>*****</dd>
+</dl><p><br />
+これはベンチマークの実行時にプログレスバーを表示してくれるモジュールです。<br />
+ベンチマークがなかなか終わらないときのストレスを軽減してくれます。<br />
+プログレスバーを更新するコストは全てのテストに対しほぼ平等にかかるハズなので、<br />
+ベンチマークへ与える影響は無視出来る程度でしょう。<br />
+使い方は至って簡単で、</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+
+use Benchmark qw/cmpthese timethese/;</pre>
+<p>などとしていたところを</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+
+use Benchmark::ProgressBar qw/cmpthese timethese/;</pre>
+<p>に置き換えるだけです。<br />
+簡単ですね！</p><p></p>
+
+</div>
+<div class="section">
+    <h4>2位. Plack::Middleware::Compile</h4>
+    
+<dl>
+<dt>マイナー度</dt>
+<dd>****</dd>
+<dt>使える度</dt>
+<dd>***</dd>
+<dt>面白い度</dt>
+<dd>***</dd>
+<dt>何番煎じ度</dt>
+<dd>**</dd>
+<dt>かっこいい度</dt>
+<dd>*</dd>
+</dl><p>これはcoffee scriptやSCSSなどサーバーサイドで変換が必要なスクリプトをコンパイルして配信するためのPlack::Middlewareです。<br />
+これは以下のように使います。<br />
+以下は^/css/.+?\.css$にアクセスしてきたリクエストに対し、コンパイル済のファイルがあればそれを、<br />
+そうでなければ/raw_css/以下にある同じファイルをCSS Tidyで処理したものを返す例です。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+
+use MyApp;
+use File::Spec;
+use File::Basename;
+use Plack::Builder;
+
+builder {
+    enable &#39;Compile&#39; =&gt; (# CSS Compile
+        pattern =&gt; qr{^/css/.+?\.css$}i,
+        lib     =&gt; File::Spec-&gt;catdir(dirname(__FILE__), &#39;htdocs&#39;, &#39;static&#39;),
+        map     =&gt; sub {
+            my $filename = $_[0];
+            $_[0] =~ s{^/css/}{/raw_css/};
+            return $filename;
+        },
+        compile =&gt; sub{
+            my ($in, $out) = @_;
+            $in  =~ s{//}{/}g;
+            $out =~ s{//}{/}g;
+
+            # csstidy
+            my $code = system(
+                &#39;/usr/local/bin/csstidy&#39;, $in,
+                &#39;--allow_html_in_templates=false&#39;,
+                &#39;--compless_colors=true&#39;,
+                &#39;--compress_font-weight=true&#39;,
+                &#39;--remove_bslash=true&#39;,
+                &#39;--remove_last_;=true&#39;,
+                &#39;--silent=true&#39;,
+                &#39;--merge_selectors=2&#39;,
+                &#39;--optimise_shorthands=2&#39;,
+                $out
+            );
+
+            die &#34;return: ${code}. compile command faild.&#34; if $code;
+        }
+    );
+
+    MyApp-&gt;to_app;
+};</pre>
+<p>/css/内へのアクセス（コンパイル済のファイルへのアクセス）に対してhookさせようとした場合、<br />
+このようにmap内が少し気持ち悪くなってしまったり、$inなどのパスで/が重複してしまうケースがあるのがイケてないですが、<br />
+Plack::Middleware::File::Sassのような専用のMiddlewareが無くても自動でコンパイルして配信する仕組みが簡単に作れるのは便利ですね！</p><br />
+<p>ここまできてあれなのですが、2010年にリリースされて以来、<br />
+Changesも用意されて無く、ずっとメンテナンスされてる様子も無いので、<br />
+積極的に使うのはおすすめしません！（ｷﾘｯ</p><p></p>
+
+</div>
+<div class="section">
+    <h4>1位 Class::Data::Inheritable::Translucent</h4>
+    
+<dl>
+<dt>マイナー度</dt>
+<dd>*****</dd>
+<dt>使える度</dt>
+<dd>****</dd>
+<dt>面白い度</dt>
+<dd>****</dd>
+<dt>何番煎じ度</dt>
+<dd>*</dd>
+<dt>かっこいい度</dt>
+<dd>***</dd>
+</dl><p><br />
+これはClassメソッドで初期値を定義出来るアクセサを作る事が出来るモジュールです。<br />
+これを使うと例えば通常はutf-8でencodeしたコンテンツを返すが、<br />
+携帯端末からのアクセスからはshift-jisでencodeしたコンテンツ返す。といった処理が簡単に実装出来ます。</p><p>親Classを以下のようにしておけば</p>
+
+    <pre class="code lang-perl">package MyApp::Web;
+use strict;
+use warnings;
+
+use parent qw/MyWAF Class::Data::Inheritable::Translucent/;
+
+__PACKAGE__-&gt;mk_translucent(&#39;encoding&#39;);
+__PACKAGE__-&gt;encoding(&#39;utf-8&#39;); # default
+
+1;</pre>
+<p>例えば以下のようにするだけで $c->req->is_mobile がtureのときだけ一時的にencodingを変更する事が出来ます。</p>
+
+    <pre class="code lang-perl">package MyApp::Web::C::Root;
+use strict;
+use warnings;
+
+sub index {
+    my($class, $c) = @_;
+
+    $c-&gt;encoding(&#39;shift-jis&#39;) if $c-&gt;req-&gt;is_mobile;
+
+    # ...
+}</pre>
+<p>もちろん、Class::Data::Inheritableと同様にClass間で値の継承もやってくれるので、<br />
+継承されるクラス変数として利用する事も出来ます。<br />
+メンテナンスもこまめに行われているようなのでおすすめです！</p><p></p>
+
+</div>
+</div>
+<div class="section">
+    <h3>まとめ</h3>
+    <p>如何でしたでしょうか？知っているモジュールはいくつありましたか？<br />
+かゆいところに手が届くモジュールはいざという時知っていると非常に便利なケースがあります。<br />
+この機会にみなさんもCPANを適当に回ってみる旅をしてみては如何でしょうか？</p><p>以上、かゆいところに手が届くマイナーCPANモジュールランキングでした！<br />
+明日はSongmuさんです！</p><p>PERL_ADVENT_CALENDAR_JAPAN_2011_DAY_7<br />
+print sub{"good bye!"}->("see you next year!");</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

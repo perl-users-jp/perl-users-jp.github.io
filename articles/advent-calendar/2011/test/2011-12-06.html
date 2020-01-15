@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="dukkiedukkie <dukkiedukkie@yahoo.co.jp>">
+        <meta name="author" content="dukkiedukkie <dukkiedukkie@yahoo.co.jp>">
+        <title>PerlとOracleDatabaseでの性能試験（データ増幅） - Articles Advent Calendar 2011 Test</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>PerlとOracleDatabaseでの性能試験（データ増幅）</h1>
+
+        
+<div class="section">
+    <h3>はじめに</h3>
+    <p>はじめまして！ dukkiedukkie と申します。<br />
+知人にこちらを教えて頂きまして登録させていただきましたが、予備知識なく&&不慣れでご迷惑おかけすると思いますが、よろしくお願いいたします！！</p><p>IT業界を16年ほどさまよっており現在はPerlで色々書いてます。が、ゴリゴリのプログラマというわけでもなく<br />
+前職は某ポータルサイトにて広告システム全般のシステム基盤設計とシステム運用、前々職は某金融システムにてDBA（Oracle中心）、その前は某ブログシステムのDBA（Oracle中心）、さらにその前は、某IT情報配信サイトのエンジニアとして、働いてきた90年代CGIプログラミングを原点とする”オッサンPerler”です。<br />
+ですが、どんどん新しいことを学びたいので、なかよくしてくださいね!!</p><p></p>
+
+</div>
+<div class="section">
+    <h3>データベースの性能試験とPerl</h3>
+    <p>さて、ほとんど準備もしておりませんため（次回はがんばります！）、今日はOracleデータベースの性能管理のためにここ数年行う機会が多かったRDBMS性能試験について書きます。</p><p>まあ、大規模システムともなりますと、DBの性能がシステム全体のボトルネックとなって足を引っ張るケースが<br />
+極めて多く、それ専用のチューニングエンジニアさんが大勢いて、「Oracleはすごい。だが他は何も知らない…」みたいな人もちらほら見受けられるしOracleの性能試験に特化した高額なテストツールなどもあるみたいですが、自分の経験では銀行でも大手サイトでも<br />
+DB性能試験については、ほとんどPerlで事足りてきました（というか、無理やりそうしてPerlをどんな場所でも書きたかった感もありますw）。</p>
+
+</div>
+<div class="section">
+    <h3>データ増幅</h3>
+    <p>さて、DB性能試験といえば、まずはデータ増幅。<br />
+データ空っぽ状態でTPSを求めても意味無いので。最低1年後までのデータ量の成長率を計算して、そのダミーデータをDB登録しておく必要があります。<br />
+TSVで出力されたファイルをSQL Loaderなどで並列でDBに突っ込むのですが、<br />
+このTSVファイル作成にPerlをよく活用しています。</p><p></p>
+
+</div>
+<div class="section">
+    <h3>カーディナリティを考慮したデータ増幅</h3>
+    <p>例えば、RDBMSのテーブルとして音楽CDを例にとると、関数従属性の関係が<br />
+artist->cd->tracks<br />
+で、artistデータが80万件に増幅する可能性があり（そんなにアーティストはいないだろうけど）<br />
+artist一件にたいしてcdデータは10件、<br />
+cd一件にたいしてtracksデータは12件、<br />
+平均で伸長する場合、ロジックの骨組み的には（重ねて準備不足をお詫びします。。。）</p>
+
+    <pre class="code lang-perl">use IO::File;
+#- 増幅用主キーの開始と終了数値
+my ( $artist_pk_start ) = 100001;
+my ( $artist_pk_end ) = 900000;
+my ( $cd_pk_start ) = 100001;
+my ( $tracks_pk_start ) = 100001;
+
+#- 表同士のカーディナリティ 
+my ( $artist2cd ) = 10; #- artist:cdは1:10
+my ( $cd2tracks ) = 12;
+
+#- ファイルハンドルを一気に開く
+my $fh_artist = IO::File-&gt;new(&#34;artist.dat&#34;, &#39;w&#39;);
+my $fh_cd = IO::File-&gt;new(&#34;cd.dat&#34;, &#39;w&#39;);
+my $fh_tracks = IO::File-&gt;new(&#34;tracks.dat&#34;, &#39;w&#39;);
+#- データ増幅ループ
+for ( my $i = $artist_pk_start; $i &lt;= $artist_pk_end; $i++ ) {
+	#- artist entity
+	my $artist_name = &#39;Amy Cooper&#39;;	#- uniqならrandをかませる
+	print $fh_artist(&#34;$i\t$artist_name\n&#34;);
+	#- cd entity loop
+	my $cd_end = $cd_pk_start + $artist2cd - 1;
+	for ( my $j = $cd_pk_start ; $j &lt;= $cd_end; $j++ ) {
+		my $cd_title = &#39;Mirrors&#39;;
+		print $fh_cd(&#34;$j\t$cd_title\t$i\n&#34;);
+		$cd_pk_start++;
+		#- tracks entity loop
+		my $tracks_end = $tracks_pk_start + $cd2tracks - 1;
+		for ( my $k = $tracks_pk_start; $k &lt;= $tracks_end; $k++ ) {
+			my $track_title = &#39;Tonight We Fly&#39;;
+			print $fh_tracks(&#34;$k\t$track_title\t$i\t$j\n&#34;);
+			$tracks_pk_start++;
+		}
+	}
+}
+close $fh_tracks;
+close $fh_cd;
+close $fh_artist;</pre>
+<p>みたいなのを書いてsqlldrコマンドに食わせて、将来のRDBMSデータ量を模擬してました（だいたい、徹夜作業になりますねww）。</p><p>しかし、増幅はエンティティの上位にあるテーブルで数十億件、下位エンティティともなると数千億件…の増幅が必要、みたいなケースに結構人生で遭遇していてその場合、上記ヘボスクリプトでは不十分で<br />
+・書き込みプロセスをforkする<br />
+・ファイルをSQL Loaderが効率良い件数（例：1千万件など）に分ける<br />
+などの工夫が必要となるわけです。</p><p>また、増加係数を平均で行う場合「データの偏り」が現実とかけ離れた状況になってしまうため、現状の標準偏差や偏りを忠実に模写して将来も予測した増幅ロジックなどが必要になってきます。<br />
+これを考慮していないと、「現実的な現場でのデータのカーディナリティ起因によるクエリ遅延の発生」などを予期できないのです。<br />
+この点は来週（じゃなくて16日ですね）、きっちり準備した上で書かせてくださいm(_ _)m。</p><br />
+<p>データ増幅から始めて、テーマ的にはDBのOLTP試験モジュールまで至ろうと精進しますので、今後ともよろしくお願いいたします！！<br />
+※みなさん、ご心配ご迷惑おかけしました。。。。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

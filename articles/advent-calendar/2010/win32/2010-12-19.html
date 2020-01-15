@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>WindowsでPerlをビルドする - Articles Advent Calendar 2010 Win32</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>WindowsでPerlをビルドする</h1>
+
+        <p>19日目が空いているようなので「誰も知らない知られちゃいけない」覆面ライターが穴埋めをします。今回はSで始まるなにかではなく、WindowsでPerlをビルドしてみましょう。実際に手を動かしてみたら、あまりのあっけなさに拍子抜けするとおもいますよ。</p>
+
+<div class="section">
+    <h3>ソースコードをとってくる</h3>
+    <p>やり方はいろいろありますが、いちばんお手軽なのはお好きなブラウザで「<a href="http://search.cpan.org/dist/perl/">http://search.cpan.org/dist/perl/</a>」を開いて、安定版なり開発版なりのtarballをダウンロードしてくることでしょう。ダウンロードが済んだらコマンドプロンプトからtarコマンドを叩くなり適当な解凍ツールを使うなりして、適当なディレクトリにソースを解凍しておいてください。</p><p>開発途中の最新版(bleadperl)を試してみたい方は、search.cpan.orgからたどれるPerl 5のgitリポジトリか、githubのミラー（<a href="http://github.com/mirrors/perl/">http://github.com/mirrors/perl/</a>）からチェックアウトしてもよいでしょう。</p>
+
+</div>
+<div class="section">
+    <h3>開発環境を用意する</h3>
+    <p>日頃からCPANでバリバリXSモジュールをビルドしている方なら大丈夫だと思いますが、ふだんはppmしか使わないよという方はCの開発環境を用意しましょう。よくわからない方はとりあえず<a href="http://strawberryperl.com/">Strawberry Perl</a>を入れておいてください。自分で環境構築できる方なら素のMinGWでもかまいません（その場合はdmakeもあわせてインストールしておいてください）。</p><p>また、Microsoft謹製の環境がいい、という方はVisual C++を入れましょう。2010年版にはまだ対応しきれていない部分があるようなので、今日のところは<a href="http://www.microsoft.com/japan/msdn/2008/product/express/">2008年版のExpress Edition</a>を使います。もちろん製品版をお持ちの方はそちらを入れてください。</p>
+
+</div>
+<div class="section">
+    <h3>win32ディレクトリに移動する</h3>
+    <p>環境構築が済んだら、ソースディレクトリの下にあるwin32ディレクトリに移動します。</p><p>Strawberry Perl（あるいはMinGW＋dmake）の方は、コマンドプロンプトから「dmake」を実行しましょう。ビルドが始まります。</p><p>Visual C++の場合も同じく基本的にはプロンプトでnmakeを実行するだけですが、VC6以外の環境を使っている方は、エディタでMakefileを開いて、CCTYPEの設定を適切なものに変更してください。また、64ビット環境で32ビットのPerlをつくる場合はWIN64の設定をundefにしましょう。</p>
+
+</div>
+<div class="section">
+    <h3>テストを実行する</h3>
+    <p>ビルドが済んだら次はテストですね。お使いのmakeにあわせて、nmake testなりdmake testなりを実行してください。Perlのバージョンや開発環境のバージョンによってはときどきエラーが混じることがありますが、ふつうは100％パスするはずです。</p>
+
+</div>
+<div class="section">
+    <h3>インストール</h3>
+    <p>お使いのmakeにあわせて、nmake installなりdmake installなりしてください。お疲れさまでした！</p>
+
+</div>
+<div class="section">
+    <h3>詳しくは</h3>
+    <p>ソースディレクトリにREADME.win32というファイルがあるので、それをご覧くださいませ。また、nmake（Visual Studio）を使っている方はMakefile、dmake（それ以外）の方はmakefile.mkの先頭300行（コメント含む）ほどが基本の設定になっていますので、デフォルトの挙動が気に入らない方は適当に手を入れてみるのもよいかとおもいます。</p>
+
+</div>
+<div class="section">
+    <h3>問題に行き当たったら</h3>
+    <p>環境構築さえきちんとできていればめったに問題が起こることはありませんが、リポジトリ版にバグらしきものを見つけたらp5pなどにご報告くださいませ。</p><p>また、Express Editionを使っていて「BufferOverflowU.libがないよ」と言われたら、<a href="http://www.microsoft.com/japan/whdc/DevTools/WDK/WDKpkg.mspx">Windows Driver Kit</a>を入れてください。</p><p>それ以前の問題として、コマンドが見つからないとかインクルードファイルが見つからないとか言われる場合は、スタートメニューから「Visual Studio 2008 コマンド プロンプト」のようなショートカットを探して、そこからコマンドプロンプトに入るか、Visual Studioを常用するならVisual Studioまわりの設定をユーザ環境変数に入れてしまうのが吉ですね。</p><p>お次はどなたかしら？</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="mattn <mattn.jp@gmail.com>">
+        <meta name="author" content="mattn <mattn.jp@gmail.com>">
+        <title>Windows のイベントログで勤務時間を調べよう - Articles Advent Calendar 2010 Win32</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Windows のイベントログで勤務時間を調べよう</h1>
+
+        <p>こんにちわ。Windows 界の渡辺篤史と呼ばれている <a href="http://twitter.com/mattn_jp">mattn</a> です。口癖は「いい Windows API ですねぇ」です<a href="#fn1" title="要出典">*1</a>。<br />
+ところで勤務表ちゃんと付けてますか？ちゃんと毎日付けてますか？</p><br />
+<br />
+<br />
+<p>でも色々あって書けない時もありますよね！気付いたら終電！勤務表更新しようと思って朝来たらトラブル！<br />
+<span style="font-size: 1em">ある</span> <span style="font-size: 2em">ある</span> <span style="font-size: 3em">ある</span> <span style="font-size: 4em">ある</span> <span style="font-size: 5em">！</span></p><p>で、「えぇーーーっとあの日、何時から何時まで仕事したっけ...」とかなりませんか？なりますよね？<br />
+Perl で解決しましょう！</p><p>「管理ツール」の「イベントログ」を起動するとシステムログに「イベントログサービスの開始」のイベントと「イベントログサービスの停止」のイベントが出力されているのに気付きます。<br />
+これ、日別で開始時刻と終了時刻まとめたら勤務時間になるじゃんとか悪い事を考えてるのは誰ですか！</p><p>やりましょう！</p><p>Windows のイベントログを操作するには <a href="http://search.cpan.org/dist/Win32-EventLog/" class="external" target="_blank">Win32::EventLog</a> を使います。<br />
+基本的な使い方は perldoc を見る限りです。</p>
+
+    <pre class="code lang-perl">Example 1
+    The following example illustrates the way in which the EventLog module
+    can be used. It opens the System EventLog and reads through it from
+    oldest to newest records. For each record from the Source EventLog it
+    extracts the full text of the Entry and prints the EventLog message text
+    out.
+
+     use Win32::EventLog;
+
+     $handle=Win32::EventLog-&gt;new(&#34;System&#34;, $ENV{ComputerName})
+            or die &#34;Can&#39;t open Application EventLog\n&#34;;
+     $handle-&gt;GetNumber($recs)
+            or die &#34;Can&#39;t get number of EventLog records\n&#34;;
+     $handle-&gt;GetOldest($base)
+            or die &#34;Can&#39;t get number of oldest EventLog record\n&#34;;
+
+     while ($x &lt; $recs) {
+            $handle-&gt;Read(EVENTLOG_FORWARDS_READ|EVENTLOG_SEEK_READ,
+                                      $base+$x,
+                                      $hashRef)
+                    or die &#34;Can&#39;t read EventLog entry #$x\n&#34;;
+            if ($hashRef-&gt;{Source} eq &#34;EventLog&#34;) {
+                    Win32::EventLog::GetMessageText($hashRef);
+                    print &#34;Entry $x: $hashRef-&gt;{Message}\n&#34;;
+            }
+            $x++;
+     }</pre>
+<p>ここで得られる hashRef の EventID と TimeGenerated を使います。EventID の下位WORDが 6005 の場合は「イベントログサービスの開始」を意味し、6006 の場合は「イベントログサービスの停止」を意味します。このイベントが発生した最初の時刻と、最終の時刻をまとめれば勤務時間になりますね。</p>
+
+    <pre class="code lang-perl">#!perl
+use strict;
+use warnings;
+use Win32::EventLog;
+
+my $tyear = shift || 2010;
+my $tmon  = shift || 12;
+my $round_min = 15;    # 時刻を丸める単位
+
+# システムログを使う
+my $syslog = Win32::EventLog-&gt;new(&#34;System&#34;);
+
+# シーケンシャルに読まないといけないので最初のレコード番号とレコード数を
+# 取得する。
+my ( $recs, $base, $ev, $n ) = ( 0, 0, undef, 0 );
+$syslog-&gt;GetNumber($recs);
+$syslog-&gt;GetOldest($base);
+
+# シーケンシャルにレコードを取得しながらIDを判定していく
+my %sched;
+while ( $n &lt; $recs ) {
+    $syslog-&gt;Read( EVENTLOG_FORWARDS_READ | EVENTLOG_SEEK_READ,
+        $base + $n, $ev );
+
+    my $id = ( $ev-&gt;{EventID} &amp; 0xffff );
+
+    # イベントロガー開始(6005)もしくはイベントロガー停止(6006)ならば
+    # 時刻を格納していく
+    if ( $id eq 6005 || $id eq 6006 ) {
+        my ( $sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst ) =
+          localtime( $ev-&gt;{TimeGenerated} );
+
+        # 引数の年月と同じならば...
+        if ( $year + 1900 eq $tyear &amp;&amp; $mon + 1 eq $tmon ) {
+            unless ( defined $sched{$mday} ) {
+                $sched{$mday} = ();
+            }
+
+            if ($round_min) {
+
+                # 開始時刻は次の単位で丸めて
+                $min = int( $min / $round_min + 1 ) * $round_min
+                  if $id eq 6005 &amp;&amp; ( $min % $round_min );
+
+                # 終了時刻は前の単位で丸める
+                $min = int( $min / $round_min ) * $round_min
+                  if $id eq 6006 &amp;&amp; ( $min % $round_min );
+
+                # でないと会社に怒られるよ
+                $hour += int($min / 60);
+                $min = $min % 60;
+
+                # えっ？こんな物で勤怠付けてる方が怒られるよ？
+                # だって勤怠書いてる時間ねぇじゃん
+            }
+
+            # 0は開始時刻の添え字、1は終了時刻の添え字
+            my $which_is = $id eq 6005 ? 0 : 1;
+
+            # 日付がキーで値が2要素の配列で、それぞれ開始時刻と終了時刻
+            # 1日に複数回再起動を行う事もあるので最初と最後を判定する
+            my $last = 0;
+            if ( defined $sched{$mday}[$which_is] ) {
+                $last = $sched{$mday}[$which_is];
+                $last =~ s!:!!;
+            }
+
+            if (
+                (
+                    $which_is eq 0
+                    &amp;&amp; ( $last eq 0 || $last &gt; $hour * 100 + $min )
+                )
+                || ( $which_is eq 1 &amp;&amp; $last &lt; $hour * 100 + $min )
+              )
+            {
+                $sched{$mday}[$which_is] = sprintf &#34;%02d:%02d&#34;, $hour, $min;
+            }
+        }
+    }
+    $n++;
+}
+
+# CSVぽく出力する
+for ( sort keys %sched ) {
+    my ( $start, $end ) = ( $sched{$_}[0] || &#39;&#39;, $sched{$_}[1] || &#39;&#39; );
+    printf &#34;%04d/%02d/%02d,%s,%s\n&#34;, $tyear, $tmon, $_, $start, $end;
+}</pre>
+<p>全体ソースだとこんな感じでしょうか。<br />
+ただ、勤務時間が24時を超えたり、PCを付けっぱなしで帰ると酷い勤務表が出来上がります。十分注意しましょう。</p><p>「おい、お前金曜朝から月曜夜までぶっ通しで働いてるぞ！」なんて上司に言われないようにしましょう。</p><p>といいますか、ちゃんと勤務表は毎日更新しましょう。</p>
+HASH(0x5566caf0df70)
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

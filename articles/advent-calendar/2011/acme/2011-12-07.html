@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="toritori0318">
+        <meta name="author" content="toritori0318">
+        <title>Acme::KamenriderOOO - 仮面ライダーオーズに変身してみよう - Articles Advent Calendar 2011 Acme</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Acme::KamenriderOOO - 仮面ライダーオーズに変身してみよう</h1>
+
+        <p><br />
+こんばんは。<br />
+最近さらに親バカがひどくなってきたtoritori0318と申します。<br />
+Acme Drugということでゆるい感じで書きたいと思います。</p><br />
+<p>さて、９月から仮面ライダーも新作が始まってしまいましたが<br />
+前作の仮面ライダーオーズもまだまだ熱いですよね！<a href="#fn1" title="というか息子の中では現役">*1</a><br />
+あ、仮面ライダーオーズについてあまりご存じない方は<a href="http://ja.wikipedia.org/wiki/%E4%BB%AE%E9%9D%A2%E3%83%A9%E3%82%A4%E3%83%80%E3%83%BC%E3%82%AA%E3%83%BC%E3%82%BA/OOO">&#x3053;&#x3061;&#x3089;</a>を御覧ください。</p><p></p>
+
+<div class="section">
+    <h4>仮面ライダーオーズの変身について</h4>
+    <p>仮面ライダーといえば変身シーンですね。<br />
+もちろん仮面ライダーオーズにも変身シーンがあります。<br />
+オーズは以下のような流れで変身を行います。</p>
+
+<ol>
+<li>オーズドライバー（ベルト）にオーメダルを３枚セットします</li>
+<li>オースキャナーを使い、セットしたメダルをスキャンします</li>
+<li>スキャンされたメダルの組み合わせで仮面ライダーオーズに変身します</li>
+</ol><p>スキャンするメダルは頭5種類×腕5種類×脚5種類の組み合わせによって形態が変化します。<br />
+つまり１００種類以上の形態が存在するわけです。</p><p>さらにメダルには属性があり、３枚のメダルが同じ属性であれば<br />
+「コンボチェンジ」となり、普段より強力な力を持ったオーズに変身できます。<br />
+メダルの属性は色で判断できるので一目瞭然ですね。</p><br />
+<p></p>
+
+</div>
+<div class="section">
+    <h4>Perlでも変身したい</h4>
+    <p>さて、ここまでの説明で「perlを使って変身してみたい」と思いましたか！思いますよね！<br />
+そこでオーズに変身できるモジュール <a href="https://github.com/toritori0318/p5-Acme-KamenriderOOO">Acme::KamenriderOOO</a> を書いてみました。<a href="#fn2" title="Acme::Momoirocloverを参考にさせて頂きました">*2</a><br />
+早速変身してみましょう。</p>
+
+    <pre class="code lang-perl">  use Acme::KamenriderOOO;
+
+  my $ooo = Acme::KamenriderOOO-&gt;new;
+
+  # オーズドライバーにメダルをセット
+  $ooo-&gt;ooo_driver( &#39;タカ&#39;,&#39;クジャク&#39;,&#39;コンドル&#39; );
+
+  # キュインキュインキュインキュイン...
+
+  # 変身!
+  $ooo-&gt;henshin;</pre>
+<p><img src="https://github.com/perl-users-jp/perl-advent-calendar/raw/master/2011/acme/2011-12-07/image01.png" /><br />
+見事に変身できましたね！</p><br />
+<p><a href="http://www35.atwiki.jp/sentai-hero/pages/437.html">&#x4E9C;&#x7A2E;</a>もすべて対応済みです。</p><br />
+<p>また不正な組み合わせで変身しようとすると怒られるので気をつけましょう。</p>
+
+    <pre class="code lang-perl">  # オーズドライバーにメダルをセット！
+  $ooo-&gt;ooo_driver( &#39;ライオン&#39;,&#39;タカ&#39;,&#39;ウナギ&#39; );
+
+  # 変身!
+  $ooo-&gt;henshin;   # 組み合わせが不正だよ</pre>
+
+</div>
+<div class="section">
+    <h4>メダル情報／コンボ情報</h4>
+    <p>メダル情報やコンボ情報を引くことも可能です。<br />
+勉強して友達に差をつけよう！</p>
+
+    <pre class="code lang-perl">  # コンボ一覧
+  my @combo = $ooo-&gt;select(&#39;combo&#39;);
+  my @combo = $ooo-&gt;select(&#39;combo&#39;, {name=&gt;&#39;タジャドル&#39;});
+
+  # メダル一覧
+  my @medal = $ooo-&gt;select(&#39;medal&#39;);
+  my @medal = $ooo-&gt;select(&#39;medal&#39;, {name=&gt;&#39;タカ&#39;});</pre>
+
+</div>
+<div class="section">
+    <h4>Acme::KamenriderFourze</h4>
+    <p>今のところ書く予定は全くないのですが、もしかしたらAcme Trackに再登場するかもしれませんね！</p>
+
+</div>HASH(0x5566cb1ff308)
+HASH(0x5566cb1e2880)
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

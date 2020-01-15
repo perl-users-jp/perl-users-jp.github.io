@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="bayashi">
+        <meta name="author" content="bayashi">
+        <title>App::Rolling - 標準入力を世代管理されたファイルに書き出す - Articles Advent Calendar 2011 Hacker</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>App::Rolling - 標準入力を世代管理されたファイルに書き出す</h1>
+
+        
+<div class="section">
+    <h4>前置き</h4>
+    <p>こんにちは。<a href="http://twitter.com/bayashi">bayashi</a> です。みなさん、意識は高まっていますか？ 僕は上々です。今回は拙作の <a href="https://github.com/bayashi/App-Rolling">App::Rolling</a> というモジュールを紹介いたします。</p><p>といっても、絶賛開発中のモジュールなので、ここで紹介したインターフェースは変更されるかもしれません。</p><p>つまり、人柱、大歓迎で㌃</p><p></p>
+
+</div>
+<div class="section">
+    <h4>何をするモジュール？</h4>
+    <p>App::Rolling は、標準入力を世代管理されたファイルに書き出す目的で作っています。例えば、いつ起きるかわからない適当な通信のTCPダンプを取得したい場合、ひとつのファイルにひたすら書き出して捉えるのは、なんとなく気が引けますよね。そんなとき、App::Rolling に同梱される roll コマンドを使えば、好きな間隔で、好きな世代だけローテートさせながら、ファイルに書き出すことができるようになります。</p><p>通常、以下のようにダンプとったりしますね。</p>
+
+    <pre class="code lang-bash">$ /usr/sbin/tcpdump | tee &gt; /tmp/dump.log</pre>
+<p>roll コマンドで、以下のようにすると、`dump.log.1230` `dump.log.1231` `dump.log.1232` `dump.log.1233` `dump.log.1234` というように、自動的にファイルが世代管理(デフォルト5世代)されて書き出されます。</p>
+
+    <pre class="code lang-bash">$ /usr/sbin/tcpdump | roll -t /tmp/dump.log</pre>
+<p>だから、放置しても、安心★ｷﾗｯ</p><p></p>
+
+</div>
+<div class="section">
+    <h4>オプション</h4>
+    <p>次のようなオプションがあります。</p>
+
+    <pre class="code">-f --file        書き出すファイルを指定します *必須*
+-a --age         ローテートする世代数 [デフォルト:5]
+-i --interval    1世代に書き出す時間(秒) [デフォルト:60]
+-t --through     ファイルに書き出しつつ、標準出力にもアウトプットします
+-nr --no-rotate  ローテートしません
+-h --help        ヘルプを表示します
+-v --version     バージョンを表示します</pre>
+<p>例えば以下のように書くと、10世代でローテーションして、1世代が180秒間の出力を確保します。あわせて、`-t` オプションで dump出力を STDIN に垂れ流して、リアルタイムで観察したりもできます。</p>
+
+    <pre class="code lang-bash">$ /usr/sbin/tcpdump | roll -f /tmp/dump -a 10 -i 180 -t</pre>
+<p>内緒だけど、ファイル指定は -f で指定しなくてもいけるみたいよ♪</p><p></p>
+
+</div>
+<div class="section">
+    <h4>設定</h4>
+    <p>オプションで指定する値は、規定のファイルに記述しておけば、毎度指定する必要がありません。</p><p>デフォルトでは `~/.rolling/config` が読まれます。$ENV{'ROLLING_DIR'} で任意のディレクトリの config ファイルを指定することも可能です。</p><p>config ファイルの中身は、例えば以下のようになります。</p>
+
+    <pre class="code">file: /tmp/roll.log
+age: 3
+interval: 180
+through: 1</pre>
+
+</div>
+<div class="section">
+    <h4>既知のバグ</h4>
+    <p>書いてはみたものの、以下のようなバグがあります 、、orz</p>
+
+<ul>
+<li>STDINにインターバルを超えて入力がない場合に、ローテートがうまくいかない</li>
+<li>ファイル存在チェックのせいでパフォーマンスが悪い</li>
+</ul>
+</div>
+<div class="section">
+    <h4>TODO</h4>
+    <p>今後、実装予定の機能。</p>
+
+<ul>
+<li>インターバルで `-i 3m` (現状の書き方だと -i 180)とか書きたい</li>
+<li>ファイルサイズでローテーション</li>
+<li>出力するファイルの先頭にタイムスタンプ</li>
+<li>grep オプション</li>
+</ul><p>他にもこんなの欲しい！というのがあったら教えてください！</p><p></p>
+
+</div>
+<div class="section">
+    <h4>コマンドラインツールの書き方</h4>
+    <p>個人的に、コマンドラインツールを書くときは、ほとんどいつも同じコードをベースに書いています。もともとは Module::Starter あたりからコピペした気がしますが、興味のある人はソース覗いてみてください。<a href="https://metacpan.org/module/Getopt::Long" title="Getopt::Long">Getopt::Long</a> や <a href="https://metacpan.org/module/Pod::Usage" title="Pod::Usage">Pod::Usage</a> を使ってオプション値を取得したりヘルプを表示したりといった基本的なつくりや、設定ファイルの読み込みなどは鉄板化していますね。</p><p>ただ、コマンドラインツールはテストがけっこう大変になったりすることがあり、<a href="https://metacpan.org/module/App::Cmd" title="App::Cmd">App::Cmd</a> をベースにして、<a href="https://metacpan.org/module/App::Cmd::Tester" title="App::Cmd::Tester">App::Cmd::Tester</a> を使うのがいいかもと、App::Rolling を書いた後で気づいたりしました。</p><p>今後、この手のモジュールを書く人は、検討してみるといいと思います！</p><p></p>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p><a href="https://github.com/bayashi/App-Rolling">App::Rolling</a> というモジュールを紹介しました。関心を持っていただければ幸いです。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

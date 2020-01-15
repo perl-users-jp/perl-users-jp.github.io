@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="tomi-ru">
+        <meta name="author" content="tomi-ru">
+        <title>DBIx::Simple ふたたび - Articles Advent Calendar 2011 Dbix</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>DBIx::Simple ふたたび</h1>
+
+        <p>タイガー＆バニーの、原稿が遅れがちな方、トミールです！</p><p>今日は DBI へのシュガーシンタックスを追加するラッパー、DBIx::Simple の紹介です。</p>
+
+<div class="section">
+    <h4>DBIx::Simple</h4>
+    <p>実は DBI そのものって相当高機能である！、というのはこのアドベントカレンダーでもいろいろ紹介されると思います。が、やや不親切なメソッドの引数の感じを見て、ゴロゴロ DBI のラッパーが作られていたりします。そんななか DBIx::Simple がやはり良いと思うのはわかりやすくシンプルな API を提供する、という点で一定の成功を収めていると思う点です。</p><p>※ ただしわかりやすい API のトレードオフとして、結果のステートメントハンドルを bless するタイプです。もし blessする（結果オブジェクトを作成する）コストが問題になるようなハードコアな環境で開発されている方は普通に DBI を素で使えばよいと思います。</p><p>DBIx::Simple の使い方は、POD 自体が<a href="http://search.cpan.org/perldoc?DBIx::Simple">メソッド一覧</a>に加え<a href="http://search.cpan.org/perldoc?DBIx::Simple::Examples">より具体的な例</a>が書かれているので説明要らないくらいじゃないかとおもいます。</p><p>ハッシュリファレンスで受け取る <code>hash()</code>、複数の場合ハッシュリファレンスのリストとして受け取る <code>hashes()</code>、結果が1件の値だけの場合などに使う <code>flat()</code> や <code>into()</code> が良く使われるメソッドだと思います。</p><p>そのへん<a href="http://e8y.net/mag/009-dbix-simple/">ずいぶん前に、日本語の説明</a>書いたのですが、今日はそれ以外の点を紹介してみようと思います。</p>
+
+</div>
+<div class="section">
+    <h4>DBI のサブクラスとして使う</h4>
+    <p>DBIx::Simple への不満点として、それが DBI のラッパーであり、たとえば DBIx::Connect のような別の DBI のラッパーと合わせて使いにくい、という点がありました。そこで DBI のサブクラスとして動く DBIx::Simple、<a href="http://search.cpan.org/perldoc?DBIx::Simple::Inject">DBIx::Simple::Inject</a> を作りました。</p>
+
+    <pre class="code lang-perl">    my $conn = DBIx::Connector-&gt;new(
+        &#39;dbi:mysql:foobar&#39;, &#39;user&#39;, &#39;pass&#39;,
+        {
+            RootClass  =&gt; &#39;DBIx::Simple::Inject&#39;,
+            RaiseError =&gt; 1,
+            ...
+        },
+    );</pre>
+<p>このように、DBI の RootClass で指定して使うことを想定したものです。</p>
+
+    <pre class="code lang-perl">    $conn-&gt;txn(sub {
+        # データベースハンドラで、
+        my $dbh = shift;
+        
+        # DBI::db の提供するメソッドに加え、
+        $dbh-&gt;do($sql);
+        
+        # DBIx::Simple のメソッドも使える
+        my $res = $dbh-&gt;query($sql, @params);
+    });</pre>
+<p>DBI の全機能に加え、<code>query()</code>や<code>select()</code>など DBIx::Simple のメソッドも DBI に“注入”されてます。</p>
+
+</div>
+<div class="section">
+    <h4>Set your favorite abstract module</h4>
+    
+    <pre class="code lang-perl">    my $dbis = DBIx::Simple-&gt;connect(...);
+    my $user = $dbis-&gt;select(users =&gt; [&#39;*&#39;], { id =&gt; 123 })-&gt;hash;</pre>
+<p><code>select(), insert(), update(), delete()</code> メソッドが使えるわけですが、SQL 文を作成する部分について、デフォルトでは SQL::Abstract モジュールが使われます。ただし、SQL::Abstract は Limit 句の指定ができなかったりとやや不足な気がします。</p><p>使う SQL 文構築モジュールは <code>abstract()</code> プロパティで変更できます。</p>
+
+    <pre class="code lang-perl">    use SQL::Maker;
+    
+    # lvalue メソッドなので以下のようにして代入する
+    $dbis-&gt;abstract = SQL::Maker-&gt;new($dbis-&gt;dbh-&gt;{Driver}{Name});
+    
+    # SQL::Maker の select() をつかって SQL文とバインドパラメータが作成される
+    my $user = $dbis-&gt;select(users =&gt; {
+        foo      =&gt; [&#39;bar&#39;, &#39;baz&#39;],
+    }, {
+        order_by =&gt; [&#39;created&#39;],
+        limit    =&gt; 1,
+    })-&gt;hash;</pre>
+<p><a href="http://search.cpan.org/perldoc?SQL::Maker">SQL::Maker</a>を使う場合は上のように指定します。<code>select(), insert(), update(), delete()</code>の4メソッドを実装しているオブジェクトであれば何でも利用可能です。</p>
+
+    <pre class="code lang-perl">    my $conn = DBIx::Connector-&gt;new(
+        &#39;dbi:mysql:foobar&#39;, &#39;user&#39;, &#39;pass&#39;,
+        {
+            RootClass  =&gt; &#39;DBIx::Simple::Inject&#39;,
+            RaiseError =&gt; 1,
+            ...,
+            private_dbixsimple =&gt; {
+                abstract =&gt; &#39;SQL::Maker&#39;,
+            },
+        },
+    );</pre>
+<p>DBIx::Simple::Inject を使う場合、<code>private_dbixsimple</code>という独自アトリビュートで<code>abstract</code>にクラス名を渡すことで設定できます。</p>
+
+</div>
+<div class="section">
+    <h4>オブジェクトとして受け取る</h4>
+    <p>一部でORマッパーのような、メソッドを生やしたデータを作りたい場合、 <code>object()</code>というのが便利です。</p>
+
+    <pre class="code lang-perl">    my $user = $dbis-&gt;select(users =&gt; [qw/id name/], { id =&gt; 123 })-&gt;object(&#39;MyApp::User&#39;);</pre>
+<p>`object()`は、結果のハッシュを指定したクラスの `new()` に渡した結果オブジェクトを返すメソッドです。上の場合、</p>
+
+    <pre class="code lang-perl">    use MyApp::User;
+    my $user = MyApp::User-&gt;new( id =&gt; 123, name =&gt; &#39;foobar&#39; );</pre>
+<p>のようにしたものが返ります。</p><p>もし単純に <code>new()</code> をするのではなく何かオブジェクト作成時にしこみたい場合は、そのクラスが <code>new_from_dbix_simple()</code> メソッドを仕込んでいれば <code>new()</code> の代わりにそれが呼ばれます。<code>new_from_dbix_simple()</code> の場合結果のデータだけじゃなく DBIx::Simple::Result が渡されるので、任意の形式の結果からオブジェクトを作成できます。</p><p>以上です</p><p><i>"Simple" is not always simple, but also Life is not always simple.</i></p><p>↑ タイバニ風な！</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

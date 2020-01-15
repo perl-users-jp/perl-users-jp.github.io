@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="k12u">
+        <meta name="author" content="k12u">
+        <title>Test::MockTime - 時間にまつわるtest - Articles Advent Calendar 2011 Test</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Test::MockTime - 時間にまつわるtest</h1>
+
+        <p>はい、<a href="http://twitter.com/k12u">kawamoto</a>です<br />
+<a href="http://d.hatena.ne.jp/k12u/">blog</a>は書いているとはとても言えないぐらいサボっております。</p><p>右も左もわからぬひよっこですので奇をてらわずにTest::名前空間のモジュールの紹介をしようと思います。</p><p>Test::MockTime は testの最中に実行される time, localtime, gmtime などの時間に関する関数の振る舞いを書き換える便利なモジュールです。</p><p>以下のような症状によく効きます。</p>
+
+<ul>
+<li>テストの期待する結果に時刻を入れたいが固定の値を指定できない。</li>
+<li>外部のコンポーネントに存在する、時間で変動する要素に依存しないテストを書きたい(たとえば MySQL で時系列のパーティションを使っているなど)</li>
+<li>テストを実行するたびに経過時間が変動してtestが通ったりこけたりする</li>
+</ul><p>使い方は<a href="http://d.hatena.ne.jp/tsucchi1022/20090409/1239290637">&#x3053;&#x3061;&#x3089;&#x306E;&#x8A18;&#x4E8B;</a>でも説明されていますが、</p>
+
+    <pre class="code">$ cat ~/test.pl
+use feature qw( say );
+use Test::MockTime qw( :all );
+
+say time;
+set_absolute_time(0);
+say &#34;# set_absolute_time(0);&#34;;
+say time;
+say &#34;# ----- sleep(2); -----&#34;;
+sleep 2;
+say time;
+
+say &#34;&#34;;
+
+set_fixed_time(0);
+say &#34;# set_fixed__time(0);&#34;;
+say time;
+say &#34;# ----- sleep(2); -----&#34;;
+sleep 2;
+say time;</pre>
+
+    <pre class="code">$ perl test.pl
+1323183883
+# set_absolute_time(0);
+0
+# ----- sleep(2); -----
+2
+
+# set_fixed__time(0);
+0
+# ----- sleep(2); -----
+0</pre>
+<p>こんな感じです。</p><p>time, gmtime, localtime の振る舞いが↓のようになります。</p>
+
+<ul>
+<li>set_absolute_time($time) すると、直後は$timeを返しますが、時間の経過に従って2秒後には$time+2を返します。</li>
+<li>set_fixed_time($time) すると、どれだけ時間が経過しても常に$timeを返します。</li>
+</ul><p>注意点としては time() などの関数の書き換えはコンパイルフェーズに行われるので、使う順番を間違えると正しく動かずはまることになります(xaicron++)。</p><p>「よくわかんねーぞ」という人は、このモジュールをなるべく早くuseし、BEGIN{} ブロックのなかで set_fixed_time() などを実行するとよいと思います！</p><p>あと、普通やらないと思いますがset_fixed_time()とset_absolute_time()を同じコードで使うのは避けたほうがよさそうです(上の例ではやっちゃっていますが)。</p><p>ちなみに違うレイヤーの同様のアプローチとして、MySQLで UNIX_TIMESTAMP()などを使っている場合にはテストの時だけSET TIMESTAMPを発行するという手もありますね。</p><p>明日は、実はもう書き上がっているという予感のするbayashiさんです。たぶん。</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

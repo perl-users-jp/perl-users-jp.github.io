@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="Cside">
+        <meta name="author" content="Cside">
+        <title>Encode::Locale - 環境に合わせたエンコーディングを提供する - Articles Advent Calendar 2011 Casual</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Encode::Locale - 環境に合わせたエンコーディングを提供する</h1>
+
+        <p>こんにちは、Csideです。最近はtwitterでウザ絡みするのが楽しくて仕方がありません。<br />
+さて、3分で読める軽い話をば。Gisle Aas氏の書いたEncode::Localeというモジュールの紹介です。</p><br />
+<p>Perlでマルチバイト文字を処理する際は、「外から受け取るときはdecode、出力するときはencode」というのは基本ですね。自分で使うスクリプトを書くぶんには、自分のターミナルのエンコーディングに合わせてencode/decodeしてやればいいですね。<br />
+しかし、作ったスクリプトを他の人にも使ってもらいたくなったときに問題は発生します。あなたの作ったスクリプトを使う人のターミナルのエンコーディングはUTF-8とは限らず、EUC-JPかもしれませんし、WindowsであればShiit_JISかもしれないからです。</p><br />
+<p>それでは、その環境のターミナルのエンコーディングに合わせてencode/decodeするにはどうすれば良いでしょう。Encode::Guessで頑張るというテもありますが、我らがCPANにはそこをうまく抽象化してくれるEncode::Localeというモジュールが存在するので、これを使えばOKです。</p><br />
+<p>Encode::Localeは、そのターミナルで使われているエンコーディングを返すconsole_in/console_outというエンコーディング名を提供します。</p>
+
+    <pre class="code lang-perl">#!perl
+use strict;
+use warnings;
+use Encode::Locale;
+
+# 標準入力をターミナルのエンコーディングでdecodeするように
+binmode STDIN  =&gt; &#39;:encoding(console_in)&#39;;
+# 標準出力をターミナルのエンコーディングでencodeするように
+binmode STDOUT =&gt; &#39;:encoding(console_out)&#39;;
+# 標準エラー出力をターミナルのエンコーディングでencodeするように
+binmode STDERR =&gt; &#39;:encoding(console_out)&#39;;
+
+my $in = &lt;STDIN&gt;;  # decode済の文字列が渡される
+print $in;  # Wide character in print at ... 警告が出ない
+print STDERR $in;  # 上に同じ</pre>
+<p>とても便利ですね！</p><br />
+<p>さて、標準入出力・エラー出力はこれでよさそうですが、コマンドライン引数も自動でエンコーディングを判定してデコードしてほしいですね。<br />
+Encode::Localeにはこれをやってくれるdecode_argvなるfunctionが存在します。使い方は、コマンドライン引数を受けとる処理の前で呼ぶだけです。</p>
+
+    <pre class="code lang-perl">#!perl
+use strict;
+use warnings;
+use utf8;
+use Encode::Locale;
+use opts;
+
+binmode STDOUT =&gt; &#39;:encoding(console_out)&#39;;
+
+Encode::Locale::decode_argv;
+
+# $from, $subject, $body すべてdecode済なのがポイント
+opts $from =&gt; &#39;Str&#39;,
+     $subject =&gt; &#39;Str&#39;;
+  my $body = shift;
+
+print &#34;送信者：$from\n&#34;;
+print &#34;件名：$subject\n&#34;;
+print &#34;本文：$body\n&#34;;</pre>
+
+    <pre class="code lang-sh">$ perl script.pl --from Cside --subject けんめい ほんぶん
+
+送信者：Cside
+件名：けんめい
+本文：ほんぶん</pre>
+<p>これでdecodeの手間はだいぶ省けますね。</p><p></p>
+
+<div class="section">
+    <h4>オマケ</h4>
+    <p>ちなみに上のテクニックは、テスト出力で日本語を扱う場合（滅多ないと思いますが）にも使えます。</p>
+
+    <pre class="code lang-perl">use strict;
+use utf8;
+use Test::More;
+use Encode::Locale;
+
+my $builder = Test::More-&gt;builder;
+binmode $builder-&gt;output, &#39;:encoding(console_out)&#39;
+binmode $builder-&gt;failure_output, &#39;:encoding(console_out)&#39;
+binmode $builder-&gt;todo_output, &#39;:encoding(console_out)&#39;
+
+ok 1, &#34;日本語のテストケース名&#34;;
+
+# Your tests ...</pre>
+<p><br />
+次はytnobodyさんです！</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

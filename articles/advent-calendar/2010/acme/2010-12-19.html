@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="makamaka">
+        <meta name="author" content="makamaka">
+        <title>AcmeなるモジュールをCPANに求めて - Articles Advent Calendar 2010 Acme</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>AcmeなるモジュールをCPANに求めて</h1>
+
+        <p>(firstly written in Japanese, later in English)</p><p>こんにちは。<a href="http://twitter.com/maka2_donzoko">makamaka</a>です。<br />
+書く人がいないので埋め草的な記事です。Acme大全2010の使い回しです。</p><p>CPANでも割とユニークだと私が感じるモジュールを紹介しましょう。十分Acmeなモノです。<br />
+<a href="http://search.cpan.org/dist/Text-CSV-UniqueColumns/">Text::CSV::UniqueColumns</a>。CSVファイルから重複しない値を持ったカラムを探すモジュールです。</p>
+
+    <pre class="code lang-perl"># ヘッダを持ったCSVファイル
+#------- foo.csv ------
+col1,col2,col3,col4
+1,a,1,a
+2,b,1,b
+3,a,2,c
+4,a,2,d
+#-----------------------
+
+use strict;
+use Text::CSV::UniqueColumns;
+
+$csv  = Text::CSV::UniqueColumns-&gt;new( &#39;foo.csv&#39; );
+
+print $csv-&gt;checkUniq(&#39;col1&#39;); # =&gt; 1
+
+print $csv-&gt;getUniqCols();     # =&gt; col1,col4</pre>
+<p>で、まあ、<a href="http://search.cpan.org/dist/Text-CSV/">Text::CSV</a>を使って値を調べたりするのかなと思ってソースを見たのですよ。そしたら</p>
+
+    <pre class="code lang-perl">sub getUniqCols {
+（中略）
+    my $sCmd = &#34;cut -f$iField -d , $self-&gt;{&#39;_file&#39;} | sed s/&#39; &#39;//g | wc -l;&#34;;
+    $sCmd .= &#34;cut -f$iField -d ,  $self-&gt;{&#39;_file&#39;} | sed s/&#39; &#39;//g | sort | uniq | wc -l&#34;;
+    my ($iCount1, $iCount2) = split(&#34;\n&#34;,`$sCmd`);</pre>
+<p>あー……</p><p></p>
+
+    <pre class="code lang-perl">sub checkUniq {
+（中略）
+    my $sCmd = &#34;paste  -d , $sPasteFiles &gt; pasteOutput &#34;;
+    push (@cleanup, &#39;pasteOutput&#39;);
+    $sPasteOutput = `$sCmd`;
+    my $iCount1 =  `cat pasteOutput | sed s/&#39; &#39;//g | wc -l`;
+    my $iCount2 =  `cat pasteOutput | sed s/&#39; &#39;//g | sort | uniq |  wc -l`;</pre>
+<p><br />
+あー……</p><p></p>
+
+    <pre class="code lang-perl">sub cleanUp {
+    foreach my $sFile (@cleanup){
+        `rm -f $sFile`;
+    }
+}</pre>
+<p>↑そこはかとなく不安感を醸し出すコード</p><br />
+<p>はい、なんだか不思議な気持ちになりましたね？　十分Acmeなモノです。</p><p>というわけで、このお正月はAcme的なモノを求めて夢の世界に……</p><br />
+<br />
+<br />
+<br />
+<p> * ----------------------------------------------------<br />
+ * English version<br />
+ * ----------------------------------------------------<br />
+TITLE: The Acme-Quest of Unknown CPAN</p><p>Hello everyone. I'm <a href="http://twitter.com/maka2_donzoko">makamaka</a>.<br />
+As no one writes articles, I worte.</p><p>I introduce a module felt as a unique module on CPAN. Enough Acme.<br />
+<a href="http://search.cpan.org/dist/Text-CSV-UniqueColumns/">Text::CSV::UniqueColumns</a>.<br />
+It finds columns which have unique values.</p><p></p>
+
+    <pre class="code lang-perl"># a csv file which has its header.
+#------- foo.csv ------
+col1,col2,col3,col4
+1,a,1,a
+2,b,1,b
+3,a,2,c
+4,a,2,d
+#-----------------------
+
+use strict;
+use Text::CSV::UniqueColumns;
+
+$csv  = Text::CSV::UniqueColumns-&gt;new( &#39;foo.csv&#39; );
+
+print $csv-&gt;checkUniq(&#39;col1&#39;); # =&gt; 1
+
+print $csv-&gt;getUniqCols();     # =&gt; col1,col4</pre>
+<p>Firstly I thought using <a href="http://search.cpan.org/dist/Text-CSV/">Text::CSV</a>.<br />
+And I look at the source.</p>
+
+    <pre class="code lang-perl">sub getUniqCols {
+...
+    my $sCmd = &#34;cut -f$iField -d , $self-&gt;{&#39;_file&#39;} | sed s/&#39; &#39;//g | wc -l;&#34;;
+    $sCmd .= &#34;cut -f$iField -d ,  $self-&gt;{&#39;_file&#39;} | sed s/&#39; &#39;//g | sort | uniq | wc -l&#34;;
+    my ($iCount1, $iCount2) = split(&#34;\n&#34;,`$sCmd`);</pre>
+<p><br />
+Ah....</p><p></p>
+
+    <pre class="code lang-perl">sub checkUniq {
+...
+    my $sCmd = &#34;paste  -d , $sPasteFiles &gt; pasteOutput &#34;;
+    push (@cleanup, &#39;pasteOutput&#39;);
+    $sPasteOutput = `$sCmd`;
+    my $iCount1 =  `cat pasteOutput | sed s/&#39; &#39;//g | wc -l`;
+    my $iCount2 =  `cat pasteOutput | sed s/&#39; &#39;//g | sort | uniq |  wc -l`;</pre>
+<p><br />
+Ah....</p><p></p>
+
+    <pre class="code lang-perl">sub cleanUp {
+    foreach my $sFile (@cleanup){
+        `rm -f $sFile`;
+    }
+}</pre>
+<p>↑somehow anxious code. Enough Acme.</p><br />
+<p>Well, in this winter vacation, would you like to travel to dream land for Acme...</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

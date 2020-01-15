@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="usuihiro <usuihiro@twitter.com>">
+        <meta name="author" content="usuihiro <usuihiro@twitter.com>">
+        <title>HTML::Shakanでフォーム生成・バリデーションからモデル作成まで - Articles Advent Calendar 2010 Casual</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>HTML::Shakanでフォーム生成・バリデーションからモデル作成まで</h1>
+
+        <p>こんにちは！先日のYAPC2010では<a href="http://twitter.com/hiratara">hiratara</a>さんと共にgihyo.jpでレポータをさせていただいた<a href="http://twitter.com/usuihiro">usuihiro</a>です。</p><p>フォーム処理とかバリデーションっていつも面倒だなぁと思っていたのですが、今日はtokuhiromさんが作成されているHTML::Shakanが便利そうだったので試してみました。</p><p>HTML::Shakanはフォームタグの生成とバリデーションを行ってくれるモジュールです。<br />
+コンセプトは作者のtokuhiromさんが書かれている<a href="http://search.cpan.org/dist/HTML-Shakan/lib/HTML/Shakan/Doc.ja.pod">こちら</a>を参照。</p><p></p>
+
+<div class="section">
+    <h3>フォーム生成とバリデーション</h3>
+    <p>よくあるログインフォームだと、こんな感じでフォームの生成の入力値のバリデーションが行えます。</p>
+
+    <pre class="code lang-perl">
+my $req = shift; # CGIとかPlack::Requestとか
+# フォームオブジェクトを作る
+my $form = HTML::Shakan-&gt;new(
+    fields =&gt; [
+        EmailField(
+            name =&gt; &#39;mail&#39;,
+            label =&gt; &#39;E-mail address&#39;, # labelタグをつける
+            filters =&gt; [&#39;WhiteSpace&#39;], # 空白を取り除く
+            required =&gt; 1
+        ),
+        PasswordField(
+            name =&gt; &#39;password&#39;,
+            label =&gt; &#39;Password&#39;,
+            filters =&gt; [&#39;WhiteSpace&#39;],
+            required =&gt; 1,
+        )
+    ],
+    request =&gt; $req,
+);
+
+# 日本語デフォルトメッセージをロード。SEE ALSO FormValidator::Lite
+$form-&gt;load_function_message(&#39;ja&#39;);
+# バリデーションチェック
+if ($form-&gt;submitted_and_valid) {
+    # フィルター済かつバリデーション済みの値を取得
+    my $mail = $form-&gt;param(&#39;mail&#39;);
+    my $password = $form-&gt;param(&#39;password&#39;);
+    say &#34;mail = &#39;$mail&#39;, password = &#39;$password&#39;&#34;;
+    # DB問い合わせなど
+} else {
+    # エラーの場合
+    my $errors = $form-&gt;get_error_messages();
+    say Dump( $errors );
+    # こんな感じでエラーメッセージが取得出来る
+    # ---
+    # - E-mail address にはメールアドレスを入力してください
+    # - Password を入力してください
+}
+# フォームタグ生成
+say $form-&gt;render;
+</pre>
+
+</div>
+<div class="section">
+    <h3>Declareスタイルで書いてみる</h3>
+    <p>あらかじめフォーム定義を別で行っておくと使い回しやすくなります。パフォーマンス上もこちらのほうが高速だそうです。<br />
+複数の画面でフォームを共有したい場合などもこちらのほうが便利かと思います。</p>
+
+    <pre class="code lang-perl"># フォームを定義しておく
+package MyForm;
+use utf8;
+use Encode;
+use HTML::Shakan::Declare;
+
+form &#39;post&#39; =&gt; (
+    TextField(
+        name =&gt; &#39;body&#39;,
+        label =&gt; &#39;Body:&#39;,
+        widget =&gt; &#39;textarea&#39;,
+        required =&gt; 1,
+        filters =&gt; [&#39;WhiteSpace&#39;],
+        constraints =&gt; [
+            [ &#39;LENGTH&#39;, 1, 30 ],
+        ]
+    ),
+    # selectタグ
+    ChoiceField(
+        name =&gt; &#39;tag&#39;,
+        label =&gt; &#39;Tag:&#39;,
+        choices =&gt; [ map { ( encode_utf8 $_ ) x 2 } 
+                    qw(ネタ これはヒドイ)],
+    ),
+    # type=&#34;file&#34;なタグ。content_typeのバリデーション付き
+    ImageField(
+        name =&gt; &#39;image&#39;,
+        label =&gt; &#39;Image:&#39;
+    ),
+);
+
+# 定義したフォームオブジェクトを取得する
+my $form = MyForm-&gt;get( &#39;post&#39;, request =&gt; $req );
+</pre>
+
+</div>
+<div class="section">
+    <h3>モデルと連携してみる</h3>
+    <p>フォームオブジェクト作成時にmodelを指定すると、バリデーションした結果を使ったモデルの作成／更新が簡単に行えます。たとえばDBIx::Skinnyと連携する場合はこんな感じになります。</p>
+
+    <pre class="code lang-perl">
+# DBIx::Skinnyのモデル定義
+package MyModel;
+use DBIx::Skinny connect_info =&gt; {
+    dsn =&gt; &#39;dbi:SQLite:&#39;,
+};
+
+# テーブル作成。コメントと画像が投稿できるミニブログのようななにかのつもり
+__PACKAGE__-&gt;dbh-&gt;do( q{
+    create table if not exists blog (
+        id integer primary key,
+        body varchar(14),
+        tag varchar(30),
+        image varchar(255),
+        created_at date
+    )
+});
+
+package MyModel::Schema;
+use DBIx::Skinny::Schema;
+use DBIx::Skinny::InflateColumn::DateTime;
+use DateTime;
+
+# テーブルに対するモデル定義
+install_table blog =&gt; schema {
+    pk &#39;id&#39;;
+    columns qw/id body tag image created_at updated_at/;
+    trigger pre_insert =&gt; sub {
+        my ( $class, $args ) = @_;
+        $args-&gt;{created_at} ||= DateTime-&gt;now( time_zone =&gt; &#39;Asia/Tokyo&#39;);
+        $args-&gt;{updated_at} ||= $args-&gt;{created_at};
+    };
+    trigger pre_update =&gt; sub {
+        my ( $class, $args ) = @_;
+        $args-&gt;{updated_at} ||= DateTime-&gt;now( time_zone =&gt; &#39;Asia/Tokyo&#39;);
+    }
+};
+
+# フォームオブジェクトを取ってくるときにmodelを指定する。
+my $form = MyForm-&gt;get(
+   &#39;post&#39;, 
+   request =&gt; $req,  
+   model =&gt; HTML::Shakan::Model::DBIxSkinny-&gt;new(),
+);
+
+# DBIx::Skinnyオブジェクト
+my $model = MyModel-&gt;new;
+# $formのバリデーション結果を使って、blogテーブルのレコードが作成される
+if ( $form-&gt;submitted_and_valid) {
+    $form-&gt;model-&gt;create( $model =&gt; &#39;blog&#39;);
+}
+</pre>
+
+</div>
+<div class="section">
+    <h3>表示をカスタマイズしてみる</h3>
+    <p>$form->renderでタグを生成してくれますが必要最小限のためそのままだと見づらいので、Django Formsのas_pのようにpタグをつけてくれるようなRendererをつくってみます。</p>
+
+    <pre class="code lang-perl">package MyRenderer;
+use Any::Moose;
+use HTML::Shakan::Utils;
+
+has &#39;id_tmpl&#39; =&gt; (
+    is =&gt; &#39;ro&#39;,
+    isa =&gt; &#39;Str&#39;,
+    default =&gt; &#39;id_%s&#39;,
+);
+
+sub render {
+    my ($self, $form) = @_;
+
+    my @res;
+    for my $field ($form-&gt;fields) {
+        my @row;
+        unless ($field-&gt;id) {
+            $field-&gt;id(sprintf($self-&gt;id_tmpl(), $field-&gt;{name}));
+        }
+        if ($field-&gt;label) {
+            push @row, sprintf( q{&lt;label for=&#34;%s&#34;&gt;%s&lt;/label&gt;},
+                $field-&gt;{id}, encode_entities( $field-&gt;{label} ) );
+        }
+        push @row, $form-&gt;widgets-&gt;render( $form, $field );
+        push @res, join &#39;&#39;, @row;
+    }
+
+    &#39;&lt;p&gt;&#39; . (join &#39;&lt;/p&gt;&lt;p&gt;&#39;, @res) . &#39;&lt;/p&gt;&#39;;
+}
+
+no Any::Moose;
+__PACKAGE__-&gt;meta-&gt;make_immutable;
+
+my $form = MyForm-&gt;get(
+    &#39;post&#39;, 
+    request =&gt; $req,  
+    # rendererオプションを渡す
+    renderer =&gt; MyRenderer-&gt;new,
+);
+</pre>
+<p>こんな感じでrenderメソッドを持つオブジェクトを用意しておいて、フォームオブジェクト作成時にrendererオプションを渡してやると、作成したrenderメソッドを使うことができます。このコード自体はデフォルトのrendererであるHTML::Shakan::Renderer::HTMLをコピペしてタグを付けただけなので、これを参考にすればdlバージョンなども簡単につくれるでしょう。</p><p></p>
+
+</div>
+<div class="section">
+    <h3>作ったサンプルコード</h3>
+    <p>こんな感じでサンプルとして短いつぶやきのような本文と画像をアップロード出来る斬新なWEBサービスもどきを作ってみたコードが<a href="https://github.com/usuihiro/jpac2010-casual-16/tree/master/TinyBlog">こちら</a>になります。</p><p></p>
+
+</div>
+<div class="section">
+    <h3>サンプル作成でハマった・・・</h3>
+    <p>ImageFieldのバリデーションが効かなくてハマってしまいました。CGIオブジェクトだとparamメソッドでファイル名が取れますが、Plack::Requestの場合$req->param('image')が取れないらしく、そのせいかtypeによるバリデーションが効かなかったので、以下のようなコードで誤魔化すことうまくいきました。<a href="#fn1" title="casualな私にはこれが精一杯でしたがここに書いておけばきっとHacker Trackなちゃんとした方法を教えてくれると信じています!">*1</a></p>
+
+    <pre class="code lang-perl">if ($req-&gt;upload(&#39;image&#39;)) {
+    $req-&gt;parameters-&gt;add(&#39;image&#39;, $req-&gt;upload(&#39;image&#39;)-&gt;filename);
+}
+</pre>
+
+</div>
+<div class="section">
+    <h3>リファレンス</h3>
+    
+<ul>
+<li>まずはperldoc <a href="http://search.cpan.org/perldoc?HTML::Shakan">HTML::Shakan</a></li>
+<li>Fieldの種類は<a href="http://search.cpan.org/perldoc?HTML::Shakan::Fields">HTML::Shakan::Fields</a></li>
+<li>Filterの種類はHTML::Shakan::Filters::以下</li>
+<li>constraintsの種類は<a href="http://search.cpan.org/dist/FormValidator-Lite">FormValidator-Lite</a>からConstraint以下</li>
+<li>独自バリデーションの作成はperldoc <a href="http://search.cpan.org/perldoc?HTML::Shakan">HTML::Shakan</a>のcustom_validation</li>
+<li>DBIx::Skinnyについては去年の<a href="http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny - JPerl Advent Calendar 2009</a>を参照</li>
+</ul>
+</div>
+<div class="section">
+    <h3>Next...</h3>
+    <p>次は<a href="http://twitter.com/#!/dragon3">dragon3</a>さんです。お楽しみに！</p>
+
+</div>HASH(0x5566cb052ab8)
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

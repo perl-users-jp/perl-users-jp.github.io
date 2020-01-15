@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="mayuki ">
+        <meta name="author" content="mayuki ">
+        <title>それ多分IIS7でできるよ - Articles Advent Calendar 2010 Win32</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>それ多分IIS7でできるよ</h1>
+
+        <p>こんにちは、<a href="http://twitter.com/mayuki">mayuki</a> です。</p><p>いま竹芝のすき家ユーザーに大人気なWebサーバーと言えば当然IIS7ですよね。そんなIIS7でPerlアプリケーション動かしたいですよね。<br />
+ご存じかと思いますがIISはWindows Server上で動作するWebサーバーで、IIS7はWindows Server 2008(Vista)世代のWebサーバーのことです。IIS7はIIS6からアーキテクチャまるごとだいぶ変わっているのでいろいろ便利でおもしろくなっています。</p><p>最近Perlでプログラムを書いたりしていないのですがPerlで書かれたアプリケーションをそんなIIS7で動かす機会はあったのでその時得たハマリどころなどを書いてみます。</p>
+
+<div class="section">
+    <h3>対象動作環境</h3>
+    
+<ul>
+<li>Windows Server 2008/2008 R2</li>
+<li>IIS 7/7.5</li>
+<li>Win32なPerl (Active Perlなど)</li>
+</ul><p>時代も時代ですのでIIS6のことは忘れましょう。あれは過去の遺物です。</p>
+
+</div>
+<div class="section">
+    <h3>IIS7でPerlアプリケーションを動かす手段</h3>
+    <p>IIS7でPerlのアプリケーションを動かすには次の3つの手段があります。</p>
+
+<ul>
+<li>CGIで動かす</li>
+<li>FastCGIで動かす</li>
+<li>ARR(Application Request Routing)を使う</li>
+</ul><p>それぞれ利用するパターンはこんな感じですね。</p>
+
+<dl>
+<dt>CGI</dt>
+<dd>ごく普通のCGIアプリケーションを使う場合。</dd>
+<dt>FastCGI</dt>
+<dd>アプリケーションがFastCGIに対応している場合。</dd>
+<dt>ARR(Application Request Routing)</dt>
+<dd>ARRというのはIIS7の追加モジュールで、Apacheで言うところのmod_proxyでリバースプロクシにするというのと同じですので、アプリケーションが単体で起動できるようなものの場合に使えます。</dd>
+</dl><p>それぞれの利点・欠点はこんな感じです。</p>
+
+<dl>
+<dt>CGI</dt>
+<dd>利点ははまらなければ簡単。欠点は遅いのとクセではまるとちょっと厄介。</dd>
+<dt>FastCGI</dt>
+<dd>利点は高速なところ。欠点は設定がややこしく動かなかった場合の原因究明の難易度はかなり高い。</dd>
+<dt>ARR(Application Request Routing)</dt>
+<dd>利点はアプリケーションが起動すれば丸投げなので動く動かないで言うと簡単。欠点はモジュールの追加と設定知識</dd>
+</dl><p>今回はCGIにフォーカスして説明します。なんか長くなりそうだし…。</p>
+
+</div>
+<div class="section">
+    <h3>とりあえずCGIで動かす</h3>
+    <p>ということでもっとも基本的なCGIでPerl アプリケーションを動かす為の設定をしてみます。CGIの設定方法は割とWebに転がっているのでざっくりと説明します。</p><p>とりあえず簡単なCGIスクリプトを用意します。以下のような内容でindex.cgiとして保存しておきます。</p>
+
+    <pre class="code lang-perl">use strict;
+use CGI;
+
+my $q = CGI-&gt;new;
+
+print $q-&gt;header(-charset =&gt; &#39;utf-8&#39;);
+print &#34;初春かわいい&#34;;</pre>
+<p>ではこれをどこか公開するためのフォルダに配置しましょう。今回は C:\InetPub\wwwroot がサイトのルートとして、その下の C:\InetPub\wwwroot\Perl\ に設置することにします。</p><p>ファイルを設置したらインターネット インフォメーション サービス (IIS) マネージャを起動しましょう。<br />
+起動できたら先ほどファイルを設置したディレクトリをサイトのツリーから探し出します。</p><p>そして見つかったらそのフォルダを選択して、コンテキストメニューを開きます。開いたメニューの中に「アプリケーションへの変換」というのがあるのでそれを選択します。そうするとディレクトリがアプリケーションとして設定されます。</p><p>で、アプリケーションに変換できたら、真ん中の機能ビューで「ハンドラ マッピング」というのを開きます。開くとハンドラの一覧が出てきますので、その右側のペインの「操作」から「モジュール マップの追加」を選択します。</p><p>「モジュール マップの追加」ダイアログが出てきますので以下のように値をうめます。</p>
+
+<dl>
+<dt>要求パス</dt>
+<dd>*.cgi</dd>
+<dt>モジュール</dt>
+<dd>CgiModule</dd>
+<dt>実行可能ファイル (オプション)</dt>
+<dd>"C:\Program Files\Perl\bin\perl.exe" "%s" %s</dd>
+<dt>名前</dt>
+<dd>CGI-perl</dd>
+</dl><p>ちなみに各項目を簡単に説明しておくと…</p>
+
+<dl>
+<dt>要求パス</dt>
+<dd>どの名前でリクエストが来たらハンドルするかという設定で、例えば*.plにすれば.plファイルでCGIが発動するようになります。</dd>
+<dt>モジュール</dt>
+<dd>IIS7のCGIモジュールを指定しています。これでCGIの設定だと認識されます。</dd>
+<dt>実行可能ファイル</dt>
+<dd>スクリプトインタプリタの指定です。Perlの実行ファイルと引数を渡す設定です。 引数の "%s" がスクリプトファイル名になります。二つ目はないとモジュール的にダメですが何だか忘れました。</dd>
+<dt>名前</dt>
+<dd>名前は先ほどのハンドラ 一覧や設定のキーとしてのみ利用されるモノなのでかぶらない限り自由につけることができます。</dd>
+</dl><p> <br />
+というわけで設定したらOKを押して閉じましょう。OKを押すと</p>
+
+    <pre class="code">この ISAPI 拡張機能を有効にしますか? [はい] をクリックすると、[ISAPI および CGI の制限] の一覧の &#34;許可済み&#34; の項目に、拡張機能が追加されます。[ISAPI および CGI の制限] の一覧に拡張機能の項目が既に存在する場合は、&#34;許可済み&#34; に更新されます。</pre>
+<p>とか言われますので「はい」を押します。</p><p>では早速ブラウザで <a href="http://localhost/Perl/index.cgi">http://localhost/Perl/index.cgi</a> にアクセスしてみましょう。無事表示されましたか?ここまでで動かなかった人は次のトラブルシュートをご覧ください。</p><p>こんな感じで普通のCGIなアプリケーションも設定すれば動くでしょう。</p>
+
+</div>
+<div class="section">
+    <h3>CGIが動かないお!!!1</h3>
+    <p>さて、CGIの設定をしましたが先ほどのような簡単なモノならともかくそこら辺に転がっていたりするモノを動かしてみると案外動かなかったりします。というわけでトラブルシュートです。</p>
+
+<div class="section">
+    <h4>"404 - ファイルまたはディレクトリが見つかりません。"</h4>
+    <p>ハンドラの設定が間違っているときによく表示されます。例えばPerlのパスが違うなどです。</p>
+
+</div>
+<div class="section">
+    <h4>"502 - Web サーバーがゲートウェイまたはプロキシ サーバーとして動作しているときに、無効な応答を受信しました。"</h4>
+    <p>このメッセージは何らかの理由でCGIが死んだりしたときに出てきます。Apacheで動かしたときの500相当ですね。</p><p>まずはPerl.exeで直接実行してみましょう。そもそもモジュールが足りなくて死んだりする場合はすぐわかります。</p><p>動かしてみて大丈夫そうだったけどやっぱりIISで動かない…。そういうときはスクリプトの頭に</p>
+
+    <pre class="code lang-perl">BEGIN { print &#34;Content-Type: text/html\n\n&#34;; }</pre>
+<p>とか書いて実行してみましょう。こうすると大体動作して、何かwarningが頭についていたりするのが見えたりするようになります。</p><p>IIS7にはFREBという失敗した要求のナントカカントカというログ機構が備わっていますが、CGIのエラーはろくに情報がないのでこのローテクで回避するのが楽です。IISでCGIを動かすときにはおぼえてて損はないと思います。</p><p>で、warningが原因で502になるというのはどういうことかというと、どうやらIISのCgiModuleはSTDERRをSTDOUTと同様にクライアントへ出力しようとしてしまい途中でエラーとなるようです。<br />
+20世紀スクリプトを動かす場合などにこまったりしますね。</p><p>例えば先ほどのコードもこんな感じにするとすぐ動かなくなります。Apacheではerror.logにはなにやらでますが一応動きます。</p>
+
+    <pre class="code lang-perl">use strict;
+
+warn &#34;------\n\n&#34;;
+print &#34;Content-Type: text/html; charset=utf-8\n\n&#34;;
+
+print &#34;初春かわいい&#34;;</pre>
+<p>で、じゃあどうするのかという話なのですが手っ取り早い方法はスクリプトの頭に</p>
+
+    <pre class="code lang-perl">BEGIN { close(STDERR); }</pre>
+<p>とか書いてしまう方法です。これで忌まわしきWarningでエラーになることがなくなります。</p><p>本当のエラーが出たらCGIは死ぬし元々情報は残らないのでそこで調べればいいと思います。STDERRをどこかのファイルに出すなり、その辺はどうとでもやりようがありそうです。</p><p>ちなみにSTDERRに吐いてても処理しきってしまえれば動くことはあるので、知らないうちにヘッダーにwarningがでていることがあります。そういう意味でもSTDERRを何とかしておいた方が良いかもしれません。</p><p></p>
+
+</div>
+<div class="section">
+    <h4>/App/index.cgi は動くのに一階層下の /App/Hauhau/nantoka.cgi がうごかないお…</h4>
+    <p>IISのCgiModuleはIISでアプリケーションに指定したディレクトリをワーキングディレクトリとして起動します。</p><p>そのため /App/ をアプリケーションとして指定してあっても /App/Hauhau/ をアプリケーションとして指定していない場合、 /App/ をワーキングディレクトリとして /App/Hauhau/nantoka.cgi を起動するのでPerlアプリケーション内で各種読み込みのパスが期待と異なってしまうことがあります。</p><p>というわけでCGIファイルを含むディレクトリはすべてアプリケーションに変換しておくのが安全です。</p>
+
+</div>
+</div>
+<div class="section">
+    <h3>まとめ</h3>
+    
+<ul>
+<li>IISでCGI動かすのは文章にすると長くてめんどくさい(けど実際の操作自体は少ない)</li>
+<li>なぜかエラーになったらSTDERRを疑う</li>
+<li>なぜかエラーになったらIISでのアプリケーションの設定を疑う</li>
+</ul><p>というわけでちょっとクセがありますがコツをつかめばCGIは楽勝ですね。FastCGIとかARRとかについてもふれる機会があればいずれ。</p><p>みなさんもIIS7でクリスマスをエンジョイしてください。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

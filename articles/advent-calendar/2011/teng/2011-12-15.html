@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>#15 schema migration - Articles Advent Calendar 2011 Teng</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>#15 schema migration</h1>
+
+        <p>マイグレーションというものについて私の考えをまとめてみたいと思います。</p><p>まず、マイグレーションの定義ですよね。<br />
+マイグレーションとは<a href="http://www.sophia-it.com/content/%E3%83%9E%E3%82%A4%E3%82%B0%E3%83%AC%E3%83%BC%E3%82%B7%E3%83%A7%E3%83%B3">http://www.sophia-it.com/content/%E3%83%9E%E3%82%A4%E3%82%B0%E3%83%AC%E3%83%BC%E3%82%B7%E3%83%A7%E3%83%B3</a><br />
+とかいろいろな意味があるんですが、ORMだったりdatabase周りで語られる場合は、<br />
+schemaのバージョン管理的な意味合いで良いと思います。</p><p>例えばMySQLで例を挙げますと、</p>
+
+    <pre class="code">CREATE TABLE `user` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(10) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `name_idx` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8</pre>
+<p>こういったテーブルがあったとして、これに年齢を表すageカラムがついかされるとします。<br />
+その場合MySQLだと</p>
+
+    <pre class="code">ALTER TABLE user ADD COLUMN age int(10) UNSIGNED NOT NULL DEFAULT 0 AFTER name;</pre>
+<p>などと実行してカラムを追加することになります。<br />
+そうすると、</p>
+
+    <pre class="code">mysql&gt; SHOW CREATE TABLE user\G
+*************************** 1. row ***************************
+       Table: user
+Create Table: CREATE TABLE `user` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(10) DEFAULT NULL,
+  `age` int(10) unsigned NOT NULL DEFAULT &#39;0&#39;,
+  PRIMARY KEY (`id`),
+  KEY `name_idx` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
+1 row in set (0.00 sec)</pre>
+<p>このようになるわけですね。</p><p>こういった新しいカラムの追加をORMでカバーするかどうかです。</p><p>たとえばDBICではある程度カバーしてくれますし、それを有効に使って開発を進めている人達を知っています。</p><p>ただ個人的にはこういった管理はORMではない別の仕組みでカバーするべきだと考えます。<br />
+というのも、ORMが扱うであろうCRUD操作とDDLは別物として捉えるのが良いと考えるからです。</p><p>DDL操作なんてそんなに頻繁にしないですよね？<br />
+一日に何十回、何百回と操作しますかね？普通はないんじゃないでしょうか？</p><p>さらに、databaseの種類はかなりの数あります。</p>
+
+<div class="section">
+    <h3>MySQL</h3>
+    
+</div>
+<div class="section">
+    <h3>SQLite</h3>
+    
+</div>
+<div class="section">
+    <h3>PostgreSQL</h3>
+    
+</div>
+<div class="section">
+    <h3>Oracle</h3>
+    
+</div>
+<div class="section">
+    <h3>MSSQL</h3>
+    
+</div>
+<div class="section">
+    <h3>DB2</h3>
+    
+</div>
+<div class="section">
+    <h3>etc..</h3>
+    <p>全てのdatabaseでDDLの操作方法が一緒というわけではないため、もしORMがそれをカバーしようとしたら<br />
+本来の役割とはちがうところで無理に頑張る必要がでてしまいます。</p><p>いやでもDBICできてるよ！と思う人もいると思いますが、DBICでできるのは基本的なDDL操作だけで<br />
+各RDBMSの独自の機能までカバーしているわけではありません。</p><p>それに私は現在のところMySQLを使った開発しかしていないためOracleとかMSSQLとか他のRDBMSのことに詳しくないので<br />
+そこまで面倒みきれません。</p><br />
+<p>ではマイグレーションはどうすればいいのでしょうか。</p><p>今まで私はベースとなるcreate文とそれ以降に実行したalter文なんかをsvnやgitなどで管理し、<br />
+restoreする時に必要になった場合なんかはそれを元に再現したりしてましたし、<br />
+通常serviceのdatabaseはbackupされているはずなのでそこから持ってきたりなんかもしてました。<br />
+複数人で開発していてカラムの追加だったりテーブルの追加があるときはコミュニケーションで解決できなかったことがないので<br />
+そこまで危機感がないのかもしれませんがどうでしょう。</p><br />
+<p>ある程度大きなプロジェクトになってくると仕組みで管理したいことがあるのはあるでしょう。<br />
+今のところはSQL::Translatorをつかえば大体のことはできます。<br />
+DBICのバックでも使われています。</p><p>たださっきもいったようにRDBMSのそれぞれの方言をカバーしきれているわけではないので、<br />
+個人的には各RDBMSに特化したマイグレーションの仕組みを作ったらいいんじゃないかなと思っています。</p><br />
+<p>ORMのコミュニティーを活発にして開発者をふやしてORMでマイグレーションの仕組みを頑張っていれるより<br />
+特定のORMのに特化せず、利用するRDBMSに特化した仕組みを作るほうが将来があると思ってます。</p><br />
+<p>自分の周りではMySQLのマイグレーションについて色々意見がでてるので<br />
+もしかするとそう遠くない将来に良い仕組みが出てくるかもしれませんね。<br />
+＃MySQL限定ですが</p><br />
+<p>だらだらと長くなってきたのでまとめると、</p><br />
+<p>RDBMS毎に方言があるんだから、ORMでマイグレーションを管理するのはやりすぎ。<br />
+人生はそう長くないのでRDBMSに特化したマイグレーションの仕組みを構築し、他に無駄に依存しない仕組みを考えたほうが将来がある。<br />
+と思っています。</p><br />
+<p>みなさんの意見はいかがでしょうか？</p><br />
+<p>明日はTengの使い方に戻ってトランザクションのかけ方について紹介したいと思います</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

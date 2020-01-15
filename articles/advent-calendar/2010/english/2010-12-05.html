@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>Furl - Lightning fast HTTP client library - Articles Advent Calendar 2010 English</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Furl - Lightning fast HTTP client library</h1>
+
+        <p>First, LWP is very good HTTP client library. It's de-facto standard in Perl5 world.<br />
+But, it's bit slow if you are using for RPC over HTTP.</p><p>For example, <a href="http://fallabs.com/kyototycoon/">KyotoTycoon</a> supports RPC over HTTP.</p><p>Synopsis code is here.</p>
+
+    <pre class="code lang-perl">    use Furl;
+
+    my $furl = Furl::HTTP-&gt;new(
+        agent   =&gt; &#39;MyGreatUA/2.0&#39;,
+        timeout =&gt; 10,
+    );
+
+    my ($minor_version, $code, $msg, $headers, $body) = $furl-&gt;request(
+        method =&gt; &#39;GET&#39;,
+        host   =&gt; &#39;example.com&#39;,
+        port   =&gt; 80,
+        path   =&gt; &#39;/&#39;
+    );
+    # or
+
+    # Accept-Encoding is supported but optional
+    $furl = Furl-&gt;new(
+        headers =&gt; [ &#39;Accept-Encoding&#39; =&gt; &#39;gzip&#39; ],
+    );
+    my $body = $furl-&gt;get(&#39;http://example.com/some/compressed&#39;);</pre>
+<p>Furl does not requires XS(XS part exists, but optional.).</p><p><a href="http://search.cpan.org/dist/WWW-Curl/">WWW::Curl</a> is very fast too.<br />
+But, it depends on libcurl. It's bit hard to install.</p><p>regards,</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

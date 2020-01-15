@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>Cache::LRU が速い理由 - Articles Advent Calendar 2010 Hacker</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Cache::LRU が速い理由</h1>
+
+        <p>先日、オンメモリなキャッシュモジュール <a href="http://search.cpan.org/dist/Cache-LRU">Cache::LRU</a> を書きました。<a href="http://blog.kazuhooku.com/2010/11/cachelru-handy-and-fast-in-memory-cache.html">Kazuho's Weblog: Cache::LRU (a handy and fast in-memory cache module in pure-perl)</a> を見ていただければ、Cache::LRU が他のモジュールより速いことは明らかだと思います。速度差の原因としては機能や実装上の差異もあるのですが、設計上の工夫も Cache::LRU が速い理由のひとつです。</p><p>LRU (<a href="http://ja.wikipedia.org/wiki/Least_Recently_Used">Least Recently Used</a>) アルゴリズムを備えたキャッシュを実装しようと思うと、</p>
+
+<ul>
+<li>エントリルックアップのためのハッシュ</li>
+<li>アクセス順を表現するためのリスト</li>
+</ul><p>の２種類を組み合わせる必要があります。リストを表現する手法としては配列を利用するものとリンクリストを利用するものがありますが、Perl だと前者のほうが速い、ということは <a href="http://search.cpan.org/dist/Tie-Cache-LRU/">Tie::Cache::LRU</a> のドキュメントにも触れられているとおりです。そして、配列を使う場合は、</p>
+
+<ul>
+<li>アクセス順を表現するリストから一切参照されていないエントリをハッシュから削除する</li>
+</ul><p>という処理を実装することになります。</p><p>Cache::LRU では、Perl の GC を使ってこの処理を自動化することで、高速化を実現しています。ハッシュに格納する値を weak reference とすることで、アクセス順を表現するリストから押し出されたエントリを、自動的に削除するようにしているわけです。</p><p>Cache::LRU に、以下のような一見奇妙なコードが含まれるのはそのためです。</p>
+
+    <pre class="code lang-perl">package Cache::LRU;
+...
+
+sub get {
+    my ($self, $key) = @_;
+
+    my $value_ref = $self-&gt;{_entries}-&gt;{$key};
+    return undef unless $value_ref;             # ← ココ
+
+    $self-&gt;_update_fifo($key, $value_ref);
+    $$value_ref;
+}</pre>
+<p>自前で参照カウントを管理するよりも、Perl本体の GC を使った方が速いのは言うまでもないことです。</p><p>こんな小技を楽しむのも Perl モジュールを書く醍醐味のひとつじゃないかと思います。</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

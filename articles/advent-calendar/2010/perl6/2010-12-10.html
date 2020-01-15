@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="Nobuo Danjou <nobuo.danjou@gmail.com>">
+        <meta name="author" content="Nobuo Danjou <nobuo.danjou@gmail.com>">
+        <title>echoサーバーを書こう - Articles Advent Calendar 2010 Perl6</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>echoサーバーを書こう</h1>
+
+        <p>こんにちは、<a href="http://twitter.com/lopnor">@lopnor</a>こと檀上です。と、これまで誰も名乗らずにここまできてしまいましたJPerl Advent Calendar 2010 - perl6 trackですが、ここでこれまでの執筆者をご紹介します。</p>
+
+<ul>
+<li><a href="http://twitter.com/risou">@risou</a>さん
+<ul>
+<li><a href="http://perl-users.jp/articles/advent-calendar/2010/perl6/7">&#x30A4;&#x30F3;&#x30BF;&#x30E9;&#x30AF;&#x30C6;&#x30A3;&#x30D6;&#x306A;&#x5B9F;&#x884C;&#x74B0;&#x5883;&#x3092;&#x4F7F;&#x304A;&#x3046;</a></li>
+</ul></li>
+<li><a href="http://twitter.com/uasi">@uasi</a>さん
+<ul>
+<li><a href="http://perl-users.jp/articles/advent-calendar/2010/perl6/8">&#x30E2;&#x30B8;&#x30E5;&#x30FC;&#x30EB;&#x3092;&#x516C;&#x958B;&#x3057;&#x3066;&#x307F;&#x3088;&#x3046;</a></li>
+</ul></li>
+<li><a href="http://twitter.com/VienosNotes">@VienosNotes</a>さん
+<ul>
+<li><a href="http://perl-users.jp/articles/advent-calendar/2010/perl6/9">&#x300E;Perl6&#x5165;&#x9580;&#x300F;&#x5165;&#x9580;</a></li>
+</ul></li>
+<li><a href="http://twitter.com/lopnor">@lopnor</a>
+<ul>
+<li>残りの記事</li>
+</ul></li>
+</ul><p>です。まだまだ原稿が足りないので、Perl 6について語っちゃうよ！という方はぜひお声がけください。よろしくお願いします！</p>
+
+<div class="section">
+    <h3>echoサーバーを書こう</h3>
+    <p>さて、今日はネットワークプログラミングに挑戦です。先日twitterのタイムラインを読んでくるスクリプトがありましたが、やっぱり今時ネットワーク経由でデータをやり取りしてナンボ、というところがあります。前回はクライアントでしたが、今回はサーバーをつくってみようと思います。というとまずはechoサーバーを書かないといけないですね。</p><p>echoサーバーの動作イメージはこんな感じです。</p>
+
+    <pre class="code">
+$ perl6 echo_server.pl 5000 &amp;
+[1] 4980
+
+$ telnet 127.0.0.1 5000
+Trying 127.0.0.1...
+Connected to localhost.
+Escape character is &#39;^]&#39;.
+hoge
+hoge
+fuga
+fuga
+^]
+telnet&gt; quit
+Connection closed.
+</pre>
+<p>echo_server.plはこんな感じ。</p>
+
+    <pre class="code">#!/usr/bin/env perl6
+use v6;
+
+# constants
+sub PF_INET {2}
+sub SOCK_STREAM {1}
+sub TCP {6}
+
+sub MAIN ($port = &#39;5000&#39;, :$host = &#39;0.0.0.0&#39;) {
+    my $server = IO::Socket::INET.socket( PF_INET, SOCK_STREAM, TCP );
+    $server.bind($host, $port);
+    $server.listen;
+    while my $conn = $server.accept {
+        while my $str = $conn.recv {
+            $conn.send($str);
+        }
+        $conn.close;
+    }
+    $server.close;
+}
+
+# vim: ft=perl6 :</pre>
+<p>と、何の変哲もないコードでした。これで僕の環境ではちゃんと動きます。で、これ実はほとんどrakudo/t/spec/S32-io/IO-Socket-INET.plからパクったものなんですが、これが<a href="https://github.com/rakudo/rakudo/commit/78b3fcf83ee7f980dc44a0a04f0a0381bb17ce5d">spectest.data&#x304B;&#x3089;&#x30B3;&#x30E1;&#x30F3;&#x30C8;&#x30A2;&#x30A6;&#x30C8;&#x3055;&#x308C;&#x3066;&#x304A;&#x308A;</a>、いくつかの環境で正しく動作しない模様です。はやくなおるといいですね。</p>
+
+</div>
+<div class="section">
+    <h3>ベンチマーク</h3>
+    <p>さて、このサーバーとperl5で書いたサーバーを比較してみました。</p>
+
+    <pre class="code">#!perl
+use strict;
+use warnings;
+
+use IO::Socket;
+
+my $server = IO::Socket::INET-&gt;new(
+    LocalPort =&gt; 5000,
+    Listen =&gt; SOMAXCONN,
+    Reuse =&gt; 1,
+);
+
+while (my $conn = $server-&gt;accept) {
+    while ($conn-&gt;sysread(my $str, 1024)) {
+        $conn-&gt;syswrite($str);
+    }
+    $conn-&gt;close;
+}
+$server-&gt;close;
+
+# from http://d.hatena.ne.jp/naoya/20070311/1173629378</pre>
+<p>こんなの。これを、別のマシンから</p>
+
+    <pre class="code">$ time (for i in `seq 1 1000`; do echo $i | nc 10.0.87.6 5000 &gt; /dev/null;done)</pre>
+<p>としてみました。</p>
+
+    <pre class="code"># perl6
+$ time (for i in `seq 1 1000`; do echo $i | nc 10.0.87.6 5000 &gt; /dev/null;done)
+(; for i in `seq 1 1000`; do; echo $i | nc 10.0.87.6 5000 &gt; /dev/null; done; ) 
+0.68s user 2.78s system 19% cpu 17.548 total
+
+# perl5
+$ time (for i in `seq 1 1000`; do echo $i | nc 10.0.87.6 5000 &gt; /dev/null;done)
+(; for i in `seq 1 1000`; do; echo $i | nc 10.0.87.6 5000 &gt; /dev/null; done; ) 
+0.68s user 2.80s system 20% cpu 16.667 total
+</pre>
+<p>大差ないですね。つないでやり取りして切る、だけであればそれほど差はないようです。このあと、httpサーバーを書くなどした場合、文字列処理で差が出てくるのだと思います。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

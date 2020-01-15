@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="xaicron">
+        <meta name="author" content="xaicron">
+        <title>DBIx::QueryLog で DBI で実行された SQL を丸見えにする！ - Articles Advent Calendar 2011 Dbix</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>DBIx::QueryLog で DBI で実行された SQL を丸見えにする！</h1>
+
+        <p>こんにちは、最近 PSP1000 の電池が一瞬で切れてしまってまともにゲームができない xaicron です。</p><p>さて、みなさんは DBI から吐かれた SQL をみたいなーと思うこともあるでしょう。<br />
+そんな時は、$ENV{DBI_TRACE} = 2 とかしてみると、ドバーッといっぱいデバッグログが出てきて、<br />
+その中に実際に発行された SQL がちょろっと出てたりするのでこいつを頑張ってパースすればいい感じですね！</p><p>っていうのはだいぶ面倒だったりしますね。あたりまえですね。</p><p>そこで、use するだけでとりあえず全部の発行された SQL を STDERR にはいてくれるモジュールを書きました。<br />
+その名も DBIx::QueryLog です。そのままですね。</p>
+
+<div class="section">
+    <h4>つかいかた</h4>
+    <p>使い方は至極簡単で、どっかで適当に use するだけです。ほかには何もいりません。<br />
+そうすると、以下のような感じで STDERR に SQL が出力されます。</p>
+
+    <pre class="code lang-perl">use DBIx::QueryLog;
+
+my $row = $dbh-&gt;selectrow_hashref(&#39;SELECT * FROM dis_comments WHERE name = ?&#39;, undef, &#39;nekokak&#39;);</pre>
+
+    <pre class="code">[2011-12-07T23:51:30] [main] [0.000164] SELECT * FROM dis_comments WHERE name = &#39;nekokak&#39; at neko.pl line 10</pre>
+<p>みたいな感じです。超簡単ですね。ちゃんとバインド済みの値になっているのがミソです。</p>
+
+</div>
+<div class="section">
+    <h4>出力先を変えたい</h4>
+    <p>デフォは STDERR なんですが、当然ファイルに出したい欲求とかあると思いますので、変えられます。<br />
+Log::Minimal みたいな感じで、$DBIx::QueryLog::OUTPUT を書き換えます。</p>
+
+    <pre class="code lang-perl">use DBIx::QueryLog;
+
+open my $fh, &#39;&gt;&gt;&#39;, &#39;query.log&#39; or die $!;
+$DBIx::QueryLog::OUTPUT = $fh;</pre>
+<p>のようにファイルハンドルを指定するか、または</p>
+
+    <pre class="code lang-perl">use DBIx::QueryLog;
+
+$DBIx::QueryLog::OUTPUT = sub {
+    my %args = @_;
+    printf &#39;sql: %s&#39;, $args{sql};
+};</pre>
+<p>みたいに coderef も受け取れるので何でもやり放題ですね。</p>
+
+</div>
+<div class="section">
+    <h4>全部じゃなくてさぁ、一部だけ適用したいんだけど？</h4>
+    <p>そんな時は、</p>
+
+    <pre class="code lang-perl">reuqire DBIx::QueryLog; # or use DBIx::QueryLog ();
+DBIx::QueryLog-&gt;enable;
+# 適用したい範囲
+DBIx::QueryLog-&gt;disable;</pre>
+<p>とかすれば OK です。Guard オブジェクトを返すインターフェースとかあってもいいかもしれませんね。<br />
+ぱっちぃずうぇるかむです。</p>
+
+</div>
+<div class="section">
+    <h4>SQL 改行されちゃうんだけど？</h4>
+    <p>DBIx::QueryLog->compress(1) とするか、$ENV{DBIX_QUERYLOG_COMPACT} = 1 とかすると、改行とか消えます</p>
+
+</div>
+<div class="section">
+    <h4>SQL にターミナルで見れない文字が出てる！死ぬ！</h4>
+    <p>DBIx::QueryLog->useqq(1) とするか、$ENV{DBIX_QUERYLOG_USEQQ} = 1 とかすると、$Data::Dumper::Useqq = 1 とおなじでダブルクォートで展開できる感じに出来ます。</p><p>とりあえず、compress + useqq しとけばホゲることはないはず</p>
+
+</div>
+<div class="section">
+    <h4>色付けたい</h4>
+    <p>DBIx::QueryLog->color('red') とするか、$ENV{DBIX_QUERYLOG_COLOR} = 'red' とかすると色がつきます。<br />
+ファイルに出力する場合も制御文字が入ったまんまになるから注意が必要だぜ！</p>
+
+</div>
+<div class="section">
+    <h4>bind されたくない</h4>
+    <p>DBIx::QueryLog->skip_bind(1) とするか、$ENV{DBIX_QUERYLOG_SKIP_BIND} = 1 とかすれば OK です。</p>
+
+</div>
+<div class="section">
+    <h4>一定時間以上かかった SQL を出したい</h4>
+    <p>DBIx::QueryLog->threshold(0.1) とするか、$ENV{DBIX_QUERYLOG_THRESHOLD} = 0.1 とかすると 0.1 秒以上かかった SQL だけロギングします。</p>
+
+</div>
+<div class="section">
+    <h4>100回に1回ぐらいの確率でログに出したい</h4>
+    <p>DBIx::QueryLog->probability(100) とするか、$ENV{DBIX_QUERYLOG_PROBABILITY} = 10 とかするとそんな感じになります。</p>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>などなど、とっても簡単に実行されている SQL をログに出せますね！</p><p>もちろん、同じようなことは kazeburo さんが<a href="http://perl-users.jp/articles/advent-calendar/2011/dbix/6">6&#x65E5;&#x76EE;</a>にかいた Callbacks などでも実現できますが、<br />
+DBIx::QueryLog のメリットとしては</p>
+
+<ul>
+<li>コードの書き換えが必要ない <a href="#fn1" title="use するだけ">*1</a></li>
+<li>ほとんどの機能が環境変数で制御できる</li>
+<li>DBD::* によって、いろいろある BK を吸収</li>
+<li>ORM とかつかってても最終的には DBI を叩いてるので無問題</li>
+</ul><p>といったところです。とにかく簡単に使えるので便利かもねってところですね。</p><p>ちなみに、このモジュールは Devel::KYTProf にインスパイアされて作られました。onishi さんにはこの場を借りて御礼申し上げます。</p><p>現状、SQLite と mysql でしか動作確認してませんが、ポスクレないじゃあ〜んとか思ったら追加してくれてもいいのよ！</p><p>あと、当然ですが、DBI のメソッドをフックしてゴニョゴニョしているので、そのぶんのオーバーヘッドはあります。<br />
+開発中に、このへんの SQL ってどうなってたかにゃ〜んって思ったときに使うのがよいと思います。<br />
+本番環境とかはあれですね、tpcdump がよいかと思います。MySQL とかはせっかくのテキストプロトコルですし！！</p><p>というわけで明日は、生DBI界のドン、zigorou さんです！！</p>
+
+</div>HASH(0x5566cb10ea40)
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

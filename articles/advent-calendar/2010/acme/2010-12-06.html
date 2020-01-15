@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>Acme::PrettyCure - Articles Advent Calendar 2010 Acme</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Acme::PrettyCure</h1>
+
+        <p>こんにちは、MHP3を買ったものの諸般の事情でキャラ作っただけの<a href="http://fushihara.net/">kan</a>です。来年になったら誰か狩りに行きませんか。</p><p>さて、<a href="http://search.cpan.org/dist/Acme-MorningMusume/">Acme::MorningMusume</a>というモジュールをご存知でしょうか? モーニング娘。のメンバー情報を細かに取得できる素晴らしく実用的なAcmeモジュールです。いわゆるプロフィールはもちろんのこと、Googleの画像検索等を利用してイメージまで引っ張ってくることが出来ます。</p><p>今日紹介するのは、このモジュールに影響を受けて制作した拙作「Acme::PrettyCure」です。</p>
+
+    <pre class="code lang-perl">my @precure = Acme::PrettyCure-&gt;now;</pre>
+<p>上記のように実行すると、現在放映中の「ハートキャッチプリキュア」のメンバーオブジェクトを取得することが出来ます。各プリキュアの情報はAcme::MorningMusumeと比べると簡単なものしか取得できませんが、プリキュアらしい仕掛けがしてあります。</p>
+
+    <pre class="code lang-perl">my ($nozomi,) = Acme::PrettyCure-&gt;members(&#39;Five&#39;);
+
+say $nozomi-&gt;name; # =&gt; 夢原のぞみ
+
+$nozomi-&gt;transform;
+
+say $nozomi-&gt;name; # =&gt; キュアドリーム !?</pre>
+<p>上記の通り、変身します。現状は全てtransformメソッドになっていますが、それぞれの変身に合わせたメソッド名にaliasを張る予定です。また、初代とSplashStar組は相方を引数に取らないと変身できない(本編通りの)仕様になっています。</p><p>更に、transformメソッドを実行すると<em>問答無用</em>で変身時の口上を標準出力にprintします。これも仕様なので仕方ないですね。</p>
+
+    <pre class="code lang-perl">my ($nagisa, $honoka) = Acme::PrettyCure-&gt;members;
+
+$nagisa-&gt;transform($honoka); # 出力結果はお手元でご確認下さい
+
+my ($nozomi, @others) = Acme::PrettyCure-&gt;members(&#39;Five&#39;);
+
+$nozomi-&gt;transform(@others); # 出力結果は(ry</pre>
+<p>他にも細かいネタを仕込んであるので、暇な人はソースを読んでみると良い感じに脱力できるかもしれません。多分最初にツッコむのは「なんでAny::Moose useしてるんだよw」ではないかと思います。</p><p>とりあえず、来年の新プリキュア放映までのあいだに各プリキュアの必殺技を取得、発動(!?)出来るようにしたり、CVなどもう少し詳細なプロフィールを取得できるようにしつつ、Acme::MorningMusumeのように画像も取ってこられるようにしたいかなあ等、色々夢は広がります。パッチは大歓迎なので、是非<a href="https://github.com/kan/p5-acme-prettycure">github&#x4E0A;&#x306E;&#x30EA;&#x30DD;&#x30B8;&#x30C8;&#x30EA;</a>をcloneしてみてください。</p><p>明日は、hide-kさんのAcme::AKB48です</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

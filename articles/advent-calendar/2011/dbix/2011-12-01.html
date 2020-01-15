@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>DBIx::Handlerで安心DB生活 - Articles Advent Calendar 2011 Dbix</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>DBIx::Handlerで安心DB生活</h1>
+
+        <p>こんにちは！nekokakです！<br />
+今年はボクが作ってるDBIx::Handlerというものを紹介してみる。</p><p>DBIx::HandlerはDBIのラッパーでありDBのコネクション周りの管理に重点を置いたモジュールである。<br />
+ORMを使わずにDB周りの処理を行いたい場合はこのDBIx::Handlerを使うことをおすすめする。</p><p>自分でDBIのインスタンスを生成し利用する場合どこまで正しくコネクション管理をあなたはできますか？<br />
+そもそも親プロセスで接続したdbのインスタンスを子プロセス側でも利用することの問題を正確に把握していますか？<br />
+そこまで正しく細かく理解し自分で実装できたとしてもだ、新しいプロジェクトを作るたびにそのコードをコピペするのか？</p><p>そこでDBIx::Handlerの出番だ。</p><p>DBIx::Handlerはそのあたりの処理をすべて面倒みてくれる。<br />
+もうあなたは<br />
+いつDBとの接続が着られるか分からないわ！<br />
+とか<br />
+forkした場合に処理がおかしくなるの！<br />
+とか<br />
+一切かんがえなくてよくなる。</p><p>以下使い方である</p>
+
+    <pre class="code">use strict;
+use warnings;
+use DBIx::Handler;
+
+my $handler = DBIx::Handler-&gt;new($dsn, $user, $pass, $opts);
+while (1) {
+    $handler-&gt;dbh-&gt;$some_method();
+}</pre>
+<p>DBIx::Handlerでつくったオブジェクトにはdbhメソッドがあり、<br />
+このメソッドを呼び出すと、その時点でデータベースに接続可能なhandleが取得することができる。</p><p>また複数回dbhメソッドを呼び出すと自分で明示的にdisconnectを実行するもしくはデータベース側から切断されない限り<br />
+同一の接続済handleがかえされることになる。</p><p>次によくハマるforkする場合の例であるが、</p>
+
+    <pre class="code">use strict;
+use warnings;
+use DBIx::Handler;
+
+my $handler = DBIx::Handler-&gt;new($dsn, $user, $pass, $opts);
+$handler-&gt;dbh;
+
+if (fork) {
+    $handler-&gt;dbh;
+} else {
+    $handler-&gt;dbh;
+}</pre>
+<p>このような場合、親プロセス側はforkの後も同一のdb handleを取得することができるが<br />
+子プロセス側は新しくDB接続をおこなったdb handleを取得し、親プロセスと子プロセスで<br />
+socketの通信内容が混ざるといったようなことをふせいでくれる。</p><p>つぎにtransactionだ</p>
+
+    <pre class="code">use strict;
+use warnings;
+use DBIx::Handler;
+
+my $handler = DBIx::Handler-&gt;new($dsn, $user, $pass, $opts);
+my $txn = $handler-&gt;txn_scope;
+
+    # ここでトランザクションを効かせたい処理を行う
+    $handler-&gt;dbh-&gt;do(&#39;insert...&#39;);
+
+$txn-&gt;commit;</pre>
+<p>txn_scopeメソッドで取得できるguardオブジェクトが存在する間、トランザクションが有効となり、<br />
+不意にtxnオブジェクトが消えてしまった場合はそれまで実行されていたトランザクションはrollbackされる。<br />
+またtxn_scope実行中にforkした処理をおこない、そこでdb処理を行おうとすると例外を発生させる。<br />
+これはfork時の挙動として親プロセスとこプロセスが別のdb sessionとなるため正しいトランザクションとして扱えなくなるための<br />
+保護である。</p><br />
+<p>DBIx::Handlerにはほかにも幾つか便利メソッドがあるが、<br />
+一番の目的はDBIの正しい操作を簡単におこなうことである。</p><p>DBを使ったアプリケーション開発の一助になれば幸いである。</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

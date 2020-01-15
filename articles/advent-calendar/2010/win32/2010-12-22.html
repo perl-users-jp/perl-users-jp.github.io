@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>Windows の STDIN を非同期で読み込む。 - Articles Advent Calendar 2010 Win32</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Windows の STDIN を非同期で読み込む。</h1>
+
+        <p>こんにちわ。<a href="http://mattn.kaoriya.net/">mattn</a> です。<br />
+先日、<a href="http://twitter.com/Maki_Daisuke">Maki_Daisuke</a> さんからお題を頂いた件の回答です。</p><p><a href="https://gist.github.com/742977">https://gist.github.com/742977</a></p>
+
+    <pre class="code lang-perl">use AnyEvent::Handle;
+
+my $c = AE::cv;
+
+my $out = AnyEvent::Handle-&gt;new(fh =&gt; \*STDOUT);
+
+my $in; $in = AnyEvent::Handle-&gt;new(
+    fh =&gt; \*STDIN,
+    on_read =&gt; sub{
+        my $hdl = shift;
+        $out-&gt;push_write($hdl-&gt;rbuf . &#34;\n&#34;);
+        $hdl-&gt;rbuf = &#34;&#34;;
+    }
+);
+$out-&gt;push_write(&#34;Start\n&#34;);
+
+$c-&gt;recv;</pre>
+<p>これを Windows で実行してもウンともスンとも行かないという現象。色々調べている内に Windows の標準入力は ReadFile 系非同期読み込みではちゃんと扱えない事が分かりました。正しく読み取るには ReadConsole という API を使う必要があります。<br />
+またコンソールはデフォルトでライン入力になっているので、そのあたりのオプションも変えながら読み取らないといけません。<br />
+まずここまでをコードで</p>
+
+    <pre class="code lang-perl">sub STD_INPUT_HANDLE ()     { 0xfffffff6 }
+sub FILE_TYPE_CHAR ()       { 0x0002 }
+sub FILE_TYPE_PIPE ()       { 0x0003 }
+sub ENABLE_PROCESS_INPUT () { 0x0001 }
+sub ENABLE_LINE_INPUT ()    { 0x0002 }
+sub ENABLE_ECHO_INPUT ()    { 0x0004 }
+
+my $GetStdHandle = Win32::API-&gt;new(&#39;kernel32.dll&#39;,
+    &#39;GetStdHandle&#39;,
+    &#39;N&#39;,
+    &#39;N&#39;,
+) or die &#34;: $^E&#34;;
+my $GetFileType = Win32::API-&gt;new(&#39;kernel32.dll&#39;,
+    &#39;GetFileType&#39;,
+    &#39;N&#39;,
+    &#39;N&#39;,
+) or die &#34;: $^E&#34;;
+my $_kbhit = Win32::API-&gt;new(&#39;msvcrt.dll&#39;,
+    &#39;_kbhit&#39;,
+    &#39;&#39;,
+    &#39;I&#39;,
+) or die &#34;: $^E&#34;;
+my $ReadConsole = Win32::API-&gt;new(&#39;kernel32.dll&#39;,
+    &#39;ReadConsoleA&#39;,
+    &#39;NPNPP&#39;,
+    &#39;N&#39;,
+) or die &#34;: $^E&#34;;
+my $GetConsoleMode = Win32::API-&gt;new(&#39;kernel32.dll&#39;,
+    &#39;GetConsoleMode&#39;,
+    &#39;NP&#39;,
+    &#39;I&#39;,
+) or die &#34;: $^E&#34;;
+my $SetConsoleMode = Win32::API-&gt;new(&#39;kernel32.dll&#39;,
+    &#39;SetConsoleMode&#39;,
+    &#39;NN&#39;,
+    &#39;I&#39;,
+) or die &#34;: $^E&#34;;
+
+my $handle = $GetStdHandle-&gt;Call(STD_INPUT_HANDLE);
+if ($GetFileType-&gt;Call($handle) eq FILE_TYPE_CHAR) {
+    my $mode = 0;
+    $GetConsoleMode-&gt;Call($handle, \$mode);
+    $SetConsoleMode-&gt;Call( $handle,
+        $mode &amp;
+        ~ENABLE_LINE_INPUT &amp;
+        ~ENABLE_ECHO_INPUT |
+         ENABLE_PROCESS_INPUT );
+    while (1) {
+        if ($_kbhit-&gt;Call()) {
+            my ($buf, $num) = (&#39; &#39;, 0);
+            if ($ReadConsole-&gt;Call($handle, $buf, 1, \$num, 0)) {
+                # 読み取れた
+            }
+        }
+    }
+}</pre>
+<p>こうなります。ただ自前でポーリングをしなければなりませんので厄介ですね。こんな時は</p><p><em>「使うと Marc Lehmann 先生に DIS られる」</em></p><p>という噂の threads を使いましょう。</p>
+
+    <pre class="code lang-perl">async {
+    while (1) {
+        if ($_kbhit-&gt;Call()) {
+            my ($buf, $num) = (&#39; &#39;, 0);
+            if ($ReadConsole-&gt;Call($handle, $buf, 1, \$num, 0)) {
+                # 読み取れた
+            }
+        }
+    }
+}-&gt;detach;</pre>
+<p>さぁこれを後はメインスレッド側で使えるようにしたいのですが、何を使うかでハマりました。結果でいうと、AnyEvent::Handle は fileno を使って処理するので tie や capture 的な物を使っても実現出来ませんでした。実際 tie して GETC もしくは READ にフックしてみましたが、いっこうに呼ばれませんでした。<br />
+せっかくここまで解析したのでもったいないと思ったので getc だけでも使えるようにしましょう。</p>
+
+    <pre class="code lang-perl">package Win32::Async::Stdin;
+
+use strict;
+use warnings;
+use threads;
+use threads::shared;
+use Win32::API;
+use IO::Scalar;
+our $VERSION = &#39;0.01&#39;;
+
+sub STD_INPUT_HANDLE ()     { 0xfffffff6 }
+sub FILE_TYPE_CHAR ()       { 0x0002 }
+sub FILE_TYPE_PIPE ()       { 0x0003 }
+sub ENABLE_PROCESS_INPUT () { 0x0001 }
+sub ENABLE_LINE_INPUT ()    { 0x0002 }
+sub ENABLE_ECHO_INPUT ()    { 0x0004 }
+
+my $GetStdHandle = Win32::API-&gt;new(&#39;kernel32.dll&#39;,
+    &#39;GetStdHandle&#39;,
+    &#39;N&#39;,
+    &#39;N&#39;,
+) or die &#34;: $^E&#34;;
+my $GetFileType = Win32::API-&gt;new(&#39;kernel32.dll&#39;,
+    &#39;GetFileType&#39;,
+    &#39;N&#39;,
+    &#39;N&#39;,
+) or die &#34;: $^E&#34;;
+my $_kbhit = Win32::API-&gt;new(&#39;msvcrt.dll&#39;,
+    &#39;_kbhit&#39;,
+    &#39;&#39;,
+    &#39;I&#39;,
+) or die &#34;: $^E&#34;;
+my $ReadConsole = Win32::API-&gt;new(&#39;kernel32.dll&#39;,
+    &#39;ReadConsoleA&#39;,
+    &#39;NPNPP&#39;,
+    &#39;N&#39;,
+) or die &#34;: $^E&#34;;
+my $GetConsoleMode = Win32::API-&gt;new(&#39;kernel32.dll&#39;,
+    &#39;GetConsoleMode&#39;,
+    &#39;NP&#39;,
+    &#39;I&#39;,
+) or die &#34;: $^E&#34;;
+my $SetConsoleMode = Win32::API-&gt;new(&#39;kernel32.dll&#39;,
+    &#39;SetConsoleMode&#39;,
+    &#39;NN&#39;,
+    &#39;I&#39;,
+) or die &#34;: $^E&#34;;
+
+my $inputs = &amp;share([]);
+tie *STDIN, &#39;Win32::Async::Tied::Stdin&#39;, $inputs;
+
+my $handle = $GetStdHandle-&gt;Call(STD_INPUT_HANDLE);
+if ($GetFileType-&gt;Call($handle) eq FILE_TYPE_CHAR) {
+    my $mode = 0;
+    $GetConsoleMode-&gt;Call($handle, \$mode);
+    $SetConsoleMode-&gt;Call( $handle,
+        $mode &amp;
+        ~ENABLE_LINE_INPUT &amp;
+        ~ENABLE_ECHO_INPUT |
+         ENABLE_PROCESS_INPUT );
+    async {
+        while (1) {
+            if ($_kbhit-&gt;Call()) {
+                my ($buf, $num) = (&#39; &#39;, 0);
+                if ($ReadConsole-&gt;Call($handle, $buf, 1, \$num, 0)) {
+                    push @$inputs, $buf;
+                }
+            }
+        }
+    }-&gt;detach;
+}
+
+package Win32::Async::Tied::Stdin;
+use strict;
+
+sub TIEHANDLE {
+    my ($class, $ref) = @_;
+    bless { ref =&gt; $ref }, $class;
+}
+
+sub GETC {
+    my $self = shift;
+    shift @{$self-&gt;{ref}};
+}
+
+1;</pre>
+<p>こんな感じに配列のリファレンスをスレッド間共有してみました。使う側は</p>
+
+    <pre class="code lang-perl">use Win32::Async::Stdin;
+
+while () {
+    my $a = getc(STDIN);
+    warn $a if $a;
+    # 高速ループするので sleep いれてね！
+}</pre>
+<p>こんな感じでしょうか。あまり汎用性もなく、AnyEvent に食わせたり出来ないので有益では無いですが使う側のコードは幾分減らせるかと思いました。</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

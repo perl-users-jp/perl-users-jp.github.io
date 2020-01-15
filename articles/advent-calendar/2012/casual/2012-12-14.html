@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="tokuhirom">
+        <meta name="author" content="tokuhirom">
+        <title>Web アプリケーションのデプロイについての考察 - Articles Advent Calendar 2012 Casual</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Web アプリケーションのデプロイについての考察</h1>
+
+        <p>Web Application をデプロイする際に、carton をつかうという方法もありますが、もっとゆるふわでいいんじゃないかなーとおもうので、もっとゆるふわにやる方法について考えてみました。</p>
+
+<h2>carton について</h2>
+
+<p>carton は以下のようなことをやってくれます。</p>
+
+<pre><code>* バージョンの固定
+* インストール
+* モジュールパスのロード
+</code></pre>
+
+<p>carton は carton.lock というファイルにインストールしたバージョンを記録することによって、いいかんじにバージョンを固定できて、複数の環境でアプリをうごかすときに便利です。</p>
+
+<p>が、しかし carton.lock は JSON ファイルなので、複数人が同時に作業しているときに conflict したりしてメンドイ! という噂もききます。実際、carton.lock をつかうと conflict がダルすぎるので carton.lock を .gitignore に追加している人もいるとききます(意味ない!!)</p>
+
+<h2>carton の仕組み</h2>
+
+<p><code>carton install</code> 実行すると</p>
+
+<pre><code>cpanm -L local --installdeps .
+</code></pre>
+
+<p>されて、<code>carton exec -- foo</code> すると</p>
+
+<pre><code>perl -Mlib::core::only foo
+</code></pre>
+
+<p>される、みたいなかんじだと思っておけばだいたいあってる。</p>
+
+<h2>carton をつかわないことについて</h2>
+
+<p>さて、実際ウェブアプリケーションの開発においては、<em>ターゲットの環境の Perl のバージョンと architecture を固定できるケースも多いでしょう</em>。そのような場合には carton をつかわなくてもいいのでは??</p>
+
+<p>とおもったので、carton をつかわないですむときに carton をつかわない方策について考えました。</p>
+
+<h3>carton をつかわない方法の実践</h3>
+
+<p>まず、依存関係を <code>cpanfile</code> というファイルに記述します。依存関係をこまかく指定することもできますが、今回のスタイルでは requires でバージョンを指定するだけの用途にしかつかいません。</p>
+
+<pre><code>requires('Amon2'                           =&gt; '3.66');
+requires('Amon2::Lite'                     =&gt; '0.09');
+requires('Text::Xslate'                    =&gt; '1.5006');
+requires('Plack::Session'                  =&gt; '0.14');
+requires('Lingua::KO::Romanize::Hangul'    =&gt; 0);
+requires('JSON' =&gt; 2);
+
+# current version of Module::CPANfile does not supports 'osname'
+if ($^O eq 'darwin') {
+    requires('Mac::FSEvents');
+}
+</code></pre>
+
+<p>次に、<em>install-deps.sh</em> というファイル名で以下のファイルを作成します。このシェルスクリプトを実行すると、依存ライブラリが local/ 以下にインストールされます。carton とおなじかんじですね。</p>
+
+<pre><code>#!/bin/sh
+cpanm --installdeps --no-man-pages --verbose --no-interactive -L extlib .
+</code></pre>
+
+<p>最後に <code>run.sh</code> をおきます。これは carton exec とおなじかんじの効果です。</p>
+
+<pre><code>#!/bin/sh
+BASEDIR=$(dirname $(readlink -f $0))
+perl -Mlib::core::only "-Mlib=$BASEDIR/extlib/lib/perl5/" "$@"
+</code></pre>
+
+<p>あとは、local/ にはいってきた依存モジュール群はたんに git add しておけばいいです。本体に関係ないファイルが大量にコミットされることが気になるようならば submodule にしておいておくのがいいでしょう。</p>
+
+<h3>実例</h3>
+
+<p>適当なウェブアプリケーションをセットアップしておいてみました。</p>
+
+<p>https://github.com/tokuhirom/Hangul2Roman</p>
+
+<h2>まとめ</h2>
+
+<p>以上。簡単なシェルスクリプト2つで、簡易的に carton っぽい雰囲気を醸してみました。</p>
+
+<p>だいぶカジュアルですね!</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

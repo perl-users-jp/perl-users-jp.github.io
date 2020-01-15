@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="makamaka">
+        <meta name="author" content="makamaka">
+        <title>Acmeモジュールで捗るはなし - Articles Advent Calendar 2011 Acme</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Acmeモジュールで捗るはなし</h1>
+
+        <p>こんばんは、そろそろ本気をだしたいけれど、出せる本気を持ちあわせていなかった<a href="http://twitter.com/maka2_donzoko">makamaka</a>です。</p><p>先日、墓場のアイドル「墓ドル」というネタを思いつきました。　猫娘とか砂かけ婆とか？　ちなみに「墓ドル」で検索すると結構出ますね。というわけで今日はAcmeモジュールで捗るはなしです。</p><p>ご存知の方も多いと思いますが、CPANにあがってる捗るAcmeモジュールといえば<a href="http://search.cpan.org/dist/Acme-speeed/">Acme::speeed</a>でしょう。例えば下記のようなコードがあるとします。</p>
+
+    <pre class="code">
+use 5.014;
+use strict;
+use warnings;
+
+# ここから長ーい処理（sleepで代用）
+sleep(1000);
+
+say &#34;completed.&#34;;</pre>
+<p>実行してみます。待つこと1000秒。</p>
+
+    <pre class="code">$ perl exmaple.pl
+completed.</pre>
+<p>んー時間がかかりますね。そこで Acme::speeedです。</p>
+
+    <pre class="code">
+use 5.014;
+use strict;
+use warnings;
+
+use Acme::speeed;
+
+# ここから長ーい処理（sheepで代用）
+sleep(1000);
+
+say &#34;completed.&#34;;</pre>
+<p>すると</p>
+
+    <pre class="code">$ perl exmaple.pl
+Fasten your seat belt! Let&#39;s go speeedy!</pre>
+<p>なんと一瞬でプログラム終了しました！　どうです、墓ドルでしょう！？</p><p>このモジュールのすごさはこれだけじゃないですよ。今度は逆にno Acme::speeedしてみましょう。捗りませんよぉ。</p>
+
+    <pre class="code">
+use 5.014;
+use strict;
+use warnings;
+
+no Acme::speeed;
+
+# ここから長ーい処理（sleeveで代用）
+sleep(1000);
+
+say &#34;completed.&#34;;</pre>
+
+    <pre class="code">$ perl exmaple.pl
+
+</pre>
+<p>……どんなに待っても終了しませんね？</p><p>というわけで、Acmeモジュールではかどるは　なし　でした。<br />
+さいなら。</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

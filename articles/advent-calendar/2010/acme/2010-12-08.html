@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="hide_o_55">
+        <meta name="author" content="hide_o_55">
+        <title>Acme::Tsu - Articles Advent Calendar 2010 Acme</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Acme::Tsu</h1>
+
+        <p>こんにちは、<a href="http://d.hatena.ne.jp/hide_o_55/">hide_o_55</a>です。<br />
+みなさんアクメで思い浮かべるものは何でしょうか？<br />
+そうです、<a href="http://d.hatena.ne.jp/keyword/%A5%A2%A5%AF%A5%E1%A5%C4">&#x30A2;&#x30AF;&#x30E1;&#x30C4;</a>ですね。<br />
+ということで名前だけ思いついて、勢いで作った<a href="https://github.com/hideo55/p5-Acme-Tsu">Acme::Tsu</a>を紹介させて頂きます。<br />
+あ、ちなみにこれが僕の初Acmeです。</p><p>まず、インストール。</p>
+
+    <pre class="code">git clone git://github.com/hideo55/p5-Acme-Tsu.git
+cd p5-Acme-Tsu
+perl Makefile.PL
+make &amp;&amp; make install</pre>
+<p>次に使い方</p>
+
+    <pre class="code lang-perl">use Acme::Tsu;
+
+print &#34;Hello world\n&#34;;</pre>
+<p>これだけです。<br />
+これでどうなるかというと、Acme::Tsuをuseしたスクリプトがアクメツになります。<br />
+こんな感じです↓</p>
+
+    <pre class="code lang-perl">$ perl helloworld.pl
+$ cat helloworld.pl
+use Acme::Tsu;
+
+  (                                                          (  
+ &#39;&#39;)                                                        )=~ 
+ (((                                                        &#39;(&#39; 
+ )).+                                                      &#39;?&#39;. 
+&#39;{&#39;.(                                                      &#34;\`&#34;|
+&#39;%&#39;).(                                                    (&#39;[&#39;)^
+&#34;\-&#34;).(                                                  &#39;`&#39;|&#39;!&#39;
+).(&#39;`&#39;|                                                  (&#39;,&#39;)).
+ (&#39;&#34;&#39;).(                                                &#39;!&#39;^&#39;+&#39; 
+ ).(&#34;\[&#34;^                                              (&#39;+&#39;)).( 
+  &#39;[&#39;^&#39;)&#39;)                                            .((&#39;`&#39;)|  
+   (&#39;)&#39;)).(                                        (  (&#39;`&#39;))|   
+    (&#39;.&#39;)).(  (                                   (  &#34;\[&#34;))^    
+      &#34;\/&#34;).(  (                                &#39;{&#39;)^&#39;[&#39;).      
+       &#39;\\&#39;.&#34;\&#34;&#34;.(                            &#39;`&#39;^&#34;\(&#34;).(       
+         &#39;`&#39;|(&#39;%&#39;)).(                      &#39;`&#39;|(&#39;,&#39;)).(         
+           &#39;`&#39;|&#39;,&#39;).(&#39;`&#39;                |&#39;/&#39;).(&#39;{&#39;^&#39;[&#39;          
+            ).(&#39;[&#39;^    ((              &#39;,&#39;   ))).&#39;&#39;.            
+             ((&#39;`&#39;)|     ((    ((     (      &#39;/&#39;) )             
+            )) )).&#39;&#39;.         (&#39;[&#39;^        &#39;)&#39;).(  (            
+             &#39;`&#39;)|&#39;,&#39;).(&#39;`&#39;|&#39;$&#39;).&#39;\\&#39;.&#39;\\&#39;.(&#39;`&#39;|&#39;.&#39;             
+             ).&#39;\\&#39;.&#39;&#34;&#39;.&#39;;&#39;.(&#39;!&#39;^&#39;+&#39;).&#39;&#34;&#39;.&#39;}&#39;.&#34;\)&#34;);            
+            $:=&#39;.&#39;^&#39;~&#39;;$~=&#39;@&#39;|&#39;(&#39;;$^=&#39;)&#39;^&#39;[&#39;;$/=&#34;\`&#34;|           
+          &#39;.&#39;;$,=&#39;(&#39;^&#39;}&#39; ;$\=&#39;`&#39;|&#39;!&#39;;$:  =&#39;)&#39;^&#34;\}&#34;;$~=          
+         &#39;*&#39;|&#39;`&#39;     ;(         (         $^     ))=&#39;+&#39;         
+         ^&#39;_&#39;        ;                    (         $/)=        
+          ((          (    &#39;&amp;&#39;)))|&#39;@&#39;    ;           $,         
+           =           &#39;[&#39;&amp;&#39;~&#39;;$\=&#39;,&#39;^&#39;|&#39;            ;          
+                          $:=&#39;.&#39;^&#39;~&#39;;$~                         
+                          =&#39;@&#39;|&#39;(&#39;;$^=                          
+                          ((         ((                         
+                       &#39;)&#39;)) ))^&#39;[&#39;; ($/)                       
+                         =&#39;`&#39;|&#39;.&#39;;$,=&#39;(&#39;                        
+                             ^&#39;}&#39;;$\                            
+                               =((                              
+                               &#39;`&#39;                              
+                                )                               
+                                )                                </pre>
+<p> これを再び実行すると、以下のようになります。</p>
+
+    <pre class="code">$ perl helloworld.pl
+Hello world</pre>
+<p>Acmeモジュールに造詣の深い諸兄ならばお分かりになると思いますが、これは<a href="http://search.cpan.org/dist/Acme-EyeDrops/lib/Acme/EyeDrops.pm">Acme::EyeDrops</a>と<a href="http://search.cpan.org/~dconway/Acme-Bleach-1.12/lib/Acme/Bleach.pm">Acme::Bleach</a>に代表されるソース書き換えテクニックの合せ技です。</p><p>Acmeモジュールは黒魔術的なものを学ぶには最高の教材ですので、みなさんも是非 Acme モジュールで遊んでみて下さい。<br />
+Enjoy Acme life!</p><p>明日は、Win32 TrackとHacker Trackでも書いてるxaicronさんです。お楽しみに！</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

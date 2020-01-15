@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>Acme::Code::Police vs Acme::Code::FreedomFighter - Articles Advent Calendar 2010 Acme</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Acme::Code::Police vs Acme::Code::FreedomFighter</h1>
+
+        <p>こんにちはこんにちは！<br />
+「x日目」と変換しようとすると「xに痴目」とか出てきてたいへんAcmeな感じの<a href="http://twitter.com/myfinder/">myfinder</a>です。<br />
+今回はmakamakaさんのAcme大全を読んでて面白かった Acme::Code::Police と Acme::Code::FreedomFighter というモジュールについて紹介します。</p>
+
+<div class="section">
+    <h3>インストールする</h3>
+    <p>どちらもCPANにあがっているので、cpanmで一発です。</p>
+
+    <pre class="code">$ cpanm Acme::Code::Police
+$ cpanm Acme::Code::FreedomFighter</pre>
+
+</div>
+<div class="section">
+    <h3>どういうモジュールなのか</h3>
+    
+<div class="section">
+    <h4>Acme::Code::Police</h4>
+    <p>Acme::Code::Police は、useしたモジュールが use strict していない場合そのファイルを unlink するというモジュールです。恐ろしいですね。</p>
+
+    <pre class="code lang-perl">$ vim acme.pl 
+use Acme::Code::Police;
+print &#34;no Acme, no Life.\n&#34;;
+$ ls
+acme.pl
+$ perl acme.pl 
+no Acme, no Life.
+$ ls
+  # ファイルが消えてる！</pre>
+<p>こんな感じに、Acmeを叫ぼうとするとポリスが飛んできて逮捕(unlink)されてしまいます。このままでは自由にAcmeを叫ぶ事もできません。</p>
+
+</div>
+<div class="section">
+    <h4>Acme::Code::FreedomFighter</h4>
+    <p>そんな恐ろしいモジュールに敢然と立ち向かう戦士が Acme::Code::FreedomFighter です。<br />
+どんなモジュールかは<a href="http://cpansearch.perl.org/src/GMCCAR/Acme-Code-FreedomFighter-3.1416/FreedomFighter.pm">ソース</a>を見ればわかると思います。</p><p>このモジュールをuseすると、 Acme::Code::Police がファイルを unlink しようとしたときに現れ、逆に Acme::Code::Police を unlink しようとします。</p>
+
+    <pre class="code lang-perl">$ vim acme.pl
+use Acme::Code::Police;
+use Acme::Code::FreedomFighter;
+print &#34;no Acme, no Life.\n&#34;;
+$ ls
+acme.pl
+$ perl acme.pl
+no Acme, no Life.
+$ ls
+acme.pl # ファイルが残ってる</pre>
+<p>ありがとう<a href="http://cpansearch.perl.org/src/GMCCAR/Acme-Code-FreedomFighter-3.1416/FreedomFighter.pm">ゲバラ</a>、これでポリスに取り締まられる事もなく自由にAcmeを叫ぶ事ができるようになりました。</p>
+
+</div>
+</div>
+<div class="section">
+    <h3>まとめ</h3>
+    <p>ふつうに use strict すれば何文字もタイプしたり、ファイルが消える恐怖におびえる事もないので、ちゃんと use strict しましょうね、というお話でした。<br />
+明日は kan さんの Acme::PrettyCure です、おたのしみに！</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

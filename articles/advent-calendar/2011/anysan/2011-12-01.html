@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>hellow AnySan World! - Articles Advent Calendar 2011 Anysan</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>hellow AnySan World!</h1>
+
+        <p>こんばんわ！今日から AnySan のトラックが始まりましたね！</p><p>参加したい人は <a href="http://atnd.org/events/22890">http://atnd.org/events/22890</a> からどしどし頼むぜ！</p><p>AnySan とは何かをおさらいすると AnyEvent をベースとしたリアルタイミングメッセージング用の bot を簡単に作る為のツールキットなんだ。<br />
+AnyEvent::IRC::Client との違いが解らない！と良く言われるけど AnySan は bot で使う為に必要な機能だけを実装した薄いラッパーになってるんだ。</p><p>もちろん IRC だけじゃなくて Twitter や FriendFeed にも対応しているんだ。将来的には Skype や Facebook や Google+ などリアルタイムコミュニケーションを薄くラップするよていだYo♪<br />
+どのサービスでも同じインターフェィスで使う事を目的としてるので perldoc で使い方調べたりしなきゃ行けなくなる量も減ると思うんだ。</p><p>なにが言いたいかと言うと、手軽に bot を作りたい時に便利なツールキットなのさ。</p><p>簡単な例として !dan という発言を見たら dan さんの名言を返す bot の実装を見てその軽さを実感してもらうと良いかな。</p>
+
+    <pre class="code">use AnySan;
+use AnySan::Provider::IRC;
+
+my $irc = irc &#39;chat.freenode.net&#39;,
+    key      =&gt; &#39;danbot&#39;,
+    nickname =&gt; &#39;dankogaibot&#39;,
+    channels =&gt; {
+        &#39;#dankogai&#39; =&gt; {},
+    };
+
+AnySan-&gt;register_listener( dan =&gt; {
+    cb =&gt; sub {
+        my $receive = shift;
+        return unless $receive-&gt;message =~ /^!dan/;
+        $receive-&gt;send_replay(&#39;Dan the Perl Hacker&#39;);
+    }
+});
+AnySan-&gt;run;</pre>
+<p>どうだい？簡単だろう？<br />
+興味を持ってくれると嬉しい。</p><p>今日はここでおしまいだ。</p><p>え？インストールの仕方すら無いって？</p>
+
+    <pre class="code">$ cpanm AnySan </pre>
+<p>で入っちゃうんだから固い事言わないでくれよ。</p><p>少人数でトラックを廻すには5分程度でかける tips を積み重ねるのが重要だぜ？</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

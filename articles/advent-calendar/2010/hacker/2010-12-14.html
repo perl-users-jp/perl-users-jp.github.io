@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="eisukeoishi <ei.oishi@gmail.com>">
+        <meta name="author" content="eisukeoishi <ei.oishi@gmail.com>">
+        <title>DBIx::ObjectMapperでData Mapperパターン! - Articles Advent Calendar 2010 Hacker</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>DBIx::ObjectMapperでData Mapperパターン!</h1>
+
+        <p>こんにちわ。nekokakさんをはじめ#dbi-ja@irc.perl.orgのPerlハッカーのみなさまに<del>ムチャ振り</del>声をかけていただき、突然hacker trackで書くことになりました。eisukeoishiともうします。はじめまして。</p><p>今回は、私が作成した<a href="http://search.cpan.org/dist/DBIx-ObjectMapper/">DBIx::ObjectMapper</a>というO/Rマッパーについて紹介させていただきます。</p>
+
+<div class="section">
+    <h3>DBIx::ObjectMapperとは</h3>
+    <p>みんな大好きな「PofEAA」の<a href="http://capsctrl.que.jp/kdmsnr/wiki/PofEAA/?DataMapper">Data Mapper&#x30D1;&#x30BF;&#x30FC;&#x30F3;</a>を実装したものです。</p><p>Data Mapperパターンをごく簡単に説明すると、データベースやO/Rマッパーに依存せずにオブジェクトをデータベースと連携させるためのものです。<br />
+DBIx::ObjectMapperで使用するクラスはPOPO(Plain Old Perl Object)であり、O/Rマッパーだけで使用する必要もありません。</p><p>他言語ではPythonのSQLAlchemy, JavaのHibernateなどがData MapperパターンのO/Rマッパーですね。<br />
+DBIx::ObjectMapperは特にSQLAlchemyから諸々拝借しています。</p><p>今回はこのDBIx::ObjectMapperで簡単なinsert,select,update,deleteの操作をやってみます!</p>
+
+</div>
+<div class="section">
+    <h3>準備</h3>
+    <p>まずは、DBIx::ObjectMapperオブジェクトを作成します。</p>
+
+    <pre class="code lang-perl">use DBIx::ObjectMapper;
+use DBIx::ObjectMapper::Engine::DBI;
+
+my $engine = DBIx::ObjectMapper::Engine::DBI-&gt;new({
+     dsn =&gt; &#39;DBI:SQLite:&#39;,
+     username =&gt; undef,
+     password =&gt; undef,
+     on_connec_do =&gt; [
+         q{CREATE TABLE users( id INTEGER PRIMARY KEY, name TEXT)}
+     ],
+});
+
+my $mapper = DBIx::ObjectMapper-&gt;new( engine =&gt; $engine );
+</pre>
+<p>Engineを作成して、それをDBIx::ObjectMapperにわたしてあげます。</p><p>次にusersテーブルのデータを保持するMy::Userクラスを作成します。</p>
+
+    <pre class="code lang-perl">package My::User;
+use Mouse;
+
+has &#39;id&#39;   =&gt; ( is =&gt; &#39;rw&#39;, isa =&gt; &#39;Int&#39; );
+has &#39;name&#39; =&gt; ( is =&gt; &#39;rw&#39; );
+
+1;</pre>
+<p>これは、なんの変哲もない普通のクラスですね。<br />
+Mouseを使用していますが、みなさん大好きなMooseでもなんでも、とにかくperlのクラスとして定義できていればOKです。<br />
+(※Class::Accessor::Liteでは動作しないというバグがあるため、現在対応中です)</p><br />
+<p>さて次に、usersテーブルのschema情報をデータベースからロードしてメタデータとして取り込み、My::Userクラスとメタデータを連携させます(mapping)。</p>
+
+    <pre class="code lang-perl">my $users_table = $mapper-&gt;metadata-&gt;table( &#39;users&#39; =&gt; &#39;autoload&#39; );
+$mapper-&gt;maps( $users_table =&gt; &#39;My::User&#39; );
+# あるいはmetadata-&gt;tableメソッドにテーブル名だけを指定することでテーブルのメタデータを取得できます。
+$mapper-&gt;maps( $mapper-&gt;metadata-&gt;table(&#39;users&#39;) =&gt; &#39;My::User&#39; );</pre>
+
+<ul>
+<li>テーブルのカラムとオブジェクトの属性が完全に一致し、read,write可能なアクセッサも同名で存在している</li>
+<li>コンストラクタはHashリファレンスを引数にとる</li>
+</ul><p>というクラスの場合、上記のようにオプションを指定することなくmappingできます。</p><p>上記のようなクラス以外でもmapsメソッドにさらにオプションを指定することで、様々な形態のクラスにmappingすることが可能です。</p><p>さて、ここまでで準備は完了です。</p>
+
+</div>
+<div class="section">
+    <h3>insert</h3>
+    <p>それでは早速データベースへinsertをしてみましょう。</p>
+
+    <pre class="code lang-perl">
+my $user = My::User-&gt;new( name =&gt; &#39;eisukeoishi&#39; );
+
+my $session = $mapper-&gt;begin_session( autocommit =&gt; 0 );
+$session-&gt;add($user);
+# BEGIN;
+$session-&gt;commit;
+# INSERT INTO users ( name ) VALUES (&#39;eisukeoishi&#39;);
+# COMMIT;</pre>
+<p>ごく普通にMy::Userオブジェクトを作成して、ナゾのsessionというもののaddメソッドにオブジェクトをわたしてあげるだけで、insertができました。<br />
+データベースにinsertするのではなく、オブジェトをaddしたというイメージになるでしょうか。</p><p>さて、ここでナゾのsessionというものについて説明します。</p>
+
+<div class="section">
+    <h4>sessionとは</h4>
+    <p>sessionはDBIx::ObjectMapperにとって重要な存在で、直接的な操作はすべてsessionから行います。<br />
+sessionの役割りとして、</p>
+
+<ul>
+<li>トランザクションに関する操作(commit,rollback,txnメソッド)</li>
+<li>データベースとの同期(flushメソッド)</li>
+<li>追加、削除(add,deleteメソッド)</li>
+<li>取得(get,searchメソッド)</li>
+<li>オブジェクトのキャッシュ</li>
+<li>sessionオブジェクトが存在している間が一連の操作の単位となる(スコープ)</li>
+</ul><p>などがあります。</p><p>特に最後の一連の操作単位を決める部分が重要になります。<br />
+begin_sessionメソッドのオプションを指定することでその動作が決定されます。<br />
+オプションは下記になります(カッコ内はデフォルト値です)</p>
+
+<dl>
+<dt>autocommit(1)</dt>
+<dd>DBIのAutoCommitと連携します。デフォルトでtrueとなっており、flushされた時点でデータベースに反映します。falseに設定したときは、明示的にcommitメソッドを実行しないとrollbackされます。</dd>
+<dt>autoflush(0)</dt>
+<dd>データベースへSQLを発行するタイミングです。デフォルトではsessionオブジェクトが破棄される直前ですべての変更をデータベースへ送信します。autoflushがtrueの場合、addやdeleteなどが実行された時点でデータベースへ変更点を送信します。</dd>
+<dt>no_cache(0)</dt>
+<dd>デフォルトではsession内で同じデータがロードされた場合はそのキャッシュを利用するため、一度ロードされたオブジェクトはメモリ内にキャッシュされます。no_cacheをtrueにすることで、このキャッシュを行わないようにします。</dd>
+<dt>share_object(0)</dt>
+<dd>キャッシュされたオブジェクトが再度呼ばれた場合、デフォルトではcloneされた別オブジェクトになります。share_objectをtrueにすることでキャッシュから取得されたオブジェクトはすべて同じものを参照することになり、変更などが同期します。ただしリレーションが発生した場合に循環参照が発生する可能性があるので、クラス側でその対処が必要になる場合があります。</dd>
+</dl><p>注意点としては、sessionの有効範囲をあまり広くしないようにすること、データベースへの破壊的な操作(update,delete,insert)が発生する場合は、autocommit=0とすることをお勧めします。</p><p></p>
+
+</div>
+</div>
+<div class="section">
+    <h3>select</h3>
+    <p>ごちゃごちゃといろいろ書いてしまいましたが、気をとりなおして、先程insertしたデータを取得してみましょう。</p>
+
+    <pre class="code lang-perl">
+my $session = $mapper-&gt;begin_session( autocommit =&gt; 0 );
+my $user = $session-&gt;get( &#39;My::User&#39; =&gt; 1 );
+# SELECT users.name, users.id FROM users WHERE ( users.id = 1 )
+print $user-&gt;id;   # 1
+print $user-&gt;name; # eisukeoishi</pre>
+<p>sessionのgetメソッドにクラス名とプライマリになる値を渡すことでMy::Userオブジェクトが取得できます。DBIx::SkinnyのsingleメソッドやDBIx::Classのfindメソッドと同じようなものになります。<br />
+複数のカラムでユーニクになる場合はHashリファレンスを渡すことで取得ができます。</p>
+
+</div>
+<div class="section">
+    <h3>update</h3>
+    
+    <pre class="code lang-perl">
+my $session = $mapper-&gt;begin_session( autocommit =&gt; 0 );
+my $user = $session-&gt;get( &#39;My::User&#39; =&gt; 1 );
+# BEGIN;
+# SELECT users.name, users.id FROM users WHERE ( users.id = 1 );
+$user-&gt;name(&#39;emanon&#39;);
+$session-&gt;commit;
+# UPDATE users SET name = &#39;emanon&#39; WHERE ( users.id = 1 );
+# COMMIT;</pre>
+<p>取得したオブジェクトの属性をsessionのスコープ内でアクセッサから変更してあげるだけでupdateができます。</p>
+
+</div>
+<div class="section">
+    <h3>delete</h3>
+    
+    <pre class="code lang-perl">my $session = $mapper-&gt;begin_session( autocommit =&gt; 0 );
+my $user = $session-&gt;get( &#39;My::User&#39; =&gt; 1 );
+# BEGIN;
+# SELECT users.name, users.id FROM users WHERE ( users.id = 1 )
+$session-&gt;delete($user);
+$session-&gt;commit;
+# DELETE FROM users WHERE ( users.id = 1 );
+# COMMIT;</pre>
+<p>addのときと同様、オブジェクトをdeleteメソッドに渡してあげるだけです。</p><p></p>
+
+</div>
+<div class="section">
+    <h3>selectその2(まとめてオブジェクトを取得する)</h3>
+    
+    <pre class="code lang-perl">my $session = $mapper-&gt;begin_session( autocommit =&gt; 0 );
+$session-&gt;add_all(
+    My::User-&gt;new( name =&gt; &#39;user1&#39; ),
+    My::User-&gt;new( name =&gt; &#39;user2&#39; ),
+    My::User-&gt;new( name =&gt; &#39;user3&#39; ),
+    My::User-&gt;new( name =&gt; &#39;user4&#39; ),
+);
+
+my $it = $session-&gt;search(&#39;My::User&#39;)-&gt;execute;
+while( my $user = $it-&gt;next ) {
+    print $user-&gt;id . &#39;:&#39; . $user-&gt;name . $/;
+}
+$session-&gt;commit;</pre>
+<p>条件を指定する場合は、</p>
+
+    <pre class="code lang-perl">my $session = $mapper-&gt;begin_session( autocommit =&gt; 0 );
+my $attr = $mapper-&gt;attribute(&#39;My::User&#39;);
+my $it = $session-&gt;search(&#39;My::User&#39;)
+    -&gt;filter(
+        $attr-&gt;prop(&#39;id&#39;) &gt; 3,
+        $attr-&gt;prop(&#39;name&#39;) != undef,
+    )-&gt;execute;
+
+while( my $user = $it-&gt;next ) {
+    print $user-&gt;id . &#39;:&#39; . $user-&gt;name . $/;
+}
+</pre>
+<p>のように、mapperのattributeメソッドでクラスの属性を取得してfilterメソッドに条件を書いてあげます。<br />
+ここでも注意点としては、条件を指定するのは、テーブルのカラムではなく、オブジェクトの属性を指定している点です。オブジェクトを検索しているというイメージを持ってもらえば大丈夫かと思います。</p><p>また、propメソッドで取得したクラスの属性情報に演算子をつけて条件を指定するところが、一般的なO/Rマッパーとはちょっと違う点ですが、慣れると直感的に書けます。</p><p>サポートしている演算子は ==,!=,>=,>,<=,<,eq,ne,lt,gt,le,geです。</p><p>その他に</p>
+
+    <pre class="code lang-perl">$attr-&gt;prop(&#39;id&#39;) == [ 1, 2, 3 ]</pre>
+<p>は、id IN (1, 2, 3) と INとして動作し、</p><p>like,betweenなどは</p>
+
+    <pre class="code lang-perl">$attr-&gt;prop(&#39;name&#39;)-&gt;like(&#39;%str%&#39;);
+$attr-&gt;prop(&#39;id&#39;)-&gt;between( 1, 3 );</pre>
+<p>のように書けます。</p>
+
+</div>
+<div class="section">
+    <h3>おまけ</h3>
+    <p>mappingするのにわざわざクラスを作成するとかメンドイという方には、自動でクラスを作成するオプションがあります。</p><p>冒頭のサンプルを改変してMy::Userクラスを作成せずに、下記のようにmapsメソッドを呼ぶことで、自動でクラスを作成できます。</p>
+
+    <pre class="code lang-perl">$mapper-&gt;maps(
+    $users_table =&gt; &#39;My::User&#39;,
+    constructor  =&gt; { auto =&gt; 1 },
+    accessors    =&gt; { auto =&gt; 1 },
+);
+</pre>
+<p>これで、個別に作成する必要があるクラスのみを用意すれば良いので、Data Mapperパターンでありがちなクラス地獄に陥いることが防げるのではないでしょうか。</p>
+
+</div>
+<div class="section">
+    <h3>最後に</h3>
+    <p>今回はざっくりと簡単な紹介をしましたが、DBIx::ObjectMapperはその他にも様々な機能を搭載しています。</p>
+
+<ul>
+<li>リレーション(1対1、1対多、多対多)</li>
+<li>columnの型からの自動inflate</li>
+<li>Single Table Inheritance(単一テーブル継承)のサポート</li>
+<li>Class Table Inheritance(クラステーブル継承)のサポート</li>
+<li>metadataからオブジェトを介さず、簡単にデータの操作を行う</li>
+</ul><p>簡単な概要が知りたい方は、<a href="http://eisuke.github.com/yapcasia2010/">http://eisuke.github.com/yapcasia2010/</a>をご覧ください。</p><p>DBIx::Skinnyを筆頭に、O/Rマッパーのシンプル化の波に逆行している感もあるこのモジュールですが、オブジェクトに重点を置いたアプローチは他にはない大きな特徴で、そういった選択肢がPerlでできるということが重要なのかなと私は思っております。<br />
+もちろんシンプルにできないと諦めているわけではなく、依存モジュールを極力減らしたり、コードの再整理などを行なって使いやすいモジュールになるようにもっと改善できたらなあと思っております。</p><p>現在はドキュメントなどがとても不足しており、みなさまに広く使っていただける状況まで至っていませんが、今後もblogなどでDBIx::ObjectMapperについての記事を書いていきたいなあと思っている次第です。</p><p>また、DBIx::ObjectMapperを使ってみて、下記のような体験があれば、すぐにご一報いただけると幸いです。</p>
+
+<ul>
+<li>DBIx::ObjectMapperで栄転の辞令を貰いました！</li>
+<li>DBIx::ObjectMapperでTOEICのスコアが300点も上がりました！</li>
+<li>DBIx::ObjectMapperで身長が10cm伸びました！</li>
+<li>DBIx::ObjectMapperで宝くじの2等を当てました！</li>
+<li>DBIx::ObjectMapperで彼女ができました！</li>
+</ul><p><br />
+DBIx::ObjectMapperよかったら使ってみてください!</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

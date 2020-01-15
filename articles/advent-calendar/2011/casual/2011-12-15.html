@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="lapis_tw">
+        <meta name="author" content="lapis_tw">
+        <title>TheSchwartzでちょっとした大きなデータを扱いたい！ - Articles Advent Calendar 2011 Casual</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>TheSchwartzでちょっとした大きなデータを扱いたい！</h1>
+
+        <p>こんにちは！普段は札幌の片隅でPerlをいじくっているlapis_twです。<br />
+某アイコンが可愛い方に発破かけられたのもあり、初CasualTrackです！<br />
+最近はJobQueueを弄る事が多かったので、JobQueueに関するちょっとしたtipsを書きます。<br />
+といってもQudoとかではなくて、使い古されたTheSchwartzについてなのです。</p>
+
+<div class="section">
+    <h4>TheSchwartz</h4>
+    <p>散々紹介されてもはや（普通に使う分には）語りどころがない、ジョブキューシステムですね。<br />
+一般的な使い方は下記のような感じになると思います。</p>
+
+<div class="section">
+    <h5>worker.pl</h5>
+    
+    <pre class="code lang-perl">#!/usr/bin/perl
+
+package Worker;
+use strict;
+use warnings;
+use base qw/TheSchwartz::Worker/;
+
+sub worker {
+    my ($class, $job) = shift;
+    # なんかする
+    $job-&gt;completed();
+}
+1;
+
+package main;
+use strict;
+use warnings;
+use TheSchwartz;
+
+my $client = TheSchwartz-&gt;new( databases =&gt; [  { dsn =&gt; &#39;dbi:SQLite:schwartz&#39; } ] );
+$client-&gt;can_do(&#39;Worker&#39;);
+$client-&gt;work();</pre>
+
+</div>
+<div class="section">
+    <h5>client.pl</h5>
+    
+    <pre class="code lang-perl">#!/usr/bin/perl
+use strict;
+use warnings;
+use TheSchwartz;
+
+my $dbi = DBI-&gt;connect( &#34;dbi:SQLite:schwartz&#34; );
+my $client = TheSchwartz-&gt;new(
+    databases =&gt; [
+        { dsn =&gt; &#34;dbi:SQLite:schwartz&#34; }
+    ]
+);
+
+my $handle = $client-&gt;insert(
+    &#39;Worker&#39; =&gt; { data =&gt; &#34;example&#34; }
+);</pre>
+<p>Workerを立ち上げて、ClientからJobをDBに投げるといった使い方のはずです。<br />
+WorkerはJobがあった場合workメソッドを実行しますが、実はこのworkメソッド、任意の引数を渡す事ができません。<br />
+TheSchwartz::workの内部では処理がネストされていて、最終的にwork_onceの中で任意に指定したワーカクラスのwork_safelyを呼んでいます。<br />
+よって、外部から渡ってくる物は、$job->argだけなのです。</p><br />
+<p>もし、大規模なリソースをworkerで確保しなければならないといった状況だとこれはまずいですね！<br />
+workが呼ばれるたびに大量のメモリを食う事になり、これはオーバーヘッドになります。<br />
+こんな時は思い切って事前にワーカクラスから適当にメソッド生やして受け渡せばいいと思います。<br />
+サンプルでは、ワーカ側でStorableでstoreしたオブジェクトを使うという設定でいきます。</p>
+
+</div>
+</div>
+<div class="section">
+    <h4>サンプル</h4>
+    
+<div class="section">
+    <h5>worker.pl</h5>
+    
+    <pre class="code lang-perl">#!/usr/bin/perl
+package Worker;
+
+use strict;
+use warnings;
+use base qw(TheSchwartz::Worker);
+use Storable;
+
+our $icons;
+
+sub worker_args {
+    my ($class, $file) = @_;
+
+    $icons = retrive $file;
+}
+
+sub work {
+    my ( $class, $job ) = @_;
+    # なんかする
+    $job-&gt;completed();
+}
+1;
+
+package main;
+use strict;
+use warnings;
+use TheSchwartz;
+
+my $client =
+  TheSchwartz-&gt;new( databases =&gt; [ +{ dsn =&gt; &#39;dbi:SQLite:schwartz&#39; } ] );
+
+my $config = require &#34;config.pl&#34;;
+
+# 適当に生やしたメソッドに任意の引数を渡す
+$worker_class-&gt;worker_args( $config-&gt;{store_file} );
+
+$client-&gt;can_do( $config-&gt;{worker_class} );
+$client-&gt;work;</pre>
+<p>ちょっとイケナイ感じですが、グローバル変数に突っ込んじゃう作戦です。<br />
+新しいデータを取得するにはWorkerを再起動しなくちゃなりませんが、問題ないデータならばこれで大丈夫なはずです。<br />
+jobが投げられるたびに大規模なデータを参照して処理しなきゃ！って時に使えると思います。是非お試し下さい。<br />
+もっとスマートなやり方が欲しい！</p><p>お次はOne Page Appsで話題のsu_askaさんです！</p>
+
+</div>
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

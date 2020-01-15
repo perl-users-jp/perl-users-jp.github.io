@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>#09 update / delete - Articles Advent Calendar 2011 Teng</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>#09 update / delete</h1>
+
+        <p>Teng::Rowの説明でupdate / deleteの説明はしたのですが、update / deleteメソッドはTeng::Rowからだけでなく、<br />
+Teng自体からも実行可能なので軽く説明します。</p>
+
+    <pre class="code">$teng-&gt;update(&#39;user&#39;, +{name =&gt; &#39;inukaku&#39;}, +{id =&gt; 1});
+# UPDATE user SET name = &#39;inukaku&#39; WHERE id = 1;</pre>
+<p>このようにRowオブジェクト以外からもupdate文を実行することが可能です。<br />
+Rowオブジェクト経由だと、Rowオブジェクトが持っているPRIMARY KEYを使ったupdateしかできませんでしたが、<br />
+Tengオブジェクト経由だとupdateする条件を自分で指定することが可能です。</p><p>例えば以下のように条件を指定しなければ</p>
+
+    <pre class="code">my $update_count = $teng-&gt;updte(&#39;user&#39;, +{name =&gt; &#39;inukaku&#39;});
+# UPDATE user SET name = &#39;inukaku&#39;;</pre>
+<p>となり全レコードのnameがinukakuにupdateされます。</p><br />
+<p>deleteも同様でRowオブジェクト経由でdeleteを実行すると、Rowオブジェクトが持っているPRIMARY KEYを使ったdeleteしかできませんが、<br />
+Tengオブジェクト経由でdeleteを実行することで、条件を好きに指定することができます。</p>
+
+    <pre class="code">my $delete_count = $teng-&gt;delete(&#39;user&#39;, +{name =&gt; &#39;inukaku&#39;});</pre>
+<p><br />
+なお、update / deleteの返却値は<br />
+updateの場合は、実際に更新したレコード数が返され、<br />
+deleteの場合は、実際に削除したレコード数が返されます。</p><br />
+<p>明日はRowクラスの拡張方法を紹介します。</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

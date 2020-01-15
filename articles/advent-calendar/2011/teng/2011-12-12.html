@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>#12 schema loader - Articles Advent Calendar 2011 Teng</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>#12 schema loader</h1>
+
+        <p>Tengではschemaクラスを定義することで<br />
+insert / update / delete / single(etc..) などを簡単に取り合え使えるようになっています。</p><p>しかしテーブル数が多かったり、既にあるサービスのschema情報をクラスに落としこむ際、<br />
+手で書き起こすのはかなりしんどい作業になるでしょう。</p><p>そこでTengでは他のORMにもあるようにschemaを動的にloadしたりschemaクラス形式のデータをdumpしたりする<br />
+仕組みを提供しています。</p><p>今日はそのなかのloaderと呼ばれる動的schemaクラス読み込みについてを説明します。</p>
+
+<div class="section">
+    <h3>Teng::Schema::Loader</h3>
+    <p>動的にschema情報をdatabaseから読み出すのにTeng::Schema::Loaderを利用します。</p><p>今まではProj::DB::Schemaガある前提でしたがLoaderを使えば、<br />
+Proj::DB::Schemaクラスを作らなくてもよいです。<br />
+またProj::DBクラス自体も特別必要ではありません。</p><p>teng_loader.plというファイルに以下のようなコードを書くだけで<br />
+今までと同じような操作を行うことが可能です。</p>
+
+    <pre class="code">#! perl
+use strict;
+use warnings;
+use Teng::Schema::Loader;
+
+my $teng = Teng::Schema::Loader-&gt;load(
+    connect_info =&gt; [&#39;dbi:SQLite:./sample.db&#39;,&#39;&#39;,&#39;&#39;],
+    namespace    =&gt; &#39;Proj::DB&#39;
+);
+$teng-&gt;delete(&#39;user&#39;);
+$teng-&gt;insert(&#39;user&#39;, +{id =&gt; 1, name =&gt; &#39;nekokak&#39;});
+my $row = $teng-&gt;single(&#39;user&#39; =&gt; +{id =&gt; 1});
+warn $row-&gt;name;</pre>
+<p>またTeng::Schema::LoaderはDBHを受け取ることも可能なので以下のように書くことも可能です。</p>
+
+    <pre class="code">#! perl
+use strict;
+use warnings;
+use Teng::Schema::Loader;
+
+my $teng = Teng::Schema::Loader-&gt;load(
+    dbh       =&gt; $dbh,
+    namespace =&gt; &#39;Proj::DB&#39;
+);
+$teng-&gt;delete(&#39;user&#39;);
+$teng-&gt;insert(&#39;user&#39;, +{id =&gt; 1, name =&gt; &#39;nekokak&#39;});
+my $row = $teng-&gt;single(&#39;user&#39; =&gt; +{id =&gt; 1});
+warn $row-&gt;name;</pre>
+<p>Loaderはインスタンス作成時に動的にdatabaseにアクセスし、databaseからschema情報を読み出す為、<br />
+初動がどうしても遅くなります。</p><p>しかし普段Tengを使っていプロジェクトでもちょっとしたスクリプトをサクっとTengで書く場合なんかに<br />
+特別クラス定義をすること無く利用することができるので便利です。</p><p>明日はshcmea meta data apiについて紹介します</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

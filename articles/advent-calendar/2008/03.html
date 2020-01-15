@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>$@はグローバル変数</title>
+    <link rel="stylesheet" href="http://perl-users.jp/articles/advent-calendar/adventcal.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+    <script type="text/javascript" src="http://perl-users.jp/articles/advent-calendar/adventcal.js"></script>
+</head>
+<body>
+<h1>$@はグローバル変数</h1>
+<p>あまり意識されていませんが、<code>$@</code>はグローバル変数です。気をつけないとおかしなことになります。以下のコードでは<code>die()</code>で例外を発生させているので「<samp>Error is Dummy error</samp>」と表示されるように見えますが、表示されません。</p>
+<pre class="lang-perl"><code>    package Hoge;
+    sub new { bless {}, shift }
+    sub cleanup {
+        # 色々処理
+    }
+
+    sub DESTROY {
+        my $self = shift;
+        eval { $self-&gt;cleanup };
+    }
+
+    package main;
+    eval {
+        my $hoge = Hoge-&gt;new();
+        die "Dummy error";
+    };
+    if ($@) {
+        print "Error is $@\n";
+    } else {
+        print "Everything OK!\n";
+    }</code></pre>
+
+<p><code>eval</code>が<code>die()</code>によって終了し、スコープが切り替わる段階で<code>DESTROY</code>が呼ばれます。その中で<code>eval{}</code>をもう一度呼んでいますが、ここではエラーがなかったため<code>$@</code>が空に設定されるのです。よって、エラーの値を出力するころにはすでに<code>$@</code>は空で、エラーを検知できません。</p>
+
+<p>このようなグローバル変数を変更する可能性のあるコードを書く場合は<code>local</code>で修飾すると良いでしょう。</p>
+
+<pre class="lang-perl"><code>    sub DESTROY {
+        my $self = shift;
+        local $@;
+        eval { $self-&gt;cleanup };
+    }</code></pre>
+
+<p>なお、全ての<code>eval{}</code>でこの処理を加える必要はありませんが、該当する箇所にエラーがあってもわざとそれを無視する今回のような場合には明示的に<code>local</code>をつけておいたほうが安全です。</p>
+<p>次はid:hidekさん</p>
+</body>
+</html>

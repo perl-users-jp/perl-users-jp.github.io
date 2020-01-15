@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="syohex">
+        <meta name="author" content="syohex">
+        <title>Graphviz::DSL - 「逆に考えるだ, DOTファイルっぽく書いちゃってもいいさと」 - Articles Advent Calendar 2012 Hacker</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Graphviz::DSL - 「逆に考えるだ, DOTファイルっぽく書いちゃってもいいさと」</h1>
+
+        
+<div class="section">
+    <h4>前置き</h4>
+    <p>こんにちは。<a href="http://twitter.com/#!/syohex">syohex</a>です。好きな寿司ネタは鯖というかバッテラです。今回は拙作の Graphviz::DSLというモジュールを紹介させていただきます。</p><p>Graphviz::DSLは Ruby Gemの <a href="http://github.com/melborne/Gviz">Gviz</a>に影響され作成したモジュールです。</p><br />
+<p>既存の Graphvizモジュールは OOインタフェースが中心で '$graph->add_node'のようなメソッドを使いグラフを構築していくものが主でした。しかし個人的に OOインタフェースの場合, 最終的なグラフの形状が把握しづらいという印象を持っていました. 'add_node'などのコードを追い, 自分の頭の中でグラフの形状を考える必要があるためと思います.</p><p>ところが Gvizはそうではなく, DSLを用い, DOTファイルを直接書く感覚に近いものでした. 今までの Graphvizインタフェースは DOTを避けすぎていたように思えました. DOTファイル自体, 構成を表すことには適していると思うのですが, その部分が全く見えないインタフェースになっていたのだと思います. Gvizは DOTの良さと Rubyの良さを合わせたようなライブラリだったので感動しました.</p><p>それで Perl版も作ってみたいということで <a href="https://github.com/syohex/p5-Graphviz-DSL">Graphviz::DSL</a>を作りました。Rubyと比べてシンボルが使えないのはマイナスかと思うのですが, ファットカンマが使えることでよりエッジっぽく見せられるのはプラスかなと思います。</p>
+
+</div>
+<div class="section">
+    <h4>使い方</h4>
+    <p>基本的な使い方は以下のような感じになります。</p>
+
+    <pre class="code lang-perl">#!/usr/bin/env perl
+use strict;
+use warnings;
+
+use Graphviz::DSL;
+
+my $graph = graph {
+    subgraph {
+        name &#39;cluster_0&#39;;
+        nodes style =&gt; &#39;filled&#39;, color =&gt; &#39;white&#39;;
+        global style =&gt; &#39;filled&#39;, color =&gt; &#39;lightgrey&#39;, label =&gt; &#39;process#1&#39;;
+
+        route a0 =&gt; &#39;a1&#39;;
+        route a1 =&gt; &#39;a2&#39;;
+        route a2 =&gt; &#39;a3&#39;;
+    };
+
+    subgraph {
+        name &#39;cluster_1&#39;;
+        nodes style =&gt; &#39;filled&#39;;
+        global color =&gt; &#39;blue&#39;, label =&gt; &#39;process#2&#39;;
+
+        route b0 =&gt; &#39;b1&#39;;
+        route b1 =&gt; &#39;b2&#39;;
+        route b2 =&gt; &#39;b3&#39;;
+    };
+
+    route start =&gt; [qw/a0 b0/];
+    route a1 =&gt; &#39;b3&#39;;
+    route b2 =&gt; &#39;a3&#39;;
+    route a3 =&gt; [qw/a0 end/];
+    route b3 =&gt; &#39;end&#39;;
+
+    node &#39;start&#39;, shape =&gt; &#39;Mdiamond&#39;;
+    node &#39;end&#39;,   shape =&gt; &#39;Mdiamond&#39;;
+};
+
+$graph-&gt;save(path =&gt; &#39;sample&#39;, type =&gt; &#39;png&#39;);</pre>
+<p>これで以下のような dotファイルと画像ファイルが生成されます。</p>
+
+    <pre class="code">digraph &#34;G&#34; {
+  subgraph &#34;cluster_0&#34; {
+    style=&#34;filled&#34;;
+    color=&#34;lightgrey&#34;;
+    label=&#34;process#1&#34;;
+    node[style=&#34;filled&#34;,color=&#34;white&#34;];
+    &#34;a0&#34;;
+    &#34;a1&#34;;
+    &#34;a0&#34; -&gt; &#34;a1&#34;;
+    &#34;a2&#34;;
+    &#34;a1&#34; -&gt; &#34;a2&#34;;
+    &#34;a3&#34;;
+    &#34;a2&#34; -&gt; &#34;a3&#34;;
+  }
+  subgraph &#34;cluster_1&#34; {
+    color=&#34;blue&#34;;
+    label=&#34;process#2&#34;;
+    node[style=&#34;filled&#34;];
+    &#34;b0&#34;;
+    &#34;b1&#34;;
+    &#34;b0&#34; -&gt; &#34;b1&#34;;
+    &#34;b2&#34;;
+    &#34;b1&#34; -&gt; &#34;b2&#34;;
+    &#34;b3&#34;;
+    &#34;b2&#34; -&gt; &#34;b3&#34;;
+  }
+  &#34;start&#34;[shape=&#34;Mdiamond&#34;];
+  &#34;a0&#34;;
+  &#34;start&#34; -&gt; &#34;a0&#34;;
+  &#34;b0&#34;;
+  &#34;start&#34; -&gt; &#34;b0&#34;;
+  &#34;a1&#34;;
+  &#34;b3&#34;;
+  &#34;a1&#34; -&gt; &#34;b3&#34;;
+  &#34;b2&#34;;
+  &#34;a3&#34;;
+  &#34;b2&#34; -&gt; &#34;a3&#34;;
+  &#34;a3&#34; -&gt; &#34;a0&#34;;
+  &#34;end&#34;[shape=&#34;Mdiamond&#34;];
+  &#34;a3&#34; -&gt; &#34;end&#34;;
+  &#34;b3&#34; -&gt; &#34;end&#34;;
+}</pre>
+<p><img src="https://github.com/perl-users-jp/perl-advent-calendar/raw/master/2012/hacker/2012-12-01/image01.png" alt="sample_image" /></p><p></p>
+
+</div>
+<div class="section">
+    <h4>応用</h4>
+    <p>上記の例は DOTファイルを Perlで置き換えたという程度ですが、graphのコードブロックの中では Perl構文も当然使えますのでより複雑なことを行うことも可能です。以下は大阪市営地下鉄をグラフ化した例です。</p>
+
+    <pre class="code lang-perl">#!perl
+use strict;
+use warnings;
+
+use Graphviz::DSL;
+use Text::CSV_XS;
+use Math::Round qw/nearest/;
+
+# https://github.com/syohex/p5-Math-Normalize-Range
+use Math::Normalize::Range;
+
+use utf8;
+
+# Please install CSV data from http://www.ekidata.jp/
+my $csv_file = shift or die &#34;Usage: $0 railway_csv.&#34;;
+
+my $csv = Text::CSV_XS-&gt;new;
+open my $fh, &#39;&lt;:encoding(utf8)&#39;, $csv_file or die &#34;Can&#39;t open $csv_file: $!&#34;;
+
+my %rail_line;
+$csv-&gt;getline($fh); # remove header
+
+my (@longtudes, @latitudes);
+while (my $row = $csv-&gt;getline($fh)) {
+    my $line = $row-&gt;[8];
+    next unless $line =~ m{大阪市営地下鉄};
+
+    push @longtudes, $row-&gt;[11];
+    push @latitudes, $row-&gt;[12];
+    push @{$rail_line{$line}}, $row;
+}
+
+close $fh;
+
+my ($lon_min, $lon_max) = minmax(@longtudes);
+my ($lat_min, $lat_max) = minmax(@latitudes);
+
+my $svg_normalizer = Math::Normalize::Range-&gt;new(target_min =&gt; 10, target_max =&gt; 60);
+
+my @line_colors = (
+    [&#34;御堂筋線&#34; =&gt; &#39;#e5171f&#39;], [&#34;谷町線&#34;   =&gt; &#39;#522886&#39;], [&#34;四つ橋線&#34; =&gt; &#39;#0078ba&#39;],
+    [&#34;中央線&#34;   =&gt; &#39;#019a66&#39;], [&#34;千日前線&#34; =&gt; &#39;#e44d93&#39;], [&#34;堺筋線&#34;   =&gt; &#39;#814721&#39;],
+    [&#34;今里筋線&#34; =&gt; &#39;#ee7b1a&#39;], [&#34;長堀鶴見緑地線&#34; =&gt; &#39;#a9cc51&#39;],
+);
+
+my $graph = graph {
+    name &#39;Osaka_Subway&#39;;
+    global label =&gt; &#39;Osaka Municipal Subway&#39;, size =&gt; 16, layout =&gt; &#39;neato&#39;;
+
+    edges arrowhead =&gt; &#39;none&#39;, penwidth =&gt; 2;
+    nodes style =&gt; &#39;filled&#39;, fontcolor =&gt; &#39;white&#39;;
+
+    while (my ($line, $stations) = each %rail_line) {
+        global label =&gt; $line;
+
+        my $index = 1;
+        my $length = scalar @{$stations};
+        for my $station (@{$stations}) {
+            my ($id, $name, $seq) = @{$station}[2, 9, 4];
+            my $next_id = $seq + 1;
+
+            my $color = &#39;#999999&#39;;
+            for my $line_color (@line_colors) {
+                my $n = $line_color-&gt;[0];
+                if ($line =~ m{$n}) {
+                    $color = $line_color-&gt;[1];
+                    last;
+                }
+            }
+
+            my $pos_x = $svg_normalizer-&gt;normalize($station-&gt;[11], {
+                min =&gt; $lon_min, max =&gt; $lon_max,
+            });
+
+            my $pos_y = $svg_normalizer-&gt;normalize($station-&gt;[12], {
+                min =&gt; $lat_min, max =&gt; $lat_max,
+            });
+
+            my $pos = sprintf &#34;%d,%d!&#34;, nearest(0.1, $pos_x), nearest(0.1, $pos_y);
+
+            edge [$id =&gt; $next_id], color =&gt; $color if $index &lt; $length;
+            node $id, label =&gt; $name, color =&gt; $color, pos =&gt; $pos;
+
+            $index++;
+        }
+    }
+};
+
+$graph-&gt;save(path =&gt; &#34;osaka_subway&#34;, type =&gt; &#39;svg&#39;);
+
+sub minmax {
+    my $init = shift;
+    my ($min, $max) = ($init, $init);
+    for (@_) {
+        $min = $_ if $min &gt; $_;
+        $max = $_ if $max &lt; $_;
+    }
+    return ($min, $max);
+}</pre>
+<p><a href="http://syohex.github.com/graph-gviz/osaka_subway.svg">&#x3053;&#x3093;&#x306A;&#x3082;&#x306E;</a>が生成されます。</p><br />
+<p>詳しい説明はドキュメントを参考にしてください。もし問題があれば <a href="https://github.com/syohex/p5-Graphviz-DSL">Github&#x306E; issue</a>の方までお願いします。</p><p></p>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>DSLを使った Graphvizインタフェース Graphiviz::DSLを紹介しました. Graphvizで何か作成したいという場合の選択肢にしていただければと思います。<br />
+明日の担当は <a href="http://twitter.com/__kan">kan</a>さんです。お楽しみに。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

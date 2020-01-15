@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="tomi-ru">
+        <meta name="author" content="tomi-ru">
+        <title>Acme::Pokemon - Articles Advent Calendar 2010 Acme</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Acme::Pokemon</h1>
+
+        <p>こんにちは<a href="http://e8y.net/blog/">トミール</a>です。</p><p>とつぜんですがわたくしポケモンが大好きです(°∀°) 年齢的にポケモン世代をややずれてるためかポケモン友達まわりに数えるほどしかいないのですが、リアルタイムでやったんじゃなく、まえ小学生に勉強教える仕事してた時期に逆に教え込まれファンになったっていうパターンです。</p><p>大人がやるとポケモン、ほかのRPGと比べてあれ？これでいいの？みたいな簡単さとかご都合主義的なのがあってウケます。ポケモンセンターでは無償で全回復できたり。道路の名前が1番から始まる通し番号だったり。（まあおかげで今何番道路にいるのか聞けばゲームの進捗がわかるという。</p><p>それでもおもしろいのは、クリアの方法が千差万別ってところですね。好きなポケモンみつけてパーティを組むのですが、最大6匹もてる手持ちポケモン、数百匹いるポケモンからどの組み合わせで選んでもいい。しかも同じポケモンでも育て方によって変わってくるので、プレイする人がみんな独自のパーティでゲームクリアするのがいいところですね。ドラクエでもたまに全部遊び人でクリアする、とかやる人いますけど、どのポケモンをつれて歩いてるかが人それぞれでおもしろいです。タイプとか技の組み合わせで<a href="http://www.nicovideo.jp/watch/sm12201716">こんなことも</a>できるみたい。</p><p>あとやっぱり名前をつけて連れてるとかわいい(*￣∀￣*)！　BWは、東京メトロに乗ってるときだけ進めるしばりですすめてるんだけど<a href="http://www.flickr.com/photos/tomi/5189489535/in/set-72157625425385196/">ぼくが連れてるポケモン</a>はこんな感じです。</p><p>今回BWで出てきたポケモンで特にお気に入りなのは「シャンデラ」ですね。これもともとロウソクのポケモンなんだけど、進化するとランプになって、最後シャンデリアポケモンになるという驚きだけどなっとくの進化がいい！　ほのお＋ゴーストタイプなので「だいもんじ」も「シャドーボール」もおぼえます！　同様の理由でポケモン ルビー・サファイアの時は「ダーテング」が好きでした。これ最初ドングリポケモンなんだけど、進化して木になるんじゃなく、足生えて鼻のびて天狗ポケモンになるというちょっとイカした進化がかっこいい！　くさ単体じゃなくて悪なのも使えます。</p><p>みんなもポケモンやるといいよ！</p><p>以上です。</p><br />
+<p>...って、perlの話！</p><p>そんなポケモン好きが高じて、<a href="https://github.com/tomi-ru/Acme-Pokemon">Acme::Pokemon</a>というの作りました。これはポケモンを表すクラスで、Acme::Pokedex（Pokedex＝ポケモン図鑑）から取得します。</p>
+
+    <pre class="code lang-perl">use Acme::Pokedex;
+
+# 全国図鑑番号25を取得
+my $pokemon = Acme::Pokedex-&gt;lookup(id =&gt; 25);
+
+$pokemon-&gt;name; # ピカチュウ
+$pokemon-&gt;type; # [&#39;Electric&#39;]
+
+$pokemon-&gt;id;  # 25    - 全国図鑑No.
+$pokemon-&gt;kid; # 25    - カントー図鑑No.
+$pokemon-&gt;jid; # 22    - ジョウト図鑑No.
+$pokemon-&gt;hid; # 156   - ホウエン図鑑No.
+$pokemon-&gt;sid; # 104   - シンオウ図鑑No.
+$pokemon-&gt;iid; # undef - イッシュ図鑑No.</pre>
+<p>今の所できるのはこれだけです。名前が現在日本語名を返すだけですが、各国の言語に対応させたらCPANにUPするかもしれません。</p><p>上のサンプルでもわかるとおり、ポケモンって例えば同じピカチュウでも図鑑によって番号が違ったりするので意外と役に立つモジュールとなるかもしれません（んなわけないかｗ）。</p><p>これ実は今すすめている<a href="http://e8y.net/blog/2010/10/17/p298.html">とある原稿</a>の中で、例えばテスト系モジュールの使い方書くときのサンプルでなんか適当なクラスが必要になって書いたものなのです。こんな機会もないとスポットライト浴びませんので出してみました。</p><p>使いたいという変な人は以下のようにしてインストールできます。</p>
+
+    <pre class="code">&gt; wget -OAcme-Pokemon.tgz https://github.com/tomi-ru/Acme-Pokemon/tarball/master
+&gt; cpanm Acme-Pokemon.tgz</pre>
+<p>CPANにはすでにポケモン関係のモジュールが1つありました。やはりAcmeなのですが、<a href="http://search.cpan.org/perldoc?Acme::MetaSyntactic">Acme::MetaSyntactic</a>という適当な名前をつくってくれるやつのバリエーションとしてポケモンの名前を使うAcme::MetaSyntactic::pokemonというものです。</p><p>みんなもポケモンやるといいよ！</p><br />
+<p>さて明日は日本最多のacmelist、Yappoさんです。</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

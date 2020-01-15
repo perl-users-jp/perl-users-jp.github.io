@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>Cache::KyotoTycoon - Client library for KyotoTycoon - Articles Advent Calendar 2010 English</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Cache::KyotoTycoon - Client library for KyotoTycoon</h1>
+
+        <p>Cache::KyotoTycoon is a client library for <a href="http://fallabs.com/kyototycoon/">KyotoTycoon</a>.
+KyotoTycoon is pretty fast, stable, and extensible. It's very good cache server for web applications.</p>
+
+<pre><code>use Cache::KyotoTycoon;
+
+my $kt = Cache::KyotoTycoon-&gt;new(host =&gt; '127.0.0.1', port =&gt; 1978);
+$kt-&gt;set('foo' =&gt; bar');
+$kt-&gt;get('foo'); # =&gt; 'bar'
+</code></pre>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

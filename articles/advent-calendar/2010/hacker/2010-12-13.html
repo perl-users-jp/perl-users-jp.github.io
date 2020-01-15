@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>SQL::Makerで動的に SQLを生成する - Articles Advent Calendar 2010 Hacker</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>SQL::Makerで動的に SQLを生成する</h1>
+
+        <p>どうもこんにちは。hacker track がやる気なさすぎるのでもう一回かくよ!というわけで tokuhirom ですこんにちは。こんにちは。</p><p>さて、最近つくった SQL::Maker というモジュールについて紹介します。SQL::Maker は、要は SQL::Abstract みたいなやつです。じゃあなんで SQL::Abstract じゃなくて SQL::Maker なの？ってことになるわけですが、 SQL::Abstract は実績があるし、非常に便利なんですが、いかんせんコードがまじよみづらいっていうかこれよむの無理じゃね!!ってことをおもうので、あたらしくつくったという次第。</p><p>また、SQL::Maker は method chain で SELECT 文を構築する機能もついてます。あらべんり。こんなかんじ↓↓</p>
+
+    <pre class="code lang-perl">my $sql = SQL::Maker::Select−&gt;new()
+                                −&gt;add_select(&#39;foo&#39;)
+                                −&gt;add_select(&#39;bar&#39;)
+                                −&gt;add_select(&#39;baz&#39;)
+                                −&gt;add_from(&#39;table_name&#39;)
+                                −&gt;as_sql;
+# =&gt; &#34;SELECT foo, bar, baz FROM table_name&#34;</pre>
+<p>WHERE 句の生成とかを、すごいがんばって hashref/arrayref のくみわせで表現するのって、馬鹿馬鹿しくね？とおもうので、こんな風に、条件句同士を &や | でつなげられるようにしています。</p>
+
+    <pre class="code lang-perl">my $condition = SQL::Maker::Condition−&gt;new(
+    name_sep   =&gt; &#39;.&#39;,
+    quote_char =&gt; &#39;`&#39;,
+);
+$condition−&gt;add(&#39;foo_id&#39; =&gt; 3);
+$condition−&gt;add(&#39;bar_id&#39; =&gt; 4);
+$sql = $condition−&gt;as_sql(); # (`foo_id`=?) AND (`bar_id`=?)
+@bind = $condition−&gt;bind();  # (3, 4)
+
+# composite and
+my $other = SQL::Maker::Condition−&gt;new(
+    name_sep =&gt; &#39;.&#39;,
+    quote_char =&gt; &#39;`&#39;,
+);
+$other−&gt;add(&#39;name&#39; =&gt; &#39;john&#39;);
+my $comp_and = $condition &amp; $other;
+$sql = $comp_and−&gt;as_sql(); # ((`foo_id`=?) AND (`bar_id`=?)) AND (`name`=?)
+@bind = $comp_and−&gt;bind();  # (3, 4, &#39;john&#39;)</pre>
+<p>もちろんこんなかんじで、SQL::Abstract っぽくもつかえます。</p>
+
+    <pre class="code">my $builder = SQL::Maker−&gt;new();
+
+# SELECT
+($sql, @binds) = $builder−&gt;select($table, \@fields, \%where, \%opt);
+
+# INSERT
+($sql, @binds) = $builder−&gt;insert($table, \%values);
+
+# DELETE
+($sql, @binds) = $builder−&gt;delete($table, \%values);
+
+# UPDATE
+($sql, @binds) = $builder−&gt;update($table, \%set, \%where);</pre>
+<p>あと、plugin 機構もそなえています。SQL::Maker のプラギン機構は非常にシンプル。@EXPORT で定義されている関数が SQL::Maker にはえるだけ。わかりやすい。</p>
+
+    <pre class="code lang-perl">package SQL::Maker::Plugin::InsertMulti;
+our @EXPORT = qw/insert_multi/;
+
+sub insert_multi {
+    ...
+}
+
+1;</pre>
+<p>とまあこんなかんじ。</p><p>拡張しやすいし、つかいやすいとおもう。つかってみてね!</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

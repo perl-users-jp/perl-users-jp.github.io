@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="dukkiedukkie <dukkiedukkie@yahoo.co.jp>">
+        <meta name="author" content="dukkiedukkie <dukkiedukkie@yahoo.co.jp>">
+        <title>Net::eBayで自分が好きなアーティスト作品の出品情報を常時取得する - Articles Advent Calendar 2011 Casual</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Net::eBayで自分が好きなアーティスト作品の出品情報を常時取得する</h1>
+
+        <p>こんにちは！dukkiedukkieです。年の瀬も押し迫ったいい週末ですね。<br />
+掲題からして「フツーにB2CサイトのAPIを利用してセコイことやる話なんじゃね？」と精彩に欠けるお題になっておりますが、本日はその程度のお話です。日曜日ですしね、まったりと。<br />
+かつ、自作モジュールというわけでもなく人様のモジュール。<a href="http://search.cpan.org/~ichudov/Net-eBay-0.55/lib/Net/eBay.pm">http://search.cpan.org/~ichudov/Net-eBay-0.55/lib/Net/eBay.pm</a>、イゴールさんとお呼びすればよろしいでしょうか。</p>
+
+<div class="section">
+    <h4>ネットでお買いもの</h4>
+    <p>いきなり私事になって恐縮なのですが、オッサンPerlerのわたくしはしばしば「筋金入り」のOTAKU系の人物と他人様から認知される機会が多くございます(^^)。自分では至ってフツーだと思っておりますし、「ホンモノのその道の人」と出会う機会もございましたため、その道の人から見れば大したレベルではないと思っているのですが、「ダイコーン3の試写会に中学生のころ（1980年台）に行った」「ジョナス・メカスなどニューヨークの実験映画をたくさん見た」とか、「中学で生まれて初めて行ったコンサートがアラン・ホールズワース」などの話をする度に「筋金入り」とリアクションを戴く機会が多いです。</p><p>さて私は、かれこれ30年ほど中古レコード店にてレコードをジャケ買いし続けているレコード・ジャンキーでもあるわけですが、いやあ、インターネットが拡がって本当に「レコード買い」のスタイルは変わりましたね。。昔は大阪なら吉村レコードやらBIG PINKやらのレコード店を休日や試験明けの日にかけずり回って、”足で”名盤・貴重盤を収集していたのですが、1995年ごろ以降、完全にインターネット上での売買にシフトしてしまいました。普通の在庫を抱えるお店では、不良在庫化してしまうことが恐れ多くて入荷できないようなマイナーな歌姫（女性ボーカルものが大好きで、ロック、ジャズ、クラッシック問わず買い漁るのが私の基本スタイル＝人生です！）の”ひっそりと清楚に佇む”名盤にお目にかかる機会が、本当にインターネットの発展で体感できたのです！！</p>
+
+</div>
+<div class="section">
+    <h4>本当に好きなアーティストの作品を適正価格で入手するために</h4>
+    <p>中古レコードですと、海外の店舗の集合体であるGEMM<a href="http://www.gemm.com/">http://www.gemm.com/</a>を利用する機会が多いですが、eBayも利用します。個人出品などのほうがレア系が豊富だったりしますからね。しかしチンタラと検索窓に好きなアーティスト名をミススペルしたりしながら入力してプライベートを過ごすのも（それはそれで楽しい時間ですが）ちょっとおっくう。なんたって継続運用が厳しい。。。</p><p>で、このモジュールを使ったりするわけです。イゴールさんのサイトには、サンプルスクリプトも転がってる<a href="http://www.net-ebay.org/">http://www.net-ebay.org/</a>ので、「まあ、使えるものは使ってちょこちょこカスタマイズしたらいい」ってノリで。 eBayが自動入札を認めていないので、その点は公に何ともしがたいのですが（笑）、なかなか出会う機会がないレアな歌姫の作品の出品情報取得の継続的な取得のために、上記サンプルスクリプトを利用して、以下のような処理を作ってます。</p>
+
+</div>
+<div class="section">
+    <h4>お気に入りアーティストの出品情報を随時取得</h4>
+    
+    <pre class="code lang-perl">#-----------------------------------------------
+# mail ebay item information of favorite artists
+#-----------------------------------------------
+use strict;
+use warnings;
+use utf8;
+use Email::Sender::Simple qw(sendmail);
+use Email::Simple;
+use Email::Simple::Creator;
+use Data::Recursive::Encode;
+use Encode;
+
+my $search_cmd = &#39;./ebay-search.pl&#39;; #- Igorさんのスクリプト
+#- 探しているアーティストと検索条件（特に金額）を記入
+my $favorite_artists = {
+	#artist		command_opts
+	&#39;ann odell&#39; =&gt; &#39;--maxprice 19.99&#39;,	# rock female vocal
+	&#39;julia guther&#39; =&gt; &#39;--maxprice 9.99&#39;,
+	&#39;liza strike&#39; =&gt; &#39;--maxprice 39.99&#39;,
+	&#39;sue glover&#39; =&gt; &#39;--maxprice 39.99&#39;,
+	&#39;sunny leslie&#39; =&gt; &#39;--maxprice 39.99&#39;,
+	&#39;rosetta hightower&#39; =&gt; &#39;--minprice 30.00 --maxprice 199.99&#39;,
+	&#39;dorothy carless&#39; =&gt; &#39;--maxprice 49.99&#39;,# jazz female vocal
+	&#39;patty mcgovern&#39; =&gt; &#39;--maxprice 39.99&#39;,
+	&#39;norma winstone&#39; =&gt; &#39;--minprice 20.00 --maxprice 99.99&#39;,
+	&#39;barbara moore&#39; =&gt; &#39;--minprice 50.00 --maxprice 99.99&#39;,
+	&#39;janet baker&#39; =&gt; &#39;--minprice 200.00&#39;,	# classic female vocal
+	&#39;kathleen ferrier&#39; =&gt; &#39;--minprice 100.00&#39;,
+};
+my $body = &#39;&#39;;
+for my $favorite ( keys %$favorite_artists ) {
+	my $res = `$search_cmd $favorite_artists-&gt;{$favorite} $favorite`;
+	$body .=  &#34;**$favorite**\n&#34;;
+	$body .= &#34;$res\n&#34;;
+}
+
+my $email = Email::Simple-&gt;create(
+	header =&gt; Data::Recursive::Encode-&gt;encode(
+		&#39;MIME-Header-ISO_2022_JP&#39; =&gt; [
+			To =&gt; &#39;dukkiedukkie@******&#39;,
+			From =&gt; &#39;dukkiedukkie@:****&#39;,
+			Subject =&gt; &#39;eBayの最新出品情報（女性ボーカル）&#39;,
+		]
+	),
+	body =&gt; encode(&#39;iso-2022-jp&#39;, $body ),
+	attributes =&gt; {
+		content_type =&gt; &#39;text/plain&#39;,
+		charset =&gt; &#39;ISO-2022-JP&#39;,
+		encoding =&gt; &#39;7bit&#39;,
+	},
+);
+sendmail($email);</pre>
+<p>お粗末ですが、こんな感じのを書いて、cronで一時間おきに回しておくと。<br />
+別にアーティストでなくても、好きな作家だとか、商品だとかを検索ワードに使用すればそのまま様々な出品情報取得に使えると思います。</p><p>って、これを書いているあいだにもまた2、3品、買ってしまったのですが(^^ゞ。無駄遣いが続いているdukkiedukkieでした！</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>
