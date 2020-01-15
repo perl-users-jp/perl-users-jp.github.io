@@ -5,4 +5,4 @@ clean:
 test:
 	carton install && carton exec -- prove -Ilib -r t
 server:
-	carton exec -- plackup -p 5555 -MPlack::App::Directory -e 'Plack::App::Directory->new({root => "public"})->to_app'
+	carton exec -- plackup -R public/ -p 5555 --host localhost -MPlack::App::Directory -e 'Plack::App::Directory->new({root => "public"})->to_app'
