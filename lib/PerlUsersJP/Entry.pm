@@ -40,7 +40,13 @@ sub BUILDARGS {
 sub _parse_entry {
     my ($file) = @_;
 
+    # TODO: Front Matterをこの辺と合わせたい?
+    #  - https://jekyllrb.com/docs/front-matter/
+    #  - https://gohugo.io/content-management/front-matter/
     my ($raw_meta, $body) = split("\n\n", $file->slurp_utf8, 2);
+    if (!$raw_meta || !$body) {
+        die "Failed to parse entry $file";
+    }
     my $meta = _parse_meta($raw_meta);
 
     return {
