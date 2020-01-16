@@ -173,7 +173,7 @@ sub all_cache_remove_tx {
 }</pre>
 <p>all_cache_txは$txで読み込まれる可能性のあるテンプレートファイルをすべてキャッシュにロードします。その後forkするとCopy On Write的にうれしい感じになると思います。</p><p>また、_all_cache_remove_txは、すべてのコンパイル済みファイルを削除しています。cache => 2でコンパイル済みファイルがあるとインスタンス生成後1回目の呼び出しであっても無条件にコンパイル済みファイルを使用してしまうためこのように最初にすべて削除しています。</p><p>更新のあったファイルに関連するテンプレートのコンパイル済みファイルのみを削除するほうがスマートだと思いますが面倒なのですべてけしているという感じす。</p>
 
-</div>HASH(0x5566cb02c2c0)
+</div>HASH(0x5567e19c4410)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>
