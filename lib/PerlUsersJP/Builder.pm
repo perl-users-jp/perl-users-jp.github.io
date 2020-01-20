@@ -73,8 +73,8 @@ sub build_entry_src_list {
     }
 
     # TODO
+    $self->build_categories($entry_src_list);
     #$self->build_tags(\@entries);
-    #$self->build_category(\@entries);
     #$self->build_sitemap(\@entries);
     #$self->build_atom(\@entries);
 }
@@ -177,9 +177,58 @@ sub build_tags {
     }
 }
 
+sub build_categories {
+    my ($self, $entry_src_list) = @_;
+
+    my %src_by_category;
+    for my $src ($entry_src_list->@*) {
+        my $category = $src->parent;
+        while ($category ne $self->content_dir) {
+            $src_by_category{$category}{$src} = 1;
+            $src      = $category;
+            $category = $src->parent;
+        }
+    }
+
+    for my $category (keys %src_by_category) {
+        my @src_list = keys $src_by_category{$category}->%*;
+        $self->build_category($category, \@src_list);
+    }
+}
+
+
 sub build_category {
+    my ($self, $src_category, $src_list) = @_;
+
+    my $content_dir = $self->content_dir;
+    my $category = $src_category =~ s!$content_dir!!r;
+
+    my $html = $self->_render_string('category.html', {
+        category    => $category,
+        description => "",
+        title => '',
+        entries     => [map {
+            { title => "", href => "$_" }
+        } $src_list->@* ],
+    });
+
+    my $category_dir = $self->public_dir->child($category);
+    my $dest = $category_dir->child('index.html');
+    $category_dir->mkpath;
+    $dest->spew_utf8($html);
+    $self->diag("Created category $dest\n");
+}
+
+sub category_title {
     my ($self, $entries) = @_;
-    ... # TODO
+}
+
+sub category_description {
+    my ($self, $entries) = @_;
+}
+
+sub category_path {
+    my ($self, $entries) = @_;
 }
 
 sub build_sitemap {
