@@ -10,6 +10,7 @@ use Class::Tiny qw(
     description
     author     
     tags       
+
     layout     
     format     
 );
@@ -23,22 +24,32 @@ sub BUILDARGS {
         return {};
     }
 
-    my $format = _detect_format($file);
-    unless ($format) { # file is not entry
+    my $format = _detect_entry_format($file);
+    if (!$format) {
+        # file is not entry
         return {};
     }
+    elsif ($format eq 'html') {
+        my $data = _parse_html_entry($file);
 
-    my $data    = _parse_entry($file);
-    my $tags    = $data->{tags} ? [split ',', $data->{tags}] : [];
+        return {
+            format => $format,
+            title  => $data->{title} // '',
+        }
+    }
+    else {
+        my $data    = _parse_text_entry($file);
+        my $tags    = $data->{tags} ? [split ',', $data->{tags}] : [];
 
-    return {
-        body        => $data->{body},
-        title       => $data->{title} // '',
-        description => $data->{description} // '',
-        author      => $data->{author} // '',
-        tags        => $tags,
-        layout      => $data->{layout},
-        format      => $data->{format} // $format,
+        return {
+            body        => $data->{body},
+            title       => $data->{title} // '',
+            description => $data->{description} // '',
+            author      => $data->{author} // '',
+            tags        => $tags,
+            layout      => $data->{layout},
+            format      => $data->{format} // $format,
+        }
     }
 }
 
@@ -47,7 +58,7 @@ sub exists {
     exists $self->{format}
 }
 
-sub _detect_format {
+sub _detect_entry_format {
     my ($file) = @_;
 
     my ($ext) = $file =~ m!\.([^.]+)$!;
@@ -55,10 +66,22 @@ sub _detect_format {
          : $ext eq 'md'       ? 'markdown'
          : $ext eq 'markdown' ? 'markdown'
          : $ext eq 'txt'      ? 'hatena'
+         : $ext eq 'html'     ? 'html'
          : undef
 }
 
-sub _parse_entry {
+sub _parse_html_entry {
+    my ($file) = @_;
+
+    # TODO
+    my $title = "$file";
+
+    return {
+        title => $title,
+    }
+}
+
+sub _parse_text_entry {
     my ($file) = @_;
 
     # TODO: Front Matterをこの辺と合わせたい?

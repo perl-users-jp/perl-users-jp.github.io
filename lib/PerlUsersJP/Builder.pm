@@ -56,7 +56,6 @@ sub run {
 sub build_static {
     my ($self, $src_list) = @_;
     for my $src ($src_list->@*) {
-
         my $public_dir = $self->to_public($src->parent);
         $public_dir->mkpath if !$public_dir->is_dir;
 
@@ -82,19 +81,29 @@ sub build_entries {
 sub build_entry {
     my ($self, $src) = @_;
 
+    # mkdir
+    my $dest_dir = $self->to_public($src->parent);
+    $dest_dir->mkpath;
+
     my $matter = $self->front_matter($src);
 
-    my $html = $self->_render_string('entry.html', {
-        text        => $self->entry_text($src),
-        title       => $matter->title,
-        subtitle    => $self->entry_subtitle($src),
-        author      => $matter->author,
-        description => $matter->description,
-    });
+    my $dest;
+    if ($matter->format eq 'html') {
+        $dest = $src->copy($dest_dir);
+    }
+    else {
+        my $html = $self->_render_string('entry.html', {
+            text        => $self->entry_text($src),
+            title       => $matter->title,
+            subtitle    => $self->entry_subtitle($src),
+            author      => $matter->author,
+            description => $matter->description,
+        });
 
-    my $name = $src->basename =~ s!\.[^.]+$!.html!r;
-    my $dest = $self->to_public($src->parent)->child($name);
-    $dest->spew_utf8($html);
+        my $name = $src->basename =~ s!\.[^.]+$!.html!r;
+        $dest = $dest_dir->child($name);
+        $dest->spew_utf8($html);
+    }
 
     $self->diag("Created entry $dest\n");
 }
@@ -211,7 +220,7 @@ sub to_public {
 
 sub front_matter {
     my ($self, $src) = @_;
-    return $self->{front_matter}{$src} //= do {
+    return $self->{__front_matter}{$src} //= do {
         PerlUsersJP::FrontMatter->new($src)
     }
 }
