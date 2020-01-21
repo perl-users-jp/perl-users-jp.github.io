@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <meta name="description" content="hide_o_55">
+        <meta name="description" content="">
         <meta name="author" content="hide_o_55">
         <title>Acme::Seclusion::JP - Articles Advent Calendar 2010 Acme</title>
         <link rel="icon" href="/img/favicon.ico">
@@ -24,8 +24,8 @@ use Moose;</pre>
 <p>「舶来品は使わん！」という頑固な攘夷派の方にオススメです。</p><p>今回は、@INCによるモジュールロードのフックでアホなことをしていますが、以下のようにモジュールをロードした際に暗黙的にロードされるモジュールをトレースして、遅延ロード化を検討したりとか、わりと実用的なこともできます。</p>
 
     <pre class="code lang-perl">perl -MPerl6::Say -e &#39;BEGIN{unshift @INC,sub{ say join &#34;\t=&gt;\t&#34;,(caller)[0],do{(my $mod = $_[1]) =~ s!/!::!g;$mod =~ m!(.+)\.pm!}}}use MyModule;&#39;</pre>
-HASH(0x5567e197aea8)
-HASH(0x5567e1907e48)
+HASH(0x55793b5f6420)
+HASH(0x55793b60ac20)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>
