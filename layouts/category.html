@@ -11,8 +11,8 @@
     <body>
         <h1><?= $vars->{category} ?></h1>
         <ul>
-?           for my $entry (@{$vars->{entries}}) {
-            <li><a href="<?= $entry->{href} ?>"><?= $entry->{title} ?></a></li>
+?           for my $file (@{$vars->{files}}) {
+            <li><a href="<?= $file->{href} ?>"><?= $file->{title} ?></a></li>
 ?           }
         </ul>
     </body>

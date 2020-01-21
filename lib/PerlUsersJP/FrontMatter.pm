@@ -1,13 +1,11 @@
-package PerlUsersJP::Entry;
+package PerlUsersJP::FrontMatter;
 use strict;
 use warnings;
 use utf8;
 
-use Path::Tiny ();
-
 use Class::Tiny qw(
-    file
     body       
+
     title      
     description
     author     
@@ -20,17 +18,16 @@ sub BUILDARGS {
     my ($class, $file) = @_;
 
     die "required 'file'" unless $file;
-    $file = ref $file ? $file : Path::Tiny::path($file);
 
-    my $data = _parse_entry($file);
-    my $tags = $data->{tags} ? [split ',', $data->{tags}] : [];
+    my $content = ref $file && $file->can('slurp_utf8') ? $file->slurp_utf8 : $file;
+    my $data    = _parse_entry($content);
+    my $tags    = $data->{tags} ? [split ',', $data->{tags}] : [];
 
     return {
-        file        => $file,
         body        => $data->{body},
-        title       => $data->{title},
-        description => $data->{description},
-        author      => $data->{author},
+        title       => $data->{title} // '',
+        description => $data->{description} // '',
+        author      => $data->{author} // '',
         tags        => $tags,
         layout      => $data->{layout},
         format      => $data->{format},
@@ -38,14 +35,14 @@ sub BUILDARGS {
 }
 
 sub _parse_entry {
-    my ($file) = @_;
+    my ($content) = @_;
 
     # TODO: Front Matterをこの辺と合わせたい?
     #  - https://jekyllrb.com/docs/front-matter/
     #  - https://gohugo.io/content-management/front-matter/
-    my ($raw_meta, $body) = split("\n\n", $file->slurp_utf8, 2);
+    my ($raw_meta, $body) = split("\n\n", $content, 2);
     if (!$raw_meta || !$body) {
-        die "Failed to parse entry $file";
+        die "Failed to parse entry: $content";
     }
     my $meta = _parse_meta($raw_meta);
 

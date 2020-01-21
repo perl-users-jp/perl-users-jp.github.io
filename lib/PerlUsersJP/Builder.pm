@@ -4,7 +4,7 @@ use warnings;
 use utf8;
 use feature qw(state);
 
-use PerlUsersJP::Entry;
+use PerlUsersJP::FrontMatter;
 
 use Path::Tiny ();
 use Date::Format ();
@@ -48,90 +48,71 @@ sub run {
     }
 
     $self->diag("Build Start\n");
-    $self->build_static_src_list(\@static);
-    $self->build_entry_src_list(\@entries);
+    $self->build_static(\@static);
+    $self->build_entries(\@entries);
     $self->diag("Build Finished\n");
 }
 
-sub build_static_src_list {
-    my ($self, $static_src_list) = @_;
-    for my $src ($static_src_list->@*) {
-        $self->build_dest_dir($src);
-        $self->build_static($src);
+sub build_static {
+    my ($self, $src_list) = @_;
+    for my $src ($src_list->@*) {
+
+        my $public_dir = $self->to_public($src->parent);
+        $public_dir->mkpath if !$public_dir->is_dir;
+
+        my $dest = $src->copy($public_dir);
+        $self->diag("Created static $dest\n");
     }
 }
 
-sub build_entry_src_list {
-    my ($self, $entry_src_list) = @_;
-    my @entries;
-    for my $src ($entry_src_list->@*) {
-        my $entry = PerlUsersJP::Entry->new($src);
-        push @entries => $entry;
+sub build_entries {
+    my ($self, $src_list) = @_;
 
-        $self->build_dest_dir($src);
-        $self->build_entry($entry);
+    for my $src ($src_list->@*) {
+        $self->build_entry($src);
     }
 
+    $self->build_categories($src_list);
     # TODO
-    $self->build_categories($entry_src_list);
     #$self->build_tags(\@entries);
     #$self->build_sitemap(\@entries);
     #$self->build_atom(\@entries);
 }
 
-sub build_dest_dir {
-    my ($self, $src) = @_;
-    my $dest = $self->dest_dir($src);
-    if (!$dest->is_dir) {
-        $dest->mkpath;
-
-        $self->diag("Created dest_dir $dest\n");
-    }
-}
-
-sub build_static {
-    my ($self, $src) = @_;
-    my $dest_dir = $self->dest_dir($src);
-    my $dest = $src->copy($dest_dir);
-
-    $self->diag("Created static $dest\n");
-}
-
 sub build_entry {
-    my ($self, $entry) = @_;
+    my ($self, $src) = @_;
+
+    my $matter = $self->front_matter($src);
 
     my $html = $self->_render_string('entry.html', {
-        text        => $self->entry_text($entry),
-        title       => $self->entry_title($entry),
-        subtitle    => $self->entry_subtitle($entry),
-        author      => $self->entry_author($entry),
-        description => $self->entry_author($entry),
+        text        => $self->entry_text($src),
+        title       => $matter->title,
+        subtitle    => $self->entry_subtitle($src),
+        author      => $matter->author,
+        description => $matter->description,
     });
 
-    my $name = $entry->file->basename =~ s!\.[^.]+$!.html!r;
-    my $dest = $self->dest_dir($entry->file)->child($name);
+    my $name = $src->basename =~ s!\.[^.]+$!.html!r;
+    my $dest = $self->to_public($src->parent)->child($name);
     $dest->spew_utf8($html);
 
     $self->diag("Created entry $dest\n");
 }
 
 sub entry_text {
-    my ($self, $entry) = @_;
-    my $format = $entry->format // $self->detect_format($entry->file);
-    my $text   = $self->format_text($entry->body, $format);
+    my ($self, $src) = @_;
+    my $matter = $self->front_matter($src);
+    my $format = $matter->format // $self->detect_format($src);
+    my $text   = $self->format_text($matter->body, $format);
     return $text;
 }
 
-sub entry_title {
-    my ($self, $entry) = @_;
-    my $title = $entry->title // '';
-}
-
 sub entry_subtitle {
-    my ($self, $entry) = @_;
+    my ($self, $src) = @_;
 
+    my $matter      = $self->front_matter($src);
     my $content_dir = $self->content_dir;
-    my $parent      = $entry->file->parent;
+    my $parent      = $src->parent;
 
     my $subtitle;
     if ($parent eq $content_dir) {
@@ -147,55 +128,26 @@ sub entry_subtitle {
     return $subtitle;
 }
 
-sub entry_author {
-    my ($self, $entry) = @_;
-    return $entry->author // '';
-}
 
-sub entry_description {
-    my ($self, $entry) = @_;
-    return $entry->description // '';
-}
-
-sub build_tags {
-    my ($self, $entries) = @_;
-    my %entries;
-    for my $entry ($entries->@*) {
-        for my $tag ($entry->tags->@*) {
-            push $entries{$tag}->@* => $entry
-        }
-    }
-
-    for my $tag (keys %entries) {
-        my $entries = $entries{$tag};
-        my $html     = $self->_render_string('tag.html', {
-            entries => $entries
-        });
-
-        my $dest = $self->dest_root_dir->child('tags', $tag, 'index.html');
-        $dest->spew_utf8($html);
-    }
-}
 
 sub build_categories {
-    my ($self, $entry_src_list) = @_;
+    my ($self, $src_list) = @_;
 
-    my %src_by_category;
-    for my $src ($entry_src_list->@*) {
+    my %src_list_map;
+    for my $src ($src_list->@*) {
         my $category = $src->parent;
         while ($category ne $self->content_dir) {
-            $src_by_category{$category}{$src} = 1;
+            $src_list_map{$category}{$src} = 1;
             $src      = $category;
             $category = $src->parent;
         }
     }
 
-    for my $category (keys %src_by_category) {
-        my @src_list = keys $src_by_category{$category}->%*;
+    for my $category (keys %src_list_map) {
+        my @src_list = keys $src_list_map{$category}->%*;
         $self->build_category($category, \@src_list);
     }
 }
-
 
 sub build_category {
     my ($self, $src_category, $src_list) = @_;
@@ -206,9 +158,12 @@ sub build_category {
     my $html = $self->_render_string('category.html', {
         category    => $category,
         description => "",
-        title => '',
-        entries     => [map {
-            { title => "", href => "$_" }
+        title       => '',
+        files       => [map {
+            my $matter = $self->front_matter($_);
+            my $title  = $matter ? $matter->title : $_;
+            my $href   = ""; # TODO
+            { title => $title, href => $href }
         } $src_list->@* ],
     });
 
@@ -227,8 +182,9 @@ sub category_description {
     my ($self, $entries) = @_;
 }
 
-sub category_path {
+sub build_tags {
     my ($self, $entries) = @_;
+    ... # TODO
 }
 
 sub build_sitemap {
@@ -246,17 +202,27 @@ sub diag {
     print $msg;
 }
 
-sub dest_dir {
+sub to_public {
     my ($self, $src) = @_;
     my $content_dir = $self->content_dir;
-    my $dir         = $src->parent =~ s!$content_dir!!r;
-    my $dest_dir    = $dir ? $self->public_dir->child($dir) : $self->public_dir;
-    return $dest_dir
+    my $dir         = $src =~ s!^$content_dir!!r;
+    my $public      = $dir ? $self->public_dir->child($dir) : $self->public_dir;
+    return $public
+}
+
+sub front_matter {
+    my ($self, $src) = @_;
+    return unless $self->is_entry($src);
+    return $self->{front_matter}{$src} //= do {
+        PerlUsersJP::FrontMatter->new($src)
+    }
 }
 
 sub is_entry {
     my ($self, $src) = @_;
-    return !!$self->detect_format($src)
+    return $self->{is_entry}{$src} //= do {
+        !!$self->detect_format($src)
+    }
 }
 
 sub is_static {
