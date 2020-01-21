@@ -19,8 +19,16 @@ sub BUILDARGS {
 
     die "required 'file'" unless $file;
 
-    my $content = ref $file && $file->can('slurp_utf8') ? $file->slurp_utf8 : $file;
-    my $data    = _parse_entry($content);
+    unless (ref $file && $file->is_file) {
+        return {};
+    }
+
+    my $format = _detect_format($file);
+    unless ($format) { # file is not entry
+        return {};
+    }
+
+    my $data    = _parse_entry($file);
     my $tags    = $data->{tags} ? [split ',', $data->{tags}] : [];
 
     return {
@@ -30,19 +38,35 @@ sub BUILDARGS {
         author      => $data->{author} // '',
         tags        => $tags,
         layout      => $data->{layout},
-        format      => $data->{format},
+        format      => $data->{format} // $format,
     }
 }
 
+sub exists {
+    my $self = shift;
+    exists $self->{format}
+}
+
+sub _detect_format {
+    my ($file) = @_;
+
+    my ($ext) = $file =~ m!\.([^.]+)$!;
+    return !$ext              ? undef
+         : $ext eq 'md'       ? 'markdown'
+         : $ext eq 'markdown' ? 'markdown'
+         : $ext eq 'txt'      ? 'hatena'
+         : undef
+}
+
 sub _parse_entry {
-    my ($content) = @_;
+    my ($file) = @_;
 
     # TODO: Front Matterをこの辺と合わせたい?
     #  - https://jekyllrb.com/docs/front-matter/
     #  - https://gohugo.io/content-management/front-matter/
-    my ($raw_meta, $body) = split("\n\n", $content, 2);
+    my ($raw_meta, $body) = split("\n\n", $file->slurp_utf8, 2);
     if (!$raw_meta || !$body) {
-        die "Failed to parse entry: $content";
+        die "Failed to parse entry: $file";
     }
     my $meta = _parse_meta($raw_meta);
 

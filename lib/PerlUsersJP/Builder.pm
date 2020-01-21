@@ -110,7 +110,6 @@ sub entry_text {
 sub entry_subtitle {
     my ($self, $src) = @_;
 
-    my $matter      = $self->front_matter($src);
     my $content_dir = $self->content_dir;
     my $parent      = $src->parent;
 
@@ -161,7 +160,7 @@ sub build_category {
         title       => '',
         files       => [map {
             my $matter = $self->front_matter($_);
-            my $title  = $matter ? $matter->title : $_;
+            my $title  = $matter->exists ? $matter->title : $_;
             my $href   = ""; # TODO
             { title => $title, href => $href }
         } $src_list->@* ],
@@ -212,7 +211,6 @@ sub to_public {
 
 sub front_matter {
     my ($self, $src) = @_;
-    return unless $self->is_entry($src);
     return $self->{front_matter}{$src} //= do {
         PerlUsersJP::FrontMatter->new($src)
     }
@@ -220,25 +218,12 @@ sub front_matter {
 
 sub is_entry {
     my ($self, $src) = @_;
-    return $self->{is_entry}{$src} //= do {
-        !!$self->detect_format($src)
-    }
+    $self->front_matter($src)->exists
 }
 
 sub is_static {
     my ($self, $src) = @_;
     return !$self->is_entry($src)
-}
-
-sub detect_format {
-    my ($self, $src) = @_;
-
-    my ($ext) = $src =~ m!\.([^.]+)$!;
-    return !$ext              ? undef
-         : $ext eq 'md'       ? 'markdown'
-         : $ext eq 'markdown' ? 'markdown'
-         : $ext eq 'txt'      ? 'hatena'
-         : undef
 }
 
 sub format_text {
