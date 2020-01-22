@@ -165,14 +165,26 @@ sub build_category {
 
     my $html = $self->_render_string('category.html', {
         category    => $category,
-        description => "",
-        title       => '',
+        description => $category,
+        title       => $category,
         files       => [map {
-            my $matter = $self->front_matter($_);
-            my $title  = $matter->exists ? $matter->title : $_;
-            my $href   = ""; # TODO
+            my $file = Path::Tiny::path($_);
+            my $matter = $self->front_matter($file);
+            my ($basename, $title, $href);
+            if ($matter->exists) {
+                my $name = $file->basename =~ s!\.[^.]+$!.html!r;
+
+                $basename = $file->basename;
+                $title = $matter->title;
+                $href = sprintf('%s/%s', $category, $name);
+            }
+            else {
+                $basename = $file->basename;
+                $title = $basename . '/';
+                $href = sprintf('%s/%s', $category, $basename);
+            }
             { title => $title, href => $href }
-        } $src_list->@* ],
+        } sort { $a cmp $b } $src_list->@* ],
     });
 
     my $category_dir = $self->public_dir->child($category);

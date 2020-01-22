@@ -74,7 +74,7 @@ sub _parse_html_entry {
     my ($file) = @_;
 
     # TODO
-    my $title = "$file";
+    my $title = $file->basename;
 
     return {
         title => $title,
