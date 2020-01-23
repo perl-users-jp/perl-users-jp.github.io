@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>カラムの定義を使いまわす2 - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">カラムの定義を使いまわす2 - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">カラムの定義を使いまわす2<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/data-model/18.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/data-model/18.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<h3> はじめに</h3>
+
+<p>昨日は dann さんによる Memcached Protocol 向けのドライバの紹介を書いていただきました。 dann++</p>
+
+<p>さて今日は一昨日の続きとして Column Sugar の続きを紹介しようと思います。</p>
+</div>
+<div class="section">
+<h3> カラム定義を再利用可能に</h3>
+
+<p>前回のカラム定義では、特定のスキーマ定義クラスの中で定義されてしまうので、他のクラスから使いたい時には使えません。</p>
+
+<p>例えば MyDiary.pm の中に以下のような定義を行うと</p>
+
+<pre>
+column_sugar 'diary.id'
+    =&gt; int =&gt; {
+        required =&gt; 1,
+        unsigned =&gt; 1,
+    };
+
+install_model diary =&gt; schema {
+    key 'id';
+    index user =&gt; [qw/ user_id id /];
+
+    column 'diary.id';
+    column 'user.id';
+};
+</pre>
+
+<p>下記のようなエラーが発生して実行が停止しています。</p>
+
+<pre>
+$ perl -MMyDiary
+Undefined column of 'user.id' at example/MyDiary.pm line 27
+</pre>
+
+<p>これは use MyBookmark してしまえば、 MyBookmark.pm の中で定義されている user.id が利用出来るのですが、もし MyBookmark で定義したテーブルを使わない時は無駄になってしまいます。</p>
+
+<p>そういう時はカラム定義を外出ししてあげて、他のクラスからも再利用可能にしてあげる事ができます。</p>
+
+<p>例えば Columns.pm といった形で以下のようにコードを書きます。</p>
+
+<pre>
+package Columns;
+use strict;
+use warnings;
+use Data::Model::Schema sugar =&gt; 'mycolumns';
+
+column_sugar 'user.id'
+    =&gt; int =&gt; {
+        required =&gt; 1,
+        unsigned =&gt; 1,
+    };
+
+column_sugar 'diary.id'
+    =&gt; int =&gt; {
+        required =&gt; 1,
+        unsigned =&gt; 1,
+    };
+
+column_sugar 'global.epoch'
+    =&gt; int =&gt; {
+        required =&gt; 1,
+        unsigned =&gt; 1,
+    };
+
+1;
+</pre>
+
+<p>MyBookmark.pm と MyDiary.pm で定義したものを全部こっちに移動しました。</p>
+
+<p>use Data::Model::Schema する時に sugar =&gt; sugar_name というオプションを与えてるのがポイントです。</p>
+
+<p>このオプションを与える事で、複数の column_sygar 定義での定義名の衝突が防げるようになります。</p>
+<p>デフォルトの sugar name としては default がしようされています。</p>
+
+<p>sugar name をデフォルトから変更したので MyBookmark.pm と MyDiary.pm の use Data::Model::Schema に対してもオプションを変えてあげる必要があります。</p>
+
+<pre>
+package MyBookmark;
+use strict;
+use warnings;
+use base 'Data::Model';
+use Data::Model::Schema sugar =&gt; 'mycolumns';
+use Data::Model::Mixin modules =&gt; ['+MyBookmark::Mixin::Count', 'FindOrCreate'];
+use Columns;
+</pre>
+
+<pre>
+package MyDiary;
+use strict;
+use warnings;
+use base 'Data::Model';
+use Data::Model::Schema sugar =&gt; 'mycolumns';
+use Columns;
+</pre>
+
+<p>column sugar 定義クラスで mycolumns として定義したので、これを使う側のスキーマ定義クラスでも mycolumns をしていします。</p>
+
+<p>またちゃんと use Columns; として Columns.pm をロードしておく事も重要です。</p>
+</div>
+<div class="section">
+<h3> まとめ</h3>
+
+<p>本日は、ある程度の規模の時に便利になってくる Column Sugar のライブラリ化についての紹介を行いました。</p>
+
+<p>明日は Column Sugar の最後のトピックの Column Alias との連携について書きます。</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/data-model/18.html">Mon, 21 Dec 2009 07:37:02 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

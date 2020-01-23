@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>総括 #25 - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">総括 #25 - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">総括 #25<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/25.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/25.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>こんにちわ！こんにちわ！nekokakです！</p>
+<p>アドベントカレーンダー達成しました！</p>
+<p>ありがとうございます。</p>
+<p>これでかんかんに焼肉をおごってもらえます！</p>
+
+<p>本日はアドベントカレンダー最終日ということで、コードレベルの話から離れて</p>
+<p>総括的な話をしてみようかと思います。</p>
+
+<p>まず、今回のアドベントカレンダーでDBIx::Skinnyに興味を持った方は</p>
+<p>ぜひ一度試してみてください！</p>
+<p>わからないことはメールでもircでも可能な限り手厚くフォローします。</p>
+
+<p>irc: dbix-skinny@irc.perl.org</p>
+<p>mail: nekokak+skinny _at_ gmail.com</p>
+
+<p>どうぞよろしくです。</p>
+
+<p>いままでDBIx::Skinnyの話しをするときに引き合いでDBIx::Classを出すことが多かったです。</p>
+<p>（DBICはパフォーマンスがでないとか）</p>
+<p>DBICを比較対象に出すことが多かったのは私がもともとDBICを使い倒していたユーザで、</p>
+<p>色々と不満に思うことがおおかったからです。</p>
+<p>ただ、DBICは素晴らしいORMだと思っています。それはDBIx::Skinnyを作った今でも思っています。</p>
+
+<p>DBICのドキュメントの充実ぶりや、世界のPerlHackerによるメンテナスが行われており</p>
+<p>多くのユーザがいます。これはある種の安心感があります。</p>
+
+<p>もし今あなたが、DBICを仕事でつかっており、仕事上でDBICに問題点を感じないのであれば</p>
+<p>無理にDBIx::Skinnyを使う必要はないと思っています。</p>
+<p>もちろん試してみては欲しいところですが、無理やり切り替えてやろうとかは考えない方が良いでしょう。</p>
+<p>(DBIx::Skinnyがすごすぎてつかいたい！とか思ってる場合は別ですが）</p>
+<p>DBICの問題点を感じないのにDBIx::Skinnyに切り替えるメリットはあまりありませんよ！</p>
+<p>移行コストが高く付くだけです！</p>
+
+<p>Perlには他にも素晴らしいORMがあります。</p>
+<p>Data::Model Rose::DB::Object Class::DBI Data::ObjectDriver Fey::ORM etc...</p>
+<p>その他の素晴らしいORMも色々使ってみてください。</p>
+<p>それぞれに特徴があります。</p>
+<p>その特徴を見極めた上であなたが本当に必要なORMを選択すればよいと思います。</p>
+<p>ORMが必要ないと判断する人もいるでしょう。</p>
+
+<p>ORMは必要ないけどSQLジェネレータは必要だから FeyはつかうとかRose::DBはつかうとかSQL::Abstractはつかうとか</p>
+<p>そういう選択肢もありえます。</p>
+
+<p>もっともDBI直接でいいじゃないかと言う人もいると思います。</p>
+<p>DBI自体がORMだ！と言う人もいます。</p>
+
+<p>CPANをめくればこんなに素晴らしプロダクトが一杯あります。</p>
+<p>それをつまみ食いせずに眺めてるだけなんてもったいなくないですか？</p>
+
+<p>ぜひ色々ためして、あなたが本当に必要とするプロダクトを選んでください。</p>
+
+<p>そして、あなたがDBIx::Skinnyを選んでくれたらそれはとても素晴らしい私へのクリスマスプレゼントになるでしょう。</p>
+
+<p>25日間ありがとうございました。</p>
+
+<p>JPerl Advent Calendar 2009の発起人id:tokuhirom</p>
+<p>JPerl Advent Calendarのコンテンツを置くサバーを用意してくれたid:yappo</p>
+<p>DBIx::Skinnyのアドベントカレンダーを実行するきっかけになったのもyappoさんのおかげです。</p>
+<p>また、DBIx::Skinnyのアドベントカレンダーを手伝ってくれた</p>
+<p>id:walf443 id:daijirow id:studio-m(nekoya)</p>
+<p>のみなさん。</p>
+<p>本当にありがとうございました！</p>
+
+<p>Merry Christmas</p>
+
+<p>have a nice skinny days!:)</p>
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/dbix-skinny/25.html">Fri, 25 Dec 2009 00:55:01 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+

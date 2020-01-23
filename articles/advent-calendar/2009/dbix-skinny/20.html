@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Schemaファイルのメンテナンスについて #20 - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Schemaファイルのメンテナンスについて #20 - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Schemaファイルのメンテナンスについて #20<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/20.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/20.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>こんにちは。<a href="http://wassr.jp/">モバイルファクトリー</a>のよしみ、こと、<a href="http://d.hatena.ne.jp/walf443/">id:walf443</a>です。</p>
+<p>20日目は、DBIx::SkinnyのSchemaファイルのメンテナンスについてです。</p>
+
+<p>DBIx::Skinnyで共同開発してるときに、他の人がschemaが変わるような変更をあげたときに、手元のソースを最新にすると、</p>
+<p>Schemaファイルは新しいのに、開発用のDBのSchemaが古いままということがままあります。</p>
+
+<p>どこが変わったかは、コミットログを追えばだいたいはわかるんですが、ちゃんと直ったか確認するのはめんどうです。</p>
+
+<p>ということでテストを書きましょう。</p>
+
+<p>私はMySQLを使っているので、こんな感じでチェックするテストスクリプトを書いてます。</p>
+
+<pre>
+use strict;
+use warnings;
+use Proj::DB; # is a DBIx::Skinny.
+use Data::Dumper;
+use Test::More;
+use YAML::XS;
+use Text::Diff;
+
+# SkinnyのSchemaとDBのSchemaの整合性をチェックするやつ
+
+my $base = Proj::DB;
+my $skinny_schema = $base-&gt;schema-&gt;schema_info;
+my $skinny_table = {};
+{
+    for my $table ( sort keys %{ $skinny_schema } ) {
+        $skinny_table-&gt;{$table} = [ sort @{ $skinny_schema-&gt;{$table}-&gt;{columns} } ];
+    }
+}
+
+$base-&gt;connect;
+my $dbh = $base-&gt;dbh;
+my $db_table = {};
+{
+    for my $table ( $dbh-&gt;tables ) {
+        # $table is like "table`.`column`".
+        $table =~ s/^.+\.`(.+)`$/$1/;
+
+        my $sth = $dbh-&gt;prepare(qq{ SHOW COLUMNS FROM $table });
+        $sth-&gt;execute();
+        my @columns;
+        while ( my $row = $sth-&gt;fetchrow_hashref ) {
+            push @columns, $row-&gt;{Field};
+        }
+        $db_table-&gt;{$table} = [ sort @columns ];
+    }
+
+}
+
+for my $table ( keys %{ $skinny_schema }) {
+    my $result = Text::Diff::diff(\YAML::XS::Dump($db_table-&gt;{$table}), \YAML::XS::Dump($skinny_table-&gt;{$table}) , {
+        FILENAME_A =&gt; "db schema", FILENAME_B =&gt; "skinny schema",
+    });
+    ok(!$result, "$base schema $table table test" )
+        or diag($result);
+}
+
+done_testing();
+
+</pre>
+
+<p>他には、<a href="http://github.com/nekoya/p5-dbix-skinny-schema-loader">DBIx::Skinny::Schema::Loader</a>というやつを使う方法もありますが、それはまた別の回があるそうです。</p>
+
+<p>have a nice skinny days!:)</p>
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/dbix-skinny/20.html">Sun, 20 Dec 2009 00:20:02 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+

@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>プロファイリングについて #11 - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">プロファイリングについて #11 - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">プロファイリングについて #11<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/11.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/11.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>こんにちわ！nekokakです！</p>
+<p>十一日目はDBIx::SkinnyでのSQLプロファイリングにつての考察です。</p>
+
+<p>DBIx::Skinnyではsearch_by_sqlメソッドなどで複雑なSQLは生で書くことを推奨しています。</p>
+<p>ORMの機能で複雑なhashrefをくみたてたり、</p>
+<p>いろいろメソッドを呼び出して値を設定していく方法よりも、</p>
+<p>生でSQLが書かれている方が可読性が上がるからです。</p>
+<p>私はそう考えます。</p>
+
+<p>ORMの利点としてはバックエンドのRDBMSを意識しなくていいというのがあげられますが、</p>
+<p>ぶっちゃけそんなことたーどうでもいいです。</p>
+<p>MySQLを使ってる人が急にポスグレでいくぜ！となって、</p>
+<p>MySQL依存なクエリを生で書いてるから動かねーとかないですよね？</p>
+<p>そんな酔っぱらいはどうでもいいです。</p>
+
+<p>という冗談はさておき、search_by_sqlで生SQLを各場合は、クエリの最適化を行うのは用意ですね。</p>
+
+<pre>
+$db-&gt;search_by_sql('SELECT * FROM user');
+</pre>
+
+<p>と、SQLがみえてるので、ちゃちゃっとEXPLAINなどをかければいいと思います。</p>
+
+<p>問題はormで生成したSQLをどのようにプロファイリングするかチューニングするかです。</p>
+<p>まぁ、チューニングが必要なクエリはormで発行しないように。</p>
+<p>で終わりでもいいんですが、１つの処理でどれだけのクエリが発行されるかのクエリ発行回数はみたかったりするでしょう。</p>
+<p>またresultsetメソッドを使う場合なんかはインクリメンタルにクエリをくみたてるのであとで実際にどのようなクエリを実行したかをみたくなるでしょう。</p>
+
+<p>DBIx::Skinnyでは発行したクエリを後から参照することができますので</p>
+<p>その機能をつかうといいでしょう。</p>
+
+<pre>
+# 実験なので実際にファイルをつくらずメモリ上で試す
+# DBコネクションの作成
+my $db = Proj::DB-&gt;new({dsn =&gt; 'dbi:SQLite:'});
+# 実験用テーブルを作成
+$db-&gt;do(q{
+    create table user (
+        id       INTEGER PRIMARY KEY AUTOINCREMENT,
+        name     TEXT    NOT NULL,
+        birth_on DATE
+    )
+});
+my $row = $db-&gt;create('user',{name =&gt; 'nekokak'});
+$db-&gt;update('user',{name =&gt; 'yappo'}, {id =&gt; $row-&gt;id});
+$row = $db-&gt;search('user', {name =&gt; 'yappo'})-&gt;first;
+$row = $db-&gt;single('user', {id =&gt; 1});
+$db-&gt;delete('user',{id =&gt;1});
+
+# query log を出力する
+use Data::Dumper;
+warn Dumper $db-&gt;profiler-&gt;{query_log};
+</pre>
+
+<p>このようなrun.plというプログラムがあるとします。これを、</p>
+
+<pre>
+SKINNY_PROFILE=1 perl ./run.pl
+</pre>
+
+<p>と実行するだけです。</p>
+<p>すると以下のように出力されます。</p>
+
+<pre>
+$VAR1 = [
+          'create table user ( id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, birth_on DATE )',
+          'INSERT INTO user (`name`) VALUES (?) :binds nekokak',
+          'SELECT id, name, birth_on FROM user WHERE (id = ?) :binds 1',
+          'UPDATE user SET `name` = ? WHERE (id = ?) :binds yappo, 1',
+          'SELECT id, name, birth_on FROM user WHERE (name = ?) :binds yappo',
+          'SELECT id, name, birth_on FROM user WHERE (id = ?) LIMIT 1 :binds 1',
+          'DELETE FROM user WHERE (id = ?) :binds 1'
+        ];
+</pre>
+
+<p>発行したSQLとbindした値が一緒にでます。</p>
+<p>こうすればどのようなSQLを実際に実行したのかわかるようになるので、</p>
+<p>無駄をさがしやすいですね！</p>
+
+<p>明日はDBIx:Skinny::Mixinについてやろうとおもいます。</p>
+
+<p>have a nice skinny days!:)</p>
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/dbix-skinny/11.html">Sat, 12 Dec 2009 11:44:04 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+

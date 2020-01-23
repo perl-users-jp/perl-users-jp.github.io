@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>install and simple usage #02 - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">install and simple usage #02 - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">install and simple usage #02<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/02.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/02.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>こんにちわ！nekokakです！</p>
+<p>二日目は早速DBIx::Skinnyを使ってみましょう。</p>
+</div>
+<div class="section">
+<h3> install</h3>
+
+<p>まずはinstallしないと何もできませんね。</p>
+<p>という事でまずはお使いの環境にDBIx::Skinnyをインストールします。</p>
+
+<p>installはCPANからも出来ますし、githubからも可能です。</p>
+
+<p>CPAN: <a href="http://search.cpan.org/dist/DBIx-Skinny/">http://search.cpan.org/dist/DBIx-Skinny/</a></p>
+
+<pre>
+$ cpan DBIx::Skinny
+</pre>
+
+<p>github: <a href="http://github.com/nekokak/p5-dbix-skinny">http://github.com/nekokak/p5-dbix-skinny</a></p>
+
+<pre>
+$ git clone git://github.com/nekokak/p5-dbix-skinny.git
+$ cd p5-dbix-skinny
+$ perl Makefile.PL
+$ make install
+</pre>
+
+<p>これだけです。</p>
+<p>DBIx::Skinnyはなるべく依存モジュールが増えないように作っています。</p>
+<p>最近Mooseとかが流行ってますが、全く必要ないのでつかっていません:)</p>
+
+<p>installで躓くことはないとは思いますが、なにかあれば遠慮なく聞いてください。</p>
+</div>
+<div class="section">
+<h3> simple usage</h3>
+
+<p>installが済んだら実際に使ってみましょう。</p>
+<p>とりあえず細かいことを気にせずに雰囲気をつかんでもらえるといいと思います。</p>
+
+<p>今回のサンプルコードは</p>
+<p><a href="http://github.com/nekokak/p5-dbix-skinny-sample/tree/master/advent2009-demo/02/">http://github.com/nekokak/p5-dbix-skinny-sample/tree/master/advent2009-demo/02/</a></p>
+<p>に用意してありますので参考にどうぞ。</p>
+
+<p>まず、試すためのテーブルを用意します。</p>
+
+<pre>
+create table user (
+    id       INTEGER PRIMARY KEY AUTOINCREMENT,
+    name     TEXT    NOT NULL,
+    birth_on DATE
+);
+</pre>
+
+<p>用意したuserテーブルを定義するクラスを作成します。</p>
+
+<pre>
+package Proj::DB;
+use DBIx::Skinny;
+1;
+
+package Proj::DB::Schema;
+use DBIx::Skinny::Schema;
+
+install_table user =&gt; schema {
+    pk 'id';
+    columns qw/id name birth_on/;
+};
+1;
+</pre>
+
+<p>次に定義したuserテーブルに対してinsert/update/select/deleteを実行してみます。</p>
+
+<pre>
+use strict;
+use warnings;
+use Proj::DB;
+
+# 実験なので実際にファイルをつくらずメモリ上で試す
+# DBコネクションの作成
+my $db = Proj::DB-&gt;new({dsn =&gt; 'dbi:SQLite:'});
+# 実験用テーブルを作成
+$db-&gt;do(q{
+    create table user (
+        id       INTEGER PRIMARY KEY AUTOINCREMENT,
+        name     TEXT    NOT NULL,
+        birth_on DATE
+    )
+});
+
+# INSERT INTO user (name), VALUES ('nekokak');
+# を実行
+my $row = $db-&gt;create('user',{name =&gt; 'nekokak'});
+print $row-&gt;id, "\n";   # print 1
+print $row-&gt;name, "\n"; # print 'nekokak'
+
+# UPDATE user set name = 'yappo' WHERE id = 1;
+# を実行
+# $row-&gt;update({name =&gt; 'yappo'});でも同じ
+$db-&gt;update('user',{name =&gt; 'yappo'}, {id =&gt; $row-&gt;id});
+
+# SELECT * FROM user WHERE name = 'nekokak'
+# を実行
+$row = $db-&gt;search('user', {name =&gt; 'yappo'})-&gt;first;
+print $row-&gt;id, "\n";   # print 1
+print $row-&gt;name, "\n"; # print 'yappo'
+
+# SELECT * FROM user WHERE id = 1 limit 1;
+# を実行
+$row = $db-&gt;single('user', {id =&gt; 1});
+print $row-&gt;id, "\n";   # print 1
+print $row-&gt;name, "\n"; # print 'yappo'
+
+# DELETE FROM user WHERE id = 1;
+# を実行
+$db-&gt;delete('user',{id =&gt;1});
+</pre>
+
+<p>このようにDBICでつかってたような書き方でDBIx::Skinnyを動かす事も可能です。</p>
+<p>細かいインタフェースは異なるのでまるっきり一緒というわけではありませんし、</p>
+<p>DBICでは存在するfindメソッドがDBIx::Skinnyには無かったり、同じメソッドが全てある訳ではありません。</p>
+<p>逆にDBICにはないメソッドがDBIx::Skinnyにあったりもします。</p>
+
+<p>明日はSchemaの定義について細かく見ていきましょう。</p>
+
+<p>have a nice skinny days!:)</p>
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/dbix-skinny/02.html">Wed, 02 Dec 2009 03:38:02 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

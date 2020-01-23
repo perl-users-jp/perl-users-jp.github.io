@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>紹介しきれなかったメソッドまとめ #01 - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">紹介しきれなかったメソッドまとめ #01 - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">紹介しきれなかったメソッドまとめ #01<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/22.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/22.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>こんにちわ！こんにちわ！nekokakです！</p>
+<p>☆４ついただきました！</p>
+<p><a href="http://cpanratings.perl.org/dist/DBIx-Skinny">http://cpanratings.perl.org/dist/DBIx-Skinny</a></p>
+
+<p>ということで、本日は久々に俺のターンということで</p>
+<p>今までで説明しきれなかったDBIx::Skinnyの各種メソッドを紹介してみようと思います。</p>
+</div>
+<div class="section">
+<h3> set_dbh</h3>
+
+<p>DBIx::Skinnyをいままでつかっておらず、例えばDBI直接使っているコードがあり、</p>
+<p>いきなり全てDBIx::Skinnyに置き換えるのが困難なケースもあるでしょう。</p>
+
+<p>普通にDBIx::Skinnyを使う場合は、newする時の引数や、DBIx::SkinnyをuseしているModelクラスがわで</p>
+<p>コネクション情報を書いておけば新規にコネクションをはりますが、</p>
+<p>コネクション数を増やしたくないけど、DBIx::Skinnyを使ってみたい場合に</p>
+<p>set_dbhメソッドをつかいます。</p>
+
+<pre>
+# もともとの処理でDBIを使っているとする
+my $dbh = DBI-&gt;connect(...);
+# このコネクションをDBIx::Skinnyに渡す。
+Proj::DB-&gt;set_dbh($dbh);
+# あとはいつも通りにDBIx::Skinnyを使う
+Proj::DB-&gt;single('user', {name =&gt; 'nekokak'});
+</pre>
+
+<p>これだけで、今まで使っていたDBコネクションをつかいまわせます。</p>
+</div>
+<div class="section">
+<h3> sql_for_unixtime</h3>
+
+<p>いまさらですがunixtimeは何気につかいたくなることがあります。</p>
+<p>DBIx::Skinnyを使っているQudoでもunixtimeを利用しています。</p>
+
+<p>DBIx::Skinnyでunixtimeをつかうには以下のようにします。</p>
+
+<pre>
+Proj::DB-&gt;dbd-&gt;sql_for_unixtime;
+Proj::DB-&gt;dbh-&gt;selectrow_array("SELECT $unixtime_sql")
+</pre>
+
+<p>こうすることで、接続しているDBDに応じたunixtimeを取得することができます。</p>
+
+<p>本日はここまで。</p>
+<p>明日はnekoya氏のターンです。</p>
+
+<p>have a nice skinny days!:)</p>
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/dbix-skinny/22.html">Tue, 22 Dec 2009 02:06:01 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+

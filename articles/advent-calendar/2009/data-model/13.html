@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>カラムにエイリアスを張る - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<p>もちろん設定など何も書かずに単純にエイリアスとしても使えるんですが、あまり意味がありません。</p>
+<p>一番美味しい使い方としては、オリジナルカラムには Inflate の設定を行わずにオリジナルのまま利用できるようにしつつ、エイリアスカラム側に Inflate の設定をして、オリジナルのデータと Inflate のデータを両方扱えるようにするといった事をする時です。</p>
+</div>
+<div class="section">
+<h3> 定義</h3>
+
+<p>さて実際に、定義してみましょう。先日からいじっている bookmark テーブルの　create_at カラムに対してこの美味しいエイリアスを仕込みます。</p>
+
+<pre>
+    # create_at を生の値でも使いたい
+    column create_at =&gt; int =&gt; {
+        required =&gt; 1,
+        unsigned =&gt; 1,
+        default =&gt; sub { time() },
+    };
+    # Inflate するのはエイリアスで
+    alias_column create_at =&gt; create_dt =&gt; {
+        inflate =&gt; 'DateTime',
+    };
+</pre>
+
+<p>単純に create_at の定義から Inflate の設定を抜いて alias_column で create_dt というエイリアスカラムを張って、そこのカラムに　DateTime の Inflate 定義を設定しています。</p>
+</div>
+<div class="section">
+<h3> 使ってみる</h3>
+
+<p>さて、先日までのサンプルスクリプトを create_dt に対応させて利用例を見てみましょう。</p>
+
+<pre>
+    $bookmark-&gt;set( bookmark =&gt; [1, 1] );
+    my $row = $bookmark-&gt;lookup( bookmark =&gt; [1, 1] );
+    print "--- insert\n";
+    print $row-&gt;create_at . "\n";
+    print $row-&gt;create_dt . "\n";
+
+    my $dt = DateTime-&gt;new( year =&gt; 1978, month =&gt; 3, day =&gt; 20 );
+    $row-&gt;create_dt( $dt );
+    print "--- update 1978/3/20\n";
+    print $row-&gt;create_at . "\n";
+    print $row-&gt;create_dt . "\n";
+    $row-&gt;update;
+
+    my $row2 = $bookmark-&gt;lookup( bookmark =&gt; [1, 1] );
+    print "--- lookup 1978/3/20\n";
+    print $row2-&gt;create_at . "\n";
+    print $row2-&gt;create_dt . "\n";
+    $row2-&gt;create_at( 0 );
+    print "--- update 0\n";
+    print $row2-&gt;create_at . "\n";
+    print $row2-&gt;create_dt . "\n";
+    $row2-&gt;update;
+
+    my $row3 = $bookmark-&gt;lookup( bookmark =&gt; [1, 1] );
+    print "--- lookup 0\n";
+    print $row3-&gt;create_at . "\n";
+    print $row3-&gt;create_dt . "\n";
+</pre>
+
+<p>結果は以下のとおりです。</p>
+
+<pre>
+--- insert
+1260772604
+2009-12-14T06:36:44
+--- update 1978/3/20
+259200000
+1978-03-20T00:00:00
+--- lookup 1978/3/20
+259200000
+1978-03-20T00:00:00
+--- update 0
+0
+1970-01-01T00:00:00
+--- lookup 0
+0
+1970-01-01T00:00:00
+</pre>
+
+<p>create_at, create_dt メソッドそれぞれに値を入れたら即座にお互いの値も変更されてるのがわかると思います。</p>
+
+<p>先日 DateTime の deflate 定義として数値と DateTime オブジェクト両方受け入れられるようにした時に epoch time を直接いれてしまうと、それいこう DateTime オブジェクトで取得出来ない問題がありましたが、エイリアスカラムを使うと常に値が入れられたタイミングで同期されるので安心です。</p>
+</div>
+<div class="section">
+<h3> まとめ</h3>
+
+<p>数日連続して Inflate 関連の話題を書きました。</p>
+<p>alias_column は、元データと加工後のデータがそれぞれ必要なときに便利です。</p>
+
+<p>ということで次回はまた別のジャンルのネタにしようとおもいます。</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/data-model/13.html">Mon, 14 Dec 2009 06:49:01 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

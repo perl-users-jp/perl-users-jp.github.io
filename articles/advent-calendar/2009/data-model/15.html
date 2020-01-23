@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>カラムの定義について2 - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+ utf8_column 'column_name';
+    utf8_columns qw/ column_name1 column_name2 column_name3 column_name4 /;
+</pre>
+
+<p>先日紹介した column と columns に utf8 flagged してくれる inflate を wrap したカラム定義をしてくれます。</p>
+
+<p>例えば以下のような定義をすると</p>
+
+<pre>
+{
+    package TestTable;
+    use base 'Data::Model';
+    use Data::Model::Schema;
+    use Data::Model::Driver::DBI;
+
+    my $driver = Data::Model::Driver::DBI-&gt;new(
+        dsn =&gt; 'dbi:mysql:database=test'
+    );
+    base_driver $driver;
+
+    install_model utf8_test =&gt; schema {
+        key 'id';
+        column 'id';
+        utf8_column name
+            =&gt; char =&gt; {
+                required =&gt; 1,
+                size     =&gt; 32,
+            };
+    };
+}
+</pre>
+
+<p>次のように使えます。</p>
+
+<pre>
+use utf8;
+use Encode;
+my $db = TestTable-&gt;new;
+
+$db-&gt;set( utf8_test =&gt; 1 =&gt; { name =&gt; '大沢和宏' } );
+my $row = $db-&gt;lookup( utf8_test =&gt; 1 );
+if (Encode::is_utf8($row-&gt;name)) {
+    print $row-&gt;name . "\n";
+}
+</pre>
+
+<p>$row-&gt;name には普通に　utf8 flag が立つのできちんと名前が表示されます。</p>
+
+</div>
+<div class="section">
+<h3> utf8 column に inflate をかける</h3>
+
+<p>utf8_column したカラムに inflate 処理を追加したい事もあるでしょう。</p>
+<p>それも、もちろんできます。</p>
+
+<pre>
+    utf8_column foo
+        =&gt; char =&gt; {
+            inflate =&gt; sub {
+                my $val = shift; # utf8 flag 付きで値が入る
+            },
+            deflate =&gt; sub {
+                return $utf_flagged_val; # utf8 flag 付きの値を返す
+
+            },
+        };
+</pre>
+
+<p>のような感じで、 inflate する CODE リファレンスには utf8 flag を立てた状態の値が渡されます。</p>
+<p>deflate で return する値はもちろん flagged utf8 な値である必要があります。</p>
+
+<p>例として先程の　TestTable の utf8_test テーブルに対して utf8_column な inflate 定義をします。</p>
+<p>ついでなので alias_column でエイリアス張ったカラムに inflate 設定しましょう。</p>
+
+<pre>
+        utf8_column name
+            =&gt; char =&gt; {
+                required =&gt; 1,
+                size     =&gt; 32,
+            };
+
+        alias_column name =&gt; obj =&gt; {
+            inflate =&gt; sub { Name-&gt;new($_[0]) },
+            deflate =&gt; sub { $_[0]-&gt;name },
+        };
+</pre>
+
+<p>Name は以下のようなコードです。</p>
+
+<pre>
+    package Name;
+    sub new {
+        my($class, $name) = @_;
+        bless \$name, $class;
+    }
+    sub name { ${ $_[0] } }
+</pre>
+
+<p>実際に動かしてみましょう。</p>
+
+<pre>
+use utf8;
+use Encode;
+my $db = TestTable-&gt;new;
+
+$db-&gt;set( utf8_test =&gt; 1 =&gt; { name =&gt; '大沢和宏' } );
+my $row = $db-&gt;lookup( utf8_test =&gt; 1 );
+if (Encode::is_utf8($row-&gt;name)) {
+    print $row-&gt;name . "\n";
+}
+if (Encode::is_utf8($row-&gt;obj-&gt;name)) {
+    print $row-&gt;obj-&gt;name . "\n";
+}
+
+# update してみる
+$row-&gt;name('ねこかくたろう');
+if (Encode::is_utf8($row-&gt;name)) {
+    print $row-&gt;name . "\n";
+}
+if (Encode::is_utf8($row-&gt;obj-&gt;name)) {
+    print $row-&gt;obj-&gt;name . "\n";
+}
+$row-&gt;update;
+
+my $row2 = $db-&gt;lookup( utf8_test =&gt; 1 );
+if (Encode::is_utf8($row-&gt;name)) {
+    print $row-&gt;name . "\n";
+}
+if (Encode::is_utf8($row-&gt;obj-&gt;name)) {
+    print $row-&gt;obj-&gt;name . "\n";
+}
+</pre>
+
+<p>結果は以下のようになっています。</p>
+
+<pre>
+大沢和宏
+大沢和宏
+ねこかくたろう
+ねこかくたろう
+ねこかくたろう
+ねこかくたろう
+</pre>
+
+<p>ちゃんと decode 処理してないで print するので Wide character とか出ますが、 utf8 flag がきちんと立ってることがわかると思います。</p>
+</div>
+<div class="section">
+<h3> まとめ</h3>
+
+<p>今日は utf8 column の使い方と inflate との組み合わせについて解説しました。</p>
+
+<p>カラム定義まわりは、まだちょびっとだけ続くぞ。</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/data-model/15.html">Thu, 17 Dec 2009 07:48:01 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

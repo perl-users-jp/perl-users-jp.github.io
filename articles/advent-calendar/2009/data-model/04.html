@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>色々な検索方法1 - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">色々な検索方法1 - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">色々な検索方法1<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/data-model/04.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/data-model/04.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>こんにちわ！ data-model トラックを達成するとかんかんが焼き肉をおごってくれるんじゃないかと期待している yappo です！</p>
+<p>四日目は Data::Model での DB 検索の細かい使い方についてです。</p>
+</div>
+<div class="section">
+<h3> search</h3>
+
+<p>Data::Model には DBIC にあるような search method として使える get method が用意されています。</p>
+
+<p>通常は下記のように primary key や index を指定してレコードを絞り込みます。</p>
+
+<pre>
+    my $itr = $bookmark-&gt;get(
+        user =&gt; 1
+    );
+    warn $itr-&gt;next-&gt;nickname;
+</pre>
+
+<p>一つ目に検索対象とするtable名を指定します</p>
+<p>二つ目には primary key を指定します。複合 index の時は ARRAY リファレンスにします。</p>
+
+<p>特定の index/unique 定義を使うときは次のようになります。</p>
+
+<pre>
+    my $itr = $bookmark-&gt;get(
+        user =&gt; {
+            index =&gt; {
+                nickname =&gt; 'Yappo'
+            }
+        }
+    );
+    warn $itr-&gt;next-&gt;nickname;
+</pre>
+
+<p>が、一応 index が張られていないカラムに対しても絞り込みを行えます。</p>
+<p>下記の例は、 nickname に既に unique index が張られていますが、これを別の index 設定が無いカラムに指定しても絞り込めます。</p>
+
+<pre>
+    my $itr = $bookmark-&gt;get(
+        user =&gt; {
+            where =&gt; [
+                nickname =&gt; 'Yappo'
+            ]
+        }
+    );
+    warn $itr-&gt;next-&gt;nickname;
+</pre>
+
+<p>一つ目に検索対象とする table name を指定します</p>
+<p>二つ目の hashref に検索条件を指定します</p>
+
+<p>get メソッドはメソッドの返り値をスカラーコンテキストで受けるかリストコンテキストでうけるかで返り値の情報が変わります。</p>
+<p>スカラーコンテキストで受けた場合は Data::Model::Iterator が取得でき、</p>
+<p>リストコンテキストで受けた場合は結果 Row の配列を取得することができます。</p>
+</div>
+<div class="section">
+<h3> 色々な検索条件</h3>
+
+<p>get メソッドで色々複雑な検索条件を指定したい場合があると思いますので</p>
+<p>色々な例をあげましょう。</p>
+
+<p>IN で複数の値をつかって検索したい場合:</p>
+<pre>
+# SELECT id, nickname FROM user WHERE (nickname IN (?,?,?))
+    my $itr = $bookmark-&gt;get(
+        user =&gt; {
+            where =&gt; [
+                nickname =&gt; [qw/ nekokak Yappo kan /]
+            ]
+        }
+    );
+
+# もしくは
+    my $itr = $bookmark-&gt;get(
+        user =&gt; {
+            where =&gt; [
+                nickname =&gt; { 'IN' =&gt; [qw/ nekokak Yappo kan /]}
+            ]
+        }
+    );
+</pre>
+
+<p>NOT IN で検索したい場合:</p>
+<pre>
+# SELECT id, nickname FROM user WHERE (nickname NOT IN (?,?,?))
+    my $itr = $bookmark-&gt;get(
+        user =&gt; {
+            where =&gt; [
+                nickname =&gt; { 'NOT IN' =&gt; [qw/ nekokak kan /]}
+            ]
+        }
+    );
+</pre>
+
+<p>範囲指定で検索したい場合:</p>
+<pre>
+# SELECT id, nickname FROM user WHERE (id &lt; ?)
+    my $itr = $bookmark-&gt;get(
+        user =&gt; {
+            where =&gt; [
+                id =&gt; { '&lt;' =&gt; 10 }
+            ]
+        }
+    );
+
+# SELECT id, nickname FROM user WHERE (id &gt; ?)
+    my $itr = $bookmark-&gt;get(
+        user =&gt; {
+            where =&gt; [
+                id =&gt; { '&gt;' =&gt; 10 }
+            ]
+        }
+    );
+</pre>
+
+<p>IS NOT NULLで検索したい場合:</p>
+<pre>
+# SELECT id, nickname FROM user WHERE (nickname IS NOT NULL)
+    my $itr = $bookmark-&gt;get(
+        user =&gt; {
+            where =&gt; [
+                nickname =&gt; \'IS NOT NULL',
+            ]
+        }
+    );
+</pre>
+
+<p>AND 検索したい場合:</p>
+<pre>
+# SELECT id, nickname FROM user WHERE (id &lt; ?) AND (nickname = ?)
+    my $itr = $bookmark-&gt;get(
+        user =&gt; {
+            where =&gt; [
+                id =&gt; { '&lt;' =&gt; 10 },
+                nickname =&gt; 'Yappo',
+            ]
+        }
+    );
+);
+</pre>
+
+<p>同じカラムを AND 検索したい場合</p>
+<pre>
+# SELECT id, nickname FROM user WHERE ((id &lt;= ?) AND (id &gt;= ?))
+    my $itr = $bookmark-&gt;get(
+        user =&gt; {
+            where =&gt; [
+                id =&gt; [ -and =&gt; { '&lt;=' =&gt; 11 }, { '&gt;=' =&gt; 1 } ]
+            ]
+        }
+    );
+
+# SELECT id, nickname FROM user WHERE ((id = ?) AND (id = ?) AND (id = ?))
+    my $itr = $bookmark-&gt;get(
+        user =&gt; {
+            where =&gt; [
+                id =&gt; [ -and =&gt; 1, 2, 3 ]
+            ]
+        }
+    );
+</pre>
+
+<p>同じカラムを OR 検索したい場合:</p>
+<pre>
+# SELECT id, nickname FROM user WHERE ((nickname = ?) OR (nickname = ?))
+    my $itr = $bookmark-&gt;get(
+        user =&gt; {
+            where =&gt; [
+                nickname =&gt; [ { '=' =&gt; 'Yappo' }, { '=' =&gt; 'nekokak' } ]
+            ]
+        }
+    );
+</pre>
+
+<p>LIMIT/OFFSET をかけたい場合:</p>
+
+<pre>
+# ELECT id, nickname FROM user LIMIT 1 OFFSET 1
+    my $itr = $bookmark-&gt;get(
+        user =&gt; {
+            limit  =&gt; 1,
+            offset =&gt; 1,
+        }
+    );
+</pre>
+
+<p>order byをかけたい場合:</p>
+
+<pre>
+# SELECT id, nickname FROM user ORDER BY id DESC
+    my $itr = $bookmark-&gt;get(
+        user =&gt; {
+            order =&gt; [ { id =&gt; 'DESC' } ]
+        }
+    );
+
+# SELECT id, nickname FROM user ORDER BY id DESC, nickname ASC
+    my $itr = $bookmark-&gt;get(
+        user =&gt; {
+            order =&gt; [ { id =&gt; 'DESC' }, { nickname =&gt; 'ASC' } ]
+        }
+    );
+</pre>
+
+<p>このように色々な検索条件を指定できます。</p>
+<p>DBIC とは少しインタフェースが異なるので注意してください。</p>
+</div>
+<div class="section">
+<h3> single</h3>
+
+<p>Data::Model では DBIx::Skinny とは違って find 相当の lookup メソッドが存在しています。</p>
+
+<p>ただし primary key でしか検索出来ないので、他の条件で取得したい場合は limit/offset を設定したりする必要があります。</p>
+</div>
+<div class="section">
+<h3> count</h3>
+
+<p>Data::Model では、今のところ count メソッドが用意されていないので、 count を取りたい場合は DBI ハンドルを直接取り出して SQL 文を直接組み立てる必要があります。</p>
+
+<pre>
+    my $dbh = $bookmark-&gt;get_driver('user')-&gt;r_handle;
+    my $sth = $dbh-&gt;prepare_cached('SELECT COUNT(*) AS count FROM user');
+    $sth-&gt;execute;
+    my $count;
+    $sth-&gt;bind_columns(undef, \$count);
+    $count = 0 unless $sth-&gt;fetch;
+    $sth-&gt;finish;
+    warn "COUNT: $count";
+</pre>
+
+<p>この辺は、だいぶメンドくさいので Data::Model の機能を使ってうまくラッピングをしたいと思いますが、この解説は今度にしましょう。</p>
+
+<p>have a nice Data::Model days!:)</p>
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/data-model/04.html">Sat, 05 Dec 2009 05:04:01 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

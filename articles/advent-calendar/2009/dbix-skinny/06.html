@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>色々な検索方法2 #06 - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">色々な検索方法2 #06 - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">色々な検索方法2 #06<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/06.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/06.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>こんにちわ！新幹線でこの原稿を書いているnekokakです！</p>
+<p>六日目はDBIx::SkinnyでのDB検索の細かい使い方についての続きです。</p>
+</div>
+<div class="section">
+<h3> search_by_sql</h3>
+
+<p>このsearch_by_sqlメソッドはDBIx::Skinnyを開発するきっかけとなったメソッドの一つで、</p>
+<p>好きに生のSQLを利用してDB検索を行う事が可能です。</p>
+
+<pre>
+$db-&gt;search_by_sql(
+    q{SELECT * FROM user WHERE name = ?},
+    ['nekokak'],
+    'user'
+);
+</pre>
+
+<p>この例ではsearch_by_sqlを使うほどでもありませんが、</p>
+<p>ORMでは表現することが難しい複雑なSQLでもsearch_by_sqlを使えば、</p>
+<p>他のsearchメソッドと同じように結果をイテレータにしてくれたり、</p>
+<p>レコードをRowオブジェクトにする事が可能です。</p>
+
+<p>search_by_sqlの引数では以下が指定できます。</p>
+
+<p>第一引数に発行したい生SQL</p>
+<p>第二引数にbindさせる値のarrayref</p>
+<p>第三引数に結果をどのテーブルをベースにrowオブジェクトにするかの指定</p>
+
+<p>となります。</p>
+<p>第三引数はオプショナルで指定しなくてもよいです。</p>
+
+<p>search_by_sqlを使う上での注意点は好きにSQLをハードコードする事が出るため</p>
+<p>値をハードコードしてしまう人が居るかもしれないという事でしょうか。</p>
+<p>例えば、</p>
+
+<pre>
+$db-&gt;search_by_sql(
+    qq{SELECT * FROM user WHERE name = $name},
+    [],
+    'user'
+);
+</pre>
+
+<p>このようにプレスホルダーを使わずにSQLの生成を行っている箇所で直接</p>
+<p>変数を展開しないでください！</p>
+<p>上記の例のような書き方をしていると、SQLインジェクションが発生する可能性が高くなります。</p>
+<p>もし上記の例の$nameがCGIなどでユーザが入力した値をそのまま使ってしまっていると悲惨な事になるでしょう。</p>
+
+<p>search_by_sqlメソッドを上手につかえば、普段はsearchやsingleで情報をやり取りし、</p>
+<p>複雑なクエリを発行しなければならない箇所でSQLを直接書くことで、</p>
+<p>その処理が何をやっているのかが分かりやすくなるのではないでしょうか。</p>
+</div>
+<div class="section">
+<h3> search_named</h3>
+
+<p>search_namedメソッドはsearch_by_sqlにいくつかの機能を追加したメソッドとなります。</p>
+<p>search_by_sqlでは生のSQLを書くときに、</p>
+
+<pre>
+$db-&gt;search_by_sql(
+    q{SELECT * FROM user WHERE name = ?},
+    ['nekokak'],
+    'user'
+);
+</pre>
+
+<p>このように?でプレスホルダーを指定し、その順番を崩さないように、bindの値を指定する必要があります。</p>
+<p>例えば、</p>
+
+<pre>
+$db-&gt;search_by_sql(
+    q{SELECT * FROM user WHERE id &lt; ? AND name = ?},
+    ['nekokak', 10],
+    'user'
+);
+</pre>
+
+<p>これはSQLは正常に発行されDBがエラーを発生させないとしても、</p>
+<p>期待した値をとれませんよね？</p>
+<p>?でのプレスホルダーはbindさせる値の順番に気を使う必要があります。</p>
+<p>単純なSQLだったり、bindさせる値が少ない場合はまぁいいのですが、</p>
+<p>複雑なSQLでbindさせる値が多くなると、順番を考えるのが大変になってきます。</p>
+<p>そこでsearch_namedメソッドを使用することで、bindさせる値の順番を考えなくてよくする事が出来ます。</p>
+
+<pre>
+$db-&gt;search_named(
+    q{SELECT * FROM user WHERE id &lt; :id AND name = :name},
+    {id =&gt; 10, name =&gt; 'nekokak'},
+    [],
+    'user'
+);
+</pre>
+
+<p>第一引数に生のSQLを書きます。</p>
+<p>ここでsearch_by_sqlの時にプレスホルダーで?を使用していましたが、</p>
+<p> :id/:nameなどの名前を指定します。名前はコロンをプレフィックスとしてつけます。</p>
+<p>第二引数にbindさせる値をhashrefの形式で書きます。</p>
+
+<p>こうすることで、内部ではSQLのnamedプレスホルダーの部分とhashrefで渡した値を</p>
+<p>つきあわせて自動で:id/:nameを?に変換し、bindの値の順番を正確な位置に保持してくれます。</p>
+
+<p>また、同じnamedプレスホルダーを指定する事も可能で、複数同じnamedプレスホルダーを指定しても</p>
+<p>正しくbindする値の順番を決めてくれます。</p>
+
+<p>第三引数では、第一引数で書いたSQLをsprintfでお着替えしてくれます。</p>
+
+<pre>
+$db-&gt;search_named(
+    q{SELECT * FROM user WHERE id &lt; :id AND name = :name %s},
+    {id =&gt; 10, name =&gt; 'nekokak'},
+    ['AND name IS NOT NULL'],
+    'user'
+);
+</pre>
+
+<p>この例ではあまり使いどころが思い浮かばないかもしれませんが、</p>
+<p>こういう事も出来るというのを覚えておくといい事があるかもしれません。</p>
+
+<p>明日は検索系メソッド最後のresultsetを紹介してみようと思います。</p>
+
+<p>have a nice skinny days!:)</p>
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/dbix-skinny/06.html">Sat, 05 Dec 2009 23:59:01 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+
