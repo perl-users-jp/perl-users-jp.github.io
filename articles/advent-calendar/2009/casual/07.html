@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Plack::Requestとか使って小さなWebアプリを作ろう！ - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Plack::Requestとか使って小さなWebアプリを作ろう！ - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Plack::Requestとか使って小さなWebアプリを作ろう！<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/casual/07.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/casual/07.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>ヒゲをはやして、髪をモヒカン気味に切って、ベストを着ていたら「dankogaiさんですか！」と呼ばれまくって失礼ですがショックを受けてしまい、とりあえずヒゲを剃ってみたyusukebeです。気合い入れて書きます。</p>
+</div>
+<div class="section">
+<h3> はじめに</h3>
+
+<p>さて、今回はPlack::RequestやTemplate-Toolkit、XML::Feedといったモジュールを使って、小さな、だけどもなかなか使えるWebアプリを作る過程を紹介します。これを通して、今話題であるPlackについてやWebアプリの仕組みについて多少でもわかっていただければこれ幸いでございます。</p>
+
+<p>実はこのネタ昨日の夜考えて作ったものであります。というのも「YouTubeの動画を垂れ流しで好きなように、みてーな」とふと思ったからです。例えばYouTube内で「Perfume」と検索をすると個別の動画以外に「再生リスト」または英語では「Playlist」というユーザーが集めた動画集が出てきます。こいつを好きな画面サイズにて連続で見ていければよさげだと思いました。YouTubeのアプリを作っているわりにはYouTube本体の機能をあまりしらなかったりして、同じ様なことができてしまうかもしれませんが、そこは目をつむっていただき、いい題材なのでこのニーズを叶える小さなWebアプリをPlackベースで作ってみることにしました。あとRemedieでもいいじゃんっていうツッコミも放置プレーします。</p>
+
+<p>まとめると、YouTubeの再生リストを指定すると、動画の一覧がでてきて、それを連続で見ていくことができるビューアーのWebアプリをPlackベースで作ってみましょうというのが趣旨になります。</p>
+
+<p>そして、名前をノリで「Chekera!」と名付けました。先に、紹介しておきますが、githubにレポジトリも設けていまして、場所はこちらになります。</p>
+
+<p><a href="http://github.com/yusukebe/Chekera">http://github.com/yusukebe/Chekera</a></p>
+
+
+</div>
+<div class="section">
+<h3> YouTube API を使う</h3>
+
+<p>再生リストにどのような動画が含まれているかを取得するためにYouTube APIを使います。YouTube APIは基本的に情報取得系のメソッドですと、クエリを含んだリクエストを投げればAtomフィードに独自のフォーマットを加えたYouTube GData形式でレスポンスが返ってきます。再生リストのAPIについては以下のリファレンスページで知ることができます。</p>
+
+<p><a href="http://code.google.com/intl/ja-JP/apis/youtube/2.0/reference.html#Playlist_feed">http://code.google.com/intl/ja-JP/apis/youtube/2.0/reference.html#Playlist_feed</a></p>
+
+<p>このページからすると、以下のようなURLへGETリクエストを発行すればビデオフィードが得られるとのことです。</p>
+
+<p><a href="http://gdata.youtube.com/feeds/api/playlists/">http://gdata.youtube.com/feeds/api/playlists/</a>再生リストのID</p>
+
+<p>では、早速どのように情報が得られるかをXML::Feedというモジュールを使って取得＆パースしてみましょう。</p>
+
+<pre>
+use XML::Feed;
+
+my $playlist_id = 'CD06A83DE0A8F4B0';
+my $feed =
+  XML::Feed-&gt;parse(
+    URI-&gt;new("http://gdata.youtube.com/feeds/api/playlists/$playlist_id") );
+for my $entry ( $feed-&gt;entries() ) {
+    print $entry-&gt;title . "\n";
+    print $entry-&gt;link . "\n";
+}
+</pre>
+
+<p>このスクリプトを実行すると</p>
+
+<p><a href="http://www.youtube.com/view_play_list?p=CD06A83DE0A8F4B0">http://www.youtube.com/view_play_list?p=CD06A83DE0A8F4B0</a></p>
+
+<p>こちらのPerfume関連の動画リストに含まれるビデオのタイトルとリンクが出力されます。YouTubeの動画というのはビデオのIDさえわかれば、そのサムネイル画像やプレイヤーのURLを簡単に構築できるので、以下の様な正規表現をループの中に加えてビデオIDとタイトルだけ後ほど利用するようにしましょう。</p>
+
+<pre>
+   my ($video_id) = $entry-&gt;link =~ /\?v=([^&amp;]+)/;
+</pre>
+</div>
+<div class="section">
+<h3> Plackアプリ(.psgi)のひな形</h3>
+
+<p>Plackの詳細については、現在進行中のmiyagawaさんによる「Plack Advent Calendar」に導入から丁寧に解説されているので、そちらを参考にしてください。</p>
+
+<p><a href="http://advent.plackperl.org/">http://advent.plackperl.org/</a></p>
+
+<p>今回は、今回扱う最低限のPlack周りについて解説します。Chekera!では、Plack::RequestというPlackとは別になっているモジュールが、後ほどの拡張を見込んで便利そうなので使用します。また、jsやcssファイルを静的コンテンツとして配信したいためにPlack::Middleware::StaticをPlack::Builder経由で呼び出しています。.psgiファイルのひな形は以下になります。</p>
+
+<pre>
+use Plack::Builder;
+use Plack::Request;
+
+my $app = sub {
+    my $env = shift;
+    my $req = Plack::Request-&gt;new($env);
+    return root($req) if $req-&gt;path eq '/';
+    [ 404, [ "Content-Type" =&gt; "text/plain" ], ["Not Found"] ];
+};
+
+sub root {
+    my $req = shift;
+    my $res = $req-&gt;new_response(200);
+    $res-&gt;content_type('text/html');
+    $res-&gt;body('<html><body>hello world</body></html>');
+    $res-&gt;finalize();
+}
+
+builder {
+    enable "Plack::Middleware::Static",
+      path =&gt; qr/static/,
+      root =&gt; '.';
+    $app;
+};
+</pre>
+
+<p>こちらをapp.psgiなんて名前を付けて保存し、</p>
+
+<pre>
+$ plackup -a app.psgi
+</pre>
+
+<p>とすればサーバが立ち上がり指定されたポートにアクセスすれば「hello world」が見えるはずです。一つの.psgiファイル内で完結するように作るため少々ださいですが、</p>
+
+<pre>
+    return root($req) if $req-&gt;path eq '/';
+</pre>
+
+<p>この部分でパスに対するディスパッチを行い、rootサブルーチンがコンテンツの出力を担っています。こいつに、先ほど解説した、YouTubeの再生リストからビデオを取得するロジック部分と、それをHTMLで奇麗に整形して出力する部分を加え、あとはJSで工夫するだけで希望するアプリケーションが組めそうです。</p>
+
+</div>
+<div class="section">
+<h3> Template-Toolkit を使う</h3>
+
+<p>お次に扱いたいのはテンプレートエンジンです。これはパフォーマンスや記法などそれぞれ特徴があるために、皆さん好みがおありでしょうが今回は比較的柔軟な記述ができるTemplate-Tookitを使います。上記の.psgiのひな形に加えて、</p>
+
+<pre>
+use Template
+</pre>
+
+<p>してから、以下のようにrenderサブルーチンを追加し、rootサブルーチンを変更してみます。</p>
+
+<pre>
+my $template_config = { INCLUDE_PATH =&gt; './templates' };
+
+sub root {
+    my $req     = shift;
+    my $res     = $req-&gt;new_response(200);
+    my $message = 'hello world';
+    $res-&gt;body( render( 'index.html', { message =&gt; $message } ) );
+    $res-&gt;finalize();
+}
+
+sub render {
+    my ( $name, $args ) = @_;
+    my $tt = Template-&gt;new($template_config);
+    my $out;
+    $tt-&gt;process( $name, $args, \$out );
+    return $out;
+}
+</pre>
+
+<p>そして、templatesディレクトリを掘ってその中にindex.htmlという名前で</p>
+
+<pre>
+&lt;html&gt;
+&lt;body&gt;
+[% message | html %]
+&lt;/body&gt;
+&lt;/html&gt;
+</pre>
+
+<p>こんな感じのテンプレートファイルを用意すると、今度はTemplate-Toolkitを使った「hello world」がでるようになると思います。ようは、Perlアプリケーション側で用意した情報が変数としてテンプレートに渡り、それをHTML（もしくはそれ以外）として出力することができるというわけですね。</p>
+
+<p>さて、これでベースとなるアプリケーションサーバ部分、モデルと呼ぶほどでもないですがビデオ情報を取得し解析するロジック部分、テンプレートエンジンを使ったビューの部分ができました。なんとなくMVCっぽい感じです。では、こいつを一つのアプリに仕上げていきましょう。</p>
+
+</div>
+<div class="section">
+<h3> 仕上げ</h3>
+
+<p>Chekera!の細かい仕様の確認です。</p>
+
+<ul>
+<li> トップページにはフォームを表示</li>
+<li> そこに再生リストのURLもしくはIDを入力</li>
+<li> GETリクエストを発行するとアプリが受け取り、IDを抽出</li>
+<li> IDを元にYouTube APIへリクエスト</li>
+<li> ビデオ一覧を取得</li>
+<li> ビデオ情報をテンプレートへ渡す</li>
+<li> テンプレートは一覧情報を受け取りサムネイル表示</li>
+<li> jsを駆使して埋め込みプレーヤーでの再生などを行う</li>
+</ul>
+
+<p>という具合でしょうか。てなわけでこれを叶えるためのapp.psgiファイルをどかーんと貼付けます。</p>
+
+<pre>
+use Plack::Builder;
+use Plack::Request;
+use Template;
+
+my $template_config = { INCLUDE_PATH =&gt; './templates' };
+my $app = sub {
+    my $env = shift;
+    my $req = Plack::Request-&gt;new($env);
+    return root($req) if $req-&gt;path eq '/';
+    [ 404, [ "Content-Type" =&gt; "text/plain" ], ["Not Found"] ];
+};
+
+sub root {
+    my $req = shift;
+    my $args;
+    if ( my $playlist = $req-&gt;param('playlist') ) {
+        $playlist =~ s/.*p=([^&amp;]+).*/$1/;
+        my $videos = playlist($playlist);
+        $args-&gt;{videos} = $videos;
+    }
+    my $res = $req-&gt;new_response(200);
+    $res-&gt;content_type('text/html');
+    $res-&gt;body( render( 'index.html', $args ) );
+    $res-&gt;finalize;
+}
+
+sub render {
+    my ( $name, $args ) = @_;
+    my $tt = Template-&gt;new($template_config);
+    my $out;
+    $tt-&gt;process( $name, $args, \$out );
+    return $out;
+}
+
+sub playlist {
+    my $playlist_id = shift;
+    require XML::Feed;
+    my $feed =
+      XML::Feed-&gt;parse(
+        URI-&gt;new("http://gdata.youtube.com/feeds/api/playlists/$playlist_id") )
+      or return [];
+    my @videos;
+    for my $entry ( $feed-&gt;entries() ) {
+        my ($id) = $entry-&gt;link =~ /\?v=([^&amp;]+)/;
+        push( @videos, { title =&gt; $entry-&gt;title, id =&gt; $id } );
+    }
+    return \@videos;
+}
+
+builder {
+    enable "Plack::Middleware::Static",
+      path =&gt; qr/static/,
+      root =&gt; '.';
+    $app;
+};
+</pre>
+
+<p>そして、テンプレートファイル「index.html」はShadowbox.jsというクールなスライドショーのライブラリを利用して以下のようになりました。</p>
+
+<pre>
+&lt;html&gt;
+&lt;head&gt;
+&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=utf-8&quot;&gt;
+&lt;title&gt;Chekera!&lt;/title&gt;
+&lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; 
+      href=&quot;http://yui.yahooapis.com/combo?2.8.0r4/build/fonts/fonts-min.css&amp;amp;2.8.0r4/build/grids/grids-min.css&quot;&gt;
+&lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;static/shadowbox.css&quot;&gt;
+&lt;script type=&quot;text/javascript&quot;
+        src=&quot;http://ajax.googleapis.com/ajax/libs/jquery/1.3/jquery.min.js&quot;&gt;&lt;/script&gt;
+&lt;script type=&quot;text/javascript&quot; src=&quot;static/shadowbox.js&quot;&gt;&lt;/script&gt;
+&lt;script type=&quot;text/javascript&quot;&gt;
+Shadowbox.init({
+  players: ['swf']
+});
+window.onload = function(){
+  Shadowbox.setup(&quot;a.video&quot;, {
+    width: $(window).width(),
+    height: $(window).width() / 16 * 9,
+    flashParams: { allowScriptAccess: &quot;always&quot; }
+  });
+};
+function onYouTubePlayerReady(playerId) {
+  ytplayer = document.getElementById(&quot;sb-content&quot;);
+  ytplayer.addEventListener(&quot;onStateChange&quot;, &quot;onytplayerStateChange&quot;);
+};
+function onytplayerStateChange(newState) {
+  if( newState == 0 &amp;&amp; Shadowbox.hasNext() ){
+    Shadowbox.next();
+  }
+};
+&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;doc&quot; class=&quot;yui-t7&quot;&gt;
+&lt;div id=&quot;hd&quot;&gt;&lt;h1&gt;&lt;a href=&quot;/&quot;&gt;Chekera!&lt;/a&gt;&lt;/h1&gt;&lt;/div&gt;
+&lt;div id=&quot;bd&quot;&gt;
+&lt;div class=&quot;yui-g&quot;&gt;
+&lt;form action=&quot;&quot;&gt;
+&lt;input name=&quot;playlist&quot; type=&quot;text&quot; size=&quot;80&quot; /&gt;
+&lt;input type=&quot;submit&quot; /&gt;
+&lt;/form&gt;
+
+[% IF videos -%]
+[% FOREACH video = videos %]
+&lt;h3&gt;[% video.title | html %]&lt;/h3&gt;
+&lt;p&gt;
+  &lt;a class=&quot;video&quot;
+  href=&quot;http://www.youtube.com/v/[% video.id | html -%]
+  &amp;amp;enablejsapi=1&amp;amp;playerapiid=ytplayer&amp;amp;autoplay=1&amp;amp;fmt=35&amp;amp;.swf&quot;
+  rel=&quot;shadowbox[videos]&quot; title=&quot;[% video.title | html %]&quot;&gt;
+  &lt;img src=&quot;http://i.ytimg.com/vi/[% video.id | html %]/hqdefault.jpg&quot; alt=&quot;&quot; /&gt;
+  &lt;/a&gt;
+&lt;/p&gt;
+[% END -%]
+[% END -%]
+&lt;/div&gt;
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/body&gt; &lt;/html&gt;
+</pre>
+
+<p>スクショ:</p>
+
+<p><a href="http://gyazo.com/8abdddb586604d8bc39f37b0f4382d25.png">http://gyazo.com/8abdddb586604d8bc39f37b0f4382d25.png</a></p>
+
+<p>jsの部分はちょっと特殊なことをしていたりしていて詳細の解説省きますが、これでリストの動画一覧が表示されてクリックすればウイーンってウィンドウがでてきて動画が再生されるはずです！</p>
+</div>
+<div class="section">
+<h3>まとめ</h3>
+
+<p>以上、非常に小さなWebのアプリケーションをPlackベースで作ってみました。実際にまだ試してはいないのですが、PSGI互換なわけですから、mod_perlでもFastCGIでもCGIでも動くと思います。いい具合にPlack/Plack::Requestは抽象化されているのでWebアプリの挙動がわりかし理解しやすくていいですね。これよりでかくなるともろxxx.psgiにコードを記述するのはしんどくなってきますが、簡単なアプリをxxx.psgiにゴリっと書くのもなかなか楽しいものだと思います。車輪の再開発になるかもしれませんが、こういうコードは自分の身のためになるので是非皆さんもトライしてみてください！（車輪の再開発のススメはlestrratさんが言ってましたね）</p>
+
+<p>明日のCasual Trackは全裸で有名なsugyanさんです。それではEnjoy!!</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/casual/07.html">Mon, 07 Dec 2009 01:40:02 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

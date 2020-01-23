@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Log::Dispatch::Screen::Color で色つきログでデバッグ！ - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Log::Dispatch::Screen::Color で色つきログでデバッグ！ - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Log::Dispatch::Screen::Color で色つきログでデバッグ！<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/casual/18.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/casual/18.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>
+おはこんばんちは！ 絶賛無職中の vkgtaro です。おちこんだりもしたけれど私は元気です！<br/>
+今日はアプリケーションには欠かせないログに色をつけるよ！
+</p>
+</div>
+<div class="section">
+<h3> Log::Dispatch</h3>
+
+<p><a href="http://search.cpan.org/dist/Log-Dispatch">Log::Dispatch</a> はログの出力先を標準エラーやファイルへの書き込み、メールで飛ばしたり、DBI で DB に突っ込んだり、と Log::Dispatch::* を指定して切り替えられる便利 logger です。</p>
+
+<pre>
+use Log::Dispatch;
+use Log::Dispatch::File;
+
+my $dispatcher = Log::Dispatch-&gt;new;
+# ファイルへの出力
+$dispatcher-&gt;add(
+    Log::Dispatch::File-&gt;new(
+        name      =&gt; 'file1',
+        min_level =&gt; 'debug',
+        filename  =&gt; 'logfile',
+        mode      =&gt; 'append'
+    )
+);
+
+$dispatcher-&gt;log( level =&gt; 'alert', message =&gt; 'Advent Calendar の締め切りが近い！ &gt;_&lt;');
+# =&gt; logfile に Advent Calendar の締め切りが近い！ &gt;_&lt; と追記される
+</pre>
+
+<p>使いたい Log::Dispatch::* オブジェクトを add メソッドでどんどん追加できます。</p>
+
+<pre>
+use Log::Dispatch::Screen;
+
+# Screen への出力も追加
+$dispatcher-&gt;add(
+    Log::Dispatch::Screen-&gt;new(
+        name      =&gt; 'screen',
+        min_level =&gt; 'debug',
+        stderr    =&gt; 1
+    )
+);
+$dispatcher-&gt;log( level =&gt; 'warning', message =&gt; 'ファイルと画面に出力されるよ');
+# =&gt; 標準エラーに出力されつつファイルにも出力されます。
+</pre>
+
+<p>min_level はその Log::Dispatch::* オブジェクトが出力する最小のレベルです。max_level というオプションもあって、そちらは最大のレベルですね。</p>
+
+<pre>
+use Log::Dispatch;
+use Log::Dispatch::Screen;
+
+my $dispatcher = Log::Dispatch-&gt;new;
+
+# min_level notice
+$dispatcher-&gt;add(
+    Log::Dispatch::Screen-&gt;new(
+        name      =&gt; 'screen1',
+        min_level =&gt; 'notice',
+        stderr    =&gt; 1
+    )
+);
+
+# max_level error
+$dispatcher-&gt;add(
+    Log::Dispatch::Screen-&gt;new(
+        name      =&gt; 'screen2',
+        min_level =&gt; 'debug',
+        max_level =&gt; 'error',
+        stderr    =&gt; 1
+    )
+);
+
+$dispatcher-&gt;log( level =&gt; 'warning', message =&gt; 'notice ~ error なので2回表示される');
+$dispatcher-&gt;log( level =&gt; 'debug', message =&gt; 'notice 以下なので1回だけ');
+$dispatcher-&gt;log( level =&gt; 'emergency', message =&gt; 'error 以上なので1回だけ');
+</pre>
+</div>
+<div class="section">
+<h3> Log::Dispatch::Config</h3>
+
+<p><a href="http://search.cpan.org/dist/Log-Dispatch-Config/">Log::Dispatch::Config</a> を使うと Log::Dispatch::* オブジェクトの追加とかを Config に書き出せておけます。</p>
+<p>プログラムの方はこんな感じで書いておいて、</p>
+
+<pre>
+use Log::Dispatch::Config;
+
+Log::Dispatch::Config-&gt;configure('log.conf');
+my $dispatcher = Log::Dispatch::Config-&gt;instance;
+$dispatcher-&gt;debug('デバッグログですよ');
+</pre>
+
+<p>指定した設定ファイルの方を以下の様に書くと</p>
+
+<pre>
+dispatchers = file screen
+
+file.class = Log::Dispatch::File
+file.min_level = debug
+file.filename = logfile
+file.mode = append
+file.format = [%d] [%p] %m at %F line %L%n
+
+screen.class = Log::Dispatch::Screen
+screen.min_level = debug
+screen.stderr = 1
+screen.format = %m
+</pre>
+
+<p>
+最初に示した例と同じようにファイルと標準エラーへの出力がされます。<br/>
+dispatchers には用意した設定で使わない設定を外すとその設定は使用されなくなります。便利ですね。
+</p>
+
+<p>Log::Dispatch::Config はいくつかの Configurator があるので XML や YAML 形式でも使えます。</p>
+</div>
+<div class="section">
+<h3> Log::Dispatch::Screen::Color</h3>
+
+<p>さて本題です！</p>
+
+<p>色々書いてるうちに Log::Dispatch の話題がほとんどになってしまいましたが、<a href="http://search.cpan.org/dist/Log-Dispatch-Screen-Color/">Log::Dispatch::Screen::Color</a> で色をつけて終わりにしましょう。</p>
+
+<p>せっかくなので <a href="http://search.cpan.org/dist/Log-Dispatch-Configurator-YAML/">Log::Dispatch::Configurator::YAML</a> を使って YAML で設定を示しましょう。</p>
+
+<pre>
+use Log::Dispatch::Config;
+use Log::Dispatch::Configurator::YAML;
+
+my $config = Log::Dispatch::Configurator::YAML-&gt;new('log.yaml');
+Log::Dispatch::Config-&gt;configure($config);
+my $log = Log::Dispatch::Config-&gt;instance;
+</pre>
+
+<p>設定はこんな感じ。</p>
+
+<pre>
+dispatchers:
+  - color
+color:
+  class: Log::Dispatch::Screen::Color
+  min_level: debug
+  stderr: 1
+  format: '[%d] [%p] %m at %F line %L%n'
+  color:
+    info:
+      text: green
+    warning:
+      text: yellow
+    error:
+      text: red
+    alert:
+      text: red
+      background: white
+      bold: 1
+</pre>
+
+<p>そしてログを吐いてみます。</p>
+
+<pre>
+$log-&gt;info('info message is green!');
+$log-&gt;warning('warning message is yellow!');
+$log-&gt;error('error message is red!');
+$log-&gt;alert('alert message is red on white!');
+</pre>
+
+<p>色ついた！</p>
+
+<p><a href="http://vkgtaro.jp/img/jperl_advent_calendar_2009/log_color.png"><img src="http://vkgtaro.jp/img/jperl_advent_calendar_2009/log_color.png" alt="http://vkgtaro.jp/img/jperl_advent_calendar_2009/log_color.png"/></a></p>
+
+<p>ログに色がつくと開発時とかわかりやすくて良いです。</p>
+
+<p>ちなみに Log::Dispatch で色をつけるモジュールは拙作の <a href="http://search.cpan.org/dist/Log-Dispatch-Colorful/">Log::Dispatch::Colorful</a> なんてのもありますが、こっちは変数の dump もしたくて Log::Dispatch 自体にも手を加えてしまい、他の Log::Dispatch::* との共存がしづらくなります。</p>
+
+<p>色をつけたいだけなら、Yappo さん作のこの <a href="http://search.cpan.org/dist/Log-Dispatch-Screen-Color/">Log::Dispatch::Screen::Color</a> をお薦めします。Windows 環境でも色が着くようです。</p>
+
+<p>Catalyst でお手軽に色をつけたければ <a href="http://search.cpan.org/dist/Catalyst-Plugin-Log-Colorful">Catalyst::Plugin::Log::Colorful</a> なんてのもあります。</p>
+
+<p>
+<a href="http://search.cpan.org/~rra/ANSIColor-2.02/ANSIColor.pm">Term::ANSIColor</a> 使えばエスケープシーケンスを意識しなくても出力に色がつけられるので、他の Logger で色つけたいという方はモジュール作ってみてはいかがでしょうか！<br/>
+（Log::Dispatch::Screen::Color は Win32::Console::ANSI 使って windows 対策してますね）
+</p>
+
+<p><a href="http://vkgtaro.jp/img/jperl_advent_calendar_2009/nobjas_san.png"><img src="http://vkgtaro.jp/img/jperl_advent_calendar_2009/nobjas_san.png" alt="http://vkgtaro.jp/img/jperl_advent_calendar_2009/nobjas_san.png"/></a></p>
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/casual/18.html">Thu, 17 Dec 2009 13:10:47 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

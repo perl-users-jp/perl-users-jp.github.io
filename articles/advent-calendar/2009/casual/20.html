@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Acme::Oppaiで作る癒し系エイリアス - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Acme::Oppaiで作る癒し系エイリアス - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Acme::Oppaiで作る癒し系エイリアス<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/casual/20.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/casual/20.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>こんにちは！金曜日の天使だったacotieと申します。今の職業は猛獣使いをしている為、絶賛Perl勉強中です＞＜</p>
+</div>
+<div class="section">
+<h3>はじめに</h3>
+
+<p>まず、冒頭からアダルティな文字列が出てきます。苦手な人は戻って違うページを見て下さい。</p>
+
+<p>世の中にはalias acotie="rm -rf ./*"などと設定されているすばらしい常識人もいらっしゃるようなので</p>
+
+<p>見習って癒し系aliasを作ってみました。</p>
+
+</div>
+<div class="section">
+<h3>インストール</h3>
+
+<p>Acme::Oppaiモジュールのインストール</p>
+<pre>
+sudo cpan -i Acme::Oppai
+</pre>
+
+<p>.bashrcに追記</p>
+<pre>
+alias yappo="perl -MAcme::Oppai -e 'print Acme::Oppai-&gt;oppai('your')-&gt;oppai('soul')-&gt;oppai('message')-&gt;oppai;';"
+</pre>
+
+<pre>
+$ source ~/.bashrc
+$ yappo
+</pre>
+<pre>
+　 _ 　∩
+(　゜∀゜)彡　your
+
+
+(　゜∀゜)彡　soul
+　⊂彡
+　 _ 　∩
+(　゜∀゜)彡　message
+
+
+(　゜∀゜)彡　おっぱい!
+　⊂彡
+
+</pre>
+
+
+
+<p>余談ですが、Acme::Oppai-0.03よりnew()時にdefaultオプションが設定できるようになっていました。</p>
+
+<h5> default =&gt; 'default'の場合</h5>
+<pre>
+perl -MAcme::Oppai -e 'print Acme::Oppai-&gt;new(default =&gt; 'default')-&gt;oppai';
+</pre>
+<pre>
+　 _ 　∩
+(　゜∀゜)彡　おっぱい!おっぱい!
+　⊂彡
+
+
+</pre>
+
+
+<h5> default =&gt; 'up'の場合</h5>
+<pre>
+perl -MAcme::Oppai -e 'print Acme::Oppai-&gt;new(default =&gt; 'up')-&gt;oppai-&gt;oppai-&gt;oppai';
+</pre>
+
+<pre>
+　 _ 　∩
+(　゜∀゜)彡　おっぱい!
+
+</pre>
+
+
+<h5> default =&gt; 'down'の場合</h5>
+<pre>
+perl -MAcme::Oppai -e 'print Acme::Oppai-&gt;new(default =&gt; 'down')-&gt;oppai-&gt;oppai-&gt;oppai';
+</pre>
+<pre>
+
+(　゜∀゜)彡　おっぱい!
+　⊂彡
+</pre>
+
+
+<h5> 文字を入れることもできます！</h5>
+<pre>
+perl -MAcme::Oppai -e 'print Acme::Oppai-&gt;Oppai("Perl")-&gt;Oppai("Advent Calendar")-&gt;Oppai("2009!")';
+</pre>
+<pre>
+
+　　　 _ 　∩
+　　(　゜∀゜)彡　Perl
+　　(　 　　|　
+　 　|　　　|　
+　 　し ⌒Ｊ
+　　　 _ 　
+　　(　゜∀゜)　　Advent Calendar
+　　(　 ⊂彡
+　 　|　　　|　
+　 　し ⌒Ｊ
+　　　 _ 　∩
+　　(　゜∀゜)彡　2009!
+　　(　 　　|　
+　 　|　　　|　
+　 　し ⌒Ｊ
+
+
+</pre>
+
+</div>
+<div class="section">
+<h3>まとめ</h3>
+
+<p>Oppaiメソッド名の最初の文字を大文字にすると大きいAA、小文字だと小さいAAに変更することができます。</p>
+
+<p>ストレスが溜まりやすい現代社会に、日常生活の癒しとしてAAを導入されてみてはいかがでしょうか。</p>
+
+
+<p>明日は、Perl業界の最速レポーターなhirataraさんです！是非お楽しみに！</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/casual/20.html">Sun, 20 Dec 2009 06:00:23 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

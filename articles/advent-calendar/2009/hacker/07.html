@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Test::LoadAllModules で全てのモジュールがuseできるかテストする - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Test::LoadAllModules で全てのモジュールがuseできるかテストする - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Test::LoadAllModules で全てのモジュールがuseできるかテストする<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/hacker/07.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/hacker/07.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<h3> 前置き</h3>
+
+<p>みなさんこんにちは、dann です。</p>
+
+<p>こちらは hacker track ということで、僕がつくったモジュールの一つを紹介したいとおもいます。今回ご紹介するモジュールは Test::LoadAllModules です。</p>
+</div>
+<div class="section">
+<h3> 本題</h3>
+
+<p>Test::LoadAllModules は非常に小粒なツールですが、なかなかいいモジュールなんじゃないかと自分でもおもっています。</p>
+
+<p>モジュールを作るときには、「このモジュールがuseできるか」というようなテストをすることはままあります。00_compile.tなどで以下のようなコードを書いたり、モジュールごとのテストでuse_okするコードなどを書いているのではないでしょうか。</p>
+
+<p>例えば、従来は、毎回以下のようにコードを書いていました。モジュールが増えるとuseできるかのテストするコードが増え、書き忘れたりするため冗長です。</p>
+
+<pre>
+use strict;
+use Test::More tests =&gt; 1;
+
+BEGIN { use_ok 'Module::Hoge1' }
+
+</pre>
+
+<p>しかし、Test::LoadAllModules を使えば、以下のように書くだけでいいのです。とても楽ちんですね。</p>
+
+<pre>
+use Test::LoadAllModules;
+
+BEGIN {
+    all_uses_ok(search_path =&gt; 'MyApp');
+}
+</pre>
+
+<p>また、いくつかのファイルを除いてテストしたい時なども簡単に書けます。</p>
+<p>例えば、Mouse::Role系などは代表的なものです。</p>
+
+<pre>
+use Test::LoadAllModules;
+
+BEGIN {
+    all_uses_ok(
+        search_path =&gt; 'MyApp',
+        except =&gt; [
+            'MyApp::Role',
+            qr/MyApp::Exclude::.*/,
+        ]
+    );
+}
+</pre>
+
+<p>複数のパス以下のファイルをコンパイルしたい場合なども以下のように簡単に書く事ができます。</p>
+
+<pre>
+use Test::LoadAllModules;
+
+BEGIN {
+    all_uses_ok(
+        search_path =&gt; 'MyApp',
+        lib =&gt; [
+            'lib',
+            't/lib',
+        ]
+    );
+}
+</pre>
+</div>
+<div class="section">
+<h3> 関連モジュール</h3>
+<p>本モジュールは開発時に使うことを想定しているため、META.yamlからではなく、libに指定したパスからファイルを探すことでテストをします。こうすることで、prove単体で直接テストをすることができ、テストを早くすることができます。</p>
+
+<p>Test::Compileという類似したモジュールもあるのですが、こちらのモジュールは本当にすべてのpmファイルをuseしてしまうため、除外ルールを指定できないため、MouseのRoleなどuseしてテストをしたくないものがある場合に使えません。</p>
+
+<p>また、MANIFEST に記述されたファイルをテストするTest::UseAllModulesなどもあります。しかし、META.yamlにモジュールを追加してからテストしなければいけないので、開発時には向いていません。このモジュールは、リリーステストに向いているといえるでしょう。</p>
+</div>
+<div class="section">
+<h3> まとめ</h3>
+
+<p>今回は Test::LoadAllModules について、解説しました。</p>
+
+<p>このモジュールは、同様の処理を何度も書いたり見かけたりしているうちに、「もうめんどくさいからモジュールにしちゃおう」とおもって作りました。普段から「定型的なコードがないだろうか」と気をつけていることが重要ですね。</p>
+
+<p>というわけで今回はここまで。明日はMr.XSこと id:gfx さんです。</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/hacker/07.html">Sun, 06 Dec 2009 15:00:00 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

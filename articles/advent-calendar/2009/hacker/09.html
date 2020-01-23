@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Inline::x86でPerlの中に直接機械語を書く - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Inline::x86でPerlの中に直接機械語を書く - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Inline::x86でPerlの中に直接機械語を書く<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/hacker/09.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/hacker/09.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<h3> 前置き</h3>
+
+<p>こんにちは、id:TAKESAKOです。最近コロプラにハマるようになってきて近郊遠方の国内出張が楽しくなりました。JPerl Advent Calendar 2009 Hacker Trackも9日目ですね。そろそろPerlのソースを読むだけでは飽き足らずx86の機械語を書きたくなってきたんじゃないでしょうか。そんなわけで、今日は稚拙のInline::x86を紹介します。</p>
+</div>
+<div class="section">
+<h3> 本題</h3>
+
+<p>皆さんの中にはよくx86を書く方もいらっしゃると思いますが、x86機械語を含むコードインジェクションは実行環境の設定が結構大変ですよね。Linuxのシステムコールmprotectを呼び出して実行ビットを追加で指定したり、Windows XP SP2以降のDEP(データ実行防止機能)を無効にしたりする必要がありますし、64bit命令は使えるか、nasmのバージョンは十分に新しいか、などなど考えなければいけないことが多々あります。CPUの中にコアが複数あると、また一層大変です。</p>
+
+<p>これらの面倒なことは Inline::x86 にやらせましょう！</p>
+
+
+<p>まず一番短くて簡単な Inline/x86.pm を自分で作成してみます。</p>
+
+<pre>
+package Inline::x86;
+
+use DynaLoader();
+use Exporter;
+our @ISA = qw(Exporter);
+our @EXPORT = qw(x86);
+
+sub x86 {
+  my ($x86) = @_;
+  if ($^O eq "linux") {
+    require 'syscall.ph';my $size = int(2+length($x86)/4096)*4096;
+    syscall(&SYS;_mprotect,(unpack"L",pack"P",$x86)&amp;~4095,$size,7);
+  }
+  DynaLoader::dl_install_xsub("X86",unpack"L",pack"P",$x86);
+  &X86;
+}
+
+1;
+</pre>
+
+<p>use DynaLoaderは、共有ライブラリの関数をダイナミックに呼び出すことができる標準モジュールです。通常はDynaLoader::dl_install_xsub の第二引数にCで書かれた共有ライブラリの関数ポインタを指定するのですが、ここに変数 $x86 に代入されている文字列のポインタを渡して、直接$x86に記述した機械語を呼び出すハックをしています。</p>
+
+<p>※ Inline/x86.pm は 100% Pure Perl で書かれているため、別途CコンパイラやXSモジュールなどをインストールする必要がありません！これは便利です！</p>
+</div>
+<div class="section">
+<h3> 32bit OS か 64bit OS か判別する</h3>
+
+<p>これを使って、今実行しているOSが32bit互換モードか、64bitロングモードかを調べるPerlスクリプトを書いてみましょう。</p>
+
+<pre>
+use Inline::x86;
+
+sub bit {
+  my $long_mode = "?" ;          # "0" =&gt; 32bit, "1" =&gt; 64bit
+  x86 do {
+    "\xb8\x31\x00\x00\x00".      # mov eax, 0x31
+    "\x48".                      # dec eax // 64bit REX PREFIX
+    "\xa2".pack("P",$long_mode). # mov [$long_mode], al
+    "\xc3";                      # ret
+  };
+  $long_mode ? "64bit" : "32bit";
+}
+
+print bit(), "\n";
+</pre>
+
+<p>Inline::x86 を使用すると、x86 do { "機械語"; } という構文で、x86の機械語を直接実行することができます。</p>
+<p>とてもわかりやすいですね。</p>
+
+<p>実際の機械語の中身ですが、64bitロングモード特有のREX PREFIXを解釈するかどうかで判別するコードを入れています。32bitのx86互換モードでは dec eax が実行され $long_mode="0" となりますが、64bitロングモードではこのような1byte decは解釈されず、直後のmov命令のREX PREFIXを指定することになるので、$long_mode="1" となります。</p>
+</div>
+<div class="section">
+<h3> Perlで64bit整数対応かどうか調べる</h3>
+
+<p>ちなみに、Config.pmを使用せずに、Perlが64bit整数対応でコンパイルされているかどうかを確認するコードは以下のように書けます。</p>
+
+<pre>
+#!/usr/bin/perl
+print((~0&gt;&gt;31==1)?"32bit":"64bit");
+</pre>
+
+<p>これは機械語を使っていませんが。64bit整数が扱える場合は、~0&gt;&gt;31==8589934591となるなのですが、32bit整数しか扱えない場合は、上位31bitがゼロクリアされて~0&gt;&gt;31==1となるためです。簡単ですね。</p>
+</div>
+<div class="section">
+<h3> CPUのプロセッサ名を取得する</h3>
+
+<p>現在実行しているCPUのプロセッサ名を取得するPerlスクリプトを書いてみます。</p>
+
+<pre>
+use Inline::x86;
+
+sub ProcessorBrandString {
+  my $cpu = "\0" x 48;
+  x86 do {
+    "S\xbf" . pack("P", $cpu).
+    "\xb8\x02\x00\x00\x80".
+    "P\x0f\xa2\x89\a\x89_\x04\x89O\b\x89W\x0c\x8d\x7f\x10X\x8d\@\x01".
+    "P\x0f\xa2\x89\a\x89_\x04\x89O\b\x89W\x0c\x8d\x7f\x10X\x8d\@\x01".
+    "P\x0f\xa2\x89\a\x89_\x04\x89O\b\x89W\x0c\x8d\x7f\x10X\x8d\@\x01".
+    "[\xc3";
+  };
+  $cpu =~ s/\0+//g; 
+  $cpu =~ s/^ +//; 
+  $cpu;
+}
+
+print ProcessorBrandString(), "\n";
+</pre>
+
+<p>このプログラムを実際にいくつかのマシン上で動かしてみましょう。</p>
+
+<pre>
+Intel(R) Pentium(R) 4 CPU 3.40GHzIntel(R) Pentium(R) 4 CPU 3.40GHz
+</pre>
+<pre>
+AMD Athlon(tm) Processor 1640B
+</pre>
+
+<p>搭載しているマシンのCPU毎に様々な結果が得られることがわかりました。</p>
+
+<p>これで、Perlで機械語プログラミングしていて、途中でCPUを判別してプログラムの処理を分岐したいときがでてきても安心です。</p>
+
+<p>ちなみに、実際に実行している機械語をディスアセンブルすると以下になります。</p>
+
+<pre>
+----------------------------------------------- 
+00000000  53                push ebx 
+00000001  BFxxxxxxxx        mov edi,0xXXXXXXXX 
+00000006  B802000080        mov eax,0x80000002 
+----------------------------------------------- 
+0000000B  50                push eax 
+0000000C  0FA2              cpuid 
+0000000E  8907              mov [edi],eax 
+00000010  895F04            mov [edi+0x4],ebx 
+00000013  894F08            mov [edi+0x8],ecx 
+00000016  89570C            mov [edi+0xc],edx 
+00000019  8D7F10            lea edi,[edi+0x10] 
+0000001C  58                pop eax 
+0000001D  8D4001            lea eax,[eax+0x1] 
+----------------- 3回繰り返し ----------------- 
+0000004A  5B                pop ebx 
+0000004B  C3                ret 
+----------------------------------------------- 
+</pre>
+
+<p>eaxレジスタに0x80000002を代入して値を1増やしながらCPUID命令を実行して、ediレジスタの指す文字列の先頭から32bit×4＝16byteの書き込みを3回繰り返しています。</p>
+<p>ループアンローリングできる形に機械語を変形しているので多い日も安心ですね。</p>
+</div>
+<div class="section">
+<h3> まとめ</h3>
+
+<p>今回は簡単な Inline::x86 の作り方について解説しました。</p>
+
+<p>このモジュールは、同様の機械語を何度も書いたり見かけたりしているうちに、「もうめんどくさいからモジュールにしちゃおう」とおもって作りました。普段から「定型的なコードがないだろうか」と気をつけていることが重要ですね。</p>
+
+<p>というわけで今回はここまで。明日は id:cho45 さんです。</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/hacker/09.html">Thu, 24 Dec 2009 09:45:01 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

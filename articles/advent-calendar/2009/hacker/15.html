@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Orochi紹介 - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Orochi紹介 - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Orochi紹介<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/hacker/15.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/hacker/15.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<h3> Orochiってなんじゃらほい</h3>
+
+<p>Orochi (<a href="http://search.cpan.org/dist/Orochi">http://search.cpan.org/dist/Orochi</a>) は一種のDependenc Injection(DI) フレームワークです。それぞれなんらかの依存関係があるオブジェクト群を初期化するコードを書くのに飽き飽きしていたので、書きました。</p>
+
+<p>なお元々Bread::Board (<a href="http://search.cpan.org/dist/Bread-Board">http://search.cpan.org/dist/Bread-Board</a>) にこの機能を追加したかったので、将来的に同等の機能がBread::Boardに実装された場合はそちらと統合する可能性が高いです。</p>
+</div>
+<div class="section">
+<h3> Orochi使用例</h3>
+
+<p>例えば以下のよう構成のシステムがあったとします。</p>
+
+<pre>
+依存関係ダイアグラム
+====================
+
+                requires   --------------  requires
+                ---------&gt; | MyApp::Log |-----------&gt; $file
+   ---------    |          --------------
+   | MyApp |----|
+   --------     |          -----------------
+                ---------&gt; | MyApp::Schema | -------&gt; @connect_info
+                requires   -----------------
+</pre>
+
+<p>MyAppはLogオブジェクトとDBIx::Classスキーマに依存し、それらも$fileと@connect_infoにそれぞれ依存すると仮定します。これを実装するには以下のようなコードを書くことになります：</p>
+
+<pre>
+package MyApp;
+use Moose;
+use namespace::autoclean;
+
+has log =&gt; (
+    is =&gt; 'ro',
+    isa =&gt; 'MyApp::Log',
+    required =&gt; 1,
+);
+
+has schema =&gt; (
+    is =&gt; 'ro',
+    isa =&gt; 'MyApp::Schema',
+    required =&gt; 1,
+);
+
+sub run {
+    ....
+}
+
+__PACKAGE__-&gt;meta-&gt;make_immutable();
+
+1;
+</pre>
+
+<pre>
+package MyApp::Log;
+use Moose;
+use namespace::autoclean;
+
+has file =&gt; (
+    is =&gt; 'ro',
+    isa =&gt; 'Str',
+    required =&gt; 1,
+);
+
+__PACKAGE__-&gt;meta-&gt;make_immutable();
+
+1;
+</pre>
+
+<pre>
+package MyApp::Schema;
+use Moose;
+use namespace::autoclean;
+
+extends 'DBIx::Class::Schema'
+
+1;
+</pre>
+
+<p>このような構造を用意すると、依存関係を満たして初期化するために以下のようなコードを書く必要があります。</p>
+
+<pre>
+use MyApp;
+use MyApp::Log;
+use MyApp::Schema;
+
+my $log = MyApp::Log-&gt;new(file =&gt; "/path/to/log.txt" );
+my $schema = MyApp::Schema-&gt;connection('dbi:mysql:dbname=foo', 'user', 'password');
+my $app = MyApp-&gt;new(
+    log =&gt; $log,
+    schema =&gt; $schema
+);
+$app-&gt;run();
+</pre>
+
+<p>この程度であれば一個一個手で書いていけば済む話ですが、依存関係が増えていくにしたがい管理するオブジェクト数とともに書かなければいけない事項があ指数関数的に増えていきます。</p>
+
+<p>そうなってしまっては後から依存関係を追加・変更したりする場合に困ってしまいます。また、例えばWAF内で一旦その初期化を記したとしてもコマンドラインツールから同じオブジェクト群を作成するコードを用意しなければなりません。もちろんやってできないことはありませんが、かなり面倒くさくなってきます。</p>
+
+<p>Orochiはこの作業をなるたけ1回だけ記してあとは自動的にオブジェクト群を生成できるようにするためのツールです。</p>
+</div>
+<div class="section">
+<h3> Orochi の基本</h3>
+
+<p>Orochiは前項で紹介した仕組みの下位レイヤーを構成します。この部分は詳細を説明してもあまりおもしろくありませんのでざっくり割愛します。基本的な動作としては以下のようになります：</p>
+
+<pre>
+my $orochi = Orochi-&gt;new();
+
+# 遅延評価でMyClass-&gt;new(\%args)を実行してオブジェクトに転換して
+# 返すよう指定
+$injection = $orochi-&gt;inject_constructor( $key =&gt; (
+    class =&gt; 'MyClass',
+    args  =&gt; \%args
+) );
+        
+$object    = $injection-&gt;expand(); # この時点で展開
+$object    = $orochi-&gt;get($key);   # 同等。$keyから$injection
+                                   # オブジェクトを検索してexpand()する
+
+# 後でそのままの値を返すよう指定
+$injection = $orochi-&gt;inject_literal( $key =&gt; $value );
+$value     = $injection-&gt;expand(); # $valueを返すだけ
+$value     = $orochi-&gt;get($key);   # 同等
+
+# bind_value は inject_* で指定した値をexpand()したものを遅延評価する。
+# この場合、 $class-&gt;new({ arg1 =&gt; $arg1, arg2 =&gt; $arg2 }) が
+# get()/expand() 時に呼ばれる
+$orochi-&gt;inject_constructor(
+    $key =&gt; (
+        class =&gt; $class,
+        args  =&gt; {
+            arg1 =&gt; $orochi-&gt;bind_value( $key_for_arg1 ),
+            arg2 =&gt; $orochi-&gt;bind_value( $key_for_arg2 ),
+        }
+    )
+);
+</pre>
+
+<p>キモはinject_constructorでコンストラクタとその引数を指定して遅延評価できることと、引数そのものも同じ仕組みで遅延評価し依存関係の関係性だけを表記できることです。</p>
+</div>
+<div class="section">
+<h3> MooseX::Orochi</h3>
+
+<p>Orochiの最終的な目的はMooseオブジェクト群を自動的にフレームワークに登録して、初期化が終わった状態でインスタンスを自動的に作成してもらう事です。Orochiに同梱されているMooseX::Orochiを使用するとMooseクラスにOrochi要のインジェクションルールを書き込んで置くことができるようになります：</p>
+
+<pre>
+package MyApp;
+use Moose;
+use MooseX::Orochi;
+use namespace::autoclean;
+
+# 以下の宣言は、後に
+#   MyApp-&gt;new( {
+#       log =&gt;  .... # $orochi-&gt;get('myapp/log') を評価した結果
+#       scuema =&gt;  .... # $orochi-&gt;get('myapp/schema') を評価した結果
+#   } );
+# と評価されるよう指定しています
+bind_constructor myapp =&gt; (
+    args =&gt; {
+        log =&gt; bind_value 'myapp/log',
+        schema =&gt; bind_value 'myapp/schema',
+    }
+);
+
+sub run { ... }
+
+__PACKAGE__-&gt;meta-&gt;make_immutable();
+
+1;
+</pre>
+
+<p>このように "use Moosex::Orochi" とすることにより、現在のスコープで "bind_constructor" と "bind_value" というDSL／関数が使用可能になります。</p>
+
+<p>bind_constructorは前項のinject_constructorと同じように特定のキーと現在定義中のクラスのインスタンスを結びつけます。</p>
+
+<pre>
+package MyClass;
+bind_constructor $key =&gt; ( %params );
+</pre>
+
+<p>この定義をすることによって、後に以下のようにインスタンスを取得したい旨を宣言しているわけです：</p>
+
+<pre>
+my $obj = $orochi-&gt;get($key)
+</pre>
+
+<p>なお、%paramsにクラスを指定する必要はありませんので、arg1とarg2が必要なMooseオブジェクトを定義するには</p>
+
+<pre>
+package MyClass;
+use Moose;
+sue MooseX::Orochi;
+use namespace::autoclean;
+
+bind_constructor 'myclass' =&gt; (
+    args =&gt; {
+        arg1 =&gt; bind_value 'myclass/arg1',
+        arg2 =&gt; bind_value 'myclass/arg2'
+    }
+);
+</pre>
+
+<p>というようにすれば、OrochiはMyClassの引数の設定をしてくれます。もちろんmyclass/arg1とmyclass/arg2は別途注入する必要があります。</p>
+
+<p>他のクラスも同じ仕組みを使って設定を記入していきます：</p>
+
+<pre>
+package MyApp::Log;
+use Moose;
+use MooseX::Orochi;
+use namespace::autoclean;
+
+bind_constructor 'myapp/log' =&gt; (
+    args =&gt; {
+        file =&gt; bind_value 'myapp/log/file'
+    }
+);
+
+__PACKAGE__-&gt;meta-&gt;make_immutable();
+
+1;
+</pre>
+
+<pre>
+package MyApp::Schema;
+use Moose;
+use MooseX::Orochi;
+use namespace::autoclean;
+
+extends 'DBIx::Class::Schema';
+
+bind_constructor 'myapp/schema' =&gt; (
+    args =&gt; bind_value 'myapp/schema/connect_info',
+    deref_args =&gt; 1,
+);
+
+__PACKAGE__-&gt;meta-&gt;make_immutable();
+
+1;
+</pre>
+
+<p>これができたところで、inject_class() メソッドを使って、クラスの中に保存された設定をOrochiインスタンスに注入すれば、あとはget() で作成されたインスタンスを取得するだけです：</p>
+
+<pre>
+use Orochi;
+
+my $o = Orochi-&gt;new();
+
+# クラス定義から依存関係等を注入
+$o-&gt;inject_class('MyApp');
+$o-&gt;inject_class('MyApp::Log');
+$o-&gt;inject_class('MyApp::Schema');
+
+# このあたりは設定ファイルから読み込むのが吉
+$o-&gt;inject_literal(
+    'myapp/schema/connect_info' =&gt; 
+        [ 'dbi:mysql:dbname=foo', 'username', 'password' ],
+);
+$o-&gt;inject_literal(
+    'myapp/log/file' =&gt; '/path/to/log.txt',
+);
+
+my $app = $o-&gt;get('myapp');
+$app-&gt;run();
+</pre>
+
+<p>なお、ここまでの説明はMooseX::OrochiのPODにも書いてありますのでそちらもあわせて参照してください。</p>
+</div>
+<div class="section">
+<h3> MooseX::Orochiの継承</h3>
+
+<p>一度特定のクラスにMooseX::Orochiの設定を施せばその子クラスも同じ設定を引き継ぐ事ができます。</p>
+
+<pre>
+package Parent;
+use Moose;
+use MooseX::Orochi;
+use namespace::autoclean;
+
+bind_constructor 'myapp' =&gt; (
+    args =&gt; {
+        arg1 =&gt; bind_value 'myapp/arg1',
+        arg2 =&gt; bind_value 'myapp/arg2',
+    }
+);
+</pre>
+
+<pre>
+package Child;
+use Moose;
+use namespace::autoclean;
+
+extends 'Parent';
+</pre>
+
+<pre>
+use Orochi;
+
+my $orochi = Orochi-&gt;new();
+$orochi-&gt;inject_literal('myapp/arg1' =&gt; 'value1');
+$orochi-&gt;inject_literal('myapp/arg2' =&gt; 'value2');
+$orochi-&gt;inject_class('Child');
+
+my $child = $orochi-&gt;get('myapp');
+</pre>
+
+<p>このようにすることでMooseX::Orochiの設定を引き継ぐ事ができるのでオブジェクトの使い回しも簡単にできます。子クラスでbind_constructorを使用すれば子クラス特有の設定でオーバーライドすることも可能です。</p>
+</div>
+<div class="section">
+<h3> CatalystでOrochiを使う</h3>
+
+<p>Catalystは元からある程度の自動初期化機能を搭載していますが、それはあくまでCatalystというコンテキスト内であって、それ以外のコンテキストでは同様の仕組みは使えません。なので私はいわゆるアプリケーションロジック部分をCatalystから切り離し、Orochiを通して オブジェクト群を作成しています。</p>
+
+<p>この仕組みをCatalyst内で簡単に扱うために Catalyst::Model::Orochi(<a href="http://search.cpan.org/dist/Catalyst-Model-Orochi">http://search.cpan.org/dist/Catalyst-Model-Orochi</a>) もCPANに登録されており、Orochiを設定ファイルからコントロールすることができます。</p>
+
+<pre>
+package MyApp::Model::Orochi;
+use Moose;
+use namespace::autoclean;
+
+extends 'Catalyst::Model::Orochi';
+
+__PACKAGE__-&gt;meta-&gt;make_immutable();
+
+1;
+</pre>
+
+<p>使用する際には model() 関数からOrochiインスタンスにアクセスすることができます：</p>
+
+<pre>
+package MyApp::Controller::Root;
+use Moose;
+use namespace::autoclean;
+BEGIN { extends 'Catalyst::Controller' }
+
+sub hoge :Local {
+    my ($self, $c) = @_;
+
+    my $thing = $c-&gt;model('Orochi')-&gt;get('whatever');
+}
+
+__PACKAGE__-&gt;meta-&gt;make_immutable();
+
+1;
+</pre>
+
+<p>このようなモデルを設定しておき、必要なオブジェクト群にMooseX::Orochiを適用するだけであとは基本的にmyapp.yaml内に記述を追加するだけで様々な値を注入することができます：</p>
+
+<pre>
+Model::Orochi:
+  injections:
+    key1: value1  # リテラル値を注入
+    key2: value2
+    key3: value3
+  classes:
+    - Class1      # 明示的に指定されたクラスを注入
+    - Class2
+    - Class3
+  namespaces:
+    - MyApp::API  # MyApp::API 内の全てのMooseX::Orochiクラスの
+                  # 定義を注入
+</pre>
+
+<p>この仕組みを使うと、1行も初期化コードを書かずにオブジェクト群を生成することができます</p>
+</div>
+<div class="section">
+<h3> まとめ</h3>
+
+<p>本稿の最初に書いた通り、もうオブジェクト群を初期化するのにとんと嫌気がさしていたのでこの仕組みは実際にプロダクション環境で使い始めています。以下の注意点等が問題にならないようであれば、是非一度さわってみてください！</p>
+
+<ul>
+<li> 使いどころ
+<ul>
+<li> お互い依存関係のあるオブジェクト群が比較的多くある</li>
+<li> Catalyst（もしくはその他のWAF)の中だけでなく、違うコンテキスト（例：コマンドラインツール）などでも同じオブジェクト群の初期化が発生する</li>
+<li> 正直初期化コードをもう書きたくない人向け</li>
+</ul>
+</li>
+</ul>
+
+<ul>
+<li> 注意点
+<ul>
+<li> DIは全てのアプリケーションで必要なわけではないので、（人的、リソース的）コストとのバランスを考えて導入したほうがいい</li>
+<li> Mooseを使わないなら、Orochiも使わない</li>
+<li> Orochiは再帰的な依存関係の自動解決しません。その場合はOrochi::Injection::Setterを使います</li>
+<li> MooseX::Orochiを使うと基本的に1クラス＝1インスタンスになります。複数必要な場合は違う方法で指定する必要があります</li>
+</ul>
+</li>
+</ul>
+
+<p>明日は・・・うほ！<a href="/articles/advent-calendar/2009/hacker/16.html">dankogai</a>さんです！</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/hacker/15.html">Tue, 15 Dec 2009 01:00:00 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

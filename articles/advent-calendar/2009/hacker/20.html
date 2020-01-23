@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Windows環境でUnicodeファイルを扱う - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Windows環境でUnicodeファイルを扱う - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Windows環境でUnicodeファイルを扱う<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/hacker/20.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/hacker/20.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>こんにちわ！クリスマスを過ぎるとニートになることが決まっている xaicron です！</p>
+<p>ハッカーでもなんでもないのですが、勢いに任せて登録してみました！！すいません＞＜</p>
+</div>
+<div class="section">
+<h3> はじめに</h3>
+
+<p>今日は、Windows環境以外の人は何にも関係ない、モジュール Win32::Unicode をご紹介しようとおもいます。</p>
+<p>しかもまた文字コード関連の話ですね！！に<a href="/articles/advent-calendar/2009/casual/10.html">Encodeでラクラク日本語処理</a>を読んでから詠むと、より理解が深まるかもしれません。</p>
+</div>
+<div class="section">
+<h3> Win32::Unicodeって？</h3>
+
+<p>Windows で perl を使う場合の選択肢としては ActivePerl と Strawberry Perl の二種類があげられます。</p>
+<p>どちらも Windows 用にカスタマイズされたものなのですが、悲しいことにどちらの Perlを使っても Unicode 文字の含まれたファイルが扱えません。</p>
+
+<p>でもそれだと悲しいので、Unicode なファイルも扱えるように書いてみたというわけです。</p>
+</div>
+<div class="section">
+<h3> Unicode 文字の含まれたファイルはやっかい</h3>
+
+<p>Windowsでは1つのファイルに対して上記3種類のものが扱えます。</p>
+
+<ul>
+<li> cp932</li>
+<li> 8.3形式 (PROGRA~1とか)</li>
+<li> Unicode (UTF-16LE)</li>
+</ul>
+
+<p>基本的に Perl は一番最初の cp932 としてファイル名を扱うようになっています。しかし、Windowsのマルチバイト環境では、Unicode のファイルが許されています。</p>
+<p>しかし、Unicode 文字があるファイルは「?」となってしまい、Windows のシステムからすればそんなファイルはないので読み取れません。</p>
+<p>iTunesとかで海外の曲を買ってると、知らず知らずのうちの、 Unicode ファイルができている、何てこともあります。</p>
+<p>ためしに、「明日の天気は&#9731;.txt」というファイルが含まれているディレクトリのリストを表示してみましょう。</p>
+
+<pre>
+&gt;perl
+opendir my $dh, '.' or die $!;
+print join &quot;\n&quot;, readdir $dh;
+closedir $dh;
+__END__
+.
+..
+今日の天気は?.txt
+</pre>
+
+<p>「&amp;;#9731;」は cp932 に存在しない文字なので「?」に変換されてしまいました。</p>
+<p>もちろん、 Perl プログラムに cp932 で埋め込むことはできません。 UTF-16LE で書いたところで、Perl自体がまともに動かないのでそれも不可能です。</p>
+</div>
+<div class="section">
+<h3> Win32::Unicode を使う</h3>
+
+<p>さて、それではどうすれば Unincode ファイルを扱えるのでしょうか？実は Windows 自体には Unicode ファイルを扱う API が用意されているのです。</p>
+<p>そいつを使ってやれば、ちゃんと Unicode ファイルの操作ができます。Window の API を Perl からたたくのは、 Win32::API を使えば実現できます。</p>
+<p>でも、こいつは Perl の書き方とはかけ離れているので、日常的に使うにはとってもめんどくさいです。</p>
+
+<p>Win32::Unicode は Perl の書き方とほぼ同じように Unicode ファイルを扱えるように Win32::API をラップしたモジュールです。</p>
+<p>use すると、大量の関数をエクスポートするのが特徴です。しかも、デフォルトでは、COREの関数をoverrideしないように、ほとんどのものに「W」というのがついています。</p>
+<p>でもそれだとダサいので、最後のほうで「Win32::Unicode::Native」っていうのを紹介します。</p>
+
+<p>Win32::Unicode では、すべての関数で flagged utf8 を使うことにしているので、モダンな気持ちを味わいながら書くことができると思います。</p>
+</div>
+<div class="section">
+<h3> Win32::Unicode::File;</h3>
+
+<p>Unicode 文字のファイルの読み書きができる IO::File っぽいインターフェースを持ったモジュールです。</p>
+<p>ファイルの読み書きだけでなく、 rename、copy、unlink などもあります。</p>
+<p>それでは、さっき開けなかった「明日の天気は&#9731;.txt」に何か書き込んで見ましょう。</p>
+
+<pre>
+use strict;
+use warnings;
+use utf8;
+use Win32::Unicode::File;
+
+my $fh = Win32::Unicode::File-&gt;new;
+open $fh, '&gt;', &quot;明日の天気は\x{2603}.txt&quot;;
+binmode $fh, ':encoding(cp932)';
+print $fh &quot;こんにちわ！こんにちわ！\n&quot;;
+close $fh;
+</pre>
+
+<p>とっても簡単ですね！！もちろん読み込むこともできます。</p>
+
+<p>Win32::Unicode では-X 演算子を PP で実装する方法がわからなかったので、「file_type」という関数を使わなくてはなりません。さらに、ファイルサイズを取得する場合は、-s ではなく file_size を使用します。</p>
+<p>そのかわり、Windows 固有のファイル属性の判定ができ、なおかつ、重ね打ちも可能です。</p>
+<p>このあたり、何かいい手段があれば教えていただけると幸いです。</p>
+
+<pre>
+if (file_type rhf =&gt; $file_name) {
+    # (読み込み専用で隠し属性のファイル)
+}
+
+my $size = file_size $file_name # -s $file_name と等価
+</pre>
+
+<p>あと、まだstatとかflockとかが未実装だったり、4GB以上のファイルがたぶん扱えなかったりしますが、そのうち実装されるんじゃないかと思います。</p>
+</div>
+<div class="section">
+<h3> Win32::Unicode::Dir;</h3>
+
+<p>次はディレクトリ周りです。使いかたは Win32::Unicode::File と大体一緒です。</p>
+<p>こっちにも find、mkpath、cptree、mvtree など、よく使う関数も一緒にエクスポートします。</p>
+
+<pre>
+use strict;
+use warnings;
+use utf8;
+use Win32::Unicode::Dir;
+
+my $dh = Win32::Unicode::Dir-&gt;new;
+$dh-&gt;open('.');
+print join &quot;\n&quot;, $dh-&gt;readdir;
+$dh-&gt;close;
+</pre>
+
+<p>こんな感じで使います。</p>
+<p>でもこれを実行すると、</p>
+
+<pre>
+Wide character in print at readdir.pl line 8.
+.
+..
+譏取律縺ｮ螟ｩ豌励・笘・txt
+</pre>
+
+<p>とかいって文字化けしてしまいます。</p>
+<p>これは、readdir で帰ってくる文字が、 flagged utf8 だからなので当然といえば当然です。</p>
+<p>でも、</p>
+
+<pre>
+use strict;
+use warnings;
+use utf8;
+use Win32::Unicode::Dir;
+
+binmode STDOUT =&gt; ':encoding(cp932)'; # 追加
+
+my $dh = Win32::Unicode::Dir-&gt;new;
+$dh-&gt;open('.');
+print join &quot;\n&quot;, $dh-&gt;readdir;
+$dh-&gt;close;
+</pre>
+
+<p>としたところで、</p>
+
+<pre>
+.
+..
+&quot;\x{2603}&quot; does not map to cp932.
+明日の天気は\x{2603}.txt
+</pre>
+
+<p>と、怒られてしまいます。</p>
+<p>なんだかここまでくれば、コマンドプロンプトにも「明日の天気は&#9731;.txt」って表示してほしいなーと思いました。</p>
+<p>で、実はこのファイルがあるディレクトリで「dir」するとなんと普通に「明日の天気は&#9731;.txt」って表示されるんです！！</p>
+
+<p>ということは、コマンドプロンプトにも Unicode を表示する API があるということですね。</p>
+</div>
+<div class="section">
+<h3> Win32::Unicode::Console</h3>
+
+<p>なので、つくりました。</p>
+<p>Win32::Unicode::Console はコマンドプロンプトに Unicode 文字を表示できます。</p>
+<p>printW printfW sayW dieW warnW という関数がエクスポートされます。</p>
+<p>これらはすべて、 flagged utf8 を受け取ります。</p>
+
+<p>これをつかってさっきのやつを書き換えると</p>
+
+<pre>
+use strict;
+use warnings;
+use utf8;
+use Win32::Unicode::Dir;
+use Win32::Unicode::Console;
+
+binmode STDOUT =&gt; ':utf8'; # リダイレクトのため
+
+my $dh = Win32::Unicode::Dir-&gt;new;
+$dh-&gt;open('.');
+printW join &quot;\n&quot;, $dh-&gt;readdir;
+$dh-&gt;close;
+</pre>
+
+<pre>
+.
+..
+明日の天気は&#9731;.txt
+</pre>
+
+<p>おおお！無事に表示されましたね！！</p>
+<p>ちなみに、リダイレクト時には、通常の print が使用されるため、binmode しておいたほうがいいでしょう。</p>
+</div>
+<div class="section">
+<h3> Win32::Unicode::Error</h3>
+
+<p>次はエラーメッセージです。とはいっても、これがエクスポートするのは errorW のみです。</p>
+<p>位置づけとしては、「$!」の代わりに使うという感じです。</p>
+<p>これまた、$! を書き換える方法がわからなかったので、仕方なく という感じです。($! にはエラーコードを示す数値のみ代入でき、文字列を入れることはできない。)</p>
+<p>メッセージはWindow API のエラーメッセージとなります。マルチバイト環境では日本語が返ってくるので、dieW errorW という風に使います。</p>
+
+<pre>
+use strict;
+use warnings;
+use utf8;
+use Win32::Unicode::Error;
+use Win32::Unicode::Console;
+use Win32::Unicode::File;
+
+my $fh = Win32::Unicode::File-&gt;new;
+open $fh, '&lt;', '存在しないファイル' or dieW errorW;
+print &lt;$fh&gt;;
+close $fh;
+</pre>
+
+<p>これを実行すると、</p>
+
+<pre>
+指定されたファイルが見つかりません。 at errorW.pl line 8
+</pre>
+
+<p>みたいになります。</p>
+</div>
+<div class="section">
+<h3> Win32::Unicode</h3>
+
+<p>ここまで、４つぐらいのモジュールが登場しましたが、毎回全部 use するのはめんどくさいので、 use Win32::Unicode します。</p>
+<p>これで、今までのモジュールがすべでロードされ、さらにそれぞれの関数もすべてエクスポートされます。</p>
+</div>
+<div class="section">
+<h3> Win32::Unicode::Native</h3>
+
+<p>でも、ここまで書いておいていうのもあれですが、正直「W」とないわー。</p>
+<p>しかもファイルオープンとかも new しないいけないしめんどいなー。</p>
+<p>どうにかならんかなー。ってことで、 Win32::Unicode::Native です。</p>
+
+<p>こいつをuse すると標準関数を override します。とはいっても、CORE::GLOBAL::* を書き換えるわけではなく、単純に同名の関数をエクスポートして上書きします。</p>
+<p>use した範囲だけ適用されるので、ほかのモジュールなどには影響しません。</p>
+<p>唯一の例外が、 STDOUT です。これだけは、 Win32::Unicode::Console::Tie というモジュールに tie しているため、すべてに影響します。</p>
+
+<pre>
+use strict;
+use warnings;
+use utf8;
+use Win32::Unicode::Native;
+
+print &quot;flagged utf8な文字も普通にいける&quot;;
+
+# Win32::Unicode::File-&gt;newとかしない
+open my $fh, '&gt;', '森鷗外.txt' or die error;
+print $fh &quot;ほげほげ&quot;;
+close $fh;
+
+# Win32::Unicode::Dir-&gt;newとかしない
+opendir my $dh, &quot;\x{2600}&quot; or die error;
+say join &quot;\n&quot;, readdir $dh;
+close $dh;
+</pre>
+
+<p>ほとんど Perl の記法と一緒ですね！！</p>
+
+<p>ちなみに、use Win32::Unicode '-native'としてもOKです。</p>
+</div>
+<div class="section">
+<h3> Win32::Unicodeは遅い</h3>
+
+<p>Win32::Unicode は普通に遅いです。</p>
+<p>Perl がネイティブにやってくれるところをわざわざ PP で再実装しているので当然なのですが。</p>
+<p>Unicode のファイルをPerlで扱う必要がまったくない場合は、使わないことをお勧めします。</p>
+
+<p>また、当然のことながら(いないとはおもいますが・・・)モジュールなどには使わないほうがいいでしょう。</p>
+<p>個人的に Windows 上で動かしたいスクリプトなどで重宝するんじゃないかなーと思っています。</p>
+</div>
+<div class="section">
+<h3> まとめ</h3>
+
+<p>Windows で Unicode のあれこれを扱えるモジュールを紹介しました。</p>
+<p>このモジュールは、Windows でファイル操作をしているときに、扱えないファイルがあって、なんだか悲しかったのでつくりました。</p>
+<p>本来であれば、Perl がわで実装されるべきではないかと思っていますが、影響範囲や実装方法などが、なかなかややこしいと思うので、昨今まで実装されていないのではないでしょうか？</p>
+<p>将来的にはネイティブに扱えるようになるといいなーと思います。</p>
+
+<p>また、現在は PP で書いていますが、 Win32 API をラップして使っているだけなので、XS で書いたほうがもっといい感じに実装できるでしょう。</p>
+<p>XS かけるようになったら挑戦してみたいと思います。(そのときに Windows を使っていればね！)</p>
+
+<p>というわけで、明日は vkgtaro さんです！！風のうわさでは仙人になるのではないかとのことですが、本当のところはどうなんでしょうか？</p>
+<p>どんな話をしてくれるのか今からとっても楽しみですね・・・！！</p>
+</div>
+<div class="section">
+<h3> SEE ALSO</h3>
+
+<p><a href="http://subtech.g.hatena.ne.jp/miyagawa/20070513/1178988848">http://subtech.g.hatena.ne.jp/miyagawa/20070513/1178988848</a></p>
+<p><a href="http://subtech.g.hatena.ne.jp/miyagawa/20070513/1179038019">http://subtech.g.hatena.ne.jp/miyagawa/20070513/1179038019</a></p>
+<p><a href="http://subtech.g.hatena.ne.jp/miyagawa/20070815/1187134943">http://subtech.g.hatena.ne.jp/miyagawa/20070815/1187134943</a></p>
+<p><a href="http://subtech.g.hatena.ne.jp/miyagawa/20070815/1187134943">http://subtech.g.hatena.ne.jp/miyagawa/20070815/1187134943</a></p>
+<p><a href="http://xaicron.web.fc2.com/misc/presen/20091120/index.html">http://xaicron.web.fc2.com/misc/presen/20091120/index.html</a></p>
+
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/hacker/20.html">Tue, 22 Dec 2009 17:00:01 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

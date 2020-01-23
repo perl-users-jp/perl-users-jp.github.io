@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Acme::EyeDropsでアナタも記号プログラマー！ - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Acme::EyeDropsでアナタも記号プログラマー！ - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Acme::EyeDropsでアナタも記号プログラマー！<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/casual/08.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/casual/08.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>最近、全裸で転職しました。sugyanです。</p>
+<p>まだまだPerlのことはよく分からないトーシロですが、大好きなモジュールを紹介したいと思います。</p>
+
+</div>
+<div class="section">
+<h3> はじめに</h3>
+<p>Perlは非常に柔軟な言語で、TMTOWTD【There's More Than One Way To Do It.】と言われる通り、同じ処理をするプログラムでも色んな書き方ができます。</p>
+<p>例えばプログラムを<a href="http://namazu.org/~takesako/ppencode/demo.html">予約語だけで</a>書いてみたり、<a href="http://d.hatena.ne.jp/TAKESAKO/20090716/1247750262">記号だけで</a>書いてみたりできちゃうわけですね。</p>
+<p>そんなスーパーハッカーみたいなことをやってみたい！という願望はPerl好きの<del>変態な</del>皆さんなら誰しも持っているのではないでしょうか！？</p>
+<p>今回紹介するモジュール<a href="http://search.cpan.org/~asavige/Acme-EyeDrops-1.55/lib/Acme/EyeDrops.pm">Acme::EyeDrops</a>は、そんな変態プログラミングをお手伝いしてくれるモジュールです。</p>
+<p>CPANからインストールできます。最新バージョンは1.55です。</p>
+
+</div>
+<div class="section">
+<h3> 使い方(初級編)</h3>
+<p>まずは何も考えず普通のプログラムを用意しましょう。</p>
+<pre>
+use strict;
+use warnings;
+
+print "Hello world!\n";
+</pre>
+<p>誰もが一度は書く、ハローワールドですね。これを'hello.pl'とでも名付けて保存しましょう。</p>
+<p>そして、それとは別に以下のようなプログラムを書きます。</p>
+<pre>
+use strict;
+use warnings;
+
+use Acme::EyeDrops 'sightly';
+
+print sightly({
+    Shape      =&gt; 'camel',
+    SourceFile =&gt; 'hello.pl',
+});
+</pre>
+<p>先程の'hello.pl'と同じディレクトリで実行してみましょう。</p>
+<pre>
+$ perl eyedrops.pl
+1 shapes completed.
+eval eval '"'.
+
+
+                                      ('['^"\.").(
+           ('[')^                   '(').('`'|'%').
+        ('{'^'[').                ('['^'(').('['^'/'
+ ).('['^')'  ).('`'              |')').('`'|'#').('['
+^'/').';'.('!'^'+').            ('['^'.').('['^"\(").(
+'`'|'%').('{'^"\[").(          '['^',').('`'|'!').('['
+  ^')').('`'|('.')).(        '`'|')').('`'|'.').(('`')|
+       "'").('['^'(')      .';'.('!'^'+').('!'^'+').('['
+      ^'+').('['^')'     ).('`'|')').('`'|'.').('['^'/').
+     ('{'^'[').'\\'.   '"'.('`'^'(').('`'|'%').('`'|',').(
+    '`'|',').("\`"|   '/').('{'^'[').('['^',').('`'|('/')).(
+    '['^')').("\`"|  ',').('`'|'$').'!'.'\\'.'\\'.('`'|"\.").
+    '\\'.'"'.';'.(  '!'^'+').'"';$:='.'^'~';$~='@'|'(';$^=')'
+    ^'[';$/=('`')|  '.';$,='('^'}';$\='`'|'!';$:=')'^('}');$~=
+    '*'|'`';$^='+'^'_';$/='&amp;'|'@';$,='['&amp;'~';$\=','^'|';$:='.'
+    ^'~';$~='@'|'(';$^=')'^'[';$/='`'|'.';$,='('^'}';$\='`'|'!'
+     ;$:=')'^'}';$~='*'|'`';$^='+'^'_';$/='&amp;'|'@';$,='['&amp;'~';$\
+     =','^'|';$:='.'^'~';$~='@'|'(';$^=')'^'[';$/='`'|'.';$,='('
+      ^'}';$\='`'|'!';$:=')'^'}';$~='*'|'`';$^='+'^'_';$/='&amp;'|'@'
+       ;$,='['&amp;'~';$\=','^'|';$:='.'^'~';$~='@'|'(';$^=')'^'[';$/
+        ='`'|'.';$,='('^'}';$\='`'|'!';$:=')'^'}';$~='*'|'`'; $^=
+         '+'^'_';$/='&amp;'|'@';$,='['&amp;'~';$\=','^'|';$:='.'^'~'  ;$~
+          ='@'|'(';$^=')'^'[';$/='`'|'.';$,='('^'}' ;$\='`'|  '!'
+            ;$:=')'^'}';$~='*'|'`';$^='+'^"\_";$/=  '&amp;'|'@'   ;$,
+             ='['&amp; '~';$\=','^'|';$:='.'^"\~";$~=   '@'|'('   ;$^
+                   =')'^'[';$/='`'|'.';$,=('(')^    '}';$\=   '`'
+                   |'!';$:=    ')'^'}';$~ ="\*"|     '`';$^   =(
+                   ('+'))^     "\_";$/=   ('&amp;')|     '@';$,  =(
+                   ('['))&amp;     "\~";$\=   "\,"^       "\|";  (
+                   ($:))=      '.'^'~';   ($~)         ='@'
+                   |"\(";     $^=(')')^   '[';         ($/)
+                    ='`'|     "\.";$,=    '('^         '}';
+                    ($\)=     '`'|'!'     ;$:=         ')'^
+                    '}';     $~='*'       |'`'         ;$^=
+                    '+'^     '_'          ;$/=         '&amp;'|
+                    '@';      $,=         '['          &amp;((
+                    '~'        ));       $\=           ','
+                    ^((         '|'     ));            $:=
+                    '.'          ^((   '~'              ))
+                    ;(             ($~))=               ((
+                    ((              '@'))               ))
+                    |+             "\(";$^=             ((
+                   ')'            ))^+ "\[";            $/
+                  =((           '`'))|  '.';           $,=
+                 '('^         "\}";$\=   '`'          |'!'
+               ;($:)=                                (')')^
+             "\}";$~=                               '*'|'`'
+</pre>
+<p>なんと、ラクダが現れました！しかも記号だらけです！</p>
+<p>この記号で作られたラクダ、Perlプログラムとして実行可能なのです。</p>
+<p>試しにpipeでそのままperlに渡してみましょう(出力をファイル保存して実行しても一緒です)。</p>
+<pre>
+$ perl eyedrops.pl | perl
+1 shapes completed.
+Hello world!
+$ perl eyedrops.pl &gt; hoge.pl
+1 shapes completed.
+$ perl hoge.pl
+Hello world!
+</pre>
+<p>もとの'hello.pl'で期待される実行結果と一緒ですね！</p>
+<p>このように、Acme::Eyedropsモジュールは「プログラムを指定した形(模様?)の記号プログラムに変換してくれる」モジュールなのです。</p>
+
+</div>
+<div class="section">
+<h3> 使い方(中級編)</h3>
+<p>まずはラクダ以外の形ではできないの？という疑問があると思います。</p>
+<p>'camel'と指定していた部分を変えてみましょう。</p>
+<pre>
+use strict;
+use warnings;
+
+use Acme::EyeDrops 'sightly';
+
+print sightly({
+    Shape      =&gt; 'smiley',
+    SourceFile =&gt; 'hello.pl',
+});
+</pre>
+<p>実行すると…</p>
+<pre>
+$ perl eyedrops.pl
+1 shapes completed.
+eval eval '"'.
+
+
+                ('['^'.').('['^
+           '(').('`'|'%').('{'^'[').
+        ('['^'(').('['^'/').('['^')').(
+      '`'|')').('`'|'#').('['^'/')."\;".(
+    '!'^'+').('['^'.').('['^'(').('`'|'%').
+   ('{'^'[').    ('['^(',')).(    '`'|'!').(
+  '['^')').(      '`'|"\.").(      '`'|')').(
+ '`'|"\.").(      '`'|"\'").(      '['^('(')).
+';'.('!'^'+')    .('!'^"\+").(    '['^'+').('['
+^')').('`'|')').('`'|'.').('['^'/').('{'^"\[").
+'\\'.'"'.('`'^'(').('`'|'%').('`'|',').('`'|','
+).('`'|'/').('{'^'[').('['^',').('`'|'/').('['^
+')').('`'|',').('`'|'$').'!'.'\\'.'\\'.('`'|'.'
+).''.  '\\'.'"'.';'.('!'^'+').'"';$:='.'  ^'~';
+($~)=   '@'|'(';$^=')'^'[';$/='`'|"\.";   ($,)=
+('(')^    '}';$\='`'|'!';$:=')'^"\}";    $~='*'
+ |"\`";     $^='+'^'_';$/='&amp;'|"\@";     $,='['
+  &amp;"\~";      $\=','^'|';$:="\."^      '~';$~
+   =('@')|        '(';$^=')'^        '[';$/=
+    '`'|"\.";                     $,=('(')^
+      '}';$\='`'|             '!';$:=')'^
+        '}';$~='*'|'`';$^='+'^('_');$/=
+           '&amp;'|'@';$,='['&amp;'~';$\=','
+                ^'|';$:='.'^'~'
+</pre>
+<p>ちょ、ちょっと怖いけどスマイルが出てきますね…。</p>
+<p>これも、もとの'hello.pl'と等価な記号プログラムです。</p>
+
+
+<p>さて、この'Shape'に指定できる形は何種類あるのでしょう？</p>
+<p>Acme::EyeDropsがインストールされているディレクトリに'EyeDrops/*.eye'というファイルがたくさん入っており、これが出力のテンプレートとして使われます。</p>
+<p>以下のコマンドで一覧表示されると思います。</p>
+<pre>
+$ find $(perldoc -l Acme::EyeDrops | sed s/.pm//) -name '*.eye'
+</pre>
+<p>93種類くらいあるのでいちいち紹介しません。色々試してみて楽しんで下さい。</p>
+<p>ちなみに'all'と指定すると全部繋げてくれるようなので、それだけでお腹一杯になれるかも知れません。それ以外にも'triangle'とかちょっと特殊なものを指定することができたりもします。詳しくはPODを参照して下さい。</p>
+
+
+<p>ところで出力されるこの記号プログラム、完全に記号だけかと思いきや、冒頭に'eval eval'と謎の呪文が書いてありますね。</p>
+<p>このままだとちょっと残念なので、完全に記号だけのプログラムにしてしまいましょう。sightly関数の引数に'Regex =&gt; 1'を渡してやります。</p>
+<pre>
+use strict;
+use warnings;
+
+use Acme::EyeDrops 'sightly';
+
+print sightly({
+    Shape      =&gt; 'smiley',
+    SourceFile =&gt; 'hello.pl',
+    Regex      =&gt; 1,
+});
+</pre>
+<p>こうするだけで、完全に記号しか現れないプログラムを得ることができます(ただし、これを使うと元のソースによっては上手く変換できないこともあるらしいので要注意です)。</p>
+
+
+<p>他にもまだまだカスタマイズするためのオプションがあります。</p>
+<p>例えば、いちいち変換するためのスクリプトを用意するのは面倒ですよね。そんなときには'SourceString'オプションでソースコードの文字列を指定してやることができます。</p>
+<p>例えば、出来上がる形を横向きにしてみたいというとき。そんなときは'Rotate'オプションで90°単位の回転をさせることができます。</p>
+<p>例えば、毎回'1 shapes completed.'が出力されるのはウザイ、というとき。'InformHandler'を指定することで出力を抑制させることができます。</p>
+<pre>
+use strict;
+use warnings;
+
+use Acme::EyeDrops 'sightly';
+
+print sightly({
+    Shape         =&gt; 'smiley',
+    SourceString  =&gt; 'print "Hello smiley!\n"',
+    Regex         =&gt; 1,
+    Rotate        =&gt; 90,
+    InformHandler =&gt; sub {},
+});
+</pre>
+<p>こんなカンジで書いてやれば、'Hello smiley!'と出力する、横向きスマイリーな記号プログラムを作れます。お試しあれ。</p>
+
+
+<p>このように、「よくこんなネタモジュールにこれだけオプション作ったなーｗ」と感心してしまうくらい、たくさんオプションがあります。ヒマな方はPODをじっくり読んでみるといいと思います。</p>
+
+</div>
+<div class="section">
+<h3> 使い方(上級編?)</h3>
+<p>さて、ここまで使い込んでくると、自分で出力の形を定義したくなったりもしてきますよね！</p>
+<p>もちろんそれも出来ます。</p>
+<p>私は普段、<a href="http://a3.twimg.com/profile_images/554152903/icon.png">こんなアイコン</a>を色々なところで使っているのですが、せっかくなのでこれを使って自分オリジナルの記号プログラムを作ってみることにしました。</p>
+<p>自分で指定した形に記号プログラムを作るには、'ShapeString'にその形を表現する文字列を指定します。</p>
+<p>上述した.eyeファイルたちを見てみるとわかりますが、'#'記号でそれぞれの形を表現しています。</p>
+<pre>
+$ cat $(perldoc -l Acme::EyeDrops | sed s/.pm//)/a.eye
+   ######
+ ##   ####
+####  ####
+ ##   ####
+   #######
+ #### ####
+####  ####
+#### #####
+#####  ####
+</pre>
+<p>これに倣って自分で作ってみます。</p>
+<p>まずは自分のアイコンを64x40くらいのサイズに調整します(縦長になることを想定して横長気味に)。</p>
+<p>これをImageMagickについているconvertコマンドでpbmファイルに変換しました。</p>
+<pre>
+$ convert sugyan.png sugyan.pbm
+</pre>
+<p>pbmファイルは白黒の2値で画像を表現してくれるわかりやすい形式です。</p>
+<pre>
+$ head -c 16 sugyan.pbm | hexdump -C
+00000000  50 34 0a 36 34 20 34 30  0a 00 00 00 00 00 00 00  |P4.64 40........|
+00000010
+</pre>
+<p>最初の9byteはサイズを表しているだけの部分で不要ですね。それ以外の部分を簡単なワンライナーを使って'#'と' 'だけで表してみましょう。</p>
+<pre>
+$ tail -c +10 sugyan.pbm | perl -ne 'print tr/01/ #/ ? $_ : "\n" for split /(.{64})/, unpack("B*", $_)'
+
+                                                                
+                                                                
+                           ##                                   
+                           ###                                  
+                           ###                                  
+                          ############                          
+                ######################                          
+           ##########       ###                                 
+          #####             ###                                 
+           #                ###                                 
+                      #########                                 
+                    ###########                                 
+                   ####   #####                                 
+                  ####     ####                                 
+                  ###      ####                                 
+                  ###      ####                                 
+                  ###     ######         ##     ##              
+                   #############         ###    ###             
+                     ####### ###         ####    ###            
+                             ####         ###    ####           
+                              ##########  ###     ###           
+                          ############     ###    ###           
+                     ######### ###         ###     ###          
+                    ######      ###      ######     ##          
+                                 ##############      #          
+                                ########                        
+                            #########                           
+                       #########  ###                           
+                      ######       ###                          
+                                   ####                         
+                                   ####                         
+                                   ###                          
+                     ###                                        
+                      ####                                      
+                        #####                                   
+                           #####                                
+                              #####                             
+                                                                
+                                                                
+
+</pre>
+<p>ここまでできれば、あとはAcme::EyeDropsに任せるだけですね。最後までワンライナーでやっちゃいましょう。</p>
+<pre>
+$ tail -c +10 sugyan.pbm | perl -ne 'print tr/01/ #/ ? $_ : "\n" for split /(.{64})/, unpack("B*", $_)' | perl -MAcme::EyeDrops=sightly -0ne 'print sightly({ ShapeString =&gt; $_, SourceString =&gt; "print qq[sugyan\n]", Regex =&gt; 1 })'
+
+                                                                
+                                                                
+                           ''                                   
+                           =~(                                  
+                           '('                                  
+                          .'?'.('{').(                          
+                '`'|'%').('['^('-')).(                          
+           '`'|'!').(       '`'                                 
+          |',')             .((                                 
+           (                '"'                                 
+                      ))).('['^                                 
+                    '+').("\["^                                 
+                   ')')   .('`'                                 
+                  |')'     ).+(                                 
+                  '`'      |'.'                                 
+                  ).(      '['^                                 
+                  '/'     ).('{'         ^+     ((              
+                   '['))).("\["^         '*'    ).(             
+                     '['^'*' ).+         '['.    (((            
+                             '[')         )^+    '(')           
+                              .('['^'.')  .+(     '`'           
+                          |"'").("\["^     '"'    ).(           
+                     '`'|'!'). (((         '`'     ))|          
+                    '.').(      '!'      ^'+').     ((          
+                                 ']')).'"'.'}'.      (          
+                                ')'));$:                        
+                            ='.'^'~';                           
+                       $~=('@')|  '('                           
+                      ;($^)=       ')'                          
+                                   ^'['                         
+                                   ;$/=                         
+                                   '`'                          
+                     |((                                        
+                      '.')                                      
+                        );$,=                                   
+                           "\("^                                
+                              "\}";                             
+                                                                
+                                                                
+                                                                
+</pre>
+<p>これで、自分のアイコンの形をした、自分の名前を出力する、自分だけの記号プログラムの完成です！</p>
+<p>皆さんも作ってみてはいかがでしょうか？</p>
+
+</div>
+<div class="section">
+<h3> そういえば</h3>
+<p>そもそもどうして記号だけでプログラムが書けるのか、というところにまったく触れていませんでした。</p>
+<p>ヒトコトで説明すると、「任意の文字列を排他的論理和を使って記号だけで表現し、拡張正規表現を使ってそれをevalする」ということになります。</p>
+<p>'regex_eval_sightly'を使うと変形を行わずに記号への変換だけを行ってくれます。</p>
+<pre>
+use strict;
+use warnings;
+
+use Acme::EyeDrops 'regex_eval_sightly';
+
+print regex_eval_sightly('print "Hello world!\n"');
+</pre>
+
+</div>
+<div class="section">
+<h3> 参考文献</h3>
+<p>以下のページがとても丁寧に解説しているのでオススメです。</p>
+<p><a href="http://d.hatena.ne.jp/shinichiro_h/20061107#1162835826">兼雑記 - Perl記号ゴルフとAcme::EyeDrops</a></p>
+
+</div>
+<div class="section">
+<h3> まとめ</h3>
+<p>まったく役に立ちそうにない話を長々と書いてしまいました！ごめんなさい！！</p>
+<p>明日はhaoyayoiさんです！どうぞお楽しみに！</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/casual/08.html">Mon, 07 Dec 2009 16:23:45 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

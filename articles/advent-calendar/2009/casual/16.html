@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Algorithm::SVMLight をインストールして使ってみよう - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Algorithm::SVMLight をインストールして使ってみよう - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Algorithm::SVMLight をインストールして使ってみよう<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/casual/16.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/casual/16.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>overlast（さとうとしのり）です。</p>
+
+<p>僕は普段、自然言語処理技術を活用する仕事に従事しています。</p>
+
+<p>Perl は「アイディアが浮かんでからコードを実行するまでの早さ」や「急で無茶な仕様変更への対応のしやすさ」などが好きで使っています。最初に Perl で実装して、後日速度が求められるようになったら、遅い部分だけ C / C++ で書き直すことが多いです。</p>
+
+<p>Perl の CPAN モジュールの Author の方にはいつもお世話になっております。本当にいつもどうもありがとうございます。</p>
+
+<p>さて今回は、教師あり学習を用いる識別手法の一つである Support Vector Machine（以下では SVM と略す） の実装の一つである SVMlight のための Perl モジュールの一つである「Algorithm::SVMLight」のインストール方法をご紹介します。</p>
+</div>
+<div class="section">
+<h3> Support Vector Machine（SVM）はどんなことをしてくれるの？</h3>
+<p>Support Vector Machine はパターン認識のための手法です。</p>
+
+<p>SVM を分かりやすく説明するのは、思わず放棄したくなるほど困難なことなのですが、頑張ってみます。</p>
+
+<p>たとえば、床にばらまかれた沢山のボールがあるとします。</p>
+<p>ボールが落ちている位置に基づいて、すべてのボールを 2 つのバケツのどちらかに分けようと思います。</p>
+
+<p>ボールの分け方には様々な方法があると思うのですが、</p>
+<p>SVM による分け方は、ボール分けるときにロープを一直線に床に置いて、</p>
+<p>ボールがロープより右にあるか左にあるかでバケツを分けるような分け方です。</p>
+
+<p>大変にいい加減な図ですが、こんな図を思い浮かべてください。</p>
+
+<pre>
+       o
+ o 　　
+     o    o
+--------------
+  o      o
+       o
+            o
+</pre>
+
+<p>ロープの置き方は、なんでも良い、というわけではありません。</p>
+<p>ボールを分けたときに、ロープの左右にあるボールとロープの距離の合計が最大となるようなロープの置き方をします。</p>
+
+<p>ボールの位置が変わったときでも、このロープの置き方のルールを適用すれば、ボールは迷わずに 2 つのバケツに分けることができます。</p>
+
+<p>ところで、もしもボールが明らかに 2 色にだけ別れているなら、以下のように分かれていても大丈夫な気分がしますね。</p>
+
+<pre>
+       o
+ o 　　
+     o    o
+--------------
+  x      x
+       x
+            x
+</pre>
+
+<p>では、ボールがこんな感じでバラまかれていたら、どこにロープを置くのでしょうか。</p>
+
+<pre>
+       x
+ o 　　
+     o    o
+
+  x      x
+       x
+            o
+</pre>
+
+<p>なんというか、どうやってロープを置いても、まっすぐに置く限りは上手く2つのバケツに分けられなさそうですよね。</p>
+
+<p>でも、もしも上の図が実は2次元の図ではなく3次元の図だったらどうでしょうか。</p>
+<p>図を回転してあげたら、ロープをまっすぐ引いてボールを綺麗に分けられるような位置を見つけられるかもしれません。</p>
+
+<p>SVM のすごいところは、これらのボールを何とか分けられるような空間にボールを写像して、なんとか線を引いてしまいます。</p>
+
+<pre>
+   x  |  
+      |  o
+      |   oo
+      |
+  xx  |   
+   x  |  
+      |   o
+</pre>
+
+<p>で、たとえば、こんな感じで線を引いてしまうのです。SVM にちょっと興味が出てきましたか？</p>
+
+<p>ほんのりと SVM のことが分かってもらえれば、この説明は成功です。</p>
+
+<p>SVM についてちゃんと知りたい方は、キチンと別の文献を読んで理解をし直してください。</p>
+</div>
+<div class="section">
+<h3> 今回ご紹介するモジュール「Algorithm::SVMLight」</h3>
+<p>今回、ご紹介する「Algorithm::SVMLight」は CPAN にある SVM 向けの Perl モジュールのうち、一番ちゃんと動きそうだから選びました。</p>
+<p>でも、多少試行錯誤しないとインストールできなかったのでネタとして丁度良かったです。</p>
+<p>インストールできなくて諦めてしまう人も多いかと思いますので、この記事を読んでガンバってみてください。</p>
+</div>
+<div class="section">
+<h3> 「Algorithm::SVMLight」を使うと何が嬉しいのか</h3>
+<p>SVMlightをPerlから扱えると何が嬉しいのかというと、インスタンスの読み込み、学習の実行、モデルの書き出し・読み込み、分類結果の取得などの動作を、Perl で書いたアプリケーションの任意の位置で実行できる点にあるのかな、と思います。</p>
+
+<p>分類対象のデータを素性エンコーディングして、即、SVMlight で分類しようと思うようなときには、SVMlight が Perl から扱えると嬉しいです。分類結果を出力したあと、改めて素性エンコードする前のデータに結果に適用しようとすると、面倒くさいことが多いです。</p>
+
+<p>Algorithm::SVMLight の作者である Ken Williams は、このモジュールにファイルからの分類対象データの読み込み処理を書いていません。「分類対象のデータに関しては Perl で扱え！」ということですかね。。。</p>
+
+<p>ちなみに、学習データを SVM の学習用の素性にエンコードする処理に関しては SVMlight とは無関係に書けます。</p>
+<p>でも、このエンコーディング処理は複雑になりがちなので、もろもろ柔軟な Perl はかなり重宝します。</p>
+</div>
+<div class="section">
+<h3> SVM light と、Algorithm::SVMLight のインストール</h3>
+<p>SVMlightの最新のソースコードは以下のURLからダウンロードできます。</p>
+
+<ul>
+<li> <a href="http://svmlight.joachims.org/">http://svmlight.joachims.org/</a></li>
+</ul>
+
+<p>今回、利用したソースコードは以下から取得しました。</p>
+
+<ul>
+<li> <a href="http://download.joachims.org/svm_light/current/svm_light.tar.gz">http://download.joachims.org/svm_light/current/svm_light.tar.gz</a></li>
+</ul>
+
+<p>その後は、以下のようにしてインストールしました。適時 sudo してください。</p>
+
+<pre>
+% wget http://search.cpan.org/CPAN/authors/id/K/KW/KWILLIAMS/Algorithm-SVMLight-0.09.tar.gz
+% tar xfvz Algorithm-SVMLight-0.09.tar.gz
+% mkdir ./svm_light
+% cd ./svm_light
+% wget http://download.joachims.org/svm_light/current/svm_light.tar.gz
+% tar xfvz svm_light.tar.gz
+% patch -p1 &lt; ../Algorithm-SVMLight-0.09/SVMLight.patch
+% make all
+% mkdir /usr/local/bin/svm_light/
+% cp ./svm_learn /usr/local/bin/svm_light/
+% cp ./svm_classify /usr/local/bin/svm_light/
+% mkdir /usr/local/include/svm_light/
+% cp ./svm_learn.h /usr/local/include/svm_light/
+% cp ./svm_common.h /usr/local/include/svm_light/
+% cp ./libsvmlight.a /usr/local/lib
+% cp ./libsvmlight.so /usr/local/lib
+% ldconfig
+% cd ../Algorithm-SVMLight-0.09/
+</pre>
+
+<p>バイナリファイルの名前を変えてコピーしているのは、変更前のファイル名が TinySVM と同じだったからです。</p>
+
+<p>でも、このままだと Algorithm::SVMLight のコンパイル中に、SVMlight のヘッダファイルが見つからなくてエラーが出てしまいました。</p>
+<p>仕方がないので、エディタで Algorithm-SVMLight-0.09/lib/Algorithm/SVMLight.c の 30・31 行目を編集し</p>
+
+<pre>
+#include "svm_common.h"
+#include "svm_learn.h"
+</pre>
+
+<p>に、ヘッダの絶対パスを追記して、</p>
+
+<pre>
+#include "/usr/local/include/svm_light/svm_common.h"
+#include "/usr/local/include/svm_light/svm_learn.h"
+</pre>
+
+<p>にしました。</p>
+
+<p>あとは、以下を実行するだけでした。</p>
+
+<pre>
+% perl Makefile.PL
+% perl Build
+% perl Build test 
+% perl Build install
+</pre>
+
+<p>これで SVMlight のインストールが終わり、Perl スクリプトからは Algorithm::SVMLight が使えます。</p>
+</div>
+<div class="section">
+<h3> SVMlight の素性エンコード</h3>
+<p>一番面倒なのが、データを素性形式にエンコード部分です。</p>
+
+<p>素性の文字列表現と番号を対応づけるコードは、一回書くと使い回しが効いて楽です。</p>
+
+<p>例えば以下のように実行できるエンコーダーを書いてしまって、</p>
+
+<pre>
+% perl feature_encoder.pl "入力の学習データファイルのパス" "出力の素性エンコード済みデータファイルのパス"
+</pre>
+
+<p>その後で、素性の作り方を工夫してみるのはどうでしょうか。</p>
+
+<h4> feature_encoder.plの例</h4>
+<pre>
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use utf8;
+
+use Encode;
+
+use TokyoCabinet;
+use MeCab;
+
+# MeCabオブジェクト
+my @mecab_opt = ();
+my $mecab = new MeCab::Tagger(join " ", @mecab_opt);
+
+my $inputdata = $ARGV[0];
+my $outputdata = $ARGV[1];
+my ($in, $out);
+
+# TokyoCabinetの初期化
+my $tchdb_file_path  = $FindBin::Bin."/../feature_num.tch";
+my $hdb  =  TokyoCabinet::HDB-&gt;new();
+$hdb-&gt;tune(2000000);
+$hdb-&gt;open($tchdb_file_path, $hdb-&gt;OWRITER | $hdb-&gt;OCREAT | $hdb-&gt;OREADER);
+
+# 素性番号カウンタ
+my $gloval_counter = 1;
+# 素性番号カウンタの値をHDBから取り出すためのキー
+my $gkey = "GLOBALCOUNTER";
+
+# 素性番号カウンタの値を取得
+my $tmp_gloval_counter = $hdb-&gt;get($gkey);
+if (defined $tmp_gloval_counter) {
+    $gloval_counter = $tmp_gloval_counter;
+}
+else {
+    # 取得できなかったら初期値「1」を登録
+    $hdb-&gt;put($gkey, 1);
+    $gloval_counter = 1;
+}
+
+open ($in, "&lt; $inputdata");
+open ($out, "&gt;&gt; $outputdata");
+
+# 素性の書き出し
+while(my $line = &lt;$in&gt;){
+    chomp $line;
+    next unless ($line);
+    # MeCabの結果を取得する
+    my @mecab_arr = @{get_mecab_result_arr($line)};
+    next unless (@mecab_arr);
+    my $count = 0;
+    
+    # ラベル
+    my $label = 0;
+
+    # 出力用に素性番号を突っ込む配列
+    my @feature_arr  =  ();
+    
+    # 素性の材料を得る
+    my $entry = $mecab_arr[$i];
+    my $key = $entry-&gt;[0];
+    my $pos = $entry-&gt;[1];
+    my $keypos = "$key:-:$pos";
+
+    # 素性番号の取得と登録
+    my @keyarr = ($key, $pos, $keypos);
+    foreach my $k (@keyarr) {
+         # 素性番号を取得してみる
+         my $tmp_feature_num = $hdb-&gt;get($k);
+         my $feature_num = 0;
+         if (defined $tmp_feature_num) {
+             # 取得できたら、そのまま出力用の配列に突っ込む
+             push @feature_arr, "$tmp_feature_num";
+	 }
+	 else {
+             # 取得できなかったら、素性番号カウンタの値を取得
+	     $feature_num = $gloval_counter;
+             # カウンタの値を、キーに対する素性番号にして登録
+             $hdb-&gt;put($k, $feature_num);
+             # 素性番号カウンタ++
+             $gloval_counter++;
+             # 素性番号カウンタのバックアップ
+             $hdb-&gt;put($gkey, $gloval_counter);
+             push @feature_arr, "$feature_num";
+	 }
+    }
+
+    # ソート、ユニークする。
+    @feature_arr  =  sort {$a &lt; = &gt; $b} @feature_arr;
+    my $x   =   '-';
+    my @uniq_arr  =  grep( $_ ne $x &amp;&amp; ($x  =  $_), @feature_arr);
+    # この例では、最後に全ての素性に一様な重みをつけている
+    my $features  =  join ":0.1 ", @uniq_arr;
+    my $entry  =  "$label $features:0.1\n";
+    print $out $entry;
+
+}
+close ($out);
+close ($in);
+$hdb-&gt;close();
+
+# 1行のテキストを受け取り、MeCabでparseしたあと、結果を配列に入れて返す。
+sub get_mecab_result_arr {
+    my ($line)  =  @_;
+    my $parsed  =  $mecab-&gt;parse($line);
+    $parsed  =  decode_utf8($parsed) unless utf8::is_utf8($parsed);
+    my @pos_arr  =  split('\n', $parsed);
+    my @result  =  ();
+    if(@pos_arr){
+        my $i  =  0;
+        foreach my $pos (@pos_arr){
+            my @info_arr  =  split(/\t/, $pos);
+            my @mecab_arr  =  split(/\,/, $info_arr[1]);
+            my @mec  =  ($info_arr[0], @mecab_arr);
+            $result[$i]  =  \@mec;
+            $i++;
+        }
+    }
+    return \@result;
+}
+</pre>
+
+<p>このファイルの中には TokyoCabinetを使った素性番号管理と、MeCab を使った形態素解析の処理が含まれています。</p>
+<p>TokyoCabinetのHDBに、現在の素性番号の最大値を格納してあるので、追加も楽にできます。</p>
+</div>
+<div class="section">
+<h3> SVMlight の素性エンコード時の注意点</h3>
+<p>SVMlight に素性エンコードしたインスタンスを読み込ませるには、以下のような注意が必要です。</p>
+
+<ul>
+<li> インスタンス中の素性番号は昇順に並べること
+<ul>
+<li> 良い例：-1 10:0.1 20:0.2 30:0.3</li>
+<li> 悪い例：-1 10:0.1 40:0.4 30:0.3</li>
+</ul>
+</li>
+<li> インスタンス中の素性番号はユニークにすること
+<ul>
+<li> 良い例：-1 10:0.1 20:0.2 30:0.3</li>
+<li> 悪い例：-1 10:0.1 20:0.2 20:0.3</li>
+</ul>
+</li>
+<li> 学習データ以外の、分類対象のデータをエンコードする場合にもラベルを付与する</li>
+</ul>
+</div>
+<div class="section">
+<h3> Algorithm::SVMLight を使ったモデル構築</h3>
+
+<p>Algorithm::SVMLight を使うと、モデルの構築は例えば以下のように書けます。</p>
+
+<pre>
+% perl ./make_model.pl "入力のインスタンスファイルのパス" "出力のモデルファイルのパス"
+</pre>
+
+<p>素性にエンコード済みなインスタンスファイルを用意できれば、上記を実行してあげるとモデルが得られます。</p>
+
+<h4> make_model.pl の例</h4>
+<pre>
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use utf8;
+
+# オブジェクト作成
+use Algorithm::SVMLight;
+my $svm = new Algorithm::SVMLight;
+
+# 入出力ファイルのパス
+my $inputdata = $ARGV[0];
+my $outputdata = $ARGV[1];
+
+# インスタンスの読み込み
+$svm-&gt;read_instances($inputdata);
+# 学習開始
+$svm-&gt;train();
+# モデルの書き出し
+$svm-&gt;write_model($outputdata);
+</pre>
+
+<p>Algorithm::SVMLight があれば、モデル構築以外の処理も Perl で手軽に書けます。</p>
+</div>
+<div class="section">
+<h3> まとめ</h3>
+<p>今回は SVMLight の Perl モジュールである Algorithm::SVMLight をインストールしました。</p>
+
+<p>SVM は使いどころを間違えなければ大変に便利です。SVM を扱った学術論文は多数あるので、そちらもご覧下さい。</p>
+
+<p>さてさて、明日は pixiv のエンジニアである kamipo さんです。楽しみですね！</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/casual/16.html">Tue, 15 Dec 2009 23:00:00 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

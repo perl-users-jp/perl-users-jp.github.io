@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>SQL::Abstract を使い倒す - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">SQL::Abstract を使い倒す
+ - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">SQL::Abstract を使い倒す
+<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/hacker/06.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/hacker/06.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>今更、携帯小説にハマってる <a href="http://d.hatena.ne.jp/ZIGOROu">id:ZIGOROu</a> です。モバゲーの<a href="http://www.mbga.jp/.pc/_novel_view?w=11217664&amp;li=a03">オンライン3</a>って小説が面白いですよ！</p>
+
+<p>今日は SQL::Abstract を使い倒すと言うネタで行きます。</p>
+
+<h4> まず超基本編</h4>
+
+<p>簡単な SQL 文の生成から始めましょう。</p>
+
+<pre>
+use strict;
+use warnings;
+use Data::Dump qw(dump);
+use SQL::Abstract;
+
+my $s = SQL::Abstract-&gt;new;
+my ($stmt, @bind) = $s-&gt;select(
+  "activity", # tables
+  [qw/id title sender created_on/], # columns
+  +{ guid =&gt; 100 }, # where
+);
+print dump( $stmt, \@bind );
+</pre>
+
+<p>これは次のようになります。</p>
+
+<pre>
+(
+  "SELECT id, title, sender, created_on FROM activity WHERE ( guid = ? )",
+  [100],
+)
+</pre>
+
+<p>select は、</p>
+
+<ul>
+<li> table</li>
+<li> columns</li>
+<li> where</li>
+<li> order</li>
+</ul>
+
+<p>と言う感じで指定していくわけですね。WHERE の部分は値を指定して行くだけでよしなに bind パラメータ化してくれます。</p>
+
+<h4> 少し複雑な例</h4>
+
+<p>実行例をさらに挙げましょう。</p>
+
+<pre>
+use strict;
+use warnings;
+use Data::Dump qw(dump);
+use SQL::Abstract;
+
+my $s = SQL::Abstract-&gt;new;
+my ($stmt, @bind) = $s-&gt;select(
+  'activity', # tables
+  [qw/id title guid sender created_on/], # columns
+  +{ guid =&gt; 100, created_on =&gt; +{ '&gt;=' =&gt; \'UNIX_TIMESTAMP() - 300' } }, # where
+  [ +{ -desc =&gt; [qw/created_on/] } ] # order
+);
+
+print dump($stmt, \@bind);
+</pre>
+
+<pre>
+(
+  "SELECT id, title, guid, sender, created_on FROM activity WHERE ( ( created_on &gt;= UNIX_TIMESTAMP() - 300 AND guid = ? ) ) ORDER BY created_on DESC",
+  [100],
+)
+</pre>
+
+<p>ここでは幾つかポイントがあります。</p>
+
+<h5> スカラーリファレンス</h5>
+
+<p>まず、「値」としてスカラーリファレンスを入れた場合、SQL::Abstract はそのまま文字列として展開します。</p>
+
+<pre>
+\'UNIX_TIMESTAMP() - 300'
+</pre>
+
+<p> の部分がまさにそれです。困ったらスカラーリファレンスで何とかなるだろう、と思って間違いないです。</p>
+
+<h5> イコール以外の比較</h5>
+
+<p>単純にイコールで比較ではなく不等号 ( &gt;= ) で比較したい場合には、</p>
+
+<pre>
+created_on =&gt; +{ '&gt;=' =&gt; \'UNIX_TIMEATAMP() - 300' }
+</pre>
+
+<p>のように用います。簡単ですね。IS NOT NULL とかやりたい場合もこんな感じです。</p>
+
+<h4> サブクエリ</h4>
+
+<p>こいつも簡単です。最もサブクエリは大規模なサービスでは分散の仕方によってまったく使えなかったりするんですが、</p>
+
+<pre>
+use strict;
+use warnings;
+
+use Data::Dump qw(dump);
+use SQL::Abstract::Limit;
+
+my $s = SQL::Abstract::Limit-&gt;new( limit_dialect =&gt; 'LimitOffset' );
+my ($stmt, @bind);
+
+($stmt, @bind) = $s-&gt;select(
+    'friends',
+    [ qw/friend_guid/ ],
+    +{ guid =&gt; 100, },
+    [ +{ -asc =&gt; [qw/created_on/] } ],
+    100,
+    0,
+);
+
+($stmt, @bind) = $s-&gt;select(
+    'users',
+    [qw/guid nickname gender created_on updated_on/],
+    +{ guid =&gt; +{ IN =&gt; \[ $stmt, @bind ] } }
+);
+
+print dump($stmt, \@bind);
+</pre>
+
+<pre>
+(
+  "SELECT guid, nickname, gender, created_on, updated_on FROM users WHERE ( guid IN ( SELECT friend_guid FROM friends WHERE ( guid = ? ) ORDER BY created_on ASC LIMIT 100 ) )",
+  [100],
+)
+</pre>
+
+<p>ここでは SQL::Abstract::Limit と言う、いわゆる MySQL で言うところの LIMIT, OFFSET の処理を抽象化してくれる SQL::Abstract のサブクラスです。この部分、RDBMS によって結構方言の違いがある所なんですよね。</p>
+
+<p>でサブクエリの部分なんですけど、直前に作った select 文のステートメント文とバインド値を埋め込むのに、ARRAYREF のさらにリファレンスを用いると言う手段を取ってます。</p>
+
+<p>ARRAYREFのリファレンスを用いると、ステートメントをバインド値を保持したまま埋め込む事が出来ると言う事を覚えておいて下さい。</p>
+
+<h4> SQL::Abstract の苦手な所</h4>
+
+<p>まず JOIN とかは書けません（ｷﾘｯ</p>
+<p>まぁ書けなくも無いんですけどね。</p>
+
+<p>とりあえず、複数のテーブルの INNER JOIN は FROM 句に並べる形で、</p>
+
+<pre>
+use strict;
+use warnings;
+
+use Data::Dump qw(dump);
+use SQL::Abstract;
+
+my $s = SQL::Abstract-&gt;new;
+my ($stmt, @bind);
+
+($stmt, @bind) = $s-&gt;select(
+    ['users', 'friends'],
+    [ qw/users.nickname/ ],
+    +{ 'friends.guid' =&gt; 100, 'friends.friend_guid' =&gt; \'= users.guid' },
+);
+
+print dump($stmt, \@bind);
+</pre>
+
+<pre>
+(
+  "SELECT users.nickname FROM users, friends WHERE ( ( friends.friend_guid = users.guid AND friends.guid = ? ) )",
+  [100],
+)
+</pre>
+
+<p>と言うのであればまぁ書けなくは無いです。</p>
+
+<p>この辺りから最早、使いやすいのか使いにくいのか分からなくなってきますが、LEFT JOIN ならこんなんでやれなくもないです。</p>
+
+<p>ちょっと順を追ってやっていきます。</p>
+
+<pre>
+use strict;
+use warnings;
+
+use Data::Dump qw(dump);
+use SQL::Abstract;
+
+my $s = SQL::Abstract-&gt;new;
+my ($stmt, @bind);
+
+($stmt, @bind) = $s-&gt;_recurse_where(+{
+    'friends.friend_guid' =&gt; \'= users.guid',
+    'friends.guid' =&gt; 100,
+});
+
+print dump($stmt, \@bind);
+</pre>
+
+<p>の実行結果を見ると、</p>
+
+<pre>
+(
+  "( friends.friend_guid = users.guid AND friends.guid = ? )",
+  [100],
+)
+</pre>
+
+<p>のようになります。_recurse_where は where 文を作る為の内部 API です。ここで出来た SQL の断片は ON 句に使えそうですよね。</p>
+<p>が FROM users LEFT JOIN friends ON の文字列をどこに差し込むかと言うと、tables 指定のところしかなく、ここには ARRAYREF のリファレンスを埋め込む事は出来ないので、バインド値を差し込む事は出来ません、、、無念。</p>
+
+<p>やりたいならば、</p>
+
+<pre>
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+use Data::Dump qw(dump);
+use SQL::Abstract;
+
+my $s = SQL::Abstract-&gt;new;
+my ($stmt, @bind);
+
+$stmt = $s-&gt;_recurse_where(+{
+    'friends.friend_guid' =&gt; \'= users.guid'
+});
+
+($stmt, @bind) = $s-&gt;select(
+    'users' . $s-&gt;_sqlcase(' left join ') . 'friends' . $s-&gt;_sqlcase(' on ') . $stmt,
+    [ 'users.nickname' ],
+    +{ 'friends.guid' =&gt; 100, }
+);
+
+print dump( $stmt, \@bind );
+</pre>
+
+<pre>
+(
+  "SELECT users.nickname FROM users LEFT JOIN friends ON friends.friend_guid = users.guid WHERE ( friends.guid = ? )",
+  [100],
+)
+</pre>
+
+<p>はい、このあたりになると普通に SQL を大人しく書きましょうって話だと思います。GROUP BY になると手も足も出ません。 </p>
+
+<h4> SQL::Abstract::Plugin::InsertMulti</h4>
+
+<p>hacker トラックは自作モジュールについて語るんでした。</p>
+
+<p>SQL::Abstract における insert, update, delete は物凄く扱いやすいです。</p>
+
+<pre>
+use strict;
+use warnings;
+
+use Data::Dump qw(dump);
+use SQL::Abstract;
+
+my $s = SQL::Abstract-&gt;new;
+my ($stmt, @bind);
+
+($stmt, @bind) = $s-&gt;insert(
+    'app_data',
+    +{
+        name =&gt; 'pokes',
+        data =&gt; 10,
+        created_on =&gt; \'UNIX_TIMESTAMP()',
+        updated_on =&gt; \'UNIX_TIMESTAMP()',
+    },
+);
+
+print dump( $stmt, \@bind );
+</pre>
+
+<pre>
+(
+  "INSERT INTO app_data ( created_on, data, name, updated_on) VALUES ( UNIX_TIMESTAMP(), ?, ?, UNIX_TIMESTAMP() )",
+  [10, "pokes"],
+)
+</pre>
+
+<p>とまぁ、だいぶ直感的に使う事が出来ますが、VALUES に複数の値を列挙してまとめて INSERT する BULK INSERT がどうしても書けないんですよね。</p>
+
+<p>それを出来るようにしたのが拙作の SQL::Abstract::Plugin::InsertMulti です。自分が SQL::Abstract::Limit を実際使っている事から、単純な継承で拡張する訳にもいかず中で強引な事をしてます。まぁ何はともあれ例としては、</p>
+
+<pre>
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+use Data::Dump qw(dump);
+use SQL::Abstract;
+use SQL::Abstract::Plugin::InsertMulti;
+
+my $app_data = +{
+    pokes =&gt; 10,
+    last_poke =&gt; '2009-11-28',
+};
+
+my $s = SQL::Abstract-&gt;new;
+my ($stmt, @bind);
+
+($stmt, @bind) = $s-&gt;insert_multi(
+    'app_data',
+    [
+        map { +{
+            name =&gt; $_,
+            data =&gt; $app_data-&gt;{$_},
+            created_on =&gt; \'UNIX_TIMESTAMP()',
+            updated_on =&gt; \'UNIX_TIMESTAMP()',
+        } }
+        keys %$app_data,
+    ],
+);
+
+print dump( $stmt, \@bind );
+</pre>
+
+<pre>
+(
+  "INSERT INTO app_data ( created_on, data, name, updated_on ) VALUES ( UNIX_TIMESTAMP(), ?, ?, UNIX_TIMESTAMP() ), ( UNIX_TIMESTAMP(), ?, ?, UNIX_TIMESTAMP() )",
+  ["2009-11-28", "last_poke", 10, "pokes"],
+)
+</pre>
+
+<p>とまぁこういう感じで出来上がる訳です。カラムの順序は保持されてる方が嬉しいよーって方の場合は、</p>
+
+<pre>
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+use Data::Dump qw(dump);
+use SQL::Abstract;
+use SQL::Abstract::Plugin::InsertMulti;
+
+my $app_data = +{
+    pokes =&gt; 10,
+    last_poke =&gt; '2009-11-28',
+};
+
+my $s = SQL::Abstract-&gt;new;
+my ($stmt, @bind);
+
+($stmt, @bind) = $s-&gt;insert_multi(
+    'app_data',
+    [qw/name data created_on updated_on/],
+    [
+        map { [ $_, $app_data-&gt;{$_}, \'UNIX_TIMESTAMP()', \'UNIX_TIMESTAMP()', ] }
+        keys %$app_data,
+    ],
+);
+
+print dump( $stmt, \@bind );
+</pre>
+
+<pre>
+(
+  "INSERT INTO app_data ( name, data, created_on, updated_on ) VALUES ( ?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP() ), ( ?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP() )",
+  ["last_poke", "2009-11-28", "pokes", 10],
+)
+</pre>
+
+<p>のようにすると期待通りの出力になります。</p>
+
+<p>他にも色々と細かな設定が出来るので詳しくは <a href="[http://search.cpan.org/dist/SQL-Abstract-Plugin-InsertMulti/lib/SQL/Abstract/Plugin/InsertMulti.pm=title:perldoc">[http://search.cpan.org/dist/SQL-Abstract-Plugin-InsertMulti/lib/SQL/Abstract/Plugin/InsertMulti.pm=title:perldoc</a> SQL::Abstract::Plugin::InsertMulti] を見てください。</p>
+
+<h4> まとめ</h4>
+
+<ul>
+<li> SQL::Abstract は大体のクエリは書けるよ</li>
+<li> 困ったらスカラーリファレンスや配列リファレンスのリファレンスを使うと大概の事は出来るよ</li>
+<li> でもどう考えても生SQL書いた方が早いよって時には大人しく諦めましょう</li>
+<li> LIMIT, OFFSET は SQL::Abstract::Limit で。</li>
+<li> Bulk Insert, Bulk Update をしたい場合は SQL::Abstract::Plugin::InsertMulti を use すればおｋです</li>
+</ul>
+
+<p>次は何故か既に記事がコミットされてる <a href="http://d.hatena.ne.jp/dann/">id:dann</a> さんです。</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/hacker/06.html">Sun, 06 Dec 2009 14:48:02 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

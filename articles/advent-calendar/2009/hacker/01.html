@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Test::Requires でモジュールがないときにテストをスキップする - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Test::Requires でモジュールがないときにテストをスキップする - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Test::Requires でモジュールがないときにテストをスキップする<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/hacker/01.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/hacker/01.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<h3> 前置き</h3>
+
+<p>みなさんこんにちは、tokuhirom です。今年もはじまりました JPerl Advent Calendar 2009。</p>
+
+<p>こちらは hacker track ということで、僕がつくったモジュールの一つを紹介したいとおもいます。今回ご紹介するモジュールは Test::Requires です。</p>
+</div>
+<div class="section">
+<h3> 本題</h3>
+
+<p>Test::Requires は非常に小粒なツールですが、なかなかいいモジュールなんじゃないかと自分でもおもっています。</p>
+
+<p>モジュールのテストを書くときに、「このモジュールがあったときだけこのテストをはしらせたい」というようなユーズケースはままあります。</p>
+
+<p>「Plack の Server::FCGI のテストは FCGI.pm と FCGI::Client の両方がインストールされていなければスキップしたい」のですが、このような用途にはTest::Requires がぴったんこです(実際に Test::Requires は Plack のテストにつかわれています)。</p>
+
+<p>従来は、毎回このような処理を書くためには以下のようにしていて、めんどくさい上に間違いやすく、バグの元になっていました。</p>
+<pre>
+use Test::More;
+plan skip_all =&gt; "FCGI, FCGI::Client are required" unless eval "use FCGI; use FCGI::Client; 1";
+
+# ここにテストを書く
+
+done_testing;
+</pre>
+
+<p>しかし、Test::Requires を使えば、以下のように書くだけでいいのです。とても楽ちんですね。</p>
+<pre>
+use Test::More;
+use Test::Requires qw/FCGI FCGI::Client/;
+
+# ここにテストを書く
+
+done_testing;
+</pre>
+
+<p>Test::Requires は標準添付以外のモジュールはつかっていません。ですから、CPAN にリリースするときには、inc/ 同梱してリリースするのがオススメです。Module::Installをつかっている場合には、Makefile.PL を以下のように書くだけで OK です。</p>
+<pre>
+use inc::Module::Install;
+
+# snip..
+
+test_requires 'Test::Requires';
+auto_include;
+WriteAll;
+</pre>
+</div>
+<div class="section">
+<h3> まとめ</h3>
+
+<p>今回は Test::Requires について、解説しました。</p>
+
+<p>このモジュールは、同様の処理を何度も書いたり見かけたりしているうちに、「もうめんどくさいからモジュールにしちゃおう」とおもって作りました。普段から「定型的なコードがないだろうか」と気をつけていることが重要ですね。</p>
+
+<p>というわけで今回はここまで。明日は id:mikihoshi さんです。</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/hacker/01.html">Wed, 02 Dec 2009 07:59:05 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

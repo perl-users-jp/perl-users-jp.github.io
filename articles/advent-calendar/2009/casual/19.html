@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>バカでもわかるPlack/PSGI - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">バカでもわかるPlack/PSGI - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">バカでもわかるPlack/PSGI<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/casual/19.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/casual/19.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>はじめまして。nobjasと申します。</p>
+<p>今日はあまりにもネタがないために、</p>
+<p>バカな僕がやっと最近使うことが出来たPSGIとPlack::Requestの使い方を書こうと思います。</p>
+<p><br/></p>
+<p>基本的な構造はmiyagawaさんのPlack Advent Calendar(<a href="http://advent.plackperl.org/">http://advent.plackperl.org/</a>)などで</p>
+<p>紹介されているので、頑張って英語を読んでください（笑</p>
+<p><br/></p>
+<p>基本的にはPSGIはリクエストとレスポンスの形式の規約みたいなものです（と思っています）。</p>
+<p>それを実装するのがPlackという訳ですね。</p>
+<p><br/></p>
+<p>そこで、まずは</p>
+<p>Plackでリクエストを受け取ってレスポンスを返すCGIスクリプトを書いて見ましょう。</p>
+
+<pre>
+use Plack::Server::CGI;
+
+my $app = sub {
+    my $env = shift;
+        return [
+            200, 
+            [ 'Content-Type' =&gt; 'text/plain' ],
+            [ "Hello stranger from $env-&gt;{REMOTE_ADDR}!"],
+        ];
+};
+
+Plack::Server::CGI-&gt;new-&gt;run( $app );
+</pre>
+
+<p>こんな風なファイルをhoge.cgiみたいにしてドキュメントルート以下に置けば、</p>
+<p>Hello stranger from 192.168.1.1! みたいな表示がされます。</p>
+<p>はい。簡単ですね。</p>
+<p><br/></p>
+<p>Plackでは、</p>
+<p>リクエストはハッシュリファレンスで受け取り、</p>
+<p>レスポンスは配列リファレンスで渡すとうまくごにょごにょして、</p>
+<p>HTTPに変換してくれます。</p>
+<p><br/></p>
+<p>でもこれだけではなんだかたくさん書かないとダメですね。</p>
+<p>リクエストもハッシュリファレンスのままだと何かと機能不足になる事があります。</p>
+<p><br/></p>
+<p>そこでリクエストをオブジェクトにしてレスポンスを作ってくれるモジュールがいます。</p>
+</div>
+<div class="section">
+<h3> Plack::Request</h3>
+
+<pre>
+use Plack::Server::CGI;
+use Plack::Request;
+
+my $app = sub {
+    my $env = shift;
+    my $req = Plack::Request-&gt;new($env);
+    my $res = $req-&gt;new_response(
+        200,
+        [ 'Content-Type' =&gt; 'text/html; charset=utf-8' ]
+    ); # レスポンスオブジェクト作成
+    $res-&gt;body("&lt;h1&gt;Hello, World&lt;/h1&gt;");
+    return $res-&gt;finalize;
+};
+
+Plack::Server::CGI-&gt;new-&gt;run( $app );
+</pre>
+
+<p>注目すべきは、$res-&gt;body(...)ですね。</p>
+<p>こうして、レスポンスオブジェクトを作成するようにすれば、</p>
+<p>あとは皆様のご自由にWebApplicationを作れますね。</p>
+<p><br/></p>
+<p>この$appのところをMyApp-&gt;new()-&gt;psgi_handler()みたいに渡せば</p>
+<p>あとはそのモジュールでPSGIのルールに沿ったロジックを作ればいいですね。</p>
+<p><br/></p>
+<p>これらのモジュールがあることで、</p>
+<p>人それぞれのWeb Application Frameworkを作るのがとてもとても簡単になりました。</p>
+<p><br/></p>
+<p>今回はCGIで紹介しましたが、</p>
+<p>このPlackを使って作成したモジュールはちゃんと作れば、</p>
+<p>違うplatform(mod_perl, FCGI....etc)でそのまま動くようになります！</p>
+<p><br/></p>
+<p>それでは皆様素敵なPlackライフを！</p>
+<p><br/></p>
+<p>追伸: 最近BLOGを移行したので、宣伝させてくださいm(_ _)m</p>
+<p>のぶじゃすのBLOG(<a href="http://blog.noble-jasper.com/">http://blog.noble-jasper.com</a>)</p>
+<p><br/></p>
+<p>2009/12/21 追記:</p>
+<p>Plack作者であるmiyagawa氏にはてぶでコメントをいただいた為、追記します。</p>
+<blockquote>
+<p>miyagawa  この例なら HTTP::Engine でよい <a href="http://twitter.com/miyagawa/status/6859126674">http://twitter.com/miyagawa/status/6859126674</a></p>
+</blockquote>
+<p>というコメントをいただき、恐る恐るリンクをクリックしてみると、</p>
+<blockquote>
+<p>Switching from $framework to Plack::Request makes NO sense. Stop publishing blog posts like that and confusing people "Plack is a framework"</p>
+</blockquote>
+<p>この例だけではセンスがないと言われてしまいました。</p>
+<p>「Plackはフレームワークだ！」って書き方は止めましょうと。</p>
+<p><br/></p>
+<p>実を言うとHTTP::Engineはあまり詳しくないのですが、</p>
+<p>Plack Advent Calendar を熟読し、Plackを再認識しまして。</p>
+<p>追記をさせていただきます。</p>
+<p><br/></p>
+<p>miyagawa氏が</p>
+<p><a href="http://advent.plackperl.org/2009/12/day-14-use-plackrequest.html">http://advent.plackperl.org/2009/12/day-14-use-plackrequest.html</a></p>
+<p>ここで下記のように言っている通り、</p>
+<blockquote>
+<p>Directly using Plack::Request in the .psgi code is quite handy to quickly write and test your code but not really recommended for a large scale application. It's exactly like writing a 1000 lines of .cgi script where you could factor out the application code into a module (.pm files). The same thing applies to .psgi file: it's best to create an application class by using and possibly extending Plack::Request, and then have just a few lines of code in .psgi file with Plack::Builder to configure middleware components.</p>
+</blockquote>
+<p><br/></p>
+<p><span style="color:red;font-weight:bold">大規模プロジェクトにおいて、</span></p>
+<p><span style="color:red;font-weight:bold">Plack::Requestを使って.psgiファイル(実際に実行されるファイル)にコードを書いて、</span></p>
+<p><span style="color:red;font-weight:bold">手軽にやるのは推奨されていないそうです。</span></p>
+<p><br/></p>
+<p><span style="color:red;font-weight:bold">アプリケーションレイヤーのコードを(.pmファイルなどのモジュール群に)Plack::Requestで記述し、</span></p>
+<p><span style="color:red;font-weight:bold">.psgiファイルにはPlack::Builderを使って少ないコードでそれらを操作する事が良いそうです。</span></p>
+<p>(日本語訳の解釈が間違っていましたらつっこみください。自信ないですw)</p>
+<p><br/></p>
+<p>せっかくのAdvent Calendarの記事だったのですが、作者から「あんまり良くなさそう」なコメントを頂いたので、とりあえず加筆しておきました。</p>
+<p>今後Plackに関してはもっと自分でも勉強し、どこか(自分のBLOG等)にまとめて書きます。</p>
+<p>というかmiyagawaさんの英文のPlack Advent Calendarを読むのがすごくためになると思います。</p>
+
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/casual/19.html">Sat, 19 Dec 2009 13:10:47 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>cpan -i CPAN - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">﻿cpan -i CPAN - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">cpan -i CPAN<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/casual/06.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/casual/06.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>12月ですね。メリークリ○○ス！！</p>
+<p>半年前に0x20歳でエンジニアになった Perl 大好き bayashi です。こん○○は！</p>
+
+<p>さて、</p>
+<p>今回は何について書こうかなと迷ったのですが、せっかくなので初心に戻って Perl になくてはならない CPAN をご紹介させて頂ければと思います！</p>
+
+</div>
+<div class="section">
+<h3> CPANとは</h3>
+
+<p>“ご存知”<a href="http://search.cpan.org/">CPAN</a> は Perl ライブラリの宝庫！</p>
+<p>小さなものから大きなものまで再利用性・汎用性の高いモジュールの数々が登録されているのです！</p>
+
+</div>
+<div class="section">
+<h3> CPAN.pm</h3>
+
+<p>その CPAN からモジュールを自動的にダウンロードしてインストールするためのモジュールが CPAN.pm！</p>
+<p>perl5.004 から標準モジュールなので、取り急ぎインストールされてないってことはあまりないかと思います！</p>
+
+<pre>
+% perl -MCPAN -e shell
+</pre>
+
+<p>おまじないのように cpan shell を立ち上げているかもしれませんが、これは CPAN.pm の shell メソッドを呼んでいるということですね！</p>
+<p>僕はけっこう最近まで気づいてませんでした！</p>
+
+</div>
+<div class="section">
+<h3> cpan コマンド</h3>
+
+<p>対話型シェルで CPAN 作業をするのも良いのですが、cpan コマンドを使って、ほとんどのことは出来たりします！</p>
+
+<pre>
+モジュールをインストールします
+% cpan Module::Name
+
+明示的にモジュールをインストールします
+% cpan -i Module::Name
+
+強制的にインストールします(fオプションは他の cmt オプションにも使えます)
+% cpan -fi Module::Name
+
+モジュールのディレクトリを make clean します
+% cpan -c Module::Name
+
+モジュールを make (build) します
+% cpan -m Module::Name
+
+モジュールを make test (build test) します
+% cpan -t Module::Name
+
+コマンドだけ叩くと、シェルが立ち上がります
+% cpan
+cpan&gt;
+</pre>
+
+<p>ちなみに、モジュール名のところは、複数並べることが可能です！</p>
+<pre>
+% cpan Module::Name Other::Module More::Module
+</pre>
+
+</div>
+<div class="section">
+<h3> もっと cpan コマンド</h3>
+
+<p>次のようなオプションもあります！</p>
+
+<pre>
+モジュール作者（メンテナ）を表示する
+% cpan -A Module::Name
+
+Changesファイルを表示する
+% cpan -C Module::Name
+
+モジュールの詳細情報を表示する
+% cpan -D Module::Name
+
+作者のモジュール一覧を表示する
+% cpan -L AuthorName
+
+インストールされている古いモジュールを一覧表示する
+% cpan -O
+</pre>
+
+</div>
+<div class="section">
+<h3> however i need cpan shell</h3>
+
+<p>Test::Pod とか Pod::Spell でだけこける残念なときとか！</p>
+
+<pre>
+% cpan
+cpan&gt; notest install Module::Name
+</pre>
+
+<p>ひょっとして cpan コマンドでもできるのかも！</p>
+
+<p>なお、他にも対話モードは対話モードで使い手があると思います！</p>
+
+</div>
+<div class="section">
+<h3> SEE ALSO</h3>
+
+<ul>
+<li> <a href="http://search.cpan.org/perldoc?CPAN">http://search.cpan.org/perldoc?CPAN</a></li>
+<li> <a href="http://search.cpan.org/perldoc?cpan">http://search.cpan.org/perldoc?cpan</a></li>
+</ul>
+
+</div>
+<div class="section">
+<h3> さいごに</h3>
+
+<p>CPAN については <a href="http://search.cpan.org/perldoc?CPAN%3A%3AMini">CPAN::Mini</a> と <a href="http://search.cpan.org/perldoc?CPAN%3A%3AMini%3A%3AWebserver">CPAN::Mini::Webserver</a> も活用すると便利です！</p>
+
+<ul>
+<li> CPAN::Mini
+<ul>
+<li> <a href="http://e8y.net/mag/006-cpan-mini/">http://e8y.net/mag/006-cpan-mini/</a></li>
+<li> <a href="http://blog.bulknews.net/mt/archives/002069.html">http://blog.bulknews.net/mt/archives/002069.html</a></li>
+</ul>
+</li>
+</ul>
+
+<ul>
+<li> CPAN::Mini::Webserver
+<ul>
+<li> <a href="/modules/cpan_mini_webserver.html">http://perl-users.jp/modules/cpan_mini_webserver.html</a></li>
+</ul>
+</li>
+</ul>
+
+
+<p>個人的にちゃんとドキュメント読んだことがなかったので、今回あらためて読んでみると cpan コマンドも深かったです。</p>
+<p>もっともっと CPAN モジュールを使いこなしていきたいですね！</p>
+
+
+<p>という事で明日は yusukebe さんです。お楽しみ！</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/casual/06.html">Sun, 06 Dec 2009 14:15:02 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
