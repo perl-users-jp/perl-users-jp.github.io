@@ -100,7 +100,7 @@ use Web::Query;
 
 my $ua = LWP::UserAgent-&gt;new;
 
-my $url = &#39;http://perl-users.jp/articles/advent-calendar/2009/&#39;;
+my $url = &#39;/articles/advent-calendar/2009/&#39;;
 my @tracks = wq($url)-&gt;find(&#39;#alpha-inner h3 a&#39;)-&gt;attr(&#39;href&#39;);
 for my $track (@tracks) {
     $track =~ s!^\./!!;
@@ -125,7 +125,7 @@ Web::Scraperというモジュールも紹介しましたが、個人的にはWe
 みなさんもじゃんじゃんWebスクレピングしまくってみてください！ただし悪用厳禁で :)<br />
 次はotsuneさんです。</p>
 
-</div>HASH(0x555593933d30)
+</div>HASH(0x55fd41b2c178)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

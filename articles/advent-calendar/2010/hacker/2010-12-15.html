@@ -54,7 +54,7 @@ growl_notify(
     description =&gt; &#39;君も記号プログラミングしてみないか？ ｳﾎｯ&#39;,
     icon        =&gt; &#39;http://api.dan.co.jp/twicon/hasegawayosuke/bigger&#39;,
     on_click    =&gt; sub {
-        `open http://perl-users.jp/articles/advent-calendar/2010/sym/`;
+        `open /articles/advent-calendar/2010/sym/`;
         $cv-&gt;send;
     },
     on_timeout =&gt; sub {
@@ -116,7 +116,7 @@ my $streamer = AnyEvent::Twitter::Stream-&gt;new(
 $cv-&gt;recv;</pre>
 <p>いろんなブログで A::T::Stream なコードは既出なので誰でも書けるかと思います。<br />
 ちなみに、twitter という検索語でフィルタを実行したら、画面がとんでもない事になりました。</p><p><img src="https://github.com/perl-users-jp/perl-advent-calendar/raw/master/2010/win32/2010-12-12/growl2.png" width="400" /></p><p>ぜひ皆さんもやってみて下さい！</p><p>その他 Perl と Growl の組み合わせとしては、Gearman を使いサーバ側で云々という話もありますが、長くなるので省略します。<br />
-詳しくは <a href="http://perl-users.jp/articles/advent-calendar/2010/win32/12">Win32 のトラック</a>を参照してください。</p><p>次は... 誰かな？</p>
+詳しくは <a href="/articles/advent-calendar/2010/win32/12">Win32 のトラック</a>を参照してください。</p><p>次は... 誰かな？</p>
 
 </div>
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>

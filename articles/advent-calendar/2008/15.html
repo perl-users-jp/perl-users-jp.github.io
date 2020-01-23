@@ -4,10 +4,10 @@
 <head profile="http://purl.org/net/ns/metaprof">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>perldoc を使いこなす</title>
-    <link rel="stylesheet" href="http://perl-users.jp/articles/advent-calendar/adventcal.css" type="text/css" media="screen" />
-    <link rel="stylesheet" href="http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="/articles/advent-calendar/adventcal.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="/articles/advent-calendar/prettify.css" type="text/css" media="screen" />
     <script type="text/javascript" src="http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
-    <script type="text/javascript" src="http://perl-users.jp/articles/advent-calendar/adventcal.js"></script>
+    <script type="text/javascript" src="/articles/advent-calendar/adventcal.js"></script>
 </head>
 <body>
 
@@ -48,7 +48,7 @@
                one less than the base, ordinarily "-1".
 </code></pre>
 
-<p>よく <a href="http://perl-users.jp/articles/advent-calendar/2008/06.html"><code>-X</code> ファイルテスト演算子</a> の対応を忘れてしまって困りますが、そういうときは <code>perldoc -f -X</code> とすると一覧がでてきます。</p>
+<p>よく <a href="/articles/advent-calendar/2008/06.html"><code>-X</code> ファイルテスト演算子</a> の対応を忘れてしまって困りますが、そういうときは <code>perldoc -f -X</code> とすると一覧がでてきます。</p>
 
 <p>そうそう、ターミナルのロケールに UTF-8 を設定している場合、<a href="http://use.perl.org/~jbisbee/journal/36868">perldoc と nroff では、コードに含まれるシングルクォートやダブルクォートが UTF-8 の全角文字に変換されてしまい、ペーストしても動かない</a> という問題があります。ちょっとバッドノウハウ気味ですが、perldoc に <code>-t</code> オプションをつけていつもテキスト表示するか、一時的に <var>LANG</var> 環境変数を無効化することで対応しています。</p>
 

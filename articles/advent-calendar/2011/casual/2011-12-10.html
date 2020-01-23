@@ -79,12 +79,12 @@ con(&#39;lwp&#39;)-&gt;get(&#39;http://example.com&#39;);#newしなくていい<
 
 <div class="section">
     <h5>どこからでもアクセスできるグーバル変数化によるスコープ無限拡大</h5>
-    <p>基本的には、どこで使われてもいいようにContainerにいれてしまうんですが、「このインスタンスはそのケースで使用することを想定せずにnewのオプション渡しているよ」みたいな、Cotainerにインスタンス化のコード書いた人と別の人がなんとなくContainerにはいっているインスタンスを使い始めて、実は予期しないバグを生む可能性があるので注意です。</p><p>また、<a href="http://perl-users.jp/articles/advent-calendar/2010/hacker/3">&#x300E;Scope::Container &#x3067;&#x30EA;&#x30BD;&#x30FC;&#x30B9;&#x7BA1;&#x7406;&#x3092;&#x884C;&#x3046;&#x300F;</a>でkazeburoさんが指摘されているように、データベースのコネクション管理上問題が出てくるケースもあるようです。</p>
+    <p>基本的には、どこで使われてもいいようにContainerにいれてしまうんですが、「このインスタンスはそのケースで使用することを想定せずにnewのオプション渡しているよ」みたいな、Cotainerにインスタンス化のコード書いた人と別の人がなんとなくContainerにはいっているインスタンスを使い始めて、実は予期しないバグを生む可能性があるので注意です。</p><p>また、[/articles/advent-calendar/2010/hacker/3:title=『Scope::Container でリソース管理を行う』]でkazeburoさんが指摘されているように、データベースのコネクション管理上問題が出てくるケースもあるようです。</p>
 
 </div>
 <div class="section">
     <h5>インスタンスの中身が変化するタイプのインスタンスには使用できない</h5>
-    <p>基本的にはContainerにキャッシュしたインスタンスは何回も使いまわす設定になっているので、DateTimeや、<a href="http://perl-users.jp/articles/advent-calendar/2011/casual/3">&#x7B2C;&#x4E09;&#x56DE;&#x306B;ytnobody&#x3055;&#x3093;&#x304C;&#x7D39;&#x4ECB;&#x3055;&#x308C;&#x305F;Crypt::SaltedHash</a>のように使っていくうちに、インスタンスの中身がかわったりするモジュールのインスタンスをキャッシュするのには向きません。</p><p></p>
+    <p>基本的にはContainerにキャッシュしたインスタンスは何回も使いまわす設定になっているので、DateTimeや、[/articles/advent-calendar/2011/casual/3:title=第三回にytnobodyさんが紹介されたCrypt::SaltedHash]のように使っていくうちに、インスタンスの中身がかわったりするモジュールのインスタンスをキャッシュするのには向きません。</p><p></p>
 
 </div>
 </div>

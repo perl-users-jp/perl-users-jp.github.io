@@ -60,7 +60,7 @@ for my $row (@$rows) {
 </div>
 <div class="section">
     <h3>でも、やっぱりDBIってメンドクサイ</h3>
-    <p>これでクエリはいい感じに組み立てられる様になったのですが、いくつか問題があります。上で見て分かる様に、sql_interp()関数は($sql, @bind)という返り値の形なので、selectall_hogehoge()に渡すにはattributeのハッシュリファレンス分だけ引数が一致しないので、一度変数で受け取ってから渡す必要があります。コードを書きたいけど最低限の時間しかないインフラエンジニアにとってはこうした時間が命取りです(嘘)。</p><p>というか、そもそもfetchrow_hogehoge()とかselectall_hogehoge()とか覚えられないから毎回ググッててダメすぎます。ORMを使うというのは1つのやり方なんですが、クエリは生がいい。。。</p><p>そんな感じで悶々としながらDBIx Trackを読んでいたら、tomi-ruさんが「<a href="http://perl-users.jp/articles/advent-calendar/2011/dbix/8">DBIx::Simple &#x3075;&#x305F;&#x305F;&#x3073; - Perl Advent Calendar Japan 2011 Dbix Track</a>」というエントリを書かれていました。恥ずかしながらこれ知りませんでしたが、僕みたいなゆるふわにはとっても便利そうです。そして、よくドキュメントを読んでると、なんと<a href="http://search.cpan.org/~juerd/DBIx-Simple-1.35/lib/DBIx/Simple/Examples.pod#EXAMPLES_WITH_SQL::Interp">:SQL::Interpにも対応したメソッド</a>が生えているではありませんか！試しにnekokakさんの<a href="http://perl-users.jp/articles/advent-calendar/2011/dbix/1">DBIx::Handler</a>と組み合わせてみましょう！</p>
+    <p>これでクエリはいい感じに組み立てられる様になったのですが、いくつか問題があります。上で見て分かる様に、sql_interp()関数は($sql, @bind)という返り値の形なので、selectall_hogehoge()に渡すにはattributeのハッシュリファレンス分だけ引数が一致しないので、一度変数で受け取ってから渡す必要があります。コードを書きたいけど最低限の時間しかないインフラエンジニアにとってはこうした時間が命取りです(嘘)。</p><p>というか、そもそもfetchrow_hogehoge()とかselectall_hogehoge()とか覚えられないから毎回ググッててダメすぎます。ORMを使うというのは1つのやり方なんですが、クエリは生がいい。。。</p><p>そんな感じで悶々としながらDBIx Trackを読んでいたら、tomi-ruさんが「[/articles/advent-calendar/2011/dbix/8:title=DBIx::Simple ふたたび - Perl Advent Calendar Japan 2011 Dbix Track]」というエントリを書かれていました。恥ずかしながらこれ知りませんでしたが、僕みたいなゆるふわにはとっても便利そうです。そして、よくドキュメントを読んでると、なんと<a href="http://search.cpan.org/~juerd/DBIx-Simple-1.35/lib/DBIx/Simple/Examples.pod#EXAMPLES_WITH_SQL::Interp">:SQL::Interpにも対応したメソッド</a>が生えているではありませんか！試しにnekokakさんの[/articles/advent-calendar/2011/dbix/1:title=DBIx::Handler]と組み合わせてみましょう！</p>
 
     <pre class="code">use DBIx::Handler;
 
@@ -143,7 +143,7 @@ __DATA__
 &lt;/pre&gt;
 &lt;/body&gt;
 &lt;/html&gt;</pre>
-<p>これで、preタグの中にhashesの結果がDumperで出力されると思います。</p><p>ちなみに、Amon2::DBIにはdo_i()という関数があってSQL::Interpを使えるんですが、これはDBI->do()を呼んでいるので、select系では使えないなーと思ってたところでした(認識間違ってたらすみません＞＜)。</p><p>あと、最初はSQL::Interpの挙動が謎で一体どんなSQL投げてんだよ、って思うときがあると思いますが、そういう時はゆるふわ王子鈴木xaicronさんが<a href="http://perl-users.jp/articles/advent-calendar/2011/dbix/9">DBIx::QueryLog</a>というすばらしいモジュールを公開してるので、これをuseしながらデバッグすると良いと思います。</p>
+<p>これで、preタグの中にhashesの結果がDumperで出力されると思います。</p><p>ちなみに、Amon2::DBIにはdo_i()という関数があってSQL::Interpを使えるんですが、これはDBI->do()を呼んでいるので、select系では使えないなーと思ってたところでした(認識間違ってたらすみません＞＜)。</p><p>あと、最初はSQL::Interpの挙動が謎で一体どんなSQL投げてんだよ、って思うときがあると思いますが、そういう時はゆるふわ王子鈴木xaicronさんが[/articles/advent-calendar/2011/dbix/9:title=DBIx::QueryLog]というすばらしいモジュールを公開してるので、これをuseしながらデバッグすると良いと思います。</p>
 
 </div>
 <div class="section">

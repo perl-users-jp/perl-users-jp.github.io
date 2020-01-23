@@ -26,7 +26,7 @@ PLAN や EXPLAINを発行しなければならない。。。」</p><p>まあ、
 </div>
 <div class="section">
     <h4>DBIサブクラスを使って</h4>
-    <p>そんなとき<a href="http://perl-users.jp/articles/advent-calendar/2011/dbix/2">http://perl-users.jp/articles/advent-calendar/2011/dbix/2</a>を読んで思いついたのが、「ふだんsthでprepareしているSQLをDBIをnewする箇所を書き換えるだけで一瞬にして実行計画取得プログラムに変えてしまう仕組みを用意しておけばええんやないかな？」ってことでした。もうすでに実はあったりしたらすみませんが、それを今日は試してみます。<br />
+    <p>そんなとき[/articles/advent-calendar/2011/dbix/2]を読んで思いついたのが、「ふだんsthでprepareしているSQLをDBIをnewする箇所を書き換えるだけで一瞬にして実行計画取得プログラムに変えてしまう仕組みを用意しておけばええんやないかな？」ってことでした。もうすでに実はあったりしたらすみませんが、それを今日は試してみます。<br />
 オレオレDBIx（＝OnlyExplainDBI.pm）は↓な感じ。</p>
 
     <pre class="code lang-perl">package OnlyExplainDBI;

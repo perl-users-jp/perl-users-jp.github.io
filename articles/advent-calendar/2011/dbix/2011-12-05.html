@@ -33,17 +33,17 @@
 </div>
 <div class="section">
     <h4>トランザクション管理</h4>
-    <p>DBIを生で使って、autocommitオプションから、beginとかcommitとかrollbackしたりしてもいいですが、もっと簡単（気軽に）に使いたいと思いますよね？！例えば、小分けにしたメソッドをまとめて、全体でトランザクションかけるんだけど、小分けにしたメソッド個別でもトランザクションかけておきたいかいう場合ですね。O/Rマッパーでは良い感じに、ネストをサポートした、トランザクション開始を宣言から終了宣言までの間でコミットとロールバックしてくれるメソッドが提供されています！その他、詳しくは、<a href="http://perl-users.jp/articles/advent-calendar/2011/dbix/1">&#x7B2C;&#x4E00;&#x56DE;&#x306E;nekokak&#x3055;&#x3093;&#x306E;&#x300E;DBIx::Handler&#x3067;&#x5B89;&#x5FC3;DB&#x751F;&#x6D3B;&#x300F;</a>を御覧ください。</p>
+    <p>DBIを生で使って、autocommitオプションから、beginとかcommitとかrollbackしたりしてもいいですが、もっと簡単（気軽に）に使いたいと思いますよね？！例えば、小分けにしたメソッドをまとめて、全体でトランザクションかけるんだけど、小分けにしたメソッド個別でもトランザクションかけておきたいかいう場合ですね。O/Rマッパーでは良い感じに、ネストをサポートした、トランザクション開始を宣言から終了宣言までの間でコミットとロールバックしてくれるメソッドが提供されています！その他、詳しくは、[/articles/advent-calendar/2011/dbix/1:title=第一回のnekokakさんの『DBIx::Handlerで安心DB生活』]を御覧ください。</p>
 
 </div>
 <div class="section">
     <h4>Fork管理</h4>
-    <p>生のDBIを使ってParallel::ForkmanagerとかPrefork型のサーバーを使っていたりすると問題が発生することがあります。詳しくは、<a href="http://perl-users.jp/articles/advent-calendar/2011/dbix/4">&#x7B2C;&#x56DB;&#x56DE;&#x306E;nihen&#x3055;&#x3093;&#x306E;&#x300E;&#x7D9A;DBI&#x3068;fork&#x306E;&#x95A2;&#x4FC2;&#x300F;</a>を御覧ください。</p>
+    <p>生のDBIを使ってParallel::ForkmanagerとかPrefork型のサーバーを使っていたりすると問題が発生することがあります。詳しくは、[/articles/advent-calendar/2011/dbix/4:title=第四回のnihenさんの『続DBIとforkの関係』]を御覧ください。</p>
 
 </div>
 <div class="section">
     <h4>コネクション管理</h4>
-    <p>DBIを生で使っていると、データベース側からいつの間にかコネクション切られてしまったり、<a href="http://perl-users.jp/articles/advent-calendar/2010/hacker/3">&#x610F;&#x56F3;&#x305B;&#x305A;&#x30C0;&#x30E9;&#x30C0;&#x30E9;&#x3068;&#x30B3;&#x30CD;&#x30AF;&#x30B7;&#x30E7;&#x30F3;&#x304C;&#x7DAD;&#x6301;&#x3055;&#x308C;&#x7D9A;&#x3051;&#x305F;&#x308A;</a>、悩ましいことが多いですね。とりあえず、トランザクションとかForkとかコネクションはわりと密結合な関係なので、O/RマッパーとかDBIx系のモジュールまかせるに越したことはありませんね！</p>
+    <p>DBIを生で使っていると、データベース側からいつの間にかコネクション切られてしまったり、[/articles/advent-calendar/2010/hacker/3:title=意図せずダラダラとコネクションが維持され続けたり]、悩ましいことが多いですね。とりあえず、トランザクションとかForkとかコネクションはわりと密結合な関係なので、O/RマッパーとかDBIx系のモジュールまかせるに越したことはありませんね！</p>
 
 </div>
 <div class="section">
