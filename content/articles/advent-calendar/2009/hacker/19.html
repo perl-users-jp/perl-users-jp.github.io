@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app13.us.archive.org';v.server_ms=1289;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
+<script type="text/javascript">
+WB_wombat_Init("http://web.archive.org/web/", "20170513013642", "perl-users.jp:80");
+</script>
+<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
+<script type="text/javascript">
+__wbhack.init('http://web.archive.org/web');
+</script>
+<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
+<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
+<!-- End Wayback Rewrite JS Include -->
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20170513013642cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Module::Setup でらくらくモジュール作成 - JPerl Advent Calendar 2009
+</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20170513013642/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20170513013642cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
+<meta http-equiv="Content-Script-Type" content="text/javascript"/>
+<script type="text/javascript" src="http://web.archive.org/web/20170513013642js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20170513013642js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20170513013642js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+<script type="text/javascript">
+    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
+</script>
+
+<style type="text/css">
+    pre {
+        border-left: 2px solid #cccccc;
+        padding-left: 4px;
+        margin-left: 10px;
+        overflow: auto;
+    }
+</style>
+
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Module::Setup でらくらくモジュール作成 - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Module::Setup でらくらくモジュール作成<a href="http://web.archive.org/web/20170513013642/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/hacker/19.html"><img src="http://web.archive.org/web/20170513013642im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/hacker/19.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>こんにちわ！こんにちわ！acotie hackathon の懇談会来てるのに一人寂しくビール飲んでる Yappo です。</p>
+<p>皆様お元気ですか?僕は寂しいです。</p>
+
+<p>さて今日は今さっき shipit したての Module::Setup について紹介しましょう。</p>
+</div>
+<div class="section">
+<h3> what is Module::Setup?</h3>
+
+<p>Module:Setup とは miyagawa さん作の pmsetup を CPANize した物です。</p>
+
+<p>で、 pmsetup は何かというと Module::Starter などのモジュール開発を始める上の雛形を便利な感じで作ってくれる物です。</p>
+
+<p>まぁ pmsetup でも良かったんですが、みんな好き勝手にオレオレ pmsetup を作り出してて無駄かなと思ったので CPANize したのでした。</p>
+</div>
+<div class="section">
+<h3> how to use Module::Setup</h3>
+
+<p>さぁ Module::Setup を使ってみましょう。使うには Module::Setup をインストールしといてください。</p>
+<p>最新版は 0.07 です。必要におうじて cpanf で入れてください。</p>
+<p>インストールすると module-setup というコマンドが適当な bin の中にインストールされるので、これを使って操作を行います。</p>
+
+<p>インストールしてすぐにつかえるというワケではなくて、最初に初期化を行わないとなりません。</p>
+
+<p>初期化には module-setup コマンドに --init というオプションを与えます。</p>
+
+<pre>
+]$ module-setup --init
+Creating directory /Users/username/.module-setup
+(略)
+Creating directory /Users/username/.module-setup/flavors/default/template
+Do you use SVN? [yN] [n] 
+Do you use SVK? [yN] [n] 
+Do you use Git? [yN] [n] y
+You chose version control system: Git
+Your name:  [Default Name] 名前を入力
+Your email:  [default {at} example.com] メールアドレスを入力
+Dump config /Users/username/.module-setup/flavors/default/config.yaml
+</pre>
+
+<p>だいたいこんな感じです。</p>
+<p>途中で "Do you use " と聞いてる部分では、あなたが使いたい VCS のところで y を入れてください。</p>
+<p>Your name と Your email は、作成する Module やら README やらで使われるので正しく入れておきましょう。</p>
+
+<p>作成ログを見れば分かりますが ~/.module-setup に Module::Setup 用のファイル構造が作成されます。</p>
+
+
+<p>Module::Setup では flavor という単位で作成するモジュールの雛形を複数保存しておくことができます。</p>
+<p>今回は Default flavor を使いましたが、例えば XS の為を flavor を作りたい場合には、 Flavor のモジュール名と flavor 名をコマンドラインに与えます。</p>
+
+<pre>
+]$ module-setup --init --flavor-class=XS xs
+Creating /Users/username/.module-setup/flavors/xs/template/Makefile.PL
+(略)
+Your name:  [Default Name] 名前を入力
+Your email:  [default {at} example.com] メールアドレスを入力
+Dump config /Users/username/.module-setup/flavors/xs/config.yaml
+</pre>
+
+<p> --flavor-class というオプションで flavor class を指定して最後の引数で作成する flavor の名前を指定します。</p>
+<p>作成する flavor の名前はあなたの好きな物を選べますが、 flavor class は Module::Setup::Flavor::* の中のものを指定します。</p>
+
+<p>今のところ以下の flavor class が標準で入っています。</p>
+
+<pre>
+$ ls lib/Module/Setup/Flavor
+CatalystStarter.pm      Default.pm              PBP.pm                  XS.pm
+CodeRepos.pm            GitHub.pm               SelectVC.pm
+</pre>
+
+<p>もし、あなたの名前空間で flavor class を作っていたら --flavor-class=+YourModule::FlavorName とかいう感じで指定できます。</p>
+</div>
+<div class="section">
+<h3> 雛形を作る</h3>
+
+<p>初期化がすんだら雛形を作りだす事ができます。</p>
+
+<pre>
+$ module-setup モジュール名
+</pre>
+
+<p>という感じで module-setup コマンドを叩くと、モジュール名の雛形がカレントディレクトリに作成されます。</p>
+
+<pre>
+$ module-setup My::Module
+[1]: default
+[2]: xs
+Select flavor: [1] 
+</pre>
+
+<p>ここまでのステップを踏むと default と xs という flavor が install されていますので、ここでどの flavor を使うかの選択肢がでます。</p>
+<p>ここでは 1 の default を選びましょう。</p>
+
+<pre>
+Select flavor: [1] 1
+You chose flavor: default
+Creating directory My-Module
+Creating My-Module/.shipit
+Creating My-Module/Changes
+Creating My-Module/Makefile.PL
+Creating My-Module/MANIFEST.SKIP
+Creating My-Module/README
+Creating My-Module/lib/My/Module.pm
+Creating My-Module/t/00_compile.t
+Creating My-Module/xt/01_podspell.t
+Creating My-Module/xt/02_perlcritic.t
+Creating My-Module/xt/03_pod.t
+Creating My-Module/xt/perlcriticrc
+Creating My-Module/.gitignore
+Check Makefile.PL? [Yn]  [y] 
+</pre>
+
+<p>こんどは、 Makefile.PL を使って make test をして正しく雛形が出来ているかを聞かれています。</p>
+<p>まよわず y だ</p>
+
+
+<pre>
+Check Makefile.PL? [Yn]  [y] y
+(略
+Git init? [Yn]  [y] 
+</pre>
+
+<p>make test が無事実行できたら git init を実行して git repository を作るかを聞いています。</p>
+<p>なぜ git かというと、最初の module-setup --init の例で git を選んでいたのです。</p>
+
+<p>せっかく git をえらんだので y です</p>
+
+<pre>
+Git init? [Yn]  [y] y
+Initialized empty Git repository in /Users/username/p5-Module-Setup/My-Module/.git/
+The following paths are ignored by one of your .gitignore files:
+MANIFEST
+Use -f if you really want to add them.
+fatal: no files added
+Created initial commit 277e984: initial commit
+ 12 files changed, 137 insertions(+), 0 deletions(-)
+ create mode 100644 .gitignore
+ create mode 100644 .shipit
+ create mode 100644 Changes
+ create mode 100644 MANIFEST.SKIP
+ create mode 100644 Makefile.PL
+ create mode 100644 README
+ create mode 100644 lib/My/Module.pm
+ create mode 100644 t/00_compile.t
+ create mode 100644 xt/01_podspell.t
+ create mode 100644 xt/02_perlcritic.t
+ create mode 100644 xt/03_pod.t
+ create mode 100644 xt/perlcriticrc
+$
+</pre>
+
+<p>無事プロジェクトが出来ました。</p>
+
+<pre>
+$ ls My-Module/
+Changes         MANIFEST        MANIFEST.SKIP   Makefile.PL     README          lib             t               xt
+</pre>
+
+<p>Module::Setup では、基本的にモダンでかつ実用的な雛形を標準で用意しているので、 module-setup --init をしたあとは気軽にモジュール作成を行うことができます。</p>
+
+<p>もし標準の雛形が気に入らなければ  ~/.module-setup/flavors/default/template/ 以下がひな形のファイル構造が入っているので、これ以下のファイルを編集することによってお気に入りの雛形にすることができます。</p>
+
+<p>もちろん改造した雛形は --pack オプションによっていつでも flavor class にすることができます。</p>
+
+<pre>
+$ module-setup --pack MyFlavor default
+
+package MyFlavor;
+use strict;
+use warnings;
+use base 'Module::Setup::Flavor';
+1;
+
+=head1
+
+MyFlavor - pack from default
+</pre>
+
+<p>また、こうして flavor class を開発するための便利オプションなども充実しているのですが紙面が足りなさすぎるので perldoc Module::Setup とか、それ以下のモジュールのドキュメントを詳しくよんでね！</p>
+</div>
+<div class="section">
+<h3> 0.07 の新要素</h3>
+
+<p>ながらく 0.06_01 だったのですが、先程 0.07 を shipit しました。</p>
+
+<p>一番大きい要素を紹介します。</p>
+
+<h4> add Helper support</h4>
+
+<p>いわゆる Catalyst::Helper を作るのに便利な Helper サポートを追加しました。</p>
+
+<p>Module::Setup::Helper になってます。</p>
+<p>これはさらに hacker 向けではあると思うので、ここでは説明しませんが Ark の setup script などに使うと良いでしょう。</p>
+
+<h4> XS flavor</h4>
+
+<p>XS なモジュールを書くための便利な flavor が追加されています。</p>
+
+<p>おそらく id:gfx がいい感じにモダンな雛形にしてくれるとおもいます！</p>
+
+<h4> GitHub flavor</h4>
+
+<p>GitHub ユーザ向けの flavor が追加されています。</p>
+
+<pre>
+$ module-setup --init --flavor-class=GitHub
+(略
+use readme_pod_from? (depend Module::Install::ReadmePodFromPod, installed 0.01 [Yn]  [y] 
+use githubmeta? (depend Module::Install::GithubMeta, installed 0.10 [Yn]  [y] 
+use readme_markdown_from? (depend Module::Install::ReadmeMarkdownFromPod, not installed [Yn]  [y] n
+use readme_from? (depend Module::Install::ReadmeFromPod, installed 0.06 [Yn]  [y] 
+github repository name format:  [p5-%s] 
+Dump config /Users/ko/.module-setup/flavors/github/config.yaml
+</pre>
+
+<p>という感じで setup します。</p>
+
+<p>途中で聞いているのは perl ./Makefile.PL をした時に、メインのパッケージから README ファイルを作るかどうか聞いています。</p>
+<p>3種類ありますが、普通の README か pod 形式化 markdown 形式かというのが選べます。</p>
+<p>全部 CPAN から手に入ります。</p>
+
+<p>もう一つ GithubMeta を使うかどうかも聞いています。</p>
+<p>これは META.yml のデータの元を GitHub のメタデータから作れる物です。</p>
+
+<p>最後の github repository name format は、雛形作成時に GitHub のリポジトリを作るときのリポジトリ名のフォーマットを決めます。</p>
+<p>作ったモジュールの名前が %s に置換されます。</p>
+
+<p>実際に使う時は以下のようになります。</p>
+
+<pre>
+$ module-setup My::GitHub
+[1]: default
+[2]: github
+[3]: xs
+Select flavor: [1] 2
+You chose flavor: github
+Creating directory My-GitHub
+Creating My-GitHub/.shipit
+(略
+create GitHub repository? [Yn]  [y]
+github repository name:  [p5-My-GitHub]
+github repository description:  [Perl Module of My::GitHub]
+github repository homepage:  []
+create private repository? [yN]  [n]
+include /Users/username/p5-Module-Setup/My-GitHub/inc/Module/Install.pm
+(略
+ create mode 100644 xt/03_pod.t
+ create mode 100644 xt/perlcriticrc
+try git push to GitHub? [Yn]  [y]
+Enter passphrase for key '/Users/username/.ssh/id_dsa': 
+Counting objects: 19, done.
+Compressing objects: 100% (16/16), done.
+Writing objects: 100% (19/19), 2.47 KiB, done.
+Total 19 (delta 1), reused 0 (delta 0)
+To git@github.com:yappo/p5-My-GitHub.git
+ * [new branch]      master -&gt; master
+</pre>
+
+<p>という感じで、実際に GitHub 上にリポジトリを作って、作りたてのリポジトリに雛形を push できます。</p>
+
+<p>さすがに作りたての物を push するなんて誰得すぎるけどついでに作っといた反省しない。</p>
+</div>
+<div class="section">
+<h3> その他</h3>
+
+<p>本当に Module::Setup はできることが多すぎて紹介しきれないんですが、例えば Helper suppoert を使わなくとも Module::Setup をあなたのモジュールに組み込むこともできる、組み込まれることを想定して作りこんであるので hack しがいがあると思います。</p>
+
+<p>大抵のことはドキュメントに書いてあるつもりですし、もし不明点があれば僕を捕まえて聞いてみてください。</p>
+</div>
+<div class="section">
+<h3> おわりに</h3>
+
+<p>ということで shipit したての Module::Setup のご紹介でした。</p>
+
+<p>あしたは Module::Setup 0.07 の shipit 作業を物理的に行なってくれた xaicron さんです。</p>
+
+<p>なんか、この文章書いてたら懇談会のおわりのじかんっぽいんですけど、この補填は kan さんのお寿司であてたいとおもいます。</p>
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="http://web.archive.org/web/20170513013642/http://perl-users.jp/articles/advent-calendar/2009/hacker/19.html">Sat, 19 Dec 2009 12:45:02 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20170513013642/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20170513013642/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20170513013642im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20170513013642/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20170513013642/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20170513013642im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20170513013642/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20170513013642/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20170513013642im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20170513013642/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20170513013642/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20170513013642im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20170513013642/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20170513013642/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20170513013642im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://web.archive.org/web/20170513013642/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20170513013642/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20170513013642/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20170513013642/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20170513013642/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20170513013642/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://web.archive.org/web/20170513013642/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<!--
+     FILE ARCHIVED ON 01:36:42 May 13, 2017 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 15:07:53 Jan 23, 2020.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+-->
+<!--
+playback timings (ms):
+  captures_list: 1049.309
+  exclusion.robots: 0.145
+  load_resource: 228.168
+  exclusion.robots.policy: 0.134
+  RedisCDXSource: 529.972
+  CDXLines.iter: 12.628 (3)
+  esindex: 0.01
+  PetaboxLoader3.datanode: 555.32 (4)
+  PetaboxLoader3.resolve: 74.187
+  LoadShardBlock: 503.684 (3)
+-->

@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app31.us.archive.org';v.server_ms=936;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
+<script type="text/javascript">
+WB_wombat_Init("http://web.archive.org/web/", "20161018163924", "perl-users.jp");
+</script>
+<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
+<script type="text/javascript">
+__wbhack.init('http://web.archive.org/web');
+</script>
+<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
+<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
+<!-- End Wayback Rewrite JS Include -->
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018163924cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>休日なのでカジュアルに Sex の話しでも - JPerl Advent Calendar 2009
+</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20161018163924/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018163924cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
+<meta http-equiv="Content-Script-Type" content="text/javascript"/>
+<script type="text/javascript" src="http://web.archive.org/web/20161018163924js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018163924js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018163924js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+<script type="text/javascript">
+    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
+</script>
+
+<style type="text/css">
+    pre {
+        border-left: 2px solid #cccccc;
+        padding-left: 4px;
+        margin-left: 10px;
+        overflow: auto;
+    }
+</style>
+
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">休日なのでカジュアルに Sex の話しでも - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">休日なのでカジュアルに Sex の話しでも<a href="http://web.archive.org/web/20161018163924/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/casual/05.html"><img src="http://web.archive.org/web/20161018163924im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/casual/05.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>こんにちわ Wii のマリオが面白くてこの記事かくの忘れててべにぢょ忘年会遅刻確定の Yappo です。お元気ですか?</p>
+
+<p>一昔前の日本人はクリスマスはセックスをする口実として悪用していました、そんな日本人の悪しきクリスマスの風習として馴染み深い Sex モジュールのご紹介です。</p>
+
+<p><a href="http://web.archive.org/web/20161018163924/http://search.cpan.org/~mschwern/Sex-0.69/Sex.pm">http://search.cpan.org/~mschwern/Sex-0.69/Sex.pm</a></p>
+
+<p>何が出来るモジュールと、その名前の通りモジュールとモジュールとで Sex させるためのモジュールです。</p>
+<p>愛しあったら、このモジュールは二人の特徴を受け継いだ子供を作ってくれます。</p>
+
+<p>技術的な言葉で説明すると、多重継承をすることができます。</p>
+
+<p>例えば kan さんとプリキュアのキャラクターに愛しあってもらうとすると、下記のように Kan.pm と Nagisa.pm を用意します。</p>
+
+<pre>
+package Kan;
+sub mikipad { warn "editor" }
+sub wema { warn "web" }
+sub sex { warn "male"}
+1;
+</pre>
+
+<pre>
+package Nagisa;
+sub black { warn "black" }
+sub precure { warn "cure!" }
+sub sex { warn "female"}
+1;
+</pre>
+
+<p>準備できたら、二人に愛しあってもらい Makoto という子供を作りましょう。</p>
+
+<pre>
+# sex.pl
+package Makoto;
+use Sex qw(Kan Nagisa);
+
+package main;
+Makoto-&gt;mikipad;
+Makoto-&gt;wema;
+Makoto-&gt;black;
+Makoto-&gt;precure;
+Makoto-&gt;sex;
+</pre>
+
+<p>このように、多重継承してるので双方のメソッドが呼ばれます。</p>
+<p>両親とも同じメソッドを持っていたら、どちらかの親の要素を継承します。</p>
+
+<p>あれ？これだけ？と思った人は実行例を見てください。</p>
+<pre>
+[master)~/websites/jperl-advent-calendar-2009]$ perl ./sex.pl 
+Wrong hole, dear. I thought eight inches was longer than that. MORE! MORE! Does it get bigger? 
+editor at Kan.pm line 2.
+web at Kan.pm line 3.
+black at Nagisa.pm line 2.
+cure! at Nagisa.pm line 3.
+female at Nagisa.pm line 4.
+</pre>
+
+<p>一行目がなんか変ですね?</p>
+<p>そうです、子供を作る時のあの声です。</p>
+</div>
+<div class="section">
+<h3> 他には</h3>
+
+<p>じゃぁ use Sex の時に、ひとつだけモジュール名を与えたらどうなるか? 3人以上はどうなるか?</p>
+
+<p>そして</p>
+<pre>
+package Kan;
+use Sex 'Kan';
+1;
+</pre>
+<p>をしたらをしたら。。。?</p>
+
+<p>それはあなたの目で確認してください。</p>
+</div>
+<div class="section">
+<h3> まとめ</h3>
+
+<p>そんなことで Acme 空間ができるよりも前に作られたジョークモジュールを紹介しました。</p>
+
+<p>ちなみに、このモジュールのバージョン番号の秘密に気がつきました?</p>
+
+<p>そしてこのモジュールのバグ情報として</p>
+
+<pre>
+There are many bugs you can get from having Sex used too often on your computer. Please be sure your programs are Safe before they have Sex.
+
+    package Trojan;
+    use Sex qw(Safe Sex);
+</pre>
+
+<p>なんてことが書いてあります。愛する相手のためにも安全にしましょうね。という事ですねー。</p>
+
+<p>ちなみに和製セクシャルモジュールとしては Acme::Oppai とかがあります。</p>
+
+
+<p>相方がいる人も、一人の人も、3人以上とする人も、皆さん無事に年を越せますように。。。！</p>
+
+<p>という事で明日は bayashi さんです。お楽しみ！</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="http://web.archive.org/web/20161018163924/http://perl-users.jp/articles/advent-calendar/2009/casual/05.html">Sat, 05 Dec 2009 09:46:01 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018163924/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20161018163924/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20161018163924im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018163924/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20161018163924/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20161018163924im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018163924/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20161018163924/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20161018163924im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018163924/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20161018163924/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20161018163924im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018163924/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20161018163924/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20161018163924im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://web.archive.org/web/20161018163924/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018163924/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018163924/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018163924/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018163924/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018163924/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://web.archive.org/web/20161018163924/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<!--
+     FILE ARCHIVED ON 16:39:24 Oct 18, 2016 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 15:00:52 Jan 23, 2020.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+-->
+<!--
+playback timings (ms):
+  exclusion.robots.policy: 0.196
+  PetaboxLoader3.resolve: 311.805 (2)
+  esindex: 0.01
+  PetaboxLoader3.datanode: 331.528 (4)
+  exclusion.robots: 0.211
+  load_resource: 224.344
+  RedisCDXSource: 262.109
+  CDXLines.iter: 14.595 (3)
+  captures_list: 703.231
+  LoadShardBlock: 422.723 (3)
+-->

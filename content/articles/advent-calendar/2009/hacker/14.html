@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app100.us.archive.org';v.server_ms=726;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
+<script type="text/javascript">
+WB_wombat_Init("http://web.archive.org/web/", "20161108033824", "perl-users.jp:80");
+</script>
+<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
+<script type="text/javascript">
+__wbhack.init('http://web.archive.org/web');
+</script>
+<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
+<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
+<!-- End Wayback Rewrite JS Include -->
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161108033824cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>続・最速IPアドレスマッチ研修会 - JPerl Advent Calendar 2009
+</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20161108033824/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161108033824cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
+<meta http-equiv="Content-Script-Type" content="text/javascript"/>
+<script type="text/javascript" src="http://web.archive.org/web/20161108033824js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161108033824js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161108033824js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+<script type="text/javascript">
+    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
+</script>
+
+<style type="text/css">
+    pre {
+        border-left: 2px solid #cccccc;
+        padding-left: 4px;
+        margin-left: 10px;
+        overflow: auto;
+    }
+</style>
+
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">続・最速IPアドレスマッチ研修会 - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">続・最速IPアドレスマッチ研修会<a href="http://web.archive.org/web/20161108033824/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/hacker/14.html"><img src="http://web.archive.org/web/20161108033824im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/hacker/14.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<h3> 前置き</h3>
+
+<p><a href="http://web.archive.org/web/20161108033824/http://perl-users.jp/articles/advent-calendar/2009/casual/">CasualTrack</a>の第一日目、kazeburoさんの「<a href="http://web.archive.org/web/20161108033824/http://perl-users.jp/articles/advent-calendar/2009/casual/01.html">最速IPアドレスマッチ研修会</a>」を読んで触発され、より最速な高みを目指し、作成したモジュール「Net::IP::Match::Trie」を紹介します。</p>
+
+<ul>
+<li> <a href="http://web.archive.org/web/20161108033824/http://github.com/hirose31/p5-net-ip-match-trie">http://github.com/hirose31/p5-net-ip-match-trie</a></li>
+<li> <a href="http://web.archive.org/web/20161108033824/http://search.cpan.org/dist/Net-IP-Match-Trie/">http://search.cpan.org/dist/Net-IP-Match-Trie/</a></li>
+</ul>
+</div>
+<div class="section">
+<h3> 本題</h3>
+
+<p>正確にいうと、「作った」のではなく、mod_cidr_lookupというApacheモジュールを「ポーティング」しました。</p>
+
+<ul>
+<li> <a href="http://web.archive.org/web/20161108033824/http://lab.klab.org/wiki/Mod_cidr_lookup">mod_cidr_lookup</a></li>
+</ul>
+
+<p>Net::IP::Match::* 系のCPANモジュールには、様々なデータ構造、探索方法の実装があるのですが、今回のお題の「Net::IP::Match::Trie」は、その名に冠しているようにTrie(トライ木)というデータ構造を採用しています。</p>
+
+<p>Trieについての解説は、</p>
+
+<ul>
+<li> <a href="http://web.archive.org/web/20161108033824/http://ja.wikipedia.org/wiki/Trie">http://ja.wikipedia.org/wiki/Trie</a> , <a href="http://web.archive.org/web/20161108033824/http://en.wikipedia.org/wiki/Trie">http://en.wikipedia.org/wiki/Trie</a></li>
+<li> <a href="http://web.archive.org/web/20161108033824/http://dsas.blog.klab.org/archives/51294589.html">http://dsas.blog.klab.org/archives/51294589.html</a></li>
+</ul>
+
+<p>などを参照していただくとして、ここでは、他の Net::IP::Match::* 系の実装と比べて、Net::IP::Match::Trieがどのような特徴を持っているか書いてみたいと思います。</p>
+</div>
+<div class="section">
+<h3> まずはベンチマーク</h3>
+
+<p>kazeburoさんの記事のベンチマークスクリプトをベースにして、ベンチマークをとってみました。(ベンチマークスクリプトは、 <a href="http://web.archive.org/web/20161108033824/http://github.com/hirose31/p5-net-ip-match-trie/blob/master/samples/benchmark/benchmark.pl">http://github.com/hirose31/p5-net-ip-match-trie/blob/master/samples/benchmark/benchmark.pl</a> にあります)</p>
+
+<p>ベンチマークスクリプトの変更点は以下の通りです。</p>
+
+<ul>
+<li> Net::IP::Match::Trieを追加</li>
+<li> Net::IP::Match::XS2を追加</li>
+<li> 検査の母データとなるCIDRを155個に増量</li>
+</ul>
+
+<p>Net::IP::Match::Trie は XS 版と Pure Perl 版があるので、それぞれでベンチマークをとりました。結果はこうなりました:</p>
+
+<pre>
+$ ./samples/benchmark/benchmark.pl
+155
+Net::IP::Match::Trie::XS
+            (warning: too few iterations for a reliable count)
+              Rate     cidr  regexp patricia       xs      bin      xs2     trie
+cidr       44643/s       --    -67%     -71%     -77%     -92%     -93%     -97%
+regexp    134529/s     201%      --     -11%     -31%     -77%     -78%     -90%
+patricia  151515/s     239%     13%       --     -22%     -74%     -76%     -88%
+xs        194805/s     336%     45%      29%       --     -66%     -69%     -85%
+bin       576923/s    1192%    329%     281%     196%       --      -8%     -56%
+xs2       625000/s    1300%    365%     312%     221%       8%       --     -52%
+trie     1304348/s    2822%    870%     761%     570%     126%     109%       --
+
+$ env NIMT_PP=1 ./samples/benchmark/benchmark.pl
+155
+Net::IP::Match::Trie::PP
+             Rate     cidr   regexp patricia       xs     trie      bin      xs2
+cidr      40323/s       --     -69%     -74%     -80%     -82%     -93%     -93%
+regexp   128205/s     218%       --     -16%     -36%     -42%     -79%     -79%
+patricia 152284/s     278%      19%       --     -24%     -31%     -75%     -75%
+xs       201342/s     399%      57%      32%       --      -9%     -66%     -66%
+trie     220588/s     447%      72%      45%      10%       --     -63%     -63%
+bin      600000/s    1388%     368%     294%     198%     172%       --      -0%
+xs2      600000/s    1388%     368%     294%     198%     172%       0%       --
+</pre>
+
+<p>XS版はダントツで最速、Pure Perl版もPure Perlな実装の間では最速という結果がでました。</p>
+</div>
+<div class="section">
+<h3> 入力CIDR数と、セットアップとマッチ処理時間の関係</h3>
+
+<p>さて、「最速」というのはわかったのですが、Net::IP::Match::Trieがどのような「特徴」をもっているかというのはこれだけではわかりません。ですので、もうひとつ、ベンチマークスクリプトを走らせてみたいと思います。</p>
+
+<p>ベンチマークには、Net::IP::Match::Regexp に含まれる speedtest.pl を改変したものを使いました。(スクリプトは、 <a href="http://web.archive.org/web/20161108033824/http://github.com/hirose31/p5-net-ip-match-trie/blob/master/samples/benchmark/speedtest.pl">http://github.com/hirose31/p5-net-ip-match-trie/blob/master/samples/benchmark/speedtest.pl</a> にあります)</p>
+
+<p>結果はこうなりました。("Networks:"は、探索母データとなるCIDRの数です)</p>
+
+<pre>
+$ ./samples/benchmark/speedtest.pl
+Initialization time of test: 0.032882
+
+Networks: 1, IPs: 10000
+Test name              | Setup time | Run time | Total time | Errors
+-----------------------+------------+----------+------------+--------
+simple                 |    0.000   |  0.058   |    0.058   | n/a
+Net::IP::Match::XS     |    0.000   |  0.015   |    0.016   | 0
+Net::IP::Match::Regexp |    0.001   |  0.072   |    0.072   | 0
+Net::IP::Match::Trie   |    0.000   |  0.022   |    0.022   | 0
+
+Networks: 10, IPs: 10000
+Test name              | Setup time | Run time | Total time | Errors
+-----------------------+------------+----------+------------+--------
+simple                 |    0.000   |  0.085   |    0.085   | n/a
+Net::IP::Match::XS     |    0.000   |  0.022   |    0.022   | 0
+Net::IP::Match::Regexp |    0.001   |  0.091   |    0.093   | 0
+Net::IP::Match::Trie   |    0.000   |  0.023   |    0.023   | 0
+
+Networks: 100, IPs: 10000
+Test name              | Setup time | Run time | Total time | Errors
+-----------------------+------------+----------+------------+--------
+simple                 |    0.000   |  0.371   |    0.371   | n/a
+Net::IP::Match::XS     |    0.000   |  0.084   |    0.084   | 0
+Net::IP::Match::Regexp |    0.010   |  0.098   |    0.107   | 0
+Net::IP::Match::Trie   |    0.001   |  0.022   |    0.024   | 0
+
+Networks: 1000, IPs: 10000
+Test name              | Setup time | Run time | Total time | Errors
+-----------------------+------------+----------+------------+--------
+simple                 |    0.002   |  2.784   |    2.786   | n/a
+Net::IP::Match::XS     |    0.001   |  0.647   |    0.648   | 0
+Net::IP::Match::Regexp |    0.090   |  0.103   |    0.193   | 0
+Net::IP::Match::Trie   |    0.064   |  0.023   |    0.087   | 4
+</pre>
+
+<p>この結果から読み取れることはこんなところでしょうか:</p>
+
+<ul>
+<li> Net::IP::Match::XS
+<ul>
+<li> API的に、セットアップ処理がなくマッチ処理のみの実装になっている</li>
+<li> マッチ処理はそれほど高速ではない</li>
+</ul>
+</li>
+<li> Net::IP::Match::Regexp
+<ul>
+<li> 入力CIDR数の増加によりセットアップ時間が線形に増加するので、少ないうちはいいが多くなると注意</li>
+<li> マッチ処理に要する時間も徐々に増加した</li>
+</ul>
+</li>
+<li> Net::IP::Match::Trie
+<ul>
+<li> 入力CIDR数の増加によりセットアップ時間も増加する</li>
+<li> 一方、Trieの特長により、マッチ処理時間はまったく変わらない (CIDR数が増加しても一定)</li>
+</ul>
+</li>
+</ul>
+
+<p>ちなみに、最後の結果で Net::IP::Match::Trie の Errors の項が非ゼロですが、これは、Net::IP::Match::Trie はマッチするCIDRが複数ある場合には、ネットワークアドレスが一番長い(=ネットマスクが一番短い)ものを返す実装になっているのに対し、ほかのものはそういう実装になっていないからです。</p>
+
+<p>たとえば、</p>
+<pre>
+$matcher-&gt;add("big"   =&gt; [qw(10.0.0.0/8)]);
+$matcher-&gt;add("small" =&gt; [qw(10.6.25.0/24)]);
+say $matcher-&gt;match_ip("10.6.25.1");
+</pre>
+<p>の結果は、最初に add した "big" ではなく、より限定的(ネットワークアドレスが長い=ネットマスクが短い)なCIDRである "small" になります。</p>
+</div>
+<div class="section">
+<h3> まとめ</h3>
+
+<ul>
+<li> Net::IP::Match::Trieは、
+<ul>
+<li> 一度だけ、かならずセットアップ処理が必要です</li>
+<li> マッチ処理は最速です (少なくとも今回比較した中では)</li>
+<li> また、Trieの特長により、探索母データのCIDRの数がとっても多くなっても、常に一定の速度で結果を返せます</li>
+<li> 一回のマッチ処理で、ラベル付けしたいずれかのCIDRにマッチするかどうかがチェックできます
+<ul>
+<li> 例: 「このIPアドレスは、どの携帯電話キャリア(DoCoMo、au、Softbank、willcom)のものか？」というのが、Net::IP::Match::XSやNet::IP::Match::Regexpではキャリアの数の分だけマッチ処理が必要ですが、Net::IP::Match::Trieなら一発でわかります。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li> よって、Net::IP::Match::Trie は、このような用途に向いています:
+<ul>
+<li> そのライフサイクルの中で、初期セットアップの回数より、マッチ処理の回数の回数が圧倒的に多い</li>
+<li> CIDRの変化が頻繁にはない
+<ul>
+<li> 例: daemon的な比較的長寿のサーバプロセスとか</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+<ul>
+<li> 最後に。Advent Calendarのおかげで、Net::IP::Match::Trie というモジュールを作るきっかけを得ることができました！ ありがとうございました！ Happy SUSHI!!!</li>
+</ul>
+
+
+<p>というわけで今日はここまでです。明日は lestrrat さんです。</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="http://web.archive.org/web/20161108033824/http://perl-users.jp/articles/advent-calendar/2009/hacker/14.html">Mon, 14 Dec 2009 11:23:01 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161108033824/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20161108033824/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20161108033824im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161108033824/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20161108033824/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20161108033824im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161108033824/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20161108033824/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20161108033824im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161108033824/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20161108033824/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20161108033824im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161108033824/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20161108033824/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20161108033824im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://web.archive.org/web/20161108033824/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161108033824/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161108033824/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161108033824/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161108033824/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161108033824/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://web.archive.org/web/20161108033824/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<!--
+     FILE ARCHIVED ON 03:38:24 Nov 08, 2016 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 15:07:15 Jan 23, 2020.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+-->
+<!--
+playback timings (ms):
+  captures_list: 486.403
+  RedisCDXSource: 357.698
+  load_resource: 228.08
+  PetaboxLoader3.datanode: 183.19 (4)
+  esindex: 0.021
+  LoadShardBlock: 109.162 (3)
+  exclusion.robots.policy: 0.119
+  PetaboxLoader3.resolve: 108.782
+  exclusion.robots: 0.129
+  CDXLines.iter: 15.607 (3)
+-->

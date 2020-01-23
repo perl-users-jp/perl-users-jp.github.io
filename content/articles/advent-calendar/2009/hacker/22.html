@@ -1,0 +1,573 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app42.us.archive.org';v.server_ms=2045;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
+<script type="text/javascript">
+WB_wombat_Init("http://web.archive.org/web/", "20190522183957", "perl-users.jp");
+</script>
+<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
+<script type="text/javascript">
+__wbhack.init('http://web.archive.org/web');
+</script>
+<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
+<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
+<!-- End Wayback Rewrite JS Include -->
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20190522183957cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>DBICx::Modeler::Generatorでスキーマクラス群とモデルクラス群を一発生成しよう - JPerl Advent Calendar 2009
+</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20190522183957/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20190522183957cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
+<meta http-equiv="Content-Script-Type" content="text/javascript"/>
+<script type="text/javascript" src="http://web.archive.org/web/20190522183957js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20190522183957js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20190522183957js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+<script type="text/javascript">
+    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
+</script>
+
+<style type="text/css">
+    pre {
+        border-left: 2px solid #cccccc;
+        padding-left: 4px;
+        margin-left: 10px;
+        overflow: auto;
+    }
+</style>
+
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">DBICx::Modeler::Generatorでスキーマクラス群とモデルクラス群を一発生成しよう - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">DBICx::Modeler::Generatorでスキーマクラス群とモデルクラス群を一発生成しよう<a href="http://web.archive.org/web/20190522183957/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/hacker/22.html"><img src="http://web.archive.org/web/20190522183957im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/hacker/22.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <h2>ご挨拶</h2>
+
+<p>はじめまして、<a href="http://web.archive.org/web/20190522183957/http://blog.eorzea.asia/">gardejo</a>こと守屋と申します。金融ユー子で働いています。<a href="http://web.archive.org/web/20190522183957/http://conferences.yapcasia.org/ya2009/">YAPC::Asia 2009</a>の<a href="http://web.archive.org/web/20190522183957/http://conferences.yapcasia.org/ya2009/wiki?node=TrainingHome">特別研修</a>で、（<a href="http://web.archive.org/web/20190522183957/http://perl-users.jp/articles/advent-calendar/2009/hacker/16.html">16日目</a>を執筆された）<a href="http://web.archive.org/web/20190522183957/http://blog.livedoor.jp/dankogai/">dankogaiさん</a>の<a href="(http://conferences.yapcasia.org/ya2009/talk/2307)">研修</a>の後に、（<a href="http://web.archive.org/web/20190522183957/http://perl-users.jp/articles/advent-calendar/2009/hacker/15.html">15日目</a>を執筆された）<a href="http://web.archive.org/web/20190522183957/http://mt.endeworks.jp/d-6/">lestrratさん</a>などの特別補講を受ける機会に恵まれたのですが、「業務でCOBOLを使っている人？」という質問にただ独り挙手して、たいそう恥ずかしい思いをしました。</p>
+
+<p>そんな勤め先では定例作業撲滅のためなどにPerlをゲリラ的に活用していますが、現場レベルでの対症療法であるに過ぎません。私にとってのPerlとは、エスペラント日本語翻訳システムの開発など、趣味の言語として楽しむ対象です。従って、このhacker trackの執筆陣として居並ぶハッカーの方々には多分に見劣りしますが、どうかご容赦ください。</p>
+
+<p>本日は<a href="http://web.archive.org/web/20190522183957/http://search.cpan.org/perldoc?Moose"><code>Moose</code></a>と<a href="http://web.archive.org/web/20190522183957/http://search.cpan.org/perldoc?DBIx::Class"><code>DBICx::Class</code></a>が大好きな人にお勧めしたいアプリケーション設計方法論を踏まえて、<a href="http://web.archive.org/web/20190522183957/http://search.cpan.org/perldoc?DBIx::Class::Schema::Loader"><code>DBIx::Class::Schema::Loader</code></a>と<a href="http://web.archive.org/web/20190522183957/http://search.cpan.org/perldoc?DBICx::Modeler"><code>DBICx::Modeler</code></a>のヘルパーモジュールである<a href="http://web.archive.org/web/20190522183957/http://search.cpan.org/perldoc?DBICx::Modeler::Generator"><code>DBICx::Modeler::Generator</code></a>をご紹介します。</p>
+
+<h2>目次</h2>
+
+<ol>
+<li>モデルをWAFともスキーマとも分離する設計</li>
+<li>クラスの山をどう作るか</li>
+<li>作業の実際</li>
+<li>実用上の留意点</li>
+<li>中身の話</li>
+<li>まとめ ～ Perlはエンタープライズアプリケーションに向いています！</li>
+</ol>
+
+<h2>1. モデルをWAFともスキーマとも分離する設計</h2>
+
+<h3>1.1. エンタープライズアプリケーションで一番大事なビジネスロジック</h3>
+
+<p>いわゆるエンタープライズアプリケーションの開発に際しては、大量のデータにまみれることになります。ここでの大量とは、テーブルの行方向も指しますが、むしろテーブルの列方向や、テーブル自体の数をこそ指すものと思ってください。</p>
+
+<p>しかし扱うべきデータの量に圧倒されていてはいけません。エンタープライズアプリケーションで一番大事なものは何でしょうか。それはlestrratさんの『モダンPerl入門』でも触れられている通り、ビジネスロジックなのです。</p>
+
+<h3>1.2. ビジネスロジックの書き方</h3>
+
+<p>PoEAA（"Patterns of Enterprise Application Architecture", 邦訳『エンタープライズアプリケーションアーキテクチャパターン』）では、ビジネスロジック（PoEAAでは「ドメインロジック」という用語が使われています）を実装するパターンとして、</p>
+
+<ul>
+<li>Transaction Scriptパターン</li>
+<li>Domain Modelパターン</li>
+<li>Table Moduleパターン</li>
+</ul>
+
+<p>が挙げられています。このうち、私は特にDomain Modelパターンを強くお勧めしたいところです。これらの違いを簡潔に説明し、かつ、Domain Modelパターンのすばらしさをまとめている資料として、<a href="http://web.archive.org/web/20190522183957/http://ameblo.jp/ouobpo">ouobpoさん</a>の「<a href="http://web.archive.org/web/20190522183957/http://www.slideshare.net/ouobpo/ss-326835">ドメインロジックの実装方法とドメイン駆動設計</a>」というスライドが参考になります。</p>
+
+<p>要はせっかくオブジェクト指向で生活しているんだから、データと振る舞いを分けるTransaction Scriptパターンではなく、データと振る舞いをカプセル化した「賢いデータ」を使うDomain Modelパターンを使うと楽しいよ、ということです。モデリングの敷居は多少高いけれども、業務を可視化して綺麗に書ける利点はとても大きいです。</p>
+
+<p>ouobpoさんはまた<a href="http://web.archive.org/web/20190522183957/http://ameblo.jp/ouobpo/entry-10036477015.html">日本ではTransaction Scriptパターンが優勢</a>とも述べています。しかし動的言語であるPerlであれば、Javaのように「静的言語を動的に扱う道具仕立て」自体が存在し得ないので、「いいところどり」を出来る余地があるのではないでしょうか。</p>
+
+<p>実際にPerlでDomain Modelパターンに基づいて書いてみると、拍子が抜けるくらいに素直に実装出来る物です。食わず嫌いをやめてみて、一度試してみる価値は十分にあると思います。</p>
+
+<h3>1.3. ビジネスロジックを他の層と分離する</h3>
+
+<p>さてそんなビジネスロジックは、ouobpoさんのスライドの中にあるように、</p>
+
+<ul>
+<li>プレゼンテーション層</li>
+<li>ドメイン層</li>
+<li>インテグレーション層</li>
+</ul>
+
+<p>のうち、ドメイン層に位置します。</p>
+
+<p>『モダンPerl入門』では、ビジネスロジックは<code>Catalyst</code>などのWAF（ウェブアプリケーションフレームワーク）とは分離されていて然るべきものだ、と言及されています。これはプレゼンテーション層とドメイン層を分離するという意味です。</p>
+
+<p>そしてインテグレーション層には<code>DBIx::Class</code>などが当てはまりますが、これもドメイン層と分離されていて然るべきです。</p>
+
+<p>lestrratさんの「<a href="http://web.archive.org/web/20190522183957/http://mt.endeworks.jp/d-6/2008/03/db-1.html">ＭＶＣのモデルはDBじゃなくてもいいんだよ</a>」の記事にあるように、モデルはDBとのやりとりとは超然としているべきであって、インテグレーション層を取り扱うクラスを別途設けるのが手堅い方法論です。lestrratさんの記事では、<code>Model::DBIC</code>を別個設けるという方法論が例示されています。</p>
+
+<h3>1.4. Perlに於けるDomain Modelパターン</h3>
+
+<p>Perlのウェブアプリケーション作成の定番として<code>Catalyst</code>と<code>DBIx::Class</code>を利用する場合で、Domain Modelパターンに基づいた設計をするとどうなるでしょうか。これについては、（<a href="http://web.archive.org/web/20190522183957/http://perl-users.jp/articles/advent-calendar/2009/hacker/07.html">7日目</a>を執筆された）<a href="http://web.archive.org/web/20190522183957/http://dann.g.hatena.ne.jp/dann/">dannさん</a>による「<a href="http://web.archive.org/web/20190522183957/http://www.slideshare.net/techmemo/catalyst-367905">CatalystからModelを切り離せ - MVCのMのあるべき姿 -</a>」のスライドが一つの答えになります。</p>
+
+<p>これは「<a href="http://web.archive.org/web/20190522183957/http://catalyst.g.hatena.ne.jp/dann/20080305/1204732094">Catalystを使っていて困ること</a>」から10を超える記事を経て「<a href="http://web.archive.org/web/20190522183957/http://catalyst.g.hatena.ne.jp/dann/20080307/1204890012">CatalystでのMVCの私的まとめ</a>」へ至って導き出された考え方で、順を追うととてもよく理解が出来ます。</p>
+
+<p>スライド24枚目にあるように、ドメイン層であるモデルクラスが<code>Schema::*</code>などを参照するということで、実際にはPOPO Modelのさらに奥にインテグレーション層であるスキーマクラスがあることになります。</p>
+
+<p>なお、モデルの後ろにスキーマが必ず控えているとも限らないことも留意しておく必要があります。例えばValue Objectパターンに基づくモデルクラスを追加で作ることもあるでしょう。</p>
+
+<h3>1.5. Mooseベースのクラスでモデルクラスを書く</h3>
+
+<p>さてそのモデルクラスをどう書きましょうか。上述のdannさんの例では、POPO（Plain old Perl object）と書かれていますが、これは<code>Catalyst::Model</code>ベースではないという意味だと理解しています。つまり、そこでは古式ゆかしい<a href="http://web.archive.org/web/20190522183957/http://search.cpan.org/perldoc?Class::Accessor::Fast"><code>Class::Accessor::Fast</code></a>を使うこともあるでしょう。そして、折角ならばみんな大好きな<code>Moose</code>を是非使いたいところです。</p>
+
+<p>そして「<code>Schema::*</code>などを参照する」という作業をやってくれるのが、<code>DBICx::Modeler</code>というモジュールです。これは<code>DBIx::Class</code>スキーマと<code>Moose</code>クラスを仲立ちする薄いレイヤーで、橋渡しとしては申し分のない出来となっています。これにより、モデルクラスからスキーマクラスを透過的に取り扱えるようになります。</p>
+
+<h3>1.6. <code>DBICx::Modeler</code>以外の解</h3>
+
+<p><code>Moose</code>と<code>DBIx::Class</code>とを繋ぐ方法としては、他にスキーマの記述も<code>Moose</code>記法で書いてしまおうという野心的な<a href="http://web.archive.org/web/20190522183957/http://github.com/stevan/moosex-dbic/"><code>MooseX::DBIC</code></a>というモジュールがあります。</p>
+
+<p>また、<code>DBIx::Class</code>というORMにこだわらなければ、<a href="http://web.archive.org/web/20190522183957/http://search.cpan.org/perldoc?KiokuDB"><code>KiokuDB</code></a>や<a href="http://web.archive.org/web/20190522183957/http://search.cpan.org/perldoc?Fey::ORM"><code>Fey::ORM</code></a>などを活用する手法もあるでしょう。</p>
+
+<p>これらはいずれも魅力的な方法ですが、モデリング結果をコードに落とし込むことを自動化したいという要求に焦点を当てたいので、本稿ではこれ以上は触れないこととします。</p>
+
+<h2>2. クラスの山をどう作るか</h2>
+
+<p>上述の通りエンタープライズアプリケーションではデータが膨大になり、込み入った業務を目指すと、途端にテーブルが数十個、場合によっては百個超に膨れあがってしまいます。</p>
+
+<p>モデルクラスという層を新たに設けることにしたとして、スキーマクラスだけでも2桁・3桁になり得るのに、さらにそれに前後する量のモデルクラスを手作りするのは、気の遠くなる話です。</p>
+
+<h3>2.1. DBIx::Class::Schema::Loaderによるスキーマクラス群の一発生成</h3>
+
+<p>ただし、スキーマクラス群の生成には、定石と言える方法があります。<code>DBIx::Class::Schema::Loader</code>を使って、今そこにあるDBを解析して、一発でコードを生成するというものです。</p>
+
+<ul>
+<li><a href="http://web.archive.org/web/20190522183957/http://trac.mizzy.org/public/blog">mizzyさん</a>の<a href="http://web.archive.org/web/20190522183957/http://blog.mizzy.org/articles/2007/05/06/dbix-class-schema-loader">Re: DBICとDBIx::Class::Schema::Loader 僕のいろいろな勘違い</a></li>
+<li>（<a href="http://web.archive.org/web/20190522183957/http://perl-users.jp/articles/advent-calendar/2009/hacker/04.html">4日目</a>を執筆された）<a href="http://web.archive.org/web/20190522183957/http://unknownplace.org/memo/">typesterさん</a>による<a href="http://web.archive.org/web/20190522183957/http://unknownplace.org/memo/2007/05/07/#e001">Schema::Loader 使い方</a></li>
+<li>（<a href="http://web.archive.org/web/20190522183957/http://perl-users.jp/articles/advent-calendar/2009/hacker/06.html">6日目</a>を執筆された）<a href="http://web.archive.org/web/20190522183957/http://d.hatena.ne.jp/ZIGOROu">ZIGOROuさん</a>による、<a href="http://web.archive.org/web/20190522183957/http://d.hatena.ne.jp/ZIGOROu/20080318/1205828357">DBIx::Class::Schema::Loaderの手動スキーマ生成、初心者向けチュートリアル</a></li>
+</ul>
+
+<p>そうであれば、<code>DBICx::Modeler</code>を使ったモデルクラス群の生成も何とか自動化し、単純作業は撲滅したいところです。</p>
+
+<p>そもそも、開発者にとって一番信用ならない人間は誰でしょうか。私は、それは自分だと思います。こと他人であれば事細かく確認したであろう内容であっても、自分に対しては「奴（=自分）はよしなにやってくれるだろう」と見つめてしまうからです。</p>
+
+<p>私は上述のスキーマクラスを作る方法でさえ<del>面倒</del>……もとい、自分の犯しがちな間違いを恐れています。ライブラリ探索パスを<code>use lib</code>で切り替えて2回スクリプトを流すという工程では、DBを直してはコードを生成するという作業を何度か繰り返しているうちに、<code>use lib</code>のコメントアウトをトグルし忘れて流してしまう自信があります。</p>
+
+<h3>2.2. DBICx::Modeler::Generatorによる（スキーマクラス群と）モデルクラス群の一発生成</h3>
+
+<p>ということで、そんな自堕落な自分のために、<code>DBICx::Modeler::Generator</code>というヘルパーモジュールを作ってみました。いやはや、ようやく本題に入れました。</p>
+
+<p>これは、<code>DBIx::Class::Schema::Loader</code>の一連の作業をラップした上で、さらに<code>DBICx::Modeler</code>のモデルクラス群をも一発生成するという代物です。</p>
+
+<h2>3. 作業の実際</h2>
+
+<p>それでは、<code>DBICx::Modeler::Generator</code>を使った作業を、順を追って見ていきましょう。</p>
+
+<p>ここでは、<code>DBIx::Class</code>のPODや<code>DBICx::Modeler</code>のテストでも挙げられている、</p>
+
+<ul>
+<li>artist</li>
+<li>cd</li>
+<li>track</li>
+</ul>
+
+<p>というテーブルと、それに関連するスキーマクラス群およびモデルクラス群として、以下のようにクラス群を生成することを目的とします。</p>
+
+<pre><code>path/
+    to/
+        approot/
+            lib/
+                MyApp/
+                    Model/
+                        Artist.pm
+                        Artist/
+                            Rock.pm
+                        Cd.pm
+                        Track.pm
+                    Schema.pm
+                    Schema/
+                        Artist.pm
+                        Cd.pm
+                        Track.pm
+</code></pre>
+
+<p>なお、DBICx-Modeler-Generatorディストリビューションには、本稿で触れた内容を全て<code>examples/</code>ディレクトリ以下に収めています。</p>
+
+<p>また、本稿は<a href="http://web.archive.org/web/20190522183957/http://search.cpan.org/perldoc?DBICx::Modeler::Generator">POD</a>（<a href="http://web.archive.org/web/20190522183957/http://search.cpan.org/perldoc?lib/DBICx/Modeler/Generator.ja.pod">日本語版</a>）を再構成したものです。PODにはこれ以外のちょっとしたtipsも載せていますので、適宜そちらも参照してください。</p>
+
+<h3>3.1. MySQL Workbenchにより、テーブルを設計</h3>
+
+<p>ここでの例として、テーブル設計ツールとして<a href="http://web.archive.org/web/20190522183957/http://www.mysql.com/products/workbench/">MySQL Workbench</a>を利用します。</p>
+
+<p>GUIツールであるMySQL Workbench自体は直感的な操作が可能ですので、特に迷うことはないと思います。唯一の落とし穴は、関係（relationship）をGUIで定義する際に、関数従属<em>される方</em>から<em>する方</em>へ順にテーブルをクリックしなければならないことです。つまりArtist has many CDという関係を定義する場合、1:Nのボタンを押下してカーソルを1:N選択モードにした後で、<code>cd</code>テーブル→<code>artist</code>テーブルの順に押下する必要があります。</p>
+
+<p>この作業の成果物は、ディストリビューションにも同梱している<a href="http://web.archive.org/web/20190522183957/http://search.cpan.org/src/MORIYA/DBICx-Modeler-Generator-0.0003/examples/doc/DBDSC_schemata.mwb">examples/doc/DBDSC_schemata.mwb</a>を参考にしてください。</p>
+
+<h3>3.2. ER図の生成</h3>
+
+<p>MySQL WorkbenchではER図を出力することも出来ます。スキーマクラス群やモデルクラス群を生成するためには必須ではありませんが、文書化という観点では必須と言えるでしょう。</p>
+
+<p>[File] - [Export] - [Export as PNG...]メニューを辿ってPNGで出力した例も、<a href="http://web.archive.org/web/20190522183957/http://search.cpan.org/src/MORIYA/DBICx-Modeler-Generator-0.0003/examples/doc/DBDERII_Including_Information.png">examples/doc/DBDERII_Including_Information.png</a>として同梱しています。SVGやPDFでも出力出来るので、用途に合わせて出力しましょう。</p>
+
+<h3>3.3. DBへの反映、またはDDLスクリプトの生成</h3>
+
+<p>[File] - [Export] - [Forward Engineer SQL CREATE Script...]メニューを辿り、DDL（要は<code>CREATE</code>文）のスクリプトを生成します。DDLスクリプトの例は<a href="http://web.archive.org/web/20190522183957/http://search.cpan.org/src/MORIYA/DBICx-Modeler-Generator-0.0003/examples/src/myapp.sql">examples/src/myapp.sql</a>です。</p>
+
+<p>なお、一発で完全なスキーマを作れることはまずないでしょうから、既存のDBにあるテーブルを<code>DROP</code>するよう、生成時オプションで記述しておくのが無難です。</p>
+
+<p>後述の作業で、このスクリプトの内容をDBに反映させます。勿論、DDLスクリプトからDBへ反映する際には、RDBMSのCLIを使う方法もあります。</p>
+
+<p>MySQLならば</p>
+
+<pre><code>mysql &lt; foobar.sql
+</code></pre>
+
+<p>SQLiteならば</p>
+
+<pre><code>sqlite3 &lt; foobar.sql
+</code></pre>
+
+<p>などです。実際のところ、<code>DBICx::Modeler::Generator</code>は内部で上記をやっているに過ぎません。</p>
+
+<p>MySQL Workbenchではさらに、[Database] - [Forward Engineer...]メニューを辿り、設計したスキーマを直接DBに反映することも可能です。</p>
+
+<h3>3.4. 自動生成されない内容をスキーマクラスに記述</h3>
+
+<p>先にご紹介したみなさんの<code>DBIx::Class::Schema::Loader</code>の利用例にあるように、自動生成されない内容を同名クラスで予め記述しておき、生成先とは別のパスに保存しておきます。この例では、<code>path/to/approot/lib/Schema/</code>以下ではなく、<code>path/to/approot/src/lib/Schema/</code>以下に保存することにしましょう。</p>
+
+<pre><code>path/
+    to/
+        approot/
+            lib/
+            src/
+                lib/
+                    MyApp/
+                        Schema.pm
+                        Schema/
+                            Artist.pm
+                            Cd.pm
+                            Track.pm
+</code></pre>
+
+<p>或るクラスについて追加するコードが何もない場合は、そのクラスを<code>path/to/approot/src/lib/MyApp/Schema/</code>以下に用意する必要はありません。</p>
+
+<p>追加するコードとしてよくある内容としては、</p>
+
+<ul>
+<li>インフレーション（inflations: データベースから取り出す際にオブジェクト化する処理など）</li>
+<li>デフレーション（deflations: データベースへ格納する際にオブジェクトを文字列化する処理など）</li>
+<li>追加の関係（relationships）</li>
+</ul>
+
+<p>などが挙げられます。</p>
+
+<p>注意しなければならない点として、ここで記述したクラスはそれ単独でPerlクラスになっていなければならいない、ということが挙げられます。例えばパッケージは真を返さなければなりません。また、<code>DBIx::Class::Schema::Loader</code>に拾ってもらうため、<code>package</code>もきちんと書かなければなりません。具体的には、同梱した<a href="http://web.archive.org/web/20190522183957/http://search.cpan.org/src/MORIYA/DBICx-Modeler-Generator-0.0003/examples/src/lib/MyApp/Schema/Artist.pm">examples/src/lib/MyApp/Schema/Artist.pm</a>のように書く必要があります。</p>
+
+<h3>3.5. 自動生成されない内容をモデルクラスに記述</h3>
+
+<p>スキーマと同様、モデルについても、自動生成されない内容を記述しておき、生成先とは別のパスに保存しておきます。この例では、<code>path/to/approot/lib/Model/</code>以下ではなく、<code>path/to/approot/src/lib/Model/</code>以下に保存することにしましょう。</p>
+
+<pre><code>path/
+    to/
+        approot/
+            lib/
+            src/
+                lib/
+                    MyApp/
+                        Model/
+                            Artist.pm
+                            Artist/
+                                Rock.pm
+                            Cd.pm
+                            Track.pm
+</code></pre>
+
+<p>ここでもスキーマと同様に、或るクラスについて追加するコードが何もない場合は、そのクラスを<code>path/to/approot/src/lib/MyApp/Model/</code>以下に用意する必要はありません。モデルをスキーマの数だけ用意する必要は必ずしもありませんし、或いは逆に、<code>MyApp::Model::Artist::Rock</code>のようにスキーマにないモデルを用意することもあり得ます。</p>
+
+<p>ここではスキーマと違って、<code>Text::MicroTemplate::Extended</code>のテンプレートとしてコードを記述します。具体的には、<code>Base</code>テンプレートを継承し、<code>code</code>ブロックに追加したいコードをそのまま記述します。具体的には、同梱した<a href="http://web.archive.org/web/20190522183957/http://search.cpan.org/src/MORIYA/DBICx-Modeler-Generator-0.0003/examples/src/lib/MyApp/Model/Cd.pm">examples/src/lib/MyApp/Model/Cd.pm</a>のように書きます。</p>
+
+<p>「自動生成されない内容」として追加するコードとしては、「スキーマクラスを透過的に取り扱う」以外にモデルクラスでやりたいこと全てです。そもそも「自動生成される内容」とは、<code>use DBICx::Modeler::Model</code>とPODの雛形程度に過ぎません。モデルには沢山のビジネスロジックが記述されるでしょう。</p>
+
+<p>後はlestrratさんが『モダンPerl入門』で提唱するように、<code>MyApp::API</code>などのサービスクラスを用意し、モデルを跨いだロジックや、モデルを用意しない場合のスキーマクラス用のロジックを記述していくことになります。</p>
+
+<p>あくまで例なので、ディストリビューションに同梱したサンプルにはビジネスロジックを何も記述していません。<code>MyApp::Model::Cd</code>では、<code>price</code>アトリビュートを追加したり、<code>play()</code>メソッドを追加している程度です。前者については、この例では<a href="http://web.archive.org/web/20190522183957/http://search.cpan.org/perldoc?DBIx::Class::VirtualColumns"><code>DBIx::Class::VirtualColumns</code></a>を利用する方が良いでしょうけれども、<code>Moose</code>アトリビュートであれば</p>
+
+<ul>
+<li>ロールでのアトリビュートの定義</li>
+<li><code>lazy_build</code>による相互依存の合理的表現</li>
+<li>各種メソッドモディファイヤーでの柔軟な処理</li>
+</ul>
+
+<p>等々の魔法が使えるので、用途に応じて使い分けるのも一つの手かも知れません。</p>
+
+<h3>3.6. コマンド一発でDB反映・スキーマ生成・モデル生成</h3>
+
+<p>さあ、これで必要な材料は揃いました。後述するようにDIを利用したり、<a href="http://web.archive.org/web/20190522183957/http://search.cpan.org/perldoc?DBICx::Modeler::Generator::CLI"><code>DBICx::Modeler::Generator::CLI</code></a>で調子に乗って<a href="http://web.archive.org/web/20190522183957/http://search.cpan.org/perldoc?MooseX::Getopt"><code>MooseX::Getopt</code></a>を利用しているので、面倒な設定は全て外に出しておきましょう。</p>
+
+<p>実行用のスクリプトでは<a href="http://web.archive.org/web/20190522183957/http://cpansearch.perl.org/src/MORIYA/DBICx-Modeler-Generator-0.0003/examples/src/sbin/maintain_models.pl">examples/src/sbin/maintain_models.pl</a>のように、</p>
+
+<pre><code>use DBICx::Modeler::Generator::CLI;
+my $generator = DBICx::Modeler::Generator::CLI-&gt;new_with_options-&gt;generator;
+$generator-&gt;deploy_database;    # DDLスクリプトをDBに反映
+$generator-&gt;update_schemata;    # DBIx::Class::Schema::Loaderでスキーマクラス群を生成
+$generator-&gt;update_models;      # Text::MicroTemplate::Extendedでモデルクラス群を生成
+</code></pre>
+
+<p>と書きます（上記の3.3.で、DDLスクリプトを介さずにスキーマを直接DBに反映済みであれば、<code>deploy_database()</code>メソッドを呼ばずにコメントアウトしてください）。</p>
+
+<p>必要なオプションを付けて、上記のスクリプトを呼びます。</p>
+
+<pre><code>maintain_models.pl -a MyApp -r path/to/root -d MySQL
+</code></pre>
+
+<ul>
+<li><code>-a</code>, <code>--application</code>では、アプリケーション名<code>MyApp</code>や<code>My::App</code>などを指定します。</li>
+<li><code>-r</code>, <code>--root</code>では、クラス群を生成する先である、アプリケーションルートパス<code>path/to/approot</code>などを指定します。</li>
+<li><code>-d</code>, <code>--driver</code>では、お使いのRDBMSに適合したドライバーを指定します。MySQLならば<code>MySQL</code>、SQLiteならば<code>SQLite</code>です。</li>
+</ul>
+
+<p>DB接続用のユーザー・パスワードや、DBサーバーのホスト・ポートやら、諸々の指定についても、必要に応じて指定してください。</p>
+
+<p><a href="http://web.archive.org/web/20190522183957/http://search.cpan.org/perldoc?MooseX::SimpleConfig"><code>MooseX::SimpleConfig</code></a>も利用しているので、設定ファイルに上記を記述しておいて、<code>--configfile</code>で設定ファイルのパスを渡すだけでも良いです。</p>
+
+<p>設定ファイルの例は<a href="http://web.archive.org/web/20190522183957/http://search.cpan.org/src/MORIYA/DBICx-Modeler-Generator-0.0003/examples/src/myapp.yml">examples/src/myapp.yml</a>にあります。</p>
+
+<h3>3.7. これで完成です！</h3>
+
+<p>以上で、モデルクラス絡みのコード記述は終わりました。ウェブアプリケーションを作る場合には、<a href="http://web.archive.org/web/20190522183957/http://search.cpan.org/perldoc?Catalyst">Catalyst</a>や<a href="http://web.archive.org/web/20190522183957/http://github.com/typester/ark-perl">Ark</a>などのお好みのWAFを活用して、素敵なアプリケーションを作ってください。</p>
+
+<p>モデルは一度作って終わりではなく、アプリケーションの一生を通して繰り返し成長し、かつ合理化していくものです。従ってその実装たるコードも変わっていくものですが、そのための作業が楽だとリファクタリングの心理的敷居が下がります。この些細なヘルパーモジュールが、モデル作成・保守作業の一助となれば、と思います。</p>
+
+<p>なお、MySQL Workbenchと<code>DBIx::Class::Schema::Loader</code>の合わせ技は、冒頭に触れたYAPC::Asia 2009の特別研修の補講で教えていただいた内容のほぼそのままです。JPAのみなさん、どうもありがとうございます！</p>
+
+<h2>4. 実用上の留意点</h2>
+
+<p>趣味で開発中のプロジェクトの一つ（某MMORPG向けのERPやグループウェア）は80テーブル超に肥大化して、モデルもそれに関連してメタボ気味になりましたが、<a href="http://web.archive.org/web/20190522183957/http://japan.cnet.com/interview/story/0,2000055954,20060067,00.htm">ドッグフードを食べて</a>みたところ、モデルの海を自在に泳いで開発出来ている実感があります。</p>
+
+<p>ただし、実用する際には幾つかの点に留意する必要があります。</p>
+
+<h3>4.1. 多対多の関係は未対応</h3>
+
+<p>一番の留意点は、多対多(N:M)の関係のハンドルはこれからサポートされる予定である、ということです。これは<code>DBICx::Modeler</code>側の<a href="http://web.archive.org/web/20190522183957/http://search.cpan.org/~rkrimen/DBICx-Modeler-0.005/lib/DBICx/Modeler.pm#Many-to-many_is_not_handled">0.005時点での制約</a>です。多対多の関係を透過的に扱いたい場合には、自分でロールを作って皮を被せるか、<code>DBICx::Modeler</code>自体を拡張するか、いずれかの対処が必要となります。</p>
+
+<h3>4.2. スキーマ全てにモデルが必要ではない</h3>
+
+<p>上述のスライドでdannさんが提唱されている通り、必ずしも全てのスキーマをモデルでラップする必要はありません。エンタープライズアプリケーションというのは、処理の少なからぬ割合がDBの単なるCRUD処理であることも珍しくありません。であれば、無駄に一つ層を設けるよりも、素直にそのままスキーマクラスを取り扱った方が、パフォーマンス面で優れるのみならず、開発生産性や保守性も優れることがあります。層を分かつ原理主義に陥ることなく、現実との距離感を適切に保って、妥協して行きましょう。</p>
+
+<p>ただ、あまり早期から最適化を進めるのも考え物です。端から箸にも棒にも掛からない状態は論外ですが、それはまずい実装に起因することが多いはずで、層を分けた事による極端な性能劣化はあまり起き得ません。まずは綺麗な設計を推し進めてみて、それで性能面の顕著な問題が生じた場合にのみ、以降の保守開発に支障を来さない範囲で、最適化を図れば良いでしょう。</p>
+
+<h3>4.3. 独自ツールへの不安？</h3>
+
+<p>こうした開発効率化の錦の御旗は、あっけないほどに容易に切り裂かれることがあります。</p>
+
+<p>真っ先に思い付く「“どこの馬の骨とも知れぬ”ツールを業務に使うことはまかりならん」、という例のアレについては、MySQL公式のツールなので、安心感があります。Oracle, DB2, Symfoware, HiRDBなどではなくMySQLを使える現場であれば、説得は比較的容易でしょう。</p>
+
+<p>次に、「標準外のツールを使うのはまかりならん」という問題。社用PCには間違いなく入っているExcelと違い、遍在していないツールの使用は敷居が高いことがあります。私もチーム内でVisioを使って、良い顔をされなかった経験があります。</p>
+
+<p>私はExcel方眼ドキュメント否定派ですが、基本要件など、顧客(ユー子ならば親会社)と協同する作業工程であればむしろExcelを活用すればいいと思います。一方でER図に顧客が手を入れる場面というのもあまり考えにくいので、ここは開発側のみで閉じた作業と位置付けて、独自ツールを使う論陣を張りたいところです。</p>
+
+<p>いずれにせよ成果物としてER図の画像やテーブル定義書も生成出来るので、それを納品すれば良いことになります。</p>
+
+<p>「うちはどうしてもExcelで納品しなければいけないんだ」という場合であっても、ER図であれば画像をそのままExcel文書に貼り付ければ良いですし、テーブル定義書もXML文書を（<a href="http://web.archive.org/web/20190522183957/http://search.cpan.org/perldoc?XML::Parser">XML::Parser</a>などで）パースして、その結果を基に（<a href="http://web.archive.org/web/20190522183957/http://search.cpan.org/perldoc?Spreadsheet::Write">Spreadsheet::Write</a>などで）Excel文書を生成すれば事足ります。</p>
+
+<ins>追記: Standard版ではHTMLで出力出来ます。Community版は`*.mwb`をunzipして`document.mwb.xml`を扱う手があります。</ins>
+
+<p>同じ作業をツールをまたいで何度も行う雇用創出的な仕事に従事することほど辛いことはありませんよね。</p>
+
+<h3>4.4. MySQL Workbenchにこだわる必要はない</h3>
+
+<p>ここまでMySQL Workbenchを猛プッシュして来ましたが、それ以外のツール（たくさんあります！）でも同様のことは出来ます。</p>
+
+<p>DDLスクリプトを出力出来ること、ないしはDBに直接反映出来ることという条件さえ満たせば、<code>DBIx::Class::Schema::Loader</code>によるスキーマクラス群の生成以降の流れが一緒になるからです。</p>
+
+<p>DB定義書やER図を素のExcelで（オートシェイプと表組みを駆使して）定義しているのでない限り、現在お使いのツールと組み合わせて、各現場なりの創意工夫で作業手順をカスタマイズすることも容易だと思います。</p>
+
+<p>ディストリビューションに同梱した例ではSQLite用のDDLスクリプトを手書きしてしまいましたが、これは<a href="http://web.archive.org/web/20190522183957/http://search.cpan.org/perldoc?DBICx::Deploy"><code>DBICx::Deploy</code></a>を利用して、スキーマクラス群を元にSQLiteのDBを生成する方が自然だと思います。</p>
+
+<ins>追記: [SQLite出力用のプラグイン](http://www.henlich.de/software/sqlite-export-plugin-for-mysql-workbench/)があります。</ins>
+
+<h3>4.5. ドッグフードの範囲は限定的</h3>
+
+<p>私は<code>DBICx::Modeler::Generator</code>をいくつかのプロジェクトで実用していますが、それはあくまで日曜プログラミングでの範囲に過ぎません。エンタープライズアプリケーションと連呼しておきながら恐縮ですが、勤め先ではPerlを使った案件が殆ど全くないので、本当の業務アプリケーションへの適用事例はまだありません。</p>
+
+<p>何事もそうですが、<code>DBICx::Modeler</code>共々、作ろうとしている（もしくは保守しようとしている）アプリケーションの特性を良く考えて、</p>
+
+<ul>
+<li>モジュールの利用が開発生産性および保守性に寄与するか</li>
+<li>それらの利点が欠点と比べてなお有用か</li>
+</ul>
+
+<p>を、冷静に判断することが求められると言えるでしょう。</p>
+
+<h3>4.6. 怪しげな名前空間</h3>
+
+<p><code>DBICx::Modeler::Generator</code>は<code>DBICx::Deploy</code>と同様に間違い易い名前空間にいますが、それには</p>
+
+<ul>
+<li><a href="http://web.archive.org/web/20190522183957/http://search.cpan.org/dist/DBI"><code>DBI</code></a>の拡張（e*X*tension）として<code>DBIx::Class</code>)があり、</li>
+<li>それはしばしばDBIC（「でぃびっく」と読むようです）と略され、</li>
+<li>さらにその拡張として<a href="http://web.archive.org/web/20190522183957/http://search.cpan.org/search?query=DBICx%3A%3A&amp;mode=all">DBICx::*</a>という名前空間がある</li>
+</ul>
+
+<p>という理由があります。これは<code>DBICx::Modeler</code>のヘルパーモジュールである以上、宿命として諦めました。</p>
+
+<h2>5. 中身の話</h2>
+
+<p>さて、中身の話は無味乾燥になりがちですが、少し補足しておきます。</p>
+
+<h3>5.1. MooseとOrochiで拡張容易性を確保</h3>
+
+<p><a href="http://web.archive.org/web/20190522183957/http://search.cpan.org/dist/Moose"><code>Moose</code></a>の他、lestrratさんが<a href="http://web.archive.org/web/20190522183957/http://perl-users.jp/articles/advent-calendar/2009/hacker/15.html">15日目に紹介</a>された<a href="http://web.archive.org/web/20190522183957/http://ja.wikipedia.org/wiki/%E4%BE%9D%E5%AD%98%E6%80%A7%E3%81%AE%E6%B3%A8%E5%85%A5">DI（dependency injection, 依存性注入）</a>フレームワークである<a href="http://web.archive.org/web/20190522183957/http://search.cpan.org/dist/Orochi"><code>Orochi</code></a>を利用しています。</p>
+
+<p>DIをまだまだ十全に使いこなしているとは言えないのですが、DIのおかげで疎結合な構造に出来たので、レゴブロックのように部品を組み替えることが容易です。このモジュールではごく一般的な要件にのみ対応した枠組みしかご用意していませんが、特殊用途への対応部分を肉付けすることも比較的容易なので、一つの実装参考例としてご覧頂ければ、と思います。</p>
+
+<h3>5.2. <a href="http://web.archive.org/web/20190522183957/http://ja.wikipedia.org/wiki/%E3%82%A6%E3%82%B5%E3%82%AE#.E6.85.A3.E7.94.A8.E5.8F.A5.E3.80.81.E3.81.93.E3.81.A8.E3.82.8F.E3.81.96.E3.81.AA.E3.81.A9">獅子搏兎</a>気味なオーバーキルモジュール</h3>
+
+<p>上述の通り、既に一発スクリプトが色々あるくらいですので、わざわざモジュール化するまでもないかも知れません。少なくとも、<code>Moose</code>やDIパターンを使わなくても十分書ける単純な処理であることは確かです。</p>
+
+<p>正直なところ、鳩を撃つのに豆鉄砲でなく大砲を持ち出すような感もあります。ですが、このヘルパーモジュールが必要となりうる場面は、テーブルが満載のエンタープライズアプリケーションを作ろうとする場面だと認識しています。</p>
+
+<p>また、そもそもこのモジュールはコードジェネレーターであるため、本質的に開発者向けのものです。生成されるコードと違って、このモジュール自体は本番環境（production environment）には配備（deploy）しません。</p>
+
+<p>従って、依存モジュールについてはある種の開き直りに基づいて、楽に書けるものを利用させていただいています。</p>
+
+<h3>5.3. でもバッドノウハウです</h3>
+
+<p><a href="http://web.archive.org/web/20190522183957/http://blog.myfinder.jp/">myfinderさん</a>が<a href="http://web.archive.org/web/20190522183957/http://perl-users.jp/articles/advent-calendar/2009/hacker/18.html">18日目に紹介</a>された<a href="http://web.archive.org/web/20190522183957/http://search.cpan.org/perldoc?DBIx::Encoding"><code>DBIx::Encoding</code></a>について、ご本人はBK（<a href="http://web.archive.org/web/20190522183957/http://0xcc.net/misc/bad-knowhow.html">バッドノウハウ</a>）だと謙遜されています。一方、<code>DBICx::Modeler::Generator</code>は正真正銘のBKです。</p>
+
+<p>DBの内容から生成したスキーマクラス(Aとします)に、それ以外の内容のみを記述した同名のクラス(A'とします）の内容を付加して、最終的なスキーマクラス(A''とします）を生成するというのが<code>DBIx::Class::Schema::Loader</code>の一つの流れです（上述のZIGOROuさんの記事の様に、もう一つの流れもあります）。</p>
+
+<p>この流れを実現するために、<a href="http://web.archive.org/web/20190522183957/http://search.cpan.org/perldoc?Class::Unload"><code>Class::Unload</code></a>でクラスを一旦アンロードした後に<code>@INC</code>を追加し、再度（最初とは別の場所にある）同名クラスをロードしています。</p>
+
+<p><code>use lib</code>指定をし直して2度スクリプトを実行するということと本質的には同じで、ライブラリ探索パスの動的な切り替えのために<a href="http://web.archive.org/web/20190522183957/http://gist.github.com/217006">別プロセスの<code>perl</code>を使い分けるという方法</a>よりはましとはいえ、これはかなり気持ちが悪い処理です。</p>
+
+<h3>5.4.  モデルクラスは単なるコードジェネレーターとして生成</h3>
+
+<p>モデルクラスのコード生成にあたっては、人気のテンプレートエンジン<a href="http://web.archive.org/web/20190522183957/http://search.cpan.org/perldoc?Text::MicroTemplate::Extended"><code>Text::MicroTemplate::Extended</code></a>を利用しています。</p>
+
+<p>であればスキーマクラスのコード生成も<code>DBIx::Class::Schema::Loader</code>に頼らず、DB解析結果の情報だけ拝借して生成する手もあるかと思いました。</p>
+
+<p>上述のZIGOROuさんの記事でも、</p>
+
+<blockquote>
+  <p>あるいはSchema::Loader自体に手を加えるかですかね。</p>
+</blockquote>
+
+<p>という記述があります。しかし、現状で既に満足出来るワークフローになっているので、深追いはしないことにしました。</p>
+
+<h2>6. まとめ ～ Perlはエンタープライズアプリケーションに向いています！</h2>
+
+<p>以上、casual track的な内容で恐縮ですが、<code>DBIx::Class::Schema::Loader</code>のようにスキーマクラス群とモデルクラス群を一発生成する、<code>DBICx::Modeler::Generator</code>のご紹介でした。</p>
+
+<p>Perlの内在思想として最も有名なのは<a href="http://web.archive.org/web/20190522183957/http://en.wikipedia.org/wiki/There%27s_more_than_one_way_to_do_it">"There's More Than One Way To Do It"（TMTOWTDI, 方法は一つじゃない）</a>ですけれども、<a href="http://web.archive.org/web/20190522183957/http://japan.cnet.com/interview/story/0,2000055954,20100857,00.htm">"Easy things should be easy, hard things should be possible"（簡単なことは簡単に、難しいことも可能に）</a>というものもあります。</p>
+
+<p>Perlは<a href="http://web.archive.org/web/20190522183957/http://ja.wikipedia.org/wiki/%E8%BB%BD%E9%87%8F%E3%83%97%E3%83%AD%E3%82%B0%E3%83%A9%E3%83%9F%E3%83%B3%E3%82%B0%E8%A8%80%E8%AA%9E">LL</a>の代表格なので、軽薄短小で小粋なシステム向きだと思われることがあります。しかしPerlは、Javaの専従分野と思われがちな重厚長大なエンタープライズアプリケーションでさえも開発出来るのです。「も出来る」というと、何か痩せ我慢をして無理にPerlを使っている後ろ向きな感触を受けかねませんので、さらに踏み込みましょう。Perlはエンタープライズアプリケーションでこそ開発生産性や保守性が華開くのだと。</p>
+
+<p>例えば本稿でご紹介した要件・モデリング・実装までを乖離なく貫くことが出来る仕事の仕組みは、“エンタープライズアプリケーションをアジャイルに開発する”という新鮮な体験の一端をもたらしてくれます。DBひとつ作るのに、延々と続く会議や、山ほどの依頼書や、実装としばしば噛み合わない仕様書……等々が必要な仕事に閉口している方は、是非一度体験してみてください。</p>
+
+<p>言語とは言語単独で評価すべきものではなく、便利な外部モジュールであるとか、確立された自動化テスト環境基盤の総体として評価すべきものではないでしょうか。『モダンPerl入門』にも記載されていますが、Perlではそれらが豊富に揃っているのです。</p>
+
+<p>日本に於いて、そして世界に於いて、エンタープライズ分野でのPerlの存在感が増すことを願ってやみません。あなたもPerlで日本の情報システム産業を<a href="http://web.archive.org/web/20190522183957/http://ja.wikipedia.org/wiki/%E8%A1%8C%E6%94%BF%E5%88%B7%E6%96%B0%E4%BC%9A%E8%AD%B0#.E4.BA.8B.E6.A5.AD.E4.BB.95.E5.88.86.E3.81.91">事業仕分け</a>してみませんか？　……ただしあまりに切り込みすぎて不興を買うこと（実話）を避けるためにも、上司や同僚への進言はくれぐれも慎重に！</p>
+
+<h2>to be continued...</h2>
+
+<p>さあ、JPerl Advent Calendar 2009 hacker trackも、遂にゴールが見えてきました。あと3日間です。明日23日目を執筆してくださる方を絶賛募集中です！</p>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="http://web.archive.org/web/20190522183957/http://perl-users.jp/articles/advent-calendar/2009/hacker/22.html">Thu, 24 Dec 2009 13:59:01 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20190522183957/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20190522183957/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20190522183957im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20190522183957/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20190522183957/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20190522183957im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20190522183957/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20190522183957/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20190522183957im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20190522183957/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20190522183957/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20190522183957im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20190522183957/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20190522183957/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20190522183957im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://web.archive.org/web/20190522183957/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20190522183957/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20190522183957/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20190522183957/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20190522183957/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20190522183957/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://web.archive.org/web/20190522183957/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<!--
+     FILE ARCHIVED ON 18:39:57 May 22, 2019 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 15:08:16 Jan 23, 2020.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+-->
+<!--
+playback timings (ms):
+  exclusion.robots.policy: 0.284
+  PetaboxLoader3.datanode: 648.751 (5)
+  LoadShardBlock: 709.578 (3)
+  esindex: 0.023
+  exclusion.robots: 0.305
+  PetaboxLoader3.resolve: 460.32 (2)
+  RedisCDXSource: 603.326
+  captures_list: 1353.778
+  CDXLines.iter: 22.278 (3)
+  load_resource: 644.572
+-->

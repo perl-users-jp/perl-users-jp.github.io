@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app22.us.archive.org';v.server_ms=2385;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
+<script type="text/javascript">
+WB_wombat_Init("http://web.archive.org/web/", "20190522171740", "perl-users.jp");
+</script>
+<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
+<script type="text/javascript">
+__wbhack.init('http://web.archive.org/web');
+</script>
+<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
+<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
+<!-- End Wayback Rewrite JS Include -->
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20190522171740cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>﻿Test::Moreでテスト事始め - JPerl Advent Calendar 2009
+</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20190522171740/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20190522171740cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
+<meta http-equiv="Content-Script-Type" content="text/javascript"/>
+<script type="text/javascript" src="http://web.archive.org/web/20190522171740js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20190522171740js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20190522171740js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+<script type="text/javascript">
+    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
+</script>
+
+<style type="text/css">
+    pre {
+        border-left: 2px solid #cccccc;
+        padding-left: 4px;
+        margin-left: 10px;
+        overflow: auto;
+    }
+</style>
+
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">﻿Test::Moreでテスト事始め - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">﻿Test::Moreでテスト事始め<a href="http://web.archive.org/web/20190522171740/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/casual/13.html"><img src="http://web.archive.org/web/20190522171740im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/casual/13.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>はじめまして。</p>
+<p>最近Perlを始めたmyfinderです。</p>
+
+<p>ほかの方が書いたCPANモジュールを紹介したりそれらを使ったTipsを書くCasual Trackということで、今回はテストに関連するモジュールについて書きます。</p>
+
+</div>
+<div class="section">
+<h3> プログラムの「テスト」</h3>
+
+<blockquote>
+<p>テストを書くというのはデンタルフロスを使うようなもので、誰もが良いことだといいつつ、実際には軽視されがちだ。</p>
+</blockquote>
+
+<p>なんて言われることもありますが、実際テストがないとプログラムの改修とか引き継ぎとかが非常に大変になりがちです。</p>
+<p>また、CPANにアップされているモジュールの中には、モジュール本体よりもテストコードの量の方が多いものも多々あります。</p>
+
+<p>なのでプログラムの質を保証したり、内容を的確に伝達するにはテストが欠かせないものであることは間違いないと思います。</p>
+
+</div>
+<div class="section">
+<h3> Test::More</h3>
+
+<p>Perlのプログラムをテストするための枠組みを提供するモジュールです。</p>
+<p>多くのモジュールでこれが使われています。</p>
+
+<p>Test::Moreは5.6.2からコアモジュールに入っているので、最近のPerl環境なら誰でもすぐにテストを始めることができます。</p>
+
+</div>
+<div class="section">
+<h3> 早速使ってみる</h3>
+
+<p>例えば消費税の計算をしてくれるConsumptionTax::JPというモジュールを仮定してみます。</p>
+<p>このモジュールは、tax_includeという関数に価格を渡すと消費税を付加した価格を返してくれるだけの簡単なお仕事をするクラスです。</p>
+
+<p>が、簡単なお仕事でも間違った値が返ってくると困ってしまいます。</p>
+
+<p>例えば</p>
+
+<ul>
+<li> 消費税込みの価格は原則小数点以下切り捨てなので、この関数が小数点を含む値を返してしまうことがあってはいけません。</li>
+<li> 小数点が含まれた値を渡した場合、消費税の計算ができませんので、今回は入力された値も小数点以下を切り捨てて扱うこととします。</li>
+</ul>
+
+<p>というようなことは仕様として明確にしておかなければならないでしょう。</p>
+
+<p>今回はそういった「プログラムを書く前に決まる(っている)仕様」を押さえるテストを書いてみましょう。</p>
+
+<pre>
+use strict;
+use warnings;
+
+use Test::More;
+
+plan (tests =&gt; 5);
+
+# 正しくuseできるかどうか
+use_ok("ConsumptionTax::JP");
+
+my $consumption_jp = new ConsumptionTax::JP-&gt;new({
+    consumption_tax_rate =&gt; 0.05,
+});
+
+# tax_includeという関数を実装しているか
+can_ok($consumption_jp, 'tax_include');
+
+# 小数点以下の出ない値
+my $price = 100;
+
+my $price_in_tax = $consumption_jp-&gt;tax_include($price);
+
+is($price_in_tax, 105, '期待値と一致');
+
+# 小数点以下が出る値
+$price = 128;
+
+$price_in_tax = $consumption_jp-&gt;tax_include($price);
+
+is($price_in_tax, 134, '期待値と一致');
+
+# 小数点が含まれる値
+my $price_in_point = 100.50;
+
+$price_in_tax = $consumption_jp-&gt;tax_include($price_in_point);
+
+is($price_in_tax, 105, '期待値と一致');
+</pre>
+
+<p>テストが書けたら、まずテストを動かしてみましょう。</p>
+
+<pre>
+$ perl t/consumption_tax.t
+1..5
+not ok 1 - use ConsumptionTax::JP;
+#   Failed test 'use ConsumptionTax::JP;'
+#   at t/consumption_tax.t line 9.
+#     Tried to use 'ConsumptionTax::JP'.
+#     Error:  Can't locate ConsumptionTax/JP.pm in @INC (@INC contains: /Users/myfinder/local-lib/lib/perl5/darwin-2level /Users/myfinder/local-lib/lib/perl5 /Users/myfinder/local-lib/lib/perl5/darwin-2level /usr/local/lib/perl5/5.10.1/darwin-2level /usr/local/lib/perl5/5.10.1 /usr/local/lib/perl5/site_perl/5.10.1/darwin-2level /usr/local/lib/perl5/site_perl/5.10.1 .) at (eval 4) line 2.
+# BEGIN failed--compilation aborted at (eval 4) line 2.
+Can't locate object method "new" via package "ConsumptionTax::JP" (perhaps you forgot to load "ConsumptionTax::JP"?) at t/consumption_tax.t line 11.
+# Looks like you planned 5 tests but ran 1.
+# Looks like you failed 1 test of 1 run.
+# Looks like your test exited with 255 just after 1.
+</pre>
+
+<p>当然のことながらテストに失敗します。</p>
+<p>これから、このテストを満たすプログラムを実装していきます。</p>
+
+<pre>
+package ConsumptionTax::JP;
+
+use strict;
+use warnings;
+
+use base qw/Class::Accessor::Fast/;
+
+__PACKAGE__-&gt;mk_accessors(qw/ consumption_tax_rate /);
+
+sub tax_include {
+    my ($self, $price) = @_;
+    return $price * (1 + $self-&gt;consumption_tax_rate);
+}
+
+1;
+</pre>
+
+<p>実装ができたら、早速テストを走らせます。</p>
+
+<pre>
+$ perl t/consumption_tax.t
+1..5
+ok 1 - use ConsumptionTax::JP;
+ok 2 - ConsumptionTax::JP-&gt;can('tax_include')
+ok 3 - 期待値と一致
+not ok 4 - 期待値と一致
+#   Failed test '期待値と一致'
+#   at t/consumption_tax.t line 30.
+#          got: '134.4'
+#     expected: '134'
+not ok 5 - 期待値と一致
+#   Failed test '期待値と一致'
+#   at t/consumption_tax.t line 37.
+#          got: '105.525'
+#     expected: '105'
+# Looks like you failed 2 tests of 5.
+</pre>
+
+<p>おっと、どうやら実装したプログラムは「計算結果に小数点以下の数が出た場合」と「小数点以下が含まれた値が渡された場合」を考慮しない作りになっていたようです。</p>
+<p>このように、期待値と一致しない場合には通知してくれます。</p>
+<p>早速期待通り動作するように修正します。</p>
+
+<pre>
+return $price * (1 + $self-&gt;consumption_tax_rate);
+</pre>
+
+<p>となっているところを、下記のようにします。</p>
+
+<pre>
+return sprintf("%d", $price * (1 + $self-&gt;consumption_tax_rate));
+</pre>
+
+<p>修正したので、テストします。</p>
+
+<pre>
+$ perl t/consumption_tax.t
+1..5
+ok 1 - use ConsumptionTax::JP;
+ok 2 - ConsumptionTax::JP-&gt;can('tax_include')
+ok 3 - 期待値と一致
+ok 4 - 期待値と一致
+ok 5 - 期待値と一致
+</pre>
+
+<p>今度は期待通りの挙動をしています。</p>
+<p>これで、仕様を満たすプログラムが実装できました。</p>
+
+</div>
+<div class="section">
+<h3> その他のテスト用関数</h3>
+
+<p>今回はほぼisしか使いませんでしたが、他にも下記のようなものがよく使われたりします。</p>
+
+<table>
+<tr>
+<th>関数</th>
+<th>何をチェックするか</th>
+<th>使い方</th>
+</tr>
+<tr>
+<th>ok</th>
+<td>真偽値</td>
+<td>ok($val, '$val is true');</td>
+</tr>
+<tr>
+<th>isnt</th>
+<td>文字列が等しいかどうか</td>
+<td>is($string, 'string', '$string is not "string"');</td>
+</tr>
+<tr>
+<th>is_deeply</th>
+<td>arrayやhashの比較</td>
+<td>is_deeply($val, { key =&gt; 'val'}, '$val is match');</td>
+</tr>
+<tr>
+<th>like</th>
+<td>正規表現と一致するかどうか</td>
+<td>like($val, qr/正規表現/, '$val is match');</td>
+</tr>
+</table>
+
+<p>他にもいろいろなテスト用関数が提供されています。</p>
+<p>詳しく知りたい場合はperldocなどを確認するのがよいです。</p>
+
+</div>
+<div class="section">
+<h3> テストが増えてきたら</h3>
+
+<p>開発しているモジュールの数が増えると、つられてどんどんテストファイルが増えていったりします。</p>
+<p>そんなとき個別に</p>
+
+<pre>
+$ perl t/test.t
+</pre>
+
+<p>とかコマンドを打ちまくるのは刺身タンポポの香りがしてきます。</p>
+<p>そんなときはproveコマンドを使うのがよいです。</p>
+
+<p>proveコマンドはTest::Harnessについてくるコマンドラインツールです。</p>
+<p>Test::Harnessもコアモジュールなので、特にインストールなどは不要です。</p>
+
+<p>使い方は簡単で、</p>
+
+<pre>
+$ prove t/*.t
+</pre>
+
+<p>という風にコマンドを打つと、tディレクトリ以下にあるテストプログラムをまとめて実行してくれます。</p>
+
+</div>
+<div class="section">
+<h3> おわりに</h3>
+
+<p>今回は新規にでっち上げたモジュールのテストを書きましたが、当然既存のモジュールに対するテストを記述することも可能です。</p>
+<p>師走の大掃除の際にソースコードを整理することがあると思いますが、その際には是非テストコードを書いてあげてください。</p>
+
+<p>明日はsfujiwaraさんです。楽しみにしています！</p>
+
+
+</div>
+<div class="section">
+<h3> 追記(done_testingについて)</h3>
+
+<p>xaicronさんに「done_testingに触れてほしかったなう」とご希望いただいたので追記します。</p>
+
+<p>done_testingとはTest::Moreの0.87から追加された機能です。</p>
+<p>通常テストを書く際には</p>
+
+<pre>
+plan (tests =&gt; 5);
+</pre>
+
+<p>という感じにテストの数を指定しなければなりません。</p>
+<p>指定しない場合は「no_plan」と書くように言われているドキュメントもありますが、これだと本来通らないはずのテストが通ってしまったりして、テストの意味がなくなってしまいます。</p>
+
+<p>とはいえ開発途上でテストの数がどんどん増えたり、あるいは減ったりすることはよくある話です。</p>
+
+<p>そんなときにはno_planを指定せず、テストコードの最後に</p>
+
+<pre>
+done_testing;
+</pre>
+
+<p>と書いておきましょう。</p>
+<p>そうしておくと、明示的にテスト数を指定しなくてもテストが実行でき、かつテストが失敗した場合はその旨表示してくれます。</p>
+
+<h4> SEE ALSO</h4>
+
+<p><a href="http://web.archive.org/web/20190522171740/http://d.hatena.ne.jp/tokuhirom/20090706/1246861746">http://d.hatena.ne.jp/tokuhirom/20090706/1246861746</a></p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="http://web.archive.org/web/20190522171740/http://perl-users.jp/articles/advent-calendar/2009/casual/13.html">Sun, 13 Dec 2009 10:00:00 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20190522171740/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20190522171740/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20190522171740im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20190522171740/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20190522171740/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20190522171740im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20190522171740/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20190522171740/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20190522171740im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20190522171740/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20190522171740/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20190522171740im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20190522171740/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20190522171740/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20190522171740im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://web.archive.org/web/20190522171740/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20190522171740/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20190522171740/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20190522171740/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20190522171740/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20190522171740/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://web.archive.org/web/20190522171740/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<!--
+     FILE ARCHIVED ON 17:17:40 May 22, 2019 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 15:01:51 Jan 23, 2020.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+-->
+<!--
+playback timings (ms):
+  load_resource: 1238.348
+  CDXLines.iter: 21.714 (3)
+  PetaboxLoader3.datanode: 1486.774 (5)
+  captures_list: 1098.437
+  exclusion.robots: 20.137
+  PetaboxLoader3.resolve: 677.578 (2)
+  RedisCDXSource: 110.818
+  esindex: 0.019
+  LoadShardBlock: 940.208 (3)
+  exclusion.robots.policy: 20.115
+-->

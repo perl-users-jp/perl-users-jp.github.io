@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app39.us.archive.org';v.server_ms=3061;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
+<script type="text/javascript">
+WB_wombat_Init("http://web.archive.org/web/", "20190608102010", "perl-users.jp");
+</script>
+<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
+<script type="text/javascript">
+__wbhack.init('http://web.archive.org/web');
+</script>
+<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
+<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
+<!-- End Wayback Rewrite JS Include -->
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20190608102010cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Plack::Server::Standalone 系を使ってウェブアプリケーション開発と運用が楽になる話 - JPerl Advent Calendar 2009
+</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20190608102010/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20190608102010cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
+<meta http-equiv="Content-Script-Type" content="text/javascript"/>
+<script type="text/javascript" src="http://web.archive.org/web/20190608102010js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20190608102010js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20190608102010js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+<script type="text/javascript">
+    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
+</script>
+
+<style type="text/css">
+    pre {
+        border-left: 2px solid #cccccc;
+        padding-left: 4px;
+        margin-left: 10px;
+        overflow: auto;
+    }
+</style>
+
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Plack::Server::Standalone 系を使ってウェブアプリケーション開発と運用が楽になる話 - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Plack::Server::Standalone 系を使ってウェブアプリケーション開発と運用が楽になる話<a href="http://web.archive.org/web/20190608102010/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/hacker/23.html"><img src="http://web.archive.org/web/20190608102010im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/hacker/23.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>こんばんわ。Advent Calendar ２回目の登場になります、kazuho です。<a href="http://web.archive.org/web/20190608102010/http://perl-users.jp/articles/advent-calendar/2009/hacker/05.html">前回</a>は hacker トラックなのに標準添付モジュールの紹介でしたが、今回は <a href="http://web.archive.org/web/20190608102010/http://search.cpan.org/dist/Plack/">Plack</a> 関連の話です。</p>
+</div>
+<div class="section">
+<h3>既存の環境に対する不満</h3>
+
+<p>Perl のウェブアプリケーションを構築するにあたっては、リバースプロキシと mod_perl を組み合わせるか、あるいは FastCGI (ExternalServer) を利用するのが一般的だと思います。しかし、どちらをとっても、環境を構築して設定するのが難しいというのが個人的な不満でした (mod_redirect を設定したり mod_fastcgi にパッチをあててインストールしたり startup.pl を書いたり...)。自分が Plack の開発 (主に <a href="http://web.archive.org/web/20190608102010/http://search.cpan.org/dist/Plack/lib/Plack/Server/Standalone.pm">Server::Standalone</a> と <a href="http://web.archive.org/web/20190608102010/http://search.cpan.org/dist/Plack/lib/Plack/Server/Standalone/Prefork.pm">Server::Standalone::Prefork</a>) に関わるようになったのも、そのイライラを解消したかったからです。</p>
+
+<p>その目的は、ほぼ達成することができ、先週、会社で運用しているサービス「<a href="http://web.archive.org/web/20190608102010/http://pathtraq.com/">パストラック</a>」のバックエンドを Apache + FastCGI から Apache (mod_proxy) + <a href="http://web.archive.org/web/20190608102010/http://search.cpan.org/dist/Plack-Server-Standalone-Prefork-Server-Starter/">Plack::Standalone::Server::Prefork::Server::Starter</a> へ切り替えました。</p>
+
+<p>そこで今日は、Plack::Server::Standalone 系のモジュールを利用したウェブアプリケーションの開発と運用の実際について、その楽さ加減を宣伝したいと思います。</p>
+</div>
+<div class="section">
+<h3>.psgi と plackup</h3>
+
+<p>Standalone 系のサーバの特徴は、Plack の Middleware と組み合わせて、単独で動作するウェブサーバを構築できるところです。パストラックの .psgi ファイルは、概ね以下のようになっています。/static 以下のファイルを静的コンテンツとして配信し、動的コンテンツは昔ながらの <a href="http://web.archive.org/web/20190608102010/http://search.cpan.org/dist/CGI-Application-Dispatch/">CGI::Application::Dispatch</a> を用いて生成しています。</p>
+
+<pre>
+builder {
+    enable 'AccessLog', format =&gt; 'combined';
+    enable 'ConditionalGET';
+    enable_if { $_[0]-&gt;{PATH_INFO} =~ q{^/static/\d+/} } 'Header', set=&gt; [ 'Expires' =&gt; 'Tue, 31 Dec 2019 23:59:59 GMT' ];
+    enable 'Plack::Middleware::Static', path =&gt; qw{^/static/}, root =&gt; $ROOT;
+    enable 'Plack::Middleware::Static', path =&gt; qw{^/(?:favicon\.(ico|png)|robots\.txt)$}, root =&gt; "$ROOT/static";
+    CGI::Application::Emulate::PSGI-&gt;handler(
+        sub {
+            MyApp-&gt;dispatch();
+        },
+    );
+};
+</pre>
+
+<p>開発環境では、この .psgi ファイルを以下のようにして Plack::Server::Standalone で動かします。httpd を起動する必要も設定ファイルを書く必要もありません。plackup 自身が、上で述べたように静的コンテンツも含む完全なウェブアプリケーションとして動作します。また、-r オプションによって、コードを書き換えると自動的に再起動するようになるので、修正→テストのサイクルを素早く回すことができます。</p>
+
+<pre>
+% plackup -r index.psgi
+</pre>
+</div>
+<div class="section">
+<h3>運用環境への投入</h3>
+
+<p>運用環境では、上の .psgi ファイルを Plack::Server::Standalone::Prefork::Server::Starter (以下 PSSPSS) を利用して動かしています。サービスの起動スクリプト (daemontoolsで管理) は、以下のとおり。.psgi は開発用のものと全く同一。他に設定ファイルはありません。</p>
+
+<pre>
+#! /bin/sh
+
+exec 2&gt;&amp;1
+cd /var/webapp || exit 1
+exec /usr/bin/start_server --port=80 -- /usr/local/bin/setuidgid www \
+  /usr/bin/plackup -E production -s Standalone::Prefork::Server::Starter --max-workers=40 --max-keepalive-reqs=1 index.psgi
+</pre>
+
+<p>PSSPSS は、Plack::Server::Standalone ベースのマルチプロセス httpd である Plack::Server::Standalone::Prefork に、完全無停止での更新機能を追加した httpd です。ウェブアプリケーションのプログラムを書き換えた後に SIGHUP を送ることで、サービスを一切停止しないホットデプロイが可能です。この仕組みについては、詳しくは「<a href="http://web.archive.org/web/20190608102010/http://developer.cybozu.co.jp/kazuho/2009/09/writing-hot-dep.html">Kazuho@Cybozu Labs: Writing Hot-deployable servers (introduction of Server::Starter)</a>」をご覧ください。</p>
+
+<p>自分は daemontools で管理しているので、以下のようにして SIGHUP を送っています。</p>
+
+<pre>
+# svc -h /servire/webapp
+</pre>
+
+<p>Plack::Server::Standalone::Prefork (とその子クラスであるPSSPSS) では、デフォルトで keep-alive がオンになるのですが、ここではリバースプロキシと組み合わせるために、keep-alive をオフにしています(--max-keepalive-reqs=1)。</p>
+
+<p>ちなみにパストラックでは、この設定で 20〜40 リクエスト/秒ほどの動的コンテンツを XenServer 上で生成しています。</p>
+</div>
+<div class="section">
+<h3>リバースプロキシとの組み合わせ</h3>
+
+<p>PSSPSS (あるいは Plack::Server::Standalone::Prefork) は単独でのウェブサービス提供も十分可能なポテンシャルを持っていますが、パストラックでは Apache (mpm_worker) ベースのリバースプロキシと組み合わせて運用しています。mpm_worker で同時接続数の上限を稼ぐ。それによって keep-alive オンでの運用が可能となり、ユーザーのレスポンスが向上するから、というのが理由です。</p>
+
+<p>この場合の設定も簡単。plackup が単独で全コンテンツをサーブできるので、必要なのはリバースプロキシとキャッシュだけです。だいたい、以下のような設定で運用しています。</p>
+
+<pre>
+&lt;VirtualHost _default_:80&gt;
+  ServerName webapp.example.com
+  ErrorLog /var/log/httpd/webapp.example.com/error_log
+  CustomLog /var/log/httpd/webapp.example.com/access_log combined
+  CacheEnable disk /static
+  &lt;Location /&gt;
+    Order allow,deny
+    Allow from all
+    ProxyPass http://webapp.local/
+    ProxyPassReverse http://webapp.local/
+    ProxyPreserveHost On
+  &lt;/Location&gt;
+&lt;/VirtualHost&gt;
+</pre>
+</div>
+<div class="section">
+<h3>まとめ</h3>
+
+<p>このように、Plack::Server::Standalone 系のモジュールを使うことで、開発から運用までのコストを低く抑えることが可能です。具体的には、</p>
+
+<ul>
+<li>開発環境の構築が容易</li>
+<li>開発環境と運用環境の差異が少ない (ので問題が発生しにくい)</li>
+<li>設定項目が少ない</li>
+<li>運用環境でのホットデプロイが簡単</li>
+<li>全て HTTP ベースなので、問題の切り分けが容易</li>
+</ul>
+
+<p>といったあたりになるでしょうか。大規模な案件で使うメリットがどれだけあるかは不明ですが、小〜中規模な開発では便利だと思います。一度お試しあれ。</p>
+
+<p>PS. 明日は、ななしさんです。お楽しみに！</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="http://web.archive.org/web/20190608102010/http://perl-users.jp/articles/advent-calendar/2009/hacker/23.html">Thu, 24 Dec 2009 03:26:02 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20190608102010/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20190608102010/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20190608102010im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20190608102010/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20190608102010/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20190608102010im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20190608102010/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20190608102010/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20190608102010im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20190608102010/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20190608102010/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20190608102010im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20190608102010/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20190608102010/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20190608102010im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://web.archive.org/web/20190608102010/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20190608102010/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20190608102010/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20190608102010/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20190608102010/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20190608102010/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://web.archive.org/web/20190608102010/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<!--
+     FILE ARCHIVED ON 10:20:10 Jun 08, 2019 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 15:08:25 Jan 23, 2020.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+-->
+<!--
+playback timings (ms):
+  PetaboxLoader3.resolve: 2504.054 (3)
+  captures_list: 1433.397
+  exclusion.robots.policy: 0.217
+  esindex: 0.013
+  exclusion.robots: 0.228
+  LoadShardBlock: 1233.373 (3)
+  load_resource: 1614.508
+  RedisCDXSource: 183.401
+  PetaboxLoader3.datanode: 281.433 (5)
+  CDXLines.iter: 11.522 (3)
+-->

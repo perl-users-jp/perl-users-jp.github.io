@@ -1,0 +1,470 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app57.us.archive.org';v.server_ms=977;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
+<script type="text/javascript">
+WB_wombat_Init("http://web.archive.org/web/", "20161018163914", "perl-users.jp");
+</script>
+<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
+<script type="text/javascript">
+__wbhack.init('http://web.archive.org/web');
+</script>
+<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
+<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
+<!-- End Wayback Rewrite JS Include -->
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018163914cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>かんたんコンテンツジェネレータ Nim に入門してみた - JPerl Advent Calendar 2009
+</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20161018163914/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018163914cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
+<meta http-equiv="Content-Script-Type" content="text/javascript"/>
+<script type="text/javascript" src="http://web.archive.org/web/20161018163914js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018163914js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018163914js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+<script type="text/javascript">
+    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
+</script>
+
+<style type="text/css">
+    pre {
+        border-left: 2px solid #cccccc;
+        padding-left: 4px;
+        margin-left: 10px;
+        overflow: auto;
+    }
+</style>
+
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">かんたんコンテンツジェネレータ Nim に入門してみた - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">かんたんコンテンツジェネレータ Nim に入門してみた<a href="http://web.archive.org/web/20161018163914/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/casual/03.html"><img src="http://web.archive.org/web/20161018163914im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/casual/03.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>今年の jperl advent calendar は<a href="http://web.archive.org/web/20161018163914/http://opensource.kayac.com/ja/projects/nim/">nim</a>という typester さんが開発しているツールを使って生成しているのですが、これが便利らしいので入門してみる事にしました。</p>
+</div>
+<div class="section">
+<h3> インストール</h3>
+
+<p>github にリポジトリがあるので、 git が使える場合は以下のようにして取ってきます。以下、~/tmp を起点に作業する事にしますので、ご自分の環境に合わせて読み替えてください。</p>
+
+<pre>
+% mkdir ~/tmp
+% cd ~/tmp
+% git clone git://github.com/typester/nim.git
+</pre>
+
+<p>git が使えない場合は <a href="http://web.archive.org/web/20161018163914/http://github.com/typester/nim">http://github.com/typester/nim</a> にアクセスして「download」ボタンを押せば最新版がダウンロードできます。</p>
+
+<p>とってきた後は、 nim のディレクトリに入って</p>
+
+<pre>
+% cd ~/tmp/nim
+% perl Makefile.PL
+% make installdeps
+</pre>
+
+<p>とすると依存モジュールがインストールできます。うまくやるためにも<a href="./02.html">昨日の otsune さんの記事</a>も読みましょう。</p>
+</div>
+<div class="section">
+<h3> Hello World</h3>
+
+<p>では、いつも通り hello world いってみましょうか。</p>
+
+<h4> ディレクトリ</h4>
+
+<p>まず今回のサイト用のディレクトリを作ります。 helloworld ディレクトリを作成し、その中の data ディレクトリにデータを格納し、 public ディレクトリに nim が公開用の HTML を生成する事にします。</p>
+
+<pre>
+% mkdir -p ~/tmp/helloworld/{,data,public}
+% cd ~/tmp/helloworld
+% ls
+data public
+
+</pre>
+
+<h4> .nim ファイル</h4>
+
+<p>つぎに .nim ファイルを作成します。このファイルに nim の設定を記述します。書式は YAML です。</p>
+<pre>
+% cat ~/tmp/helloworld/.nim
+# .nim file
+data_dir: ./data
+site_dir: ./public
+
+plugins:
+    - module: Entry::File
+    - module: Render::Entry
+
+</pre>
+<p>data_dir と site_dir は先ほど作ったディレクトリを指定します。 plugins にはどのプラグインを使うかを指定します。ひとまずファイルから html を生成するために必要なプラグインだけを指定しておきます。</p>
+
+<h4> テンプレート</h4>
+
+<p>nim はテンプレートに <a href="http://web.archive.org/web/20161018163914/http://search.cpan.org/dist/Text-MicroTemplate-Extended/">Text::MicroTemplate::Extended</a> を使っています。テンプレートファイルの中の「&lt;?=」と「?&gt;」に囲まれた部分が Text::MicroTemplate::Extend によってデータに置き換えられます。それでは記事ページ用のテンプレートを data/entry.html として作成します。</p>
+
+<pre>
+% cat ~/tmp/helloworld/data/entry.html
+&lt;html&gt;
+    &lt;head&gt;
+        &lt;meta 
+            http-equiv="Content-Type" 
+            content="text/html;charset=UTF-8" /&gt;
+        &lt;title&gt;&lt;?= encoded_string $entry-&gt;title ?&gt;&lt;/title&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+        &lt;?= encoded_string $entry-&gt;body ?&gt;
+    &lt;/body&gt;
+&lt;/html&gt;
+
+</pre>
+
+<p>$entry というのが記事のデータを格納したオブジェクトです。そこからタイトルと本文を取り出してそれぞれ埋め込んでいます。</p>
+
+<h4> 記事ファイル</h4>
+
+<p>それでは記事を書きましょう。 data/hello.txt というファイルを作ると、 nim が public/hello.html というファイルを作ってくれる予定です。1行目がタイトル、2行目以降が本文になります。</p>
+
+<pre>
+% cat ~/tmp/helloworld/data/entry.html
+こんにちは、世界！
+うまくいくかなぁ
+
+</pre>
+
+<h4> ファイル生成、確認</h4>
+
+<p>準備が整ったので、 nim で html を生成してみましょう。 helloworld ディレクトリ直下で nim コマンドをたたきます。</p>
+
+<pre>
+% cd ~/tmp/helloworld
+% ~/tmp/nim/bin/nim
+[info] Nim::Plugin::Entry::File: find: data/hello.txt
+[info] Nim::Plugin::Render::Entry: render: public/hello.html
+
+</pre>
+
+<p>ログを見ると data/hello.txt をみつけて public/hello.html を生成した事が分かります。見てみましょう。</p>
+
+<pre>
+% cat ~/tmp/helloworld/public/hello.html
+&lt;html&gt;
+    &lt;head&gt;
+        &lt;meta 
+            http-equiv="Content-Type" 
+            content="text/html;charset=UTF-8" /&gt;
+        &lt;title&gt;こんにちは、世界！&lt;/title&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+うまくいくかなぁ
+
+    &lt;/body&gt;
+&lt;/html&gt;
+
+</pre>
+
+<p>おお、うまくいきました！</p>
+
+<h4> サーバーを起動して確認</h4>
+
+<p>以下のように nim コマンドに --server オプションを渡してやると、 nim に内蔵のウェブサーバーが立ち上がって、ブラウザで簡単に確認できます。</p>
+
+<pre>
+% cd ~/tmp/helloworld
+% ~/tmp/nim/bin/nim --server
+[info] Nim::Plugin::Entry::File: find: data/hello.txt
+[info] Nim::Plugin::Render::Entry: render: public/hello.html
+[info] main: Starting build-in server
+Accepting connections at http://0.0.0.0:4423/
+
+</pre>
+
+<p>ブラウザで http://localhost:4423/hello.html にアクセスしてみてください。</p>
+</div>
+<div class="section">
+<h3> Plugin でいろいろやる</h3>
+
+<p>ひとまず Hello World ができましたが、これだけではあんまり便利じゃありませんね。もうちょっと便利そうな事をしてみましょう。</p>
+
+<h4> AutoIndex プラグイン</h4>
+
+<p>先ほどの .nim ファイルに以下のように一行追記します。</p>
+
+<pre>
+% cat ~/tmp/helloworld/.nim
+# .nim file
+data_dir: ./data
+site_dir: ./public
+
+plugins:
+    - module: Entry::File
+    - module: Render::Entry
+    - module: AutoIndex
+
+</pre>
+
+<p>次に インデックス用のテンプレートを data/index.html として作成します。</p>
+
+<pre>
+% cat ~/tmp/helloworld/data/index.html
+&lt;html&gt;
+    &lt;head&gt;
+        &lt;meta
+            http-equiv="Content-Type" 
+            content="text/html;charset=UTF-8" /&gt;
+        &lt;title&gt;index&lt;/title&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+        &lt;ul&gt;
+? my @entries = sort { $b-&gt;datetime &lt;=&gt; $a-&gt;datetime }
+?     @{ $page-&gt;entries || [] };
+? for my $entry (@entries) {
+            &lt;li&gt;
+                &lt;a href="&lt;?= $entry-&gt;filename ?&gt;.html"&gt;
+                    &lt;?= $entry-&gt;title ?&gt;
+                &lt;/a&gt;
+            &lt;/li&gt;
+? }
+        &lt;/ul&gt;
+    &lt;/body&gt;
+&lt;/html&gt;
+
+</pre>
+
+<p>$page-&gt;entries でインデックスで出力する記事のリストが取得できるので、それをいい感じにループでまわしてリンクを出力しています。</p>
+<p>これでもう一度 nim コマンドを実行すると、インデックスページが生成されるはずです。</p>
+
+<pre>
+% cd ~/tmp/helloworld
+% ~/tmp/nim/bin/nim
+[info] Nim::Plugin::Entry::File: find: data/hello.txt
+[info] Nim::Plugin::Render::Entry: render: public/hello.html
+[info] Nim::Plugin::Index: render: public/index.html
+
+</pre>
+
+<p>public/index.html が生成されているのが分かりますね。それでは見てみましょう。</p>
+
+<pre>
+% cat ~/tmp/helloworld/public/index.html
+&lt;html&gt;
+    &lt;head&gt;
+        &lt;meta
+            http-equiv="Content-Type" 
+            content="text/html;charset=UTF-8" /&gt;
+        &lt;title&gt;index&lt;/title&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+        &lt;ul&gt;
+            &lt;li&gt;&lt;a href="hello.html"&gt;こんにちは、世界！&lt;/a&gt;
+        &lt;/ul&gt;
+    &lt;/body&gt;
+&lt;/html&gt;
+
+</pre>
+
+<p>ふむ。もう一個記事を書いて nim を再実行してみましょう。</p>
+
+<pre>
+% cat ~/tmp/helloworld/data/second.txt
+二つ目の記事
+ｽﾞｻｰc⌒っﾟДﾟ)っ
+
+% cd ~/tmp/helloworld
+% ~/tmp/nim/bin/nim
+[info] Nim::Plugin::Entry::File: find: data/hello.txt
+[info] Nim::Plugin::Entry::File: find: data/second.txt
+[info] Nim::Plugin::Render::Entry: render: public/hello.html
+[info] Nim::Plugin::Render::Entry: render: public/second.html
+[info] Nim::Plugin::Index: render: public/index.html
+
+% cat ~/tmp/helloworld/public/index.html
+&lt;html&gt;
+    &lt;head&gt;
+        &lt;meta
+            http-equiv="Content-Type" 
+            content="text/html;charset=UTF-8" /&gt;
+        &lt;title&gt;index&lt;/title&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+        &lt;ul&gt;
+            &lt;li&gt;&lt;a href="second.html"&gt;二つ目の記事&lt;/a&gt;
+            &lt;li&gt;&lt;a href="hello.html"&gt;こんにちは、世界！&lt;/a&gt;
+        &lt;/ul&gt;
+    &lt;/body&gt;
+&lt;/html&gt;
+
+</pre>
+
+<p>うまくいきました！</p>
+
+<h4> Hatena プラグイン</h4>
+
+<p>これまでは記事の中に HTML を埋め込もうとすると手書きの HTML を書かなくちゃいけなくて実は面倒でした。そこで、次はみんな大好きはてな記法で書けるようにしましょう。</p>
+<p>.nim ファイルを編集します。</p>
+
+<pre>
+% cat ~/tmp/helloworld/.nim
+# .nim file
+data_dir: ./data
+site_dir: ./public
+
+plugins:
+    - module: Entry::File
+    - module: Render::Entry
+    - module: AutoIndex
+    - module: Hatena
+
+</pre>
+
+<p>data/hello.txt をはてな記法で書き換えて nim を実行してみましょう。</p>
+
+<pre>
+%cat ~/tmp/helloworld/data/hello.txt
+こんにちは、世界！
+* Hello World を書いてみるよ
+
+うまくいくかな？
+
+&gt;||
+#!/bin/sh
+echo hello world
+||&lt;
+
+% cd ~/tmp/helloworld
+% ~/tmp/nim/bin/nim --server
+[info] Nim::Plugin::Entry::File: find: data/hello.txt
+[info] Nim::Plugin::Entry::File: find: data/second.txt
+[info] Nim::Plugin::Render::Entry: render: public/hello.html
+[info] Nim::Plugin::Render::Entry: render: public/second.html
+[info] Nim::Plugin::Index: render: public/index.html
+[info] main: Starting build-in server
+Accepting connections at http://0.0.0.0:3000/
+
+</pre>
+
+<p>ブラウザで確認してみましょう。いい感じに H1 やスーパーpreができているはずです。ほかに Markdown にも対応しているので、試してみましょう。</p>
+</div>
+<div class="section">
+<h3> まとめ</h3>
+
+<p>ここまで、 nim の使い方のさわりの部分をご紹介しました。</p>
+
+<ul>
+<li> Text::MicroTemplate::Extended で柔軟なテンプレートを書けます。</li>
+<li> 記事をかくのもはてな記法や Markdown に対応しているので書きやすいです。</li>
+<li> 静的にデータを作るので、 ftp でまるっとレンタルサーバーにアップロードするとかもできます。</li>
+<li> ソースコードがきれいで読みやすいので、勉強になります。</li>
+</ul>
+
+<p>さらに詳しくは、ソースコードを読むか、以下のようにして jperl advent calendar をダウンロードしてどんな使い方をしているかを見てみるといいと思います。</p>
+
+<pre>
+git clone http://git.coderepos.org/share/websites/jperl-advent-calendar-2009.git/
+</pre>
+
+<p>以上、 nim のご紹介でした。 Enjoy!</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="http://web.archive.org/web/20161018163914/http://perl-users.jp/articles/advent-calendar/2009/casual/03.html">Thu, 03 Dec 2009 06:09:02 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018163914/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20161018163914/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20161018163914im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018163914/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20161018163914/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20161018163914im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018163914/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20161018163914/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20161018163914im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018163914/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20161018163914/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20161018163914im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018163914/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20161018163914/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20161018163914im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://web.archive.org/web/20161018163914/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018163914/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018163914/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018163914/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018163914/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018163914/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://web.archive.org/web/20161018163914/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<!--
+     FILE ARCHIVED ON 16:39:14 Oct 18, 2016 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 15:00:28 Jan 23, 2020.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+-->
+<!--
+playback timings (ms):
+  captures_list: 821.409
+  exclusion.robots: 0.202
+  CDXLines.iter: 11.833 (3)
+  RedisCDXSource: 289.524
+  PetaboxLoader3.resolve: 66.568
+  load_resource: 125.744
+  esindex: 0.018
+  LoadShardBlock: 515.371 (3)
+  exclusion.robots.policy: 0.186
+  PetaboxLoader3.datanode: 535.019 (4)
+-->

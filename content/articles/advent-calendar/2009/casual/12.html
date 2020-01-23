@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app39.us.archive.org';v.server_ms=1392;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
+<script type="text/javascript">
+WB_wombat_Init("http://web.archive.org/web/", "20161018164254", "perl-users.jp");
+</script>
+<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
+<script type="text/javascript">
+__wbhack.init('http://web.archive.org/web');
+</script>
+<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
+<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
+<!-- End Wayback Rewrite JS Include -->
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018164254cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Perldocの話 - JPerl Advent Calendar 2009
+</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20161018164254/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018164254cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
+<meta http-equiv="Content-Script-Type" content="text/javascript"/>
+<script type="text/javascript" src="http://web.archive.org/web/20161018164254js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018164254js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018164254js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+<script type="text/javascript">
+    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
+</script>
+
+<style type="text/css">
+    pre {
+        border-left: 2px solid #cccccc;
+        padding-left: 4px;
+        margin-left: 10px;
+        overflow: auto;
+    }
+</style>
+
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Perldocの話 - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Perldocの話<a href="http://web.archive.org/web/20161018164254/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/casual/12.html"><img src="http://web.archive.org/web/20161018164254im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/casual/12.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>lestrratこと牧です。AnyEventの話を書こうと思ったけど、それは本を書くくらいの厚さになりそうなのでやめました。「リアルタイムWebのためのPerl」って本書きたいので、編集さん誰か連絡ください。</p>
+
+<p>ああ、advent calendarでした。</p>
+
+<p>カジュアルトラックなので、カジュアルに使うために有用なテクニックってなんだったのかと考えたのですが、やっぱりperldocじゃないかな、と。僕がperlを2000年頃に使い始めてまず感動したのはドキュメントを漁りにネットに繋げなくてもよいということでした（当時はJavaを大学で使っていたので、ものすごく頻繁にjava.sun.comのjavadocページを見ていた）。</p>
+
+<p>コマンドラインで</p>
+
+<pre>
+% perldoc CGI
+</pre>
+
+<p>ってするだけでCGI.pmのドキュメントが読めるんですよ？感動じゃないですか。manはそのままコンソールで読めるのに、javadocはなんでそれができないのかいつも不思議でした。今はもうそういうツールがあるのかもしれませんが、もうJava書かないのでどうでもいいです。</p>
+
+<p>で、この<em>perldoc モジュール名</em>と<em>perldoc -f 関数名</em>という使い方は有名ですが、例えば$]って何が格納されてるの？とかのPerl本体の説明については意外とみんなどこにドキュメントがあるのか知らないので、その辺りをちらちらと書きたいと思います。</p>
+
+<p>まず真っ先に、もし「どんなperldocあったか忘れちゃったなぁ・・・」以下のようにしてください。<em>"For ease of access, the Perl manual has been split up into several sections（簡単にアクセスできるようにPerlマニュアルはいくつかのセクションに分けられています）"</em>という文言の後にずらずらとperldoc経由で読めるマニュアル一式がでてきます。</p>
+
+<pre>
+% perldoc perl
+</pre>
+
+<p>ちなみに僕が使っているperl 5.8.8では約190個のエントリがならんでいました。</p>
+
+<p>このうち、自分が比較的頻繁に読むセクションを紹介してみます：</p>
+</div>
+<div class="section">
+<h3> perlvar</h3>
+<p>perlvarはいわゆる巷で言われる「Perlの訳の分からない変数」がリストされています。変数は「<b>var</b>iable」というのでperl<b>var</b>です。下唇を噛んで発音して覚えて下さいね</p>
+
+<p>このマニュアルを使うときは前半の説明とかどうでもいいので、お使いのビューアーの検索機能で探したい変数の名前を一気に探すのが吉です。</p>
+
+<p>あと、このマニュアルにはuse Englishというものと、use Englishが提供する特殊変数の代替版がリストされています（例：$/ → $INPUT_RECORD_SEPARATOR)が、これはさっくり無視しましょう。use Englishはメモリも食う割にはあんまりメリットがないです。経験者は語ります。</p>
+
+<p>ともあれ、特殊変数なんて別に暗記する必要もないので忘れる度にこのマニュアルを見に行ってます。僕が一案よく使う特殊変数は $]と$/ですね。</p>
+</div>
+<div class="section">
+<h3> perlre</h3>
+<p>これはいわゆる正規表現のマニュアルです。これまた文法をよく忘れるのでよく使います。perlvarと同じくビューアーの検索を使うのが吉ですが、何せ記号だらけなのでvimなどの正規表現を理解する検索システムではエスケープしなくてはいけないので余計に検索しにくいです。</p>
+
+<p>個人的には"Extended Patterns"の項を一番よく使ってます。特に忘れがちなのが"zero-width look-ahead"系と"zero-width look-behind"系です。</p>
+
+<pre>
+$string =~ /(foo(?=bar))/; # fooの後にbarが存在したら、"foo"をマッチ
+$string =~ /(foo(?!bar))/; # fooの後にbarが存在しなかったら、"foo"をマッチ
+$string =~ /((?&lt;=bar)foo)/; # fooの前にbarが存在したら、"foo"をマッチ
+$string =~ /((?&lt;!bar)foo)/; # fooの前にbarが存在しなかったら、"foo"をマッチ
+</pre>
+
+<pre>
+(?!)
+</pre>
+<p>はよく使うので覚えているのですが、それ以外はどうしても覚えられない。ちなみにここで検索する場合は上記のように"look-ahead"とか、そういうキーワードをちょっと覚えていると検索しやすいです。</p>
+
+<p>その他正規表現の仕組みついて色々説明してくれているので、Jeffrey Friedl氏の名著「詳説 正規表現」にお金を出したくない人は読んでおくといいかもしれません。</p>
+</div>
+<div class="section">
+<h3> perlopentut</h3>
+<p>Perlのopen()関数は色々な使い道があるので結構忘れがちです。perlopentut（これ以後もそうですが、チュートリアル→<b>tut</b>orial→tutと覚えてくださいね）ではこのopenの様々な使い方を教えてくれます。</p>
+
+<p>この章は特に検索に使うというより、とにかくopen() の使い方を教えてくれるので、暇な時にでも熟読してみるといいんじゃないでしょうか。open() のリファレンスとしては perldoc -f openのほうがいいかもしれません。</p>
+</div>
+<div class="section">
+<h3> perlpacktut</h3>
+<p>こちらはPerlのpack() 関数を教えてくれるチュートリアルです。バイナリアンじゃない僕はここに書いてあることがぼんやりとしかわかってませんが、とりあえずこれを読みながらmemcachedのバイナリプロトコルを実装したりしてました。perldoc -f packも、packのテンプレート種別が一気に表示されるので便利です。</p>
+</div>
+<div class="section">
+<h3> perlipc</h3>
+<p>IPCとはInter-Process Communicationの事で、要はプロセス間通信です。僕はfork()を使ったコードをある一定の周期で書くことが多いのですが、そのたびに子プロセスの回収の仕方を忘れるので毎回ここで見て思い出します。どうしてもwaitpidとかが思い出せないのです。で、いつもこんなコードを書きます：</p>
+
+<pre>
+use strict;
+use POSIX qw(WNOHANG);
+
+my %children;
+my $to_fork = 10;
+
+local $SIG{CHLD} = sub {
+    while ( (my $pid = waitpid(-1, WNOHANG()) &gt; 0 ) ) {
+        delete $children{$pid};
+    }
+};
+
+for my $i (1..10) {
+    my $pid = fork();
+    if (! defined $pid) {
+        die "Failed to fork";
+    }
+
+    if ($pid) { # parent
+        $children{ $pid }++;
+    } else {
+        # child
+        local %SIG;
+        ....
+        exit;
+    }
+}
+
+# なにかしながら%childrenが空になるのを待つ
+</pre>
+</div>
+<div class="section">
+<h3> perlxs, perlapi, perlapio, perlguts, perlclib</h3>
+<p>PerlのCバインディングであるXSを書くときはこの辺りは必須です。</p>
+
+<p>perlxsはXSの基本、perlclibはCレイヤーでPerlが提供するユーティリティ関数（メモリ確保とか、文字列比較とか）のリスト、perlapiはPerlの関数・マクロ群、perlapioはI/O関連のAPI、perlgutsは内部構造の説明等が載ってます。</p>
+
+<p>正直XSのイントロとしては無理があるので、拙著「モダンPerl入門」を推したいところですが、個人的にはこれらのマニュアルと、Tim Bunce氏のMemcached::libmemcachedのソースコードが大変ためになりました。</p>
+
+
+<p>以上個人的によく使っているマニュアル群でした。これ以外にも結構たくさんありますので是非どうぞ。ちなみに有志で日本語翻訳を行ってくれているperldocjpプロジェクトがいままで訳してきたそれらのマニュアルはこちらから入手可能です：<a href="http://web.archive.org/web/20161018164254/http://perldoc.jp/docs/perl/">http://perldoc.jp/docs/perl/</a>。 5.10.x系まで揃ってるので英語が難しいという方はこちらもあわせてどうぞ。</p>
+
+
+
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="http://web.archive.org/web/20161018164254/http://perl-users.jp/articles/advent-calendar/2009/casual/12.html">Fri, 11 Dec 2009 23:00:00 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018164254/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20161018164254/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20161018164254im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018164254/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20161018164254/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20161018164254im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018164254/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20161018164254/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20161018164254im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018164254/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20161018164254/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20161018164254im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018164254/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20161018164254/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20161018164254im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://web.archive.org/web/20161018164254/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018164254/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018164254/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018164254/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018164254/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018164254/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://web.archive.org/web/20161018164254/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<!--
+     FILE ARCHIVED ON 16:42:54 Oct 18, 2016 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 15:01:43 Jan 23, 2020.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+-->
+<!--
+playback timings (ms):
+  PetaboxLoader3.resolve: 470.486
+  captures_list: 814.131
+  exclusion.robots.policy: 0.19
+  esindex: 0.007
+  exclusion.robots: 0.204
+  LoadShardBlock: 280.175 (3)
+  load_resource: 567.6
+  RedisCDXSource: 519.756
+  PetaboxLoader3.datanode: 342.846 (4)
+  CDXLines.iter: 11.619 (3)
+-->

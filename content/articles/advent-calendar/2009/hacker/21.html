@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app105.us.archive.org';v.server_ms=891;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
+<script type="text/javascript">
+WB_wombat_Init("http://web.archive.org/web/", "20161018163616", "perl-users.jp");
+</script>
+<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
+<script type="text/javascript">
+__wbhack.init('http://web.archive.org/web');
+</script>
+<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
+<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
+<!-- End Wayback Rewrite JS Include -->
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018163616cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>FormValidator::LazyWay で検証ルールをまとめよう - JPerl Advent Calendar 2009
+</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20161018163616/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018163616cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
+<meta http-equiv="Content-Script-Type" content="text/javascript"/>
+<script type="text/javascript" src="http://web.archive.org/web/20161018163616js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018163616js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018163616js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+<script type="text/javascript">
+    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
+</script>
+
+<style type="text/css">
+    pre {
+        border-left: 2px solid #cccccc;
+        padding-left: 4px;
+        margin-left: 10px;
+        overflow: auto;
+    }
+</style>
+
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">FormValidator::LazyWay で検証ルールをまとめよう - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">FormValidator::LazyWay で検証ルールをまとめよう<a href="http://web.archive.org/web/20161018163616/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/hacker/21.html"><img src="http://web.archive.org/web/20161018163616im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/hacker/21.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>
+どうも、亀仙人になって鼻血ブーしたい vkgtaro です。ご機嫌いかがですか。亀仙人が最初なのかどうか知らないけど、鼻血を吹くというマンガ表現はすごく好きです。おっと、hacker track でした。<br/>
+ということで僕もハッカーではないけれど、自分がメンテナンスしてるモジュールの中から一つ紹介させてもらいますね。
+</p>
+
+<p>今日は <a href="http://web.archive.org/web/20161018163616/http://search.cpan.org/dist/FormValidator-LazyWay/">FormValidator::LazyWay</a> で検証ルールをまとめちゃいます。</p>
+</div>
+<div class="section">
+<h3>フォームの検証</h3>
+
+<p>web アプリケーションを作っていると、どのページでも出てくる入力項目ってあると思います。</p>
+
+<p>会員登録時のパスワード項目とログイン時のパスワード項目とユーザ情報変更時のパスワード項目と退会時に求められるパスワード入力項目、リマインダで再設定するパスワード入力項目……などなど。</p>
+
+<p>
+これらの項目がフォームごとにルールを指定してると、登録時は半角英数字と記号のみで6文字から14文字なのに、ログイン時は半角英数字のみで4文字から12文字になってたりとかおかしなことになったりしないでしょうか？<br/>
+「仕様書を見るから大丈夫だよ」という声も聞こえてきそうですが、定義はまとめておいたほうが変更しやすくて良いですよね。
+</p>
+
+<p>そこで FormValidator::LazyWay です。検証ルールをフォームごとにせずに項目ごとにして怠けましょう。</p>
+</div>
+<div class="section">
+<h3> 設定</h3>
+
+<p>こんな感じで設定を書きます。</p>
+
+<pre>
+my $config = {
+    rules =&gt; [ 'Email', 'String' ], # 使用するルール
+    setting =&gt; {
+        strict =&gt; {
+            # Email は Email の書式でないとだめ
+            email    =&gt; {
+                rule =&gt; ['Email#email']
+            },
+            # password は4文字から12文字で半角英数字のみ
+            password =&gt; {
+                rule =&gt; [
+                    {   'String#length' =&gt; {
+                            'min' =&gt; '4',
+                            'max' =&gt; '12'
+                        }
+                    },
+                    'String#ascii'
+                ]
+            },
+        }
+    },
+    lang   =&gt; 'ja',
+    # バリデーションに引っかかったときのメッセージに出力するラベル名
+    labels =&gt; {
+        ja =&gt; {
+            email    =&gt; 'メールアドレス',
+            password =&gt; 'パスワード'
+        }
+    },
+};
+</pre>
+</div>
+<div class="section">
+<h3> 使用</h3>
+
+<p>そしてこんな風に使います。</p>
+
+<pre>
+use FormValidator::LazyWay;
+
+# この $fv オブジェクトはサイト全体で使い回すと良いよ
+my $fv =  FormValidator::LazyWay-&gt;new($config);
+
+# $q は CGI とか Catalyst::Request とかのオブジェクト
+my $result = $fv-&gt;check($q, {
+    required =&gt; [qw/email password/],
+});
+</pre>
+
+<p>フォームによって必須項目変えたければ変えればいいです。</p>
+<p>たとえば、ブログ的なもので登録時は内容のみ必須でタイトルはオプショナル。</p>
+
+<pre>
+my $result = $fv-&gt;check($q, {
+    required =&gt; [qw/body/],
+    optional =&gt; [qw/title/]
+});
+</pre>
+
+<p>そして検索時は両方オプショナル。</p>
+
+<pre>
+my $result = $fv-&gt;check($q, {
+    optional =&gt; [qw/title body/],
+});
+</pre>
+
+<p>各項目の検証ルールはすでに決まってるので、使うときはどの項目を検証すればいいかだけ考えればいいですね。</p>
+</div>
+<div class="section">
+<h3>検証結果</h3>
+
+<p>検証結果には <a href="http://web.archive.org/web/20161018163616/http://search.cpan.org/~taro/FormValidator-LazyWay-0.11/lib/FormValidator/LazyWay/Result/JA.pod">FormValidator::LazyWay::Result</a> オブジェクトが返ってきます。</p>
+
+<pre>
+# $result が FormValidator::LazyWay::Result オブジェクト
+my $result = $fv-&gt;check($q, {
+    required =&gt; [qw/nickname email password/],
+    optional =&gt; [qw/message/]
+});
+
+if ( $result-&gt;has_error ) {
+    print Dumper $result-&gt;error_message;
+
+    # 検証結果に応じてメッセージを自動生成してくれます。
+    # このメッセージは設定で指定した label と
+    # ルールモジュールで設定された内容を掛け合わせてます。
+    # $VAR1 = {
+    #   'email' =&gt; 'メールアドレスが空です。',
+    #   'password' =&gt; 'パスワードには4文字以上12文字以下が使用できます。'
+    # };
+}
+else {
+    # OK!
+    # 検証されたデータは $result-&gt;valid にハッシュとして持ってます。
+    # 検証後はこの valid で取り出した値を使いましょう
+    print Dumper $result-&gt;valid;
+}
+</pre>
+</div>
+<div class="section">
+<h3>同じ項目で違うルールを指定したい</h3>
+
+<p>設定で level を変えてあげれば可能です。</p>
+<p>ハッシュで書くと長いので YAML で書きますね。</p>
+
+<pre>
+config:
+  setting:
+    strict:
+      email:
+        rule:
+          - Email#email
+    loose:
+      email:
+        rule:
+          - Email#email_loose
+</pre>
+
+<p>こんな風に strict と loose というのを用意してあげましょう。そして使うときはこんな感じ。</p>
+
+<pre>
+my $result = $fv-&gt;check( $q,
+    {   required =&gt; [qw/email/],
+        level =&gt; {
+            email =&gt; 'loose'
+        }
+    }
+);
+</pre>
+
+<p>email 項目が loose の方の設定で検証されるようになるよ。</p>
+</div>
+<div class="section">
+<h3>項目をマージして検証</h3>
+
+<p>複数の入力項目から一つの値にして検証もできます。たとえば、年月日がそれぞれ別項目で、妥当な日時か検証したいとき。</p>
+
+<pre>
+config:
+  setting:
+    merge:
+      date:
+        format: "%04d-%02d-%02d"
+        fields:
+          - year
+          - month
+          - day
+    strict:
+      date:
+        rule:
+          - DateTime#date
+</pre>
+
+<p>year, month, day という項目を %04d-%02d-%02d というフォーマットで date 項目を作って、date 項目に対して妥当な日時かどうか検証します。</p>
+</div>
+<div class="section">
+<h3> filter -&gt; rule -&gt; fix</h3>
+
+<p>FormValidator::LazyWay は、項目の検証の前後にフックを持っていて、検証前に項目の値の値と検証後の値の変更が可能です。</p>
+
+<p>たとえば、ハイフンっぽい文字列をハイフンに統一したあとに、妥当な日時かどうか検証して、DateTime オブジェクトにして返すとか。</p>
+
+<pre>
+  setting:
+    strict:
+      date:
+        filter:
+          - Unify#hyphen
+        rule:
+          - DateTime#date
+        fix:
+          - DateTime#format:
+              - '%Y-%m-%d'
+</pre>
+
+<p>問題無く検証できれば $result-&gt;valid-&gt;{date} が DateTime オブジェクトになって返ってくるよ。</p>
+
+<p>そのほかにもメッセージのカスタマイズとか、param メソッド持ってないただのハッシュの検証とか色々機能があります。</p>
+
+<p><a href="http://web.archive.org/web/20161018163616/http://search.cpan.org/~taro/FormValidator-LazyWay-0.11/lib/FormValidator/LazyWay/JA.pod">日本語の POD もあるのでご参照いただければ幸いです</a></p>
+
+<p>明日は……誰か書きませんか！</p>
+<p>JPerl Advent Calendar hacker track の明日を作るのはあなたです！</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="http://web.archive.org/web/20161018163616/http://perl-users.jp/articles/advent-calendar/2009/hacker/21.html">Mon, 21 Dec 2009 10:01:01 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018163616/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20161018163616/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20161018163616im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018163616/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20161018163616/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20161018163616im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018163616/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20161018163616/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20161018163616im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018163616/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20161018163616/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20161018163616im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018163616/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20161018163616/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20161018163616im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://web.archive.org/web/20161018163616/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018163616/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018163616/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018163616/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018163616/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018163616/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://web.archive.org/web/20161018163616/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<!--
+     FILE ARCHIVED ON 16:36:16 Oct 18, 2016 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 15:08:07 Jan 23, 2020.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+-->
+<!--
+playback timings (ms):
+  captures_list: 732.707
+  exclusion.robots.policy: 0.18
+  PetaboxLoader3.resolve: 158.145 (2)
+  CDXLines.iter: 14.011 (3)
+  RedisCDXSource: 490.857
+  PetaboxLoader3.datanode: 189.73 (4)
+  esindex: 0.014
+  LoadShardBlock: 224.204 (3)
+  exclusion.robots: 0.195
+  load_resource: 147.199
+-->

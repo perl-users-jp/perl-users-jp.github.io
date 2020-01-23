@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app100.us.archive.org';v.server_ms=2576;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
+<script type="text/javascript">
+WB_wombat_Init("http://web.archive.org/web/", "20161018163824", "perl-users.jp");
+</script>
+<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
+<script type="text/javascript">
+__wbhack.init('http://web.archive.org/web');
+</script>
+<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
+<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
+<!-- End Wayback Rewrite JS Include -->
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018163824cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Sub::Pipe で UNIX pipe みたいな関数適用をする - JPerl Advent Calendar 2009
+</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20161018163824/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018163824cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
+<meta http-equiv="Content-Script-Type" content="text/javascript"/>
+<script type="text/javascript" src="http://web.archive.org/web/20161018163824js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018163824js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018163824js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+<script type="text/javascript">
+    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
+</script>
+
+<style type="text/css">
+    pre {
+        border-left: 2px solid #cccccc;
+        padding-left: 4px;
+        margin-left: 10px;
+        overflow: auto;
+    }
+</style>
+
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Sub::Pipe で UNIX pipe みたいな関数適用をする - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Sub::Pipe で UNIX pipe みたいな関数適用をする<a href="http://web.archive.org/web/20161018163824/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/hacker/17.html"><img src="http://web.archive.org/web/20161018163824im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/hacker/17.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>こんにちは、s?fujiwara です。</p>
+
+<p>本日は UNIX pipe みたいな関数適用ができる <a href="http://web.archive.org/web/20161018163824/http://search.cpan.org/~fujiwara/Sub-Pipe-0.03/lib/Sub/Pipe.pm">Sub::Pipe</a> をご紹介します。</p>
+</div>
+<div class="section">
+<h3> おことわり</h3>
+<p>現在 CPAN に上がっている Sub::Pipe のコードは dankogai さんから寄贈していただいたものですが、元になった実装は <a href="http://web.archive.org/web/20161018163824/http://d.hatena.ne.jp/sfujiwara/20090521/1242921474">自分の blog で書いたもの</a> なので、ここでは自分のモジュールとして紹介させていただきます。</p>
+</div>
+<div class="section">
+<h3> これはなに?</h3>
+<p>Sub::Pipe は非常に小粒なモジュールです。どれぐらい小粒かというと、本質部分は</p>
+<pre>
+package Sub::Pipe;
+use overload '|' =&gt; sub { $_[0]-&gt;( $_[1] ) };
+sub joint(&amp;) { bless $_[0], __PACKAGE__ };
+</pre>
+<p>この 3行のみ、というぐらい小粒なわけですが、なかなかおもしろいモジュールじゃないかと思っています。</p>
+
+<p>Sub::Pipe を使うと、UNIX pipe のような記法で適用する関数を作成できます。</p>
+<pre>
+use Sub::Pipe;
+sub trim {
+    joint {
+        my $str = shift;
+        $str =~ s/^\s+|\s+$//g;
+        return $str;
+    }
+}
+$foo = " foo " | trim;   # is $foo, "foo"
+</pre>
+<p>これは文字列の前後の空白を除去する trim という関数を用意した例です。</p>
+<p>joint は | で適用できるオブジェクトを返すので、変数に代入して使ったり</p>
+<pre>
+$uc = joint { uc $_[0] };
+"foo" | $uc;   # FOO
+</pre>
+<p>直接 joint { CODE } を適用することも可能です。</p>
+<pre>
+"foo" | joint { uc $_[0] }; # FOO
+</pre>
+
+<p>引数を取りたい場合はこう書きます。</p>
+<pre>
+sub replace {
+    my ($regex, $to) = @_;
+    joint {
+        my $str = shift;
+        $str =~ s/$regex/$to/g;
+        return $str;
+    };
+}
+
+"abcdefg" | replace("abc", "ABC");  # ABCdefg
+</pre>
+</div>
+<div class="section">
+<h3> なにがうれしいの?</h3>
+<p>さて、これでは単に変態的な記法が追加されただけではないか、という疑問はごもっともです。</p>
+
+<p>これはもともと <a href="http://web.archive.org/web/20161018163824/http://search.cpan.org/~kazuho/Text-MicroTemplate-0.10/">Text::MicroTemplate</a> (T::MT)というテンプレートエンジン内で、<a href="http://web.archive.org/web/20161018163824/http://search.cpan.org/~abw/Template-Toolkit-2.22/">Template-Toolkit</a> (TT) のようなフィルタ記法が使いたくて考案したものでした。</p>
+
+<p>TT では</p>
+<pre>
+[% value | repalce("foo", "bar") | uri %]
+</pre>
+<p>のように、値の後ろに | でフィルタを並べて適用、という記法が使えます。</p>
+<p>この記法は表示される対象である値が先頭に書かれているのが読みやすい。</p>
+
+<p>T::MT は Perl がそのまま書けるのでとても柔軟で高速なのですが、以下のように書かざるを得ないため、対象の値が何なのかが一見して分かりにくいなあと思ったのでした。</p>
+<pre>
+&lt;?= uri( replace( $value, "foo", "bar" ) ) ?&gt;
+</pre>
+<p>ここで Sub::Pipe を使えば</p>
+<pre>
+&lt;?= $value | replace("foo", "bar") | uri ?&gt;
+</pre>
+<p>のようにできますよね。</p>
+</div>
+<div class="section">
+<h3> 仕組み</h3>
+<p>さて、Sub::Pipe はどのような仕組みでこの (変な) 記法を実装しているのかといいますと、『演算子オーバーロード』を使っています。詳しくは perldoc overload をご参照ください。(日本語訳は 5.6.1 のものですが <a href="http://web.archive.org/web/20161018163824/http://perldoc.jp/docs/perl/5.6.1/overload.pod">こちらにあります</a>)</p>
+
+<p>ソースコードをみていきましょう。</p>
+<pre>
+sub joint(&amp;) { bless $_[0], __PACKAGE__ };
+</pre>
+<p>まず joint はコードリファレンスを引数に取り、それを bless した値を返すことで、関数の挙動をオブジェクト化します。</p>
+<p>オブジェクトを作る場合はハッシュリファレンスを bless することが多いと思いますが、リファレンスならなんでも bless 可能なんですね。</p>
+
+<p>そして演算子オーバーロードを使うと、あるパッケージのオブジェクトに対して、ある演算子が適用された場合の挙動を変更することができます。</p>
+<pre>
+use overload '|' =&gt; sub { $_[0]-&gt;( $_[1] ) };
+</pre>
+<p>ここでは通常 bit 演算の OR に使われる二項演算子 | を overload しているので、Sub::Pipe のオブジェクトに対して | が実行されると、sub { $_[0]-&gt;( $_[1] ) } が呼び出されます。</p>
+<p>そこで、第1引数 $_[0] (これは bless されたコードリファレンスであるオブジェクト自身) に対して、第2引数 $_[1] (これは | の演算が適用される値です) を引数に与えて実行、という処理をしています。ややこしいですね!</p>
+
+<p>A | B という演算なのに $_[0] が B で $_[1] が A なのはどうしてかというと、オブジェクトメソッドの最初の引数は常にそのパッケージのオブジェクトである必要から、引数の順序が入れ替わっているためです。</p>
+<p>入れ替わっているかどうかは、$_[2] の値で判断できます。真なら入れ替わっていて、偽なら入れ替わっていない、という意味になりますがここも詳しくは perldoc overload の "Calling Conventions for Binary Operations" の項をご覧ください。</p>
+<p># Sub::Pipe の場合はオブジェクト同士を | で演算することはありえないため、常に入れ替わっているものとみなして扱っています</p>
+</div>
+<div class="section">
+<h3> 他に overload を使っているモジュールは?</h3>
+<p>例えば DateTime がそうです。日付を &lt; や &gt; で比較したり、+ で DateTime::Duration を足したりできるのは overload のおかげです。</p>
+<p>他にも、オブジェクトを足したり引いたり比較したりできるモジュールは多々ありますよね。</p>
+</div>
+<div class="section">
+<h3> まとめ</h3>
+<p>以上 UNIX pipe のような記法で関数適用を可能にする Sub::Pipe の紹介でした。</p>
+<p>正直、普通のスクリプト内で使うのは止めたほうがいいでしょうが、テンプレート内の DSL としてはなかなか使えるんじゃないかと思っています。</p>
+
+<p>明日は myfinder さんです。お楽しみに!</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="http://web.archive.org/web/20161018163824/http://perl-users.jp/articles/advent-calendar/2009/hacker/17.html">Wed, 16 Dec 2009 15:00:00 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018163824/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20161018163824/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20161018163824im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018163824/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20161018163824/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20161018163824im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018163824/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20161018163824/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20161018163824im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018163824/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20161018163824/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20161018163824im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018163824/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20161018163824/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20161018163824im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://web.archive.org/web/20161018163824/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018163824/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018163824/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018163824/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018163824/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018163824/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://web.archive.org/web/20161018163824/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<!--
+     FILE ARCHIVED ON 16:38:24 Oct 18, 2016 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 15:07:40 Jan 23, 2020.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+-->
+<!--
+playback timings (ms):
+  captures_list: 1867.397
+  esindex: 0.05
+  RedisCDXSource: 413.835
+  load_resource: 700.895
+  PetaboxLoader3.datanode: 1509.149 (4)
+  CDXLines.iter: 13.891 (3)
+  PetaboxLoader3.resolve: 624.726 (2)
+  LoadShardBlock: 1436.414 (3)
+  exclusion.robots: 0.128
+  exclusion.robots.policy: 0.118
+-->

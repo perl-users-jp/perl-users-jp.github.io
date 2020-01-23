@@ -1,0 +1,533 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app23.us.archive.org';v.server_ms=1907;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
+<script type="text/javascript">
+WB_wombat_Init("http://web.archive.org/web/", "20161018164414", "perl-users.jp");
+</script>
+<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
+<script type="text/javascript">
+__wbhack.init('http://web.archive.org/web');
+</script>
+<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
+<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
+<!-- End Wayback Rewrite JS Include -->
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018164414cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>BackPANで失せ物を探す - JPerl Advent Calendar 2009
+</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20161018164414/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018164414cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
+<meta http-equiv="Content-Script-Type" content="text/javascript"/>
+<script type="text/javascript" src="http://web.archive.org/web/20161018164414js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018164414js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018164414js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+<script type="text/javascript">
+    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
+</script>
+
+<style type="text/css">
+    pre {
+        border-left: 2px solid #cccccc;
+        padding-left: 4px;
+        margin-left: 10px;
+        overflow: auto;
+    }
+</style>
+
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">BackPANで失せ物を探す - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">BackPANで失せ物を探す<a href="http://web.archive.org/web/20161018164414/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/casual/22.html"><img src="http://web.archive.org/web/20161018164414im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/casual/22.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <p>今年も残るところ10日をきりました。皆様如何お過ごしでしょうか。今日は<strong>Acme話を自重する</strong>つもりのmakamaka_at_donzokoでございます。</p>
+
+<p>さて、年の瀬ともなりますと大掃除なんかになりまして、無くしたと思っていたものが見つかったとか、あると思っていたものが見当たらない、なんてことがよくあります。見つかる方は良いのですが、気がついたら無くなってた、というのは困ります。</p>
+
+<p>という強引な前振りですが、search.cpan.orgでモジュールを探していて、「あれ？　確か前はあったはずなのに……」なんて経験、ありませんか？</p>
+
+<p>そう、例えば、今年の初めにはCPANにあったAcme::BabyEaterがなくなってたり、2003年には確かにあったAcme::ManekiNekoが見当たらなくなったり（と思ったら後にひょっこり帰ってきましたが）という具合にですね。</p>
+
+<pre><code>% cpan Acme::BabyEater
+(中略)
+Warning: Cannot install Acme::BabyEater, don't know what it is.
+Try the command
+
+    i /Acme::BabyEater/
+</code></pre>
+
+<p>むむむ……　search.cpan.orgで調べるてみても<a href="http://web.archive.org/web/20161018164414/http://search.cpan.org/dist/Acme-BabyEater/">やっぱり見あたらない</a>。</p>
+
+<p>ディストリビューションがまるまる無くなってしまうのも困りものですが、そうでなくても結構やっかいなケースがあります。</p>
+
+<p>例えば、あるモジュールのバージョンが上がったところ、インストールできなくなったり、今まで動いていたものとの互換性がなくなったり（すいません私、前科あります）ということが、ままあります。</p>
+
+<p>特に古いバージョンのPerl（5.005系や5.6系）で動いていたモジュールがある時点で対応しなくなった上に、以前のモジュールがCPANから削除されていたりすると、まあ大変！（え？　Perlのバージョン上げろと？　色々大人の事情でダメな場合がありますので……）</p>
+
+<p>このように、あなたがお探しのモジュールがCPANから消えてしまった時は、BackPANに出かけましょう！</p>
+
+<hr/>
+
+<p><a href="http://web.archive.org/web/20161018164414/http://backpan.perl.org/">BackPAN</a> "A Complete History of CPAN"は、PAUSE(Perl Authors Upload Server)にアップされたファイルを全て保存しています。そしてPAUSEからモジュールを削除しようとも、BackPANからは削除されません。ですので、BackPANはCPANの「歴史」であり、もはや顧みられなくなった多くのモジュールが静かに（？）眠っているのです。BackPANをCPAN墓場と呼ぶ人もいます。<a href="http://web.archive.org/web/20161018164414/http://www.slideshare.net/brian_d_foy/backpan-archeology-presentation" title="the bone yard of CPAN">例1</a> 
+<a href="http://web.archive.org/web/20161018164414/http://search.cpan.org/dist/Module-ThirdParty/" title="the BackPAN graveyard">例2</a></p>
+
+<p>さて、BackPANに行けば、なんでもそろっています。行ってみましょう。</p>
+
+<p><a href="http://web.archive.org/web/20161018164414/http://backpan.perl.org/authors/id/">authors/id/....</a>……CPAN ID別にディレクトリが分かれているので、ちょっとモジュールを探すのが面倒そうですね。</p>
+
+<p>そこで<a href="http://web.archive.org/web/20161018164414/http://search.cpan.org/dist/Parse-BACKPAN-Packages/">Parse::BACKPAN::Packages</a>の登場です。このモジュールは、BackPANのインデックスデータ<a href="http://web.archive.org/web/20161018164414/http://www.astray.com/tmp/backpan.txt.gz">http://www.astray.com/tmp/backpan.txt.gz</a>を利用して、ディストリビューション名や作者からBackPAN上のアドレスを教えてくれます。</p>
+
+<pre><code>#!/usr/bin/perl
+
+use strict;
+use warnings;
+use Parse::BACKPAN::Packages;
+
+my $p = Parse::BACKPAN::Packages-&gt;new();
+
+my $distname = $ARGV[0] or die "Distribution name?";
+my $check_version;
+
+if ( $distname =~ /^(.+?)-([_.\d]+)$/ ) { # バージョンまで指定
+    $check_version = $2;
+    $distname = $1;
+}
+else { # P::B::PはFoo-Bar形式で受け付けるので、Foo::Bar形式にも対応
+    $distname =~ s/::/-/g;
+}
+
+# リストは日付の古い順
+my @dists = $p-&gt;distributions( $distname ) or die "Can't find $distname";
+my $file;
+
+if ( defined $check_version ) {
+    for my $dist ( @dists ) {
+        if ( $dist-&gt;version == $check_version ) {
+            $file = $p-&gt;file( $dist-&gt;prefix );
+            last;
+        }
+    }
+}
+else {
+    $file = $p-&gt;file( $dists[ -1 ]-&gt;prefix );
+}
+
+die "$distname was found, but not version $check_version." unless $file;
+
+print $file-&gt;url, "\n";
+</code></pre>
+
+<p>backpan_url.plという名前をつけて</p>
+
+<pre><code>% perl backpan_url.pl Acme::BabyEater
+</code></pre>
+
+<p>とやってみましょう。</p>
+
+<p><code>http://backpan.cpan.org/authors/id/Z/ZO/ZOFFIX/Acme-BabyEater-0.04.tar.gz</code>が出力されました（<a href="http://web.archive.org/web/20161018164414/http://backpan.cpan.org/">http://backpan.cpan.org/</a>ですが問題ありません）。</p>
+
+<p>最初はインデックスデータを取りに行くため、初期化にかなり時間がかかるかもしれませんが、一度データを取得すると、1時間キャッシュされます。</p>
+
+<p>上記のサンプルでは該当するディストリビューションの最新版を返しますが、<code>Acme-Manekineko-0.01</code>のような形式にすれば、バージョン0.01を探します。</p>
+
+<hr/>
+
+<p>さて、これでモジュールは簡単に手に入るようになりました。後はファイルを展開して<code>cpan .</code>とでもすれば良いでしょう。でもどうせなら、コマンド一発でインストールしたいです。</p>
+
+<p>cpanコマンドからBackPANサイトにアクセスしてうまいことやってくれないかなあ、と考えたのですが、これはなかなか難しいようです（ローカルに自分の用のCPANサイトを作る方法がありますが、そこまで大掛かりにしたくない）。色々検討した結果、<a href="http://web.archive.org/web/20161018164414/http://search.cpan.org/dist/CPAN-Inject/">CPAN::Inject</a>を使うことにします。</p>
+
+<pre><code>use strict;
+use warnings;
+use CPAN::Shell;
+use CPAN::Inject;
+
+my $cpan_inject = CPAN::Inject-&gt;new(
+    sources =&gt; "$CPAN_HOME/sources",
+    author  =&gt; 'MAKAMAKA',
+);
+
+my $install_path = $cpan_inject-&gt;add( file =&gt; 'path/Not-In-CPAN-1.00.tar.gz' );
+</code></pre>
+
+<p>こうすると<code>$CPAN_HOME/sources</code>下の適切な位置（例えば /home/makamaka/.cpan/sources/authors/id/M/MA/MAKAMAKA）にNot-In-CPAN-1.00.tar.gzをコピーしてCHECKSUMを生成してくれます（<code>new</code>の代わりに<code>from_cpan_config</code>を使えばCPAN::Configから自動的に<code>$CPAN_HOME/sources</code>を設定）。</p>
+
+<p>ここまでくると、後はCPAN::Shellを使ってinstallも簡単。</p>
+
+<pre><code>CPAN::Shell-&gt;install( $install_path );
+</code></pre>
+
+<p>うまくいけばいつものようにインストールされます。先に載せたbackpan_url.plでURLを取得、ファイルをGETして上記のサンプルコードで適宜設定してしまえば、一連の作業を自動化できますね。</p>
+
+<p>というわけで、上記の処理を簡単に行うために<a href="http://web.archive.org/web/20161018164414/http://github.com/makamaka/perl-backpan-downloader">BackPAN::Downloader</a>を作ってみました。</p>
+
+<pre><code>package BackPAN::Downloader;
+
+use Mouse;
+use Parse::BACKPAN::Packages;
+use CPAN::Inject;
+use LWP::UserAgent;
+use CPAN::Debug;
+use CPAN::Shell;
+use Path::Class;
+use Try::Tiny;
+use Cwd;
+use Data::Dumper;
+
+our $VERSION = '0.01';
+
+has distfile =&gt; ( is =&gt; 'rw', isa =&gt; 'Parse::BACKPAN::Packages::Distribution|Undef' );
+
+has filedata =&gt; ( is =&gt; 'rw', isa =&gt; 'Parse::BACKPAN::Packages::File|Undef' );
+
+has dist_is_found =&gt; ( is =&gt; 'rw', isa =&gt; 'Bool' );
+
+has temp_dir =&gt; ( is =&gt; 'rw', isa =&gt; 'Str', default =&gt; './' );
+
+has ua =&gt; ( is =&gt; 'rw', isa =&gt; 'LWP::UserAgent', default =&gt; sub { LWP::UserAgent-&gt;new     } );
+
+has error =&gt; ( is =&gt; 'rw', isa =&gt; 'Str|Undef' );
+
+no Mouse;
+
+
+sub reset {
+    my ( $self ) = @_;
+    $self-&gt;dist_is_found( 0 );
+    $self-&gt;distfile( undef );
+    $self-&gt;filedata( undef );
+    $self-&gt;error( undef );
+}
+
+
+sub lookup {
+    my ( $self, $distname ) = @_;
+    my $check_version;
+
+    $self-&gt;reset;
+
+    if ( $distname =~ /^(.+?)-([_.\d]+)$/ ) { # バージョン指定なので正式名称
+        $check_version = $2;
+        $distname = $1;
+    }
+    else {
+        $distname =~ s/::/-/g; # Foo-BarだけでなくFoo::Barでも検索できるように
+    }
+
+    my $p = Parse::BACKPAN::Packages-&gt;new();
+
+    # リストは日付の古い順
+    my @dists = $p-&gt;distributions( $distname );
+    my $found;
+
+    if ( defined $check_version ) {
+        for my $dist ( @dists ) {
+            if ( $dist-&gt;version == $check_version ) {
+                $found = $dist;
+                last;
+            }
+        }
+    }
+    else {
+        $found = $dists[ -1 ] if ( @dists );
+    }
+
+    if ( $found ) {
+        $self-&gt;distfile( $found );
+        $self-&gt;filedata( $p-&gt;file( $found-&gt;prefix ) );
+        $self-&gt;dist_is_found( 1 );
+    }
+    else {
+        $self-&gt;error( "Can't find $distname." );
+    }
+
+    return $found;
+}
+
+
+sub download {
+    my ( $self ) = @_;
+
+    unless ( $self-&gt;dist_is_found ) {
+        $self-&gt;error('donwload() must be called after the dist file was found.');
+        return;
+    }
+
+    my $url  = $self-&gt;filedata-&gt;url;
+    my $file = Path::Class::File-&gt;new( $self-&gt;temp_dir, $self-&gt;distfile-&gt;filename );
+
+    return 1 if ( -s $file );
+
+    my $ua   = $self-&gt;ua;
+    my $res  = $ua-&gt;get( $url );
+
+    if ( $res-&gt;is_success ) {
+        my $fh = $file-&gt;openw();
+        unless ( $fh ) {
+            $self-&gt;error( "Can't open file." );
+            return;
+        }
+        print $fh $res-&gt;content;
+    }
+    else {
+        $self-&gt;error( "Can't download, status line is " . $res-&gt;status_line );
+        return;
+    }
+}
+
+
+sub install {
+    my ( $self, %opts ) = @_;
+
+    unless ( $self-&gt;dist_is_found ) {
+        $self-&gt;error('donwload() must be called after the dist file was found.');
+        return;
+    }
+
+    my $distfile = $self-&gt;distfile;
+    my $cpan_inject = CPAN::Inject-&gt;from_cpan_config( author =&gt; $distfile-&gt;cpanid );
+
+    my $installed;
+    my $file = Path::Class::File-&gt;new( $self-&gt;temp_dir, $distfile-&gt;filename );
+    my $cwd  = getcwd;
+
+    try {
+        my $inst_path = $cpan_inject-&gt;add( file =&gt; $file );
+        CPAN::Shell-&gt;install( $inst_path );
+        $installed = 1;
+    } catch {
+        $self-&gt;error( @_ );
+    };
+
+    chdir( $cwd );
+
+    if ( $installed and $opts{ delete_saved_file } ) {
+        unlink($file) or Carp::carp("Can't delete saved file $file. $!");
+    }
+
+    return $installed;
+}
+
+#------- backpan_inst.pl
+package main;
+
+use strict;
+use warnings;
+
+@ARGV or die "Distribution name?";
+
+my $backpan  = BackPAN::Downloader-&gt;new( temp_dir =&gt; './tmp' );
+
+for my $distname ( @ARGV ) {
+
+    $backpan-&gt;reset;
+
+    unless ( $backpan-&gt;lookup( $distname ) ) {
+        printf( "%s was not found.\n", $distname );
+        next;
+    }
+
+    printf( "Found %s in %s\n", $distname, $backpan-&gt;filedata-&gt;url );
+
+    $backpan-&gt;download() or die sprintf("Can't download. (%s)", $backpan-&gt;error);
+    $backpan-&gt;install( delete_saved_file =&gt; 1 )  or die "Can't install, " . $backpan-&gt;error;
+}
+</code></pre>
+
+<p>さあ、試してみましょう。ダウンロードしたファイルを一時的に保存するtmpディレクトリを作成して</p>
+
+<pre><code>% perl backpan_inst.pl Acme::BabyEater
+</code></pre>
+
+<p>例によってデータ取得に時間がかかるかもしれませんが、</p>
+
+<pre><code>Found Acme::BabyEater in http://backpan.cpan.org/authors/id/Z/ZO/ZOFFIX/Acme-BabyEater-0.04.tar.gz
+Going to read '/home/makamaka/.cpan/Metadata'
+  Database was generated on Sat, 19 Dec 2009 01:30:46 GMT
+CPAN: YAML loaded ok (v0.68)
+Running make for Z/ZO/ZOFFIX/Acme-BabyEater-0.04.tar.gz
+Checksum for /home/makamaka/.cpan/sources/authors/id/Z/ZO/ZOFFIX/Acme-BabyEater-0.04.tar.gz ok
+(..skip..)
+  ZOFFIX/Acme-BabyEater-0.04.tar.gz
+  ./Build install  -- OK
+</code></pre>
+
+<p>うまくいきました。上のサンプルは<a href="http://web.archive.org/web/20161018164414/http://github.com/makamaka/perl-backpan-downloader">http://github.com/makamaka/perl-backpan-downloader</a>にあります。</p>
+
+<p>そうそう、副次効果がありました。Acme::Tinyのように、<code>cpan</code>コマンドからインストールするためにはCPAN IDとバージョンを調べて</p>
+
+<pre><code>cpan DMUEY/Acme-Tiny-0.4.tar.gz
+</code></pre>
+
+<p>しないといけないディストリビューションでも、</p>
+
+<pre><code>% perl backpan_inst.pl Acme::Tiny
+</code></pre>
+
+<p>で、一発インストール可能です。素晴らしい！　これでインデックス化されないAcme7ディストリも怖くない！</p>
+
+<hr/>
+
+<p>それから、BackPANの他にも、最近はschwern氏によってCPANの歴史をgithubに移そうという試みがされています（<a href="http://web.archive.org/web/20161018164414/http://github.com/gitpan/">gitpan</a>）。</p>
+
+<p><br/><br/>さて、それでは最後に、冒頭で取り上げたAcme::ManekiNekoについてのちょっといい話をいたしましょう。</p>
+
+<p>2003年の後、作者はこのモジュールをCPANから削除します。ところが、このモジュールを愛する人たちがいることを知ります。しかし、時既に遅し。作者はコードを失っていました。</p>
+
+<p>おお、なんてことでしょう！</p>
+
+<p>作者は自分を責めます。</p>
+
+<p>しかし！</p>
+
+<p>そう、BackPANがあったのです！</p>
+
+<p>こうして2008年に再びAcme::ManekiNekoはCPANに復活するのでありました。クリスマスの季節に相応しい素敵な物語ですね。</p>
+
+<p>明日はka2uさんです。ではでは～</p>
+
+<hr/>
+
+<p>参考：</p>
+
+<p>BackPANについて</p>
+
+<ol>
+<li><a href="http://web.archive.org/web/20161018164414/http://www.slideshare.net/brian_d_foy/indexing-backpan">Indexing Backpan</a></li>
+<li><a href="http://web.archive.org/web/20161018164414/http://www.slideshare.net/brian_d_foy/backpan-archeology-presentation">Backpan  Archeology</a></li>
+<li><a href="http://web.archive.org/web/20161018164414/http://www.slideshare.net/brian_d_foy/making-my-own-cpan">Making Your Own CPAN</a></li>
+<li><a href="http://web.archive.org/web/20161018164414/http://backpan.cpan.org/authors/id/H/HF/HFB/grok-cpan.pdf">Grokking The CPAN</a></li>
+</ol>
+
+<p>ローカルCPAN関連（DarkPAN面白そう）</p>
+
+<ol>
+<li><a href="http://web.archive.org/web/20161018164414/http://www.naney.org/diki/d/2006-02-b.html#2006-02-12-CPAN-Mini-Inject">野良パッケージと依存PerlモジュールのインストールセットをCPAN::Mini::Injectで</a></li>
+<li><a href="http://web.archive.org/web/20161018164414/http://log.perl.org/2005/09/create_your_own.html">Create your own "BackPAN"</a></li>
+<li><a href="http://web.archive.org/web/20161018164414/http://www.perlmonks.org/?node_id=722831">A preview of DPAN</a></li>
+<li><a href="http://web.archive.org/web/20161018164414/http://use.perl.org/~brian_d_foy/journal/37375">Cataloging BackPAN: MiniCPAN done in 9 hours</a></li>
+</ol>
+
+<p>gitpanについて</p>
+
+<ol>
+<li><a href="http://web.archive.org/web/20161018164414/http://use.perl.org/~schwern/journal/39972">gitPAN</a></li>
+</ol>
+
+<p>Acme::ManekiNekoについて</p>
+
+<ol>
+<li><a href="http://web.archive.org/web/20161018164414/http://search.cpan.org/~gmccar/Acme-ManekiNeko-0.02/ManekiNeko.pm#HISTORY">Acme::ManekiNeko/HISTORY</a></li>
+<li><a href="http://web.archive.org/web/20161018164414/http://www.runme.org/project/+AcmeManekiNeko/">Acme::ManekiNekoの画像</a></li>
+<li><a href="http://web.archive.org/web/20161018164414/http://www.hyuki.com/yukiwiki/wiki.cgi?Acme%3A%3AManekiNeko">招き猫モジュール</a></li>
+<li><a href="http://web.archive.org/web/20161018164414/http://www.donzoko.net/doc/perlmod/subarasiki.html">素晴らしきPerlモジュールの世界</a></li>
+</ol>
+
+<p>その他</p>
+
+<ol>
+<li><a href="http://web.archive.org/web/20161018164414/http://kawa.at.webry.info/200911/article_8.html">Mac OS X 10.6（Snow Leopard）にPerl 5.005をインストールする</a>
+↑ここでmiyagawaさんがコメントしている<a href="http://web.archive.org/web/20161018164414/http://cp5.5.3an.barnyard.co.uk/">http://cp5.5.3an.barnyard.co.uk/</a>、<a href="http://web.archive.org/web/20161018164414/http://cp5.6.2an.barnyard.co.uk/">http://cp5.6.2an.barnyard.co.uk/</a>などは初めて知りました。</li>
+</ol>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="http://web.archive.org/web/20161018164414/http://perl-users.jp/articles/advent-calendar/2009/casual/22.html">Mon, 21 Dec 2009 23:00:00 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018164414/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20161018164414/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20161018164414im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018164414/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20161018164414/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20161018164414im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018164414/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20161018164414/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20161018164414im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018164414/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20161018164414/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20161018164414im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018164414/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20161018164414/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20161018164414im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://web.archive.org/web/20161018164414/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018164414/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018164414/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018164414/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018164414/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018164414/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://web.archive.org/web/20161018164414/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<!--
+     FILE ARCHIVED ON 16:44:14 Oct 18, 2016 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 15:03:09 Jan 23, 2020.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+-->
+<!--
+playback timings (ms):
+  load_resource: 304.441
+  exclusion.robots.policy: 0.26
+  esindex: 0.026
+  RedisCDXSource: 332.293
+  PetaboxLoader3.datanode: 1421.608 (4)
+  CDXLines.iter: 16.305 (3)
+  exclusion.robots: 0.282
+  captures_list: 1582.078
+  PetaboxLoader3.resolve: 84.848
+  LoadShardBlock: 1219.132 (3)
+-->

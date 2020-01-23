@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app23.us.archive.org';v.server_ms=1760;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
+<script type="text/javascript">
+WB_wombat_Init("http://web.archive.org/web/", "20190523213301", "perl-users.jp");
+</script>
+<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
+<script type="text/javascript">
+__wbhack.init('http://web.archive.org/web');
+</script>
+<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
+<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
+<!-- End Wayback Rewrite JS Include -->
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20190523213301cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Test::Declareで気持ちよくテストする - JPerl Advent Calendar 2009
+</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20190523213301/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20190523213301cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
+<meta http-equiv="Content-Script-Type" content="text/javascript"/>
+<script type="text/javascript" src="http://web.archive.org/web/20190523213301js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20190523213301js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20190523213301js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+<script type="text/javascript">
+    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
+</script>
+
+<style type="text/css">
+    pre {
+        border-left: 2px solid #cccccc;
+        padding-left: 4px;
+        margin-left: 10px;
+        overflow: auto;
+    }
+</style>
+
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Test::Declareで気持ちよくテストする - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Test::Declareで気持ちよくテストする<a href="http://web.archive.org/web/20190523213301/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/hacker/03.html"><img src="http://web.archive.org/web/20190523213301im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/hacker/03.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>こんにちわ！</p>
+<p><a href="http://web.archive.org/web/20190523213301/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a>も同時進行中のnekokakです！</p>
+
+<p>３日目は私が作ったTest::Declareを紹介したいと思います。</p>
+</div>
+<div class="section">
+<h3> みんなテストをどうかいてる？</h3>
+
+<p>みなさんはテストをどのように書いてますか？</p>
+<p>Test::Moreですかね？</p>
+<p>Test::Baseですかね？</p>
+<p>Test::Classですかね？</p>
+
+<p>perlには色々なtest用のフレームワークが存在していますが、皆さんはそれで満足していますか？</p>
+<p>皆さんが書いたテストコードはメンテナンスしやすいですか？</p>
+</div>
+<div class="section">
+<h3> Test::Declare</h3>
+
+<p>私も先ほど例にあげたモジュールを使ってテストを書いてきましたがどれもしっくりきませんでした。</p>
+<p>そこで作ったのがTest::Declareです。</p>
+
+<p>Test::Declareには，以下の特徴があります。</p>
+
+<ul>
+<li> テストコードをDSL風に（宣言的に）書く事を重点に置いている</li>
+<li> それによりテストコード自体の見やすさを向上させることができる</li>
+<li> 宣言的にテストを書く事により，一体なにを目的としたテストなのかがわかりやすくなる</li>
+<li> Test::More，Test::Deep，Test::Exception，Test::Warn，Test::Outputなど良く使う関数をまとめてexportしている</li>
+<li> いちいちtestのplan数をかぞえなくてもblocksという関数をつかえば自動でテスト数を数えてくれる
+<ul>
+<li> 最近だとdone_testingがあるからいらないですが</li>
+</ul>
+</li>
+</ul>
+
+<p>でしょうか。</p>
+
+<p>では実際に使ってみましょう。</p>
+
+<pre>
+use strict;
+use warnings;
+use Test::Declare;
+use MyAPP;
+
+plan tests =&gt; blocks;
+
+describe 'MyAPP test' =&gt; run {
+    my $obj;
+    init { $obj = MyAPP-&gt;new }
+    test 'foo isa MyAPP::Foo' =&gt; run {
+        isa_ok foo, 'MyAPP::Foo';
+    };
+    cleanup { $obj = undef };
+};
+</pre>
+
+<p>Test::Declareがexportする関数の説明をします</p>
+
+<ul>
+<li> blocks
+<ul>
+<li> 実行されるテストコード内に存在するテストメソッドの数をかぞえてる</li>
+</ul>
+</li>
+<li> describe
+<ul>
+<li> テストの大枠を設定</li>
+<li> とくになにをするでもなく見た目を整える為だけにある</li>
+</ul>
+</li>
+<li> init
+<ul>
+<li> 名前の通り前処理を行う</li>
+<li> databaseをsetupしたり</li>
+</ul>
+</li>
+<li> test
+<ul>
+<li> テスト実行フェーズ</li>
+</ul>
+</li>
+<li> cleanup
+<ul>
+<li> 後処理</li>
+<li> databaseをdropしたり</li>
+</ul>
+</li>
+</ul>
+
+<p>Test::Declreではこのような大枠を提供しているので、それに合わせて</p>
+<p>テストコードを書くだけです。</p>
+
+<p>Test::Declareをつかえばテストを宣言的に書く事ができるので、</p>
+<p>このtestブロックではなんのテストをしているのかが宣言でき、</p>
+<p>より見通しがよくなります。</p>
+
+<p>私が作るほとんどのモジュールではこのTest::Declareをつかって開発しています。</p>
+</div>
+<div class="section">
+<h3> まとめ</h3>
+
+<p>今回は Test::Declare について、解説しました。</p>
+
+<p>このモジュールは自分が気持ちよくテストをかけて、</p>
+<p>さらにメンテナンスしやすくなるように考えて作ったモジュールです。</p>
+
+<p>Test::Declareをつかってあなたがテストを書きやすくなったりメンテナンスしやすくなるとうれしいです。</p>
+
+<p>というわけで今回はここまで。明日は新婚の id:typester さんです。</p>
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="http://web.archive.org/web/20190523213301/http://perl-users.jp/articles/advent-calendar/2009/hacker/03.html">Thu, 03 Dec 2009 05:15:15 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20190523213301/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20190523213301/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20190523213301im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20190523213301/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20190523213301/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20190523213301im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20190523213301/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20190523213301/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20190523213301im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20190523213301/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20190523213301/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20190523213301im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20190523213301/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20190523213301/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20190523213301im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://web.archive.org/web/20190523213301/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20190523213301/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20190523213301/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20190523213301/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20190523213301/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20190523213301/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://web.archive.org/web/20190523213301/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<!--
+     FILE ARCHIVED ON 21:33:01 May 23, 2019 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 15:05:48 Jan 23, 2020.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+-->
+<!--
+playback timings (ms):
+  load_resource: 1088.354
+  exclusion.robots.policy: 0.264
+  esindex: 0.018
+  RedisCDXSource: 301.862
+  PetaboxLoader3.datanode: 912.479 (5)
+  CDXLines.iter: 19.456 (3)
+  exclusion.robots: 0.285
+  captures_list: 639.845
+  PetaboxLoader3.resolve: 475.561 (2)
+  LoadShardBlock: 313.278 (3)
+-->

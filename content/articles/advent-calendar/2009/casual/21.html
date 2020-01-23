@@ -1,0 +1,537 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app58.us.archive.org';v.server_ms=2851;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
+<script type="text/javascript">
+WB_wombat_Init("http://web.archive.org/web/", "20170108080327", "perl-users.jp:80");
+</script>
+<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
+<script type="text/javascript">
+__wbhack.init('http://web.archive.org/web');
+</script>
+<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
+<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
+<!-- End Wayback Rewrite JS Include -->
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20170108080327cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Coroを使って並行処理 - JPerl Advent Calendar 2009
+</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20170108080327/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20170108080327cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
+<meta http-equiv="Content-Script-Type" content="text/javascript"/>
+<script type="text/javascript" src="http://web.archive.org/web/20170108080327js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20170108080327js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20170108080327js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+<script type="text/javascript">
+    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
+</script>
+
+<style type="text/css">
+    pre {
+        border-left: 2px solid #cccccc;
+        padding-left: 4px;
+        margin-left: 10px;
+        overflow: auto;
+    }
+</style>
+
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Coroを使って並行処理 - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Coroを使って並行処理<a href="http://web.archive.org/web/20170108080327/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/casual/21.html"><img src="http://web.archive.org/web/20170108080327im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/casual/21.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>こんにちわ。<a href="http://web.archive.org/web/20170108080327/http://groups.google.co.jp/group/sheaf-category-and-topos">『層・圏・トポス』読者の会</a>からの刺客、<a href="http://web.archive.org/web/20170108080327/http://d.hatena.ne.jp/hiratara/">id:hiratara</a>です。</p>
+
+<p>「並行処理」って言葉はなんだか魅力的ですよね！ そこで、今日は<a href="http://web.archive.org/web/20170108080327/http://search.cpan.org/~mlehmann/Coro/">Coro</a>を使った並行処理を紹介します。なお、<a href="http://web.archive.org/web/20170108080327/http://search.cpan.org/~mlehmann/Coro/">Coro</a>はコアモジュールではありませんので、使ってみたい場合にはCPANからインストールして下さい。</p>
+</div>
+<div class="section">
+<h3>スレッドを作る</h3>
+
+<p>Coroでは、asyncによって新しいスレッドを作ることができます。ただし、asyncでスレッドを作っても、何もしなければ他のスレッドに勝手に処理が移ることはありません。asyncで作成した別のスレッドに制御を移すには、明示的な操作が必要となります。ここではcedeを使って、asyncブロックへ処理を移しましょう。</p>
+
+<pre>
+use strict;
+use warnings;
+use Coro;
+
+async {
+    print "Another thread\n";
+};
+
+print "main thread\n";
+cede;
+print "main thread, again.\n";
+
+__END__
+
+[実行結果]
+main thread
+Another thread
+main thread, again.
+</pre>
+
+<p>cedeを呼んだタイミングでasyncブロックに制御が移り、ブロックを抜けた後にcedeの次の行に制御が戻って来ています。</p>
+</div>
+<div class="section">
+<h3>並行処理させる</h3>
+
+<p>次に、いくつかのスレッドを並行処理をさせてみましょう。Coroでの並行処理は、あるスレッドの待ち時間に他のスレッドが動いてくれる、ってのがミソとなります。ここではCoro::Timer::sleepを使ってその原理を見てみます。</p>
+
+<pre>
+use strict;
+use warnings;
+use Coro;
+use Coro::Timer;
+
+my @coros;
+for my $sec (1 .. 3){
+    push @coros, async {
+        print "wait $sec sec.\n";
+        Coro::Timer::sleep $sec;
+        print "after $sec sec.\n";
+    } ;
+}
+$_-&gt;join for @coros;
+
+__END__
+
+[実行結果]
+wait 1 sec.
+wait 2 sec.
+wait 3 sec.
+after 1 sec.
+after 2 sec.
+after 3 sec.
+</pre>
+
+<p>1秒かかる処理、2秒かかる処理、3秒かかる処理を実行してますので、並行処理でなければ6秒かかるはずです。しかし、Coro::Timer::sleepを使っているため、これらのスレッドは並行動作し、このプログラムは3秒で終了します。</p>
+</div>
+<div class="section">
+<h3>実例: URLのダウンロード</h3>
+<p>sleepするだけでは面白くないので、もう少し具体的な例を見ておきましょう。Coro::LWPを使うと、LWPがCoroを使ってなるべくブロックしないように動くようになります。言い換えると、LWPが、待ち時間になると他のスレッドに処理を移すことで並行動作するようになるということです。</p>
+
+<pre>
+use strict;
+use warnings;
+use Coro;
+use Coro::LWP;
+use LWP::UserAgent;
+
+my @coros;
+for my $url (
+    'http://d.hatena.ne.jp/hiratara/',
+    'http://www.google.co.jp/',
+    'http://www.yahoo.co.jp/',
+){
+    push @coros, async {
+        my $ua = LWP::UserAgent-&gt;new;
+        print "load $url\n";
+        my $res = $ua-&gt;get( $url );
+        print "got $url: ", $res-&gt;title, "\n";
+    };
+}
+$_-&gt;join for @coros;
+
+__END__
+
+[実行結果]
+load http://d.hatena.ne.jp/hiratara/
+load http://www.google.co.jp/
+load http://www.yahoo.co.jp/
+got http://www.google.co.jp/: Google
+got http://www.yahoo.co.jp/: Yahoo! JAPAN
+got http://d.hatena.ne.jp/hiratara/: a geek born in Tomakomai
+</pre>
+
+<p>全てのコンテンツの読み込みが同時にスタートし、並行して読み込みが行われていることがわかると思います。use Coro::LWPの部分をコメントにして動かした場合と結果を比較すると、より並行動作していることがはっきりするでしょう。</p>
+
+<p>なお、非同期でHTTPアクセスを行うモジュールとしては、Coroの作者が作ったAnyEvent::HTTPというモジュールもあり、こちらのほうがよいとされています。ただし、Coro::LWPを使うと、LWPを使ったMechanizeやWeb::Scraperもそのまま動くという利点もありますので、ケースバイケースで選択するのがよいと思います。</p>
+
+</div>
+<div class="section">
+<h3>実行の制御</h3>
+
+<p>Coroのスレッドは、scheduleを呼ぶと眠り、readyで起こされると再び動き始めます。この働きをそのまま利用して実行の順番を調整することもできますが、これは大変です。例えば、以下のコードでは、他のスレッドに勝手にメインスレッドが起こされてしまっており、Doneの出力処理が実行されていません。</p>
+
+<pre>
+async {
+	# The evil thread
+	$Coro::main-&gt;ready;
+};
+
+my $done = $Coro::current;
+
+async {
+    print "Please wait.\n";
+    cede;
+    print "Done\n";
+    $done-&gt;ready;
+};
+
+print "main thread\n";
+schedule;
+print "main thread, again.\n";
+
+__END__
+[実行結果]
+main thread
+Please wait.
+main thread, again.
+</pre>
+
+<p>このような場合、Coroが用意しているロックの機構を利用し、実行の順序を明示的に指示する必要があります。例えば、Signalを使うと、この処理は以下のように書けます。</p>
+
+<pre>
+async {
+	# The evil thread
+	$Coro::main-&gt;ready;
+};
+
+my $done = Coro::Signal-&gt;new;
+
+async {
+    print "Please wait.\n";
+    cede;
+    print "Done\n";
+    $done-&gt;send;
+};
+
+print "main thread\n";
+$done-&gt;wait;
+print "main thread, again.\n";
+
+__END__
+[実行結果]
+main thread
+Please wait.
+Done
+main thread, again.
+</pre>
+
+<p>waitメソッドは、sendが呼ばれるまでブロックします。そして、asyncブロックからsendを送ったタイミングで、メインスレッドのロックが解除されて再び動き出します。</p>
+
+
+<p>また、カウンター付きのロックが必要な場合は、Semaphoreを使います。Signalのwaitの代わりに、downを使ってブロックさせることができます。downは文字通りカウンタの値を1減らすメソッドですが、カウンタが0以下の時はブロックして正の値になるのを待ちます。そして、ブロックしているSemaphoreを起こすにはupを呼びます。</p>
+
+
+<p>以下の例では負(正確には0以下)の値のセマフォを作り、3つのプロセスが全て終了するのを待っています。</p>
+
+<pre>
+my $num = 3;
+my $semaphore = Coro::Semaphore-&gt;new( 1 - $num );
+
+for my $i ( 1 .. $num ) {
+    async {
+        Coro::Timer::sleep $i;
+        print "After $i sec.\n";
+        $semaphore-&gt;up;
+    } ;
+}
+
+$semaphore-&gt;down;
+print "Finished\n";
+</pre>
+
+<p>ここでAnyEventのcondvarに慣れている方であれば、beginとendのようなことをしたいと考えるかもしれませんが、downメソッドは0以下値の時はブロックするので、beginの代わりには使えません。この場合、負の値でもブロックしないadjustメソッドを使うことができます。</p>
+
+<pre>
+my $semaphore = Coro::Semaphore-&gt;new;
+
+for my $i ( 1 .. 3 ) {
+    $semaphore-&gt;adjust( -1 );
+    async {
+        Coro::Timer::sleep $i;
+        print "After $i sec.\n";
+        $semaphore-&gt;up;
+    } ;
+}
+
+$semaphore-&gt;down;
+print "Finished\n";
+</pre>
+
+<p>これとは逆に正の値のセマフォは、同時に走る処理の数を制御するのに便利です。以下の例では、2個しかないリソースを10個のスレッドが奪い合っていますが、セマフォによってリソースに同時に触れるスレッドを制限しています。</p>
+
+<pre>
+my $lock = Coro::Semaphore-&gt;new( 2 );
+my @resources = ( 'A', 'B' );
+
+for (1 .. 10) {
+    async {
+        $lock-&gt;down;
+        my $resource = shift @resources or die "Depleted energy source.";
+
+        print "Got $resource.\n";
+        Coro::Timer::sleep 1;  # Using the resource
+
+        print "Finished using $resource.\n";
+        push @resources, $resource;
+        $lock-&gt;up;
+    };
+}
+
+schedule;
+# Never end.
+</pre>
+
+<p>なお、この処理はguardメソッドを使って以下のように書くこともできます。</p>
+
+<pre>
+    async {
+        my $guard = $lock-&gt;guard;
+        my $resource = shift @resources or die "Depleted energy source.";
+
+        print "Got $resource.\n";
+        Coro::Timer::sleep 1;  # Using the resource
+
+        print "Finished using $resource.\n";
+        push @resources, $resource;
+    };
+</pre>
+
+<p>この書き方をすると、セマフォのupのし忘れを防ぐことができます。ただしこの場合でも、upは確実に実行されてもリソースの解放処理が必ず走るわけではないので、Guardクラスを使って適切なガードを書く方が無難かもしれません。</p>
+</div>
+<div class="section">
+<h3>スレッド間でのデータのやりとり</h3>
+
+<p>スレッドが、処理した結果を返すにはterminateを使います。そして、その結果を受け取るにはjoinを使います。</p>
+
+<pre>
+my $coro = async {
+	terminate "From the other thread";
+};
+
+print $coro-&gt;join, "\n";
+
+__END__
+
+[実行結果]
+From the other thread
+</pre>
+
+<p>この例では明示的にterminateを呼んでいますが、asyncブロックは戻り値を渡してterminateを呼ぶように自動的にラップされるので、単にreturnで値を返してもjoinで値を受けることができます。</p>
+
+<p>また、別のスレッドからcancelでスレッドをterminateさせることもできますが、この時に終了値を外のスレッドから渡すことが出来ます。</p>
+
+<pre>
+my $coro = async {
+	print "Wait 10 sec.\n";
+	Coro::Timer::sleep 10;
+	terminate "From the other thread";
+};
+
+async {
+	Coro::Timer::sleep 1;
+	$coro-&gt;cancel( "Terminated" );
+};
+
+print $coro-&gt;join, "\n";
+
+__END__
+
+[実行結果]
+Wait 10 sec.
+Terminated
+</pre>
+
+<p>ただし、terminateとjoinでは、1つのスレッドから複数回値を返すことはできません。特にスレッドプールを使う場合には、スレッドが終了しないのでjoinが使えません。そこで、スレッド間でもっと自由にデータをやりとりする道具として、Coro::Channelがあります。Coro::Channelを使うと、簡単にスレッド間でデータのやり取りをすることができます。</p>
+
+<pre>
+my $ch = Coro::Channel-&gt;new;
+
+async {
+	$ch-&gt;put($_) for qw/one two three DAAAAA!/;
+	$ch-&gt;shutdown;
+};
+
+while( my $got = $ch-&gt;get ){
+	print $got, "\n";
+}
+
+__END__
+
+[実行結果]
+one
+two
+three
+DAAAAA!
+</pre>
+
+<p>Coro::Channelの動作を、ブロッキングキューと見なすこともできます。デフォルトでは、大きさに制限のないキューとして振る舞います。つまり、putはブロックせず、getはキューが空の時だけブロックします。また、コンストラクタに値を与えることで、大きさ制限のあるキューとして利用することもできます。</p>
+</div>
+<div class="section">
+<h3>スレッドへの割り込み</h3>
+
+<p>cancelで他のスレッドを終了させることができることを紹介しましたが、スレッドを終了せずに割り込みをかけることもできます。そのためには、throwを使います。</p>
+
+<p>別のスレッドに対してthrowを呼ぶと、あたかもthrowを呼ばれたスレッドの中でdieが起こったように動作します。evalでブロックする処理を包んだ状態にしておけば、外からthrowで投げられた例外をキャッチすることができます。</p>
+
+<pre>
+use Try::Tiny;
+
+my $done = Coro::Signal-&gt;new;
+
+my $worker = async {
+	# The worker
+	try {
+		while () {
+			print "In the loop.\n";
+			Coro::Timer::sleep 1;
+		}
+	}catch{
+		if( /interrupted/ ){
+			print "Interrupted by anyone.\n";
+			$done-&gt;send;
+		}else{
+			die $_;
+		}
+	};
+};
+
+async {
+	# An interrupter
+	print "Wait 3 seconds.\n";
+	Coro::Timer::sleep 3;
+	print "Interrupt.\n";
+	$worker-&gt;throw( 'interrupted' );
+};
+
+$done-&gt;wait;
+
+__END__
+[結果]
+In the loop.
+Wait 3 seconds.
+In the loop.
+In the loop.
+Interrupt.
+Interrupted by anyone.
+</pre>
+
+</div>
+<div class="section">
+<h3>その他の話題</h3>
+
+<p>このエントリでは、主にCoroの制御について説明しました。実際にCoroを使う場合は、主にIOの待ち時間を有効利用させることになります。Coroに対応したIOとしては、<a href="http://web.archive.org/web/20170108080327/http://search.cpan.org/~mlehmann/Coro/Coro/Handle.pm">Coro::Handle</a>、<a href="http://web.archive.org/web/20170108080327/http://search.cpan.org/~mlehmann/Coro/Coro/Socket.pm">Coro::Socket</a>、<a href="http://web.archive.org/web/20170108080327/http://search.cpan.org/~mlehmann/Coro/Coro/AIO.pm">Coro::AIO</a>などがありますので、こちらを参照して下さい。</p>
+
+<p>また、Coroは<a href="http://web.archive.org/web/20170108080327/http://search.cpan.org/~mlehmann/AnyEvent/">AnyEvent</a>に対応したモジュールにおいて、コールバックが戻ってくるまでの待ち時間を有効利用するためにも使えます。CoroとAnyEventを組み合わせて使う方法については<a href="http://web.archive.org/web/20170108080327/http://d.hatena.ne.jp/hiratara/20091219/1261178458">こちらのエントリ</a>や<a href="http://web.archive.org/web/20170108080327/http://d.hatena.ne.jp/hiratara/20090930/1254319457">こちらのエントリ</a>も参照して下さい。</p>
+
+<p>そして、たくさんのスレッドを扱う場合に有効な手段となるスレッドプールに関しては、<a href="http://web.archive.org/web/20170108080327/http://d.hatena.ne.jp/hiratara/20091219/1261208413">こちらのエントリ</a>も参照して下さい。</p>
+</div>
+<div class="section">
+<h3>まとめ</h3>
+
+<p>Coroでスレッドを作り、並行動作させることができます。I/O待ちなどによってブロックが多く発生するプログラムでは、Coroによって動作速度を改善できるでしょう。</p>
+
+<p>明日はあのAcme大全の著者、<a href="http://web.archive.org/web/20170108080327/http://www.donzoko.net/">makamaka_at_donzoko</a>さんです。とても楽しみですね！</p>
+</div>
+<div class="section">
+<h3>参考リンク</h3>
+<ul>
+<li><a href="http://web.archive.org/web/20170108080327/http://d.hatena.ne.jp/starsky5/">Coro::Intro和訳</a></li>
+</ul>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="http://web.archive.org/web/20170108080327/http://perl-users.jp/articles/advent-calendar/2009/casual/21.html">Mon, 21 Dec 2009 00:00:00 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20170108080327/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20170108080327/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20170108080327im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20170108080327/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20170108080327/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20170108080327im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20170108080327/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20170108080327/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20170108080327im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20170108080327/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20170108080327/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20170108080327im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20170108080327/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20170108080327/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20170108080327im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://web.archive.org/web/20170108080327/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20170108080327/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20170108080327/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20170108080327/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20170108080327/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20170108080327/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://web.archive.org/web/20170108080327/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<!--
+     FILE ARCHIVED ON 08:03:27 Jan 08, 2017 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 15:03:02 Jan 23, 2020.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+-->
+<!--
+playback timings (ms):
+  RedisCDXSource: 220.896
+  CDXLines.iter: 14.98 (3)
+  exclusion.robots: 0.187
+  LoadShardBlock: 2260.938 (3)
+  PetaboxLoader3.resolve: 217.111
+  esindex: 0.015
+  PetaboxLoader3.datanode: 2360.78 (4)
+  exclusion.robots.policy: 0.173
+  captures_list: 2501.371
+  load_resource: 341.135
+-->

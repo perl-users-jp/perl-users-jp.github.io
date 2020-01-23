@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app105.us.archive.org';v.server_ms=715;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
+<script type="text/javascript">
+WB_wombat_Init("http://web.archive.org/web/", "20171022113355", "perl-users.jp:80");
+</script>
+<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
+<script type="text/javascript">
+__wbhack.init('http://web.archive.org/web');
+</script>
+<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
+<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
+<!-- End Wayback Rewrite JS Include -->
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20171022113355cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Image::Imlib2でアイコンをクリスマス仕様に - JPerl Advent Calendar 2009
+</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20171022113355/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20171022113355cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
+<meta http-equiv="Content-Script-Type" content="text/javascript"/>
+<script type="text/javascript" src="http://web.archive.org/web/20171022113355js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20171022113355js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20171022113355js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+<script type="text/javascript">
+    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
+</script>
+
+<style type="text/css">
+    pre {
+        border-left: 2px solid #cccccc;
+        padding-left: 4px;
+        margin-left: 10px;
+        overflow: auto;
+    }
+</style>
+
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Image::Imlib2でアイコンをクリスマス仕様に - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Image::Imlib2でアイコンをクリスマス仕様に<a href="http://web.archive.org/web/20171022113355/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/casual/24.html"><img src="http://web.archive.org/web/20171022113355im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/casual/24.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>ハッピーメリークリスマス！aomushi510です。好きなお寿司のネタはサーモンです！</p>
+
+<p>今日はクリスマスイブということで、Image::Imlib2を使って簡単にアイコンをクリスマス仕様にしちゃいましょう！</p>
+<p>Perlで画像加工をするときに使うモジュールは、Image::Imlib2の他にもImage::MagickやImager、GD::Imageなどがあります。</p>
+<p><a href="http://web.archive.org/web/20171022113355/http://yusukebe.com/tech/archives/20070526/011710.html">yusukebeさんのエントリ</a>では、Image::Imlib2が超絶速いそうです。Image::Imlib2すごい！ってことで早速はじめましょう。</p>
+</div>
+<div class="section">
+<h3>はじめに</h3>
+<p>まずはImage::Imlib2をインストールしましょう。</p>
+<p>インストールをする前に、Cのライブラリと使いたい画像形式のライブラリを入れておきましょう。</p>
+<p>今回はjpegとpngを使いたいと思います。</p>
+<pre>
+$ port install libpng
+$ port install imlib2
+</pre>
+
+<p>ではImage::Imlib2をインストールします。簡単ですね！</p>
+<pre>
+cpan&gt; install Image::Imlib2
+</pre>
+</div>
+<div class="section">
+<h3>画像の読み込み、書き出し</h3>
+<p>インストールできたら、画像を読み込んだり書き出したりしてみましょう。</p>
+<p>face.jpgを読み込んで、face2.jpgに書き出してみます。</p>
+<pre>
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use Image::Imlib2;
+
+my $dir = '/path/to/image';
+
+my $image = Image::Imlib2-&gt;load("$dir/face.jpg");
+$image-&gt;save("$dir/face2.jpg");
+</pre>
+
+<p>できた画像</p>
+<p><a href="http://web.archive.org/web/20171022113355/http://azu.sh/jperl_advent_calendar_2009/image/face2.jpg"><img src="http://web.archive.org/web/20171022113355im_/http://azu.sh/jperl_advent_calendar_2009/image/face2.jpg" alt="http://azu.sh/jperl_advent_calendar_2009/image/face2.jpg"/></a></p>
+
+</div>
+<div class="section">
+<h3>画像の合成</h3>
+<p>これであなたもImage::Imlib2を使うことができました！が、肝心のアイコンがさみしいです＞＜</p>
+<p>クリスマスということで、サンタ帽をかぶってみましょう。</p>
+
+<p><a href="http://web.archive.org/web/20171022113355/http://azu.sh/jperl_advent_calendar_2009/image/santa_hat.png"><img src="http://web.archive.org/web/20171022113355im_/http://azu.sh/jperl_advent_calendar_2009/image/santa_hat.png" alt="http://azu.sh/jperl_advent_calendar_2009/image/santa_hat.png"/></a></p>
+<p>このようなサンタ帽画像を用意します。それでは合成してみましょう。</p>
+<pre>
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use Image::Imlib2;
+
+my $dir = '/path/to/image';
+
+my $image = Image::Imlib2-&gt;load("$dir/face.jpg");
+$image-&gt;set_quality(100);
+my $santa_hat = Image::Imlib2-&gt;load("$dir/santa_hat.png");
+$image-&gt;blend($santa_hat, 1, 0, 0, 300, 300, 0, 0, 300, 300);
+
+$image-&gt;save("$dir/with_santa_hat.png");
+</pre>
+
+<p>できた画像</p>
+<p><a href="http://web.archive.org/web/20171022113355/http://azu.sh/jperl_advent_calendar_2009/image/with_santa_hat.png"><img src="http://web.archive.org/web/20171022113355im_/http://azu.sh/jperl_advent_calendar_2009/image/with_santa_hat.png" alt="http://azu.sh/jperl_advent_calendar_2009/image/with_santa_hat.png"/></a></p>
+<p>サンタ帽をかぶることができました！簡単ですね！</p>
+
+</div>
+<div class="section">
+<h3>画像を作成する</h3>
+<p>サンタ帽をかぶってクリスマスっぽくなりました。もうひといき、今度は星画像を作ってみましょう。</p>
+<p>Image::Imlib2::Polygonというモジュールを使って多角形を作ります。</p>
+<p>星形は正五角形の頂点を結ぶので、先にShape::RegularPolygonを利用して正五角形の頂点を取得しておきます。</p>
+<p>そのあと1つ飛びに頂点を描き、まさに手書きで星を書くときのように描いていきます。</p>
+<p>これだけでは中の正五角形が塗られないので、中身も後から塗って星形の完成です。</p>
+
+<pre>
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use Data::Dumper;
+use Image::Imlib2;
+use Shape::RegularPolygon;
+
+my $dir = '/path/to/image';
+
+my $image = Image::Imlib2-&gt;new_transparent(100, 100);
+$image-&gt;set_colour(255, 255, 0, 255);
+
+my $points = &get;_points(50);
+my $poly = Image::Imlib2::Polygon-&gt;new();
+
+for my $point (@$points) {
+    $poly-&gt;add_point($point-&gt;{x}, $point-&gt;{y});
+}
+$poly-&gt;fill();
+
+$image-&gt;draw_polygon($poly, 1); 
+$image-&gt;fill(50,50);
+$image-&gt;save("$dir/star.png");
+
+
+sub get_points {
+    my $center = shift;
+
+    my $polygon = new Shape::RegularPolygon;
+    $polygon-&gt;center($center, $center);
+    $polygon-&gt;sides(5);
+    $polygon-&gt;radius(50);
+    my @points = $polygon-&gt;points;
+
+    return [$points[0], $points[2], $points[4], $points[1], $points[3], $points[0]];
+}
+</pre>
+<p>できた画像</p>
+<p><a href="http://web.archive.org/web/20171022113355/http://azu.sh/jperl_advent_calendar_2009/image/star.png"><img src="http://web.archive.org/web/20171022113355im_/http://azu.sh/jperl_advent_calendar_2009/image/star.png" alt="http://azu.sh/jperl_advent_calendar_2009/image/star.png"/></a></p>
+
+
+<p>できた画像を合成します。</p>
+<p>create_rotate_imageで画像を回転させて貼り付けます。</p>
+
+<pre>
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use Image::Imlib2;
+
+my $dir = '/path/to/image';
+
+my $image = Image::Imlib2-&gt;load("$dir/with_santa_hat.png");
+$image-&gt;set_quality(100);
+my $star = Image::Imlib2-&gt;load("$dir/star.png");
+$image-&gt;blend($star, 1, 0, 0, 100, 100, 0, 200, 100, 100);
+
+my $rotated = $star-&gt;create_rotated_image(30 / 360 * 3.141519*2);
+$image-&gt;blend($rotated, 1, 0, 0, 150, 150, 210, 80, 100, 100);
+
+$image-&gt;save("$dir/with_star.png");
+</pre>
+<p>できた画像</p>
+<p><a href="http://web.archive.org/web/20171022113355/http://azu.sh/jperl_advent_calendar_2009/image/with_star.png"><img src="http://web.archive.org/web/20171022113355im_/http://azu.sh/jperl_advent_calendar_2009/image/with_star.png" alt="http://azu.sh/jperl_advent_calendar_2009/image/with_star.png"/></a></p>
+<p>できました！これでアイコンがにぎやかになりましたね！</p>
+
+</div>
+<div class="section">
+<h3>まとめ</h3>
+<p>Image::Imlib2を使うと簡単に画像を加工することができます。ちょっとした画像編集にPerlを使ってみるのはいかがですか？</p>
+
+<p>明日はAdvent Calendarの大トリ、piarraさんです。楽しみですね！</p>
+
+</div>
+<div class="section">
+<h3>参考</h3>
+<ul>
+<li><a href="http://web.archive.org/web/20171022113355/http://search.cpan.org/~lbrocard/Image-Imlib2-2.03/lib/Image/Imlib2.pm">http://search.cpan.org/~lbrocard/Image-Imlib2-2.03/lib/Image/Imlib2.pm</a></li>
+<li><a href="http://web.archive.org/web/20171022113355/http://yusukebe.com/tech/archives/20070526/011710.html">http://yusukebe.com/tech/archives/20070526/011710.html</a></li>
+<li><a href="http://web.archive.org/web/20171022113355/http://it.kndb.jp/entry/show/id/2572">http://it.kndb.jp/entry/show/id/2572</a></li>
+<li><a href="http://web.archive.org/web/20171022113355/http://rakasaka.fc2web.com/delphi/star.html">http://rakasaka.fc2web.com/delphi/star.html</a></li>
+</ul>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="http://web.archive.org/web/20171022113355/http://perl-users.jp/articles/advent-calendar/2009/casual/24.html">Thu, 24 Dec 2009 00:00:00 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20171022113355/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20171022113355/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20171022113355im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20171022113355/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20171022113355/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20171022113355im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20171022113355/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20171022113355/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20171022113355im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20171022113355/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20171022113355/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20171022113355im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20171022113355/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20171022113355/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20171022113355im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://web.archive.org/web/20171022113355/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20171022113355/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20171022113355/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20171022113355/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20171022113355/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20171022113355/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://web.archive.org/web/20171022113355/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<!--
+     FILE ARCHIVED ON 11:33:55 Oct 22, 2017 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 15:03:22 Jan 23, 2020.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+-->
+<!--
+playback timings (ms):
+  captures_list: 567.006
+  exclusion.robots.policy: 0.111
+  PetaboxLoader3.resolve: 55.742
+  CDXLines.iter: 12.294 (3)
+  RedisCDXSource: 386.039
+  PetaboxLoader3.datanode: 179.508 (4)
+  esindex: 0.014
+  LoadShardBlock: 165.407 (3)
+  exclusion.robots: 0.121
+  load_resource: 139.551
+-->

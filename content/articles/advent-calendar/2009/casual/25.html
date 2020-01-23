@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app103.us.archive.org';v.server_ms=2048;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
+<script type="text/javascript">
+WB_wombat_Init("http://web.archive.org/web/", "20161018164234", "perl-users.jp");
+</script>
+<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
+<script type="text/javascript">
+__wbhack.init('http://web.archive.org/web');
+</script>
+<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
+<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
+<!-- End Wayback Rewrite JS Include -->
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018164234cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>最後の日は最後の一桁を埋めるAlgorithm::CheckDigits - JPerl Advent Calendar 2009
+</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20161018164234/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018164234cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
+<meta http-equiv="Content-Script-Type" content="text/javascript"/>
+<script type="text/javascript" src="http://web.archive.org/web/20161018164234js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018164234js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018164234js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+<script type="text/javascript">
+    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
+</script>
+
+<style type="text/css">
+    pre {
+        border-left: 2px solid #cccccc;
+        padding-left: 4px;
+        margin-left: 10px;
+        overflow: auto;
+    }
+</style>
+
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">最後の日は最後の一桁を埋めるAlgorithm::CheckDigits - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">最後の日は最後の一桁を埋めるAlgorithm::CheckDigits<a href="http://web.archive.org/web/20161018164234/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/casual/25.html"><img src="http://web.archive.org/web/20161018164234im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/casual/25.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>メリクリ！メリクリ！piarraです。</p>
+
+<p>Advent Calendar最後の日は、最後の一桁を埋めるCPANモジュール「Algorithm::CheckDigits」をご紹介します。</p>
+<p>このモジュールについて、日本語で紹介されているブログ等を見つけられなかったので、敢えて選んでみました。</p>
+
+<p>こんな経験はありませんか？</p>
+
+<ul>
+<li>7桁しかないidを8桁にしたいのだけれど、8桁目を0やランダム値にするのはどうよと思ったとき</li>
+<li>なんらかの理由で連番ではないidの生成をしたいとき</li>
+<li>JANコードを発行したいのに、何故か12桁しか作れなくって、最後の一桁は自分で作れっていわれても…？なとき</li>
+<li>クレジットカードの右端が12mm折れてしまって放置していたら、いつの間にかその破片をなくしてしまったけれど、取り急ぎネットで本を買いたいのに、クレジットカードの最後の一桁がどうしても分からないとき</li>
+</ul>
+
+<p>そんなときは、Algorithm::CheckDigitsの出番です。</p>
+</div>
+<div class="section">
+<h3>チェックデジットとは</h3>
+<p>さて、「CheckDegit(チェックデジット)」という言葉に馴染みのない方もいらっしゃると思うので、まずは基本的なお話から。</p>
+
+<p>Wikipediaによると、</p>
+<pre>
+「チェックディジット（check digit, 検査数字）とは、
+符号の入力誤りなどを検出するために元の符号に付加される数字のこと。」
+</pre>
+<p>とされています。</p>
+<p>馴染みの深いところでは、バーコードなどで読み取りミスを防ぐために、最後の一桁にチェックデジットを付与して、データを誤って読み取ってしまうことを防いでいます。</p>
+
+<p>例えば、「初めてのPerl」のISBN"978-4-87311-126-1"の最後の"1"はチェックデジットです。</p>
+</div>
+<div class="section">
+<h3>計算してみる</h3>
+<p>まずは実際に上のISBNコードのチェックデジットを計算してみます。</p>
+<p>ISBNコードやJANコードは、「モジュラス10 ウェイト3・1」というアルゴリズムで算出されます。</p>
+<p>このアルゴリズムでは、"左から奇数桁の数字の合計"と、"偶数桁の数字の合計を3倍にしたもの"を加え、10からその和の下一桁の数字を引いてチェックデジットを求めます。</p>
+<pre>
+(9 + 8 + 8 + 3 + 1 + 2) + (7 + 4 + 7 + 1 + 1 + 6) * 3 = 109 ・・・下一桁は9
+10 - 9 = 1 ・・・ この1がチェックデジット
+</pre>
+
+<p>確かに計算結果と実際の値とが一致しました。比較的簡単な計算のアルゴリズムですね。</p>
+</div>
+<div class="section">
+<h3>Perl登場｜・ω・)ノ</h3>
+<p>Perlの苦手な方はチェックデジットくらい暗算をするみたいですが、</p>
+<p>小学校を卒業した賢いCasual Perlerの皆さんは当然Perlを使いますよね。</p>
+
+<p>というわけで、Perlで簡単にチェックデジットを付与し、あるいは検証するモジュールの紹介です。</p>
+</div>
+<div class="section">
+<h3>Algorithm::CheckDegits</h3>
+<pre>
+use Algorithm::CheckDigits;
+
+my $isbn13 = CheckDigits('ISBN13');
+if ($isbn13-&gt;is_valid('978-4-87311-126-1')) {
+    # OK
+}
+
+my $lp_isbn = $isbn13-&gt;complete('978-4-87311-126');
+print $lp_isbn . "\n";
+</pre>
+
+<p>上の通り、CheckDigits()関数にて付与したいチェックデジットの種類を指定します。</p>
+<p>ここでは、13桁の新ISBNコードを使っていますので、"ISBN13"という指定をしています。</p>
+<p>他には、クレジットカードの"VISA"や"AMEX"、"DINERS"、Amazon等でおなじみの"EAN"(JANもこれと同じ)などが指定できます。</p>
+<p>指定できるアルゴリズム名の一覧は、</p>
+<pre>
+my @ml = Algorithm::CheckDigits-&gt;method_list();
+</pre>
+<p>で取得できます。</p>
+<p>ちなみに、m10_005などという命名がなされていますが、それは必ずしも名前通りモジュラス10ウェイト5という意味ではないようですので注意が必要です。</p>
+<p>※実際にはm10_004がモジュラス10ウェイト3.1に該当、m10-005がモジュラス10ウェイト4.9に該当など</p>
+
+<p>実際のアルゴリズムを確認したい場合は、以下のようにperldocを参照するか、ソースをご覧ください。</p>
+<pre>
+perldoc Algorithm::CheckDigits::M10_005
+</pre>
+</div>
+<div class="section">
+<h3>様々な用途</h3>
+<p>チェックデジットというのは、数値の検証に用いるのが本来の用途だと思いますが、それ以外にも私自身は以下のような用途で使っています。</p>
+<ul>
+<li>IDの桁数を揃えたい場合で、桁数に余裕があり、かつ連番やゼロを避けたいとき(00001,00002,00003...よりも00016,00025,00034...とすることで連番を避けた様に見える)</li>
+<li>JANコードやISBN等を保存する際、1文字分の容量を節約したいとき</li>
+<li>彼女の誕生日の下一桁を忘れたとき</li>
+</ul>
+</div>
+<div class="section">
+<h3>クリスマスチェックデジット</h3>
+<p>チェックデジットでクリスマスがcompleteできるか遊んでみました。</p>
+<pre>
+my $christmas = CheckDigits('EAN');
+print $christmas-&gt;complete('2009122'); # 結果はご自身でご確認ください:)
+</pre>
+</div>
+<div class="section">
+<h3>最後に</h3>
+<p>さて、25日間にわたってお楽しみいただいたJperl Advent Calendar - Casual Trackも今日で最後となりました。</p>
+<p>毎日欠かさずチェックいただいたcasual perlerやperl hackerの皆さんありがとうございました。</p>
+<p>そして、今日まで途切れることなくバトンをつないで頂いたcasual perlerの皆様お疲れ様でした。</p>
+
+<p>また来年のAdvent Calendarに参加できることを楽しみにしています。</p>
+<p>それでは、皆様良いお年を。</p>
+</div>
+<div class="section">
+<h3>参考</h3>
+<ul>
+<li><a href="http://web.archive.org/web/20161018164234/http://search.cpan.org/~mamawe/Algorithm-CheckDigits-0.53/">http://search.cpan.org/~mamawe/Algorithm-CheckDigits-0.53/</a></li>
+<li><a href="http://web.archive.org/web/20161018164234/http://ja.wikipedia.org/wiki/%E3%83%81%E3%82%A7%E3%83%83%E3%82%AF%E3%83%87%E3%82%A3%E3%82%B8%E3%83%83%E3%83%88">http://ja.wikipedia.org/wiki/%E3%83%81%E3%82%A7%E3%83%83%E3%82%AF%E3%83%87%E3%82%A3%E3%82%B8%E3%83%83%E3%83%88</a></li>
+<li><a href="http://web.archive.org/web/20161018164234/http://ja.wikipedia.org/wiki/JAN%E3%82%B3%E3%83%BC%E3%83%89">http://ja.wikipedia.org/wiki/JAN%E3%82%B3%E3%83%BC%E3%83%89</a></li>
+</ul>
+</div>
+<div class="section">
+<h3>Special Thanks</h3>
+<p>id:kimury</p>
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="http://web.archive.org/web/20161018164234/http://perl-users.jp/articles/advent-calendar/2009/casual/25.html">Fri, 25 Dec 2009 12:24:15 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018164234/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20161018164234/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20161018164234im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018164234/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20161018164234/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20161018164234im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018164234/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20161018164234/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20161018164234im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018164234/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20161018164234/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20161018164234im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018164234/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20161018164234/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20161018164234im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://web.archive.org/web/20161018164234/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018164234/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018164234/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018164234/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018164234/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018164234/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://web.archive.org/web/20161018164234/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<!--
+     FILE ARCHIVED ON 16:42:34 Oct 18, 2016 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 15:03:31 Jan 23, 2020.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+-->
+<!--
+playback timings (ms):
+  esindex: 0.013
+  RedisCDXSource: 933.12
+  LoadShardBlock: 689.986 (3)
+  captures_list: 1641.879
+  exclusion.robots: 0.205
+  exclusion.robots.policy: 0.191
+  load_resource: 397.898
+  PetaboxLoader3.resolve: 173.048
+  PetaboxLoader3.datanode: 911.696 (4)
+  CDXLines.iter: 15.017 (3)
+-->
