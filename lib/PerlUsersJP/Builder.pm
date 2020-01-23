@@ -160,6 +160,11 @@ sub build_categories {
 sub build_category {
     my ($self, $src_category, $src_list) = @_;
 
+    $src_category = Path::Tiny::path($src_category);
+    for my $ext ('html', 'txt', 'md', 'markdown') {
+        return if $src_category->child("index.$ext")->exists;
+    }
+
     my $content_dir = $self->content_dir;
     my $category = $src_category =~ s!$content_dir!!r;
 
