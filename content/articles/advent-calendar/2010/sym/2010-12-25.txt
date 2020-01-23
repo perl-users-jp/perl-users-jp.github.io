@@ -6,7 +6,7 @@ meta-tags: sym, x86, Perl, Ruby, JavaScript
 
 ネタで始まった記号トラックですが、執筆いただいたみなさんのおかげで全日程達成することができました。ありがとうございます。
 
-感謝の意を込めて、今までの<a href="http://perl-users.jp/articles/advent-calendar/2010/sym/">記号プログラミング</a>の成果をすべて一つにまとめてみましょう。
+感謝の意を込めて、今までの<a href="/articles/advent-calendar/2010/sym/">記号プログラミング</a>の成果をすべて一つにまとめてみましょう。
 
 *polyglot.com
 

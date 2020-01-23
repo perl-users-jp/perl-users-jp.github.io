@@ -40,7 +40,7 @@ $growl->notify(
     Title          => 'ライター募集のお知らせ',
     Message        => '君も記号プログラミングしてみないか？ ｳﾎｯ',
     Icon           => 'http://api.dan.co.jp/twicon/hasegawayosuke/bigger',
-    CallbackTarget => 'http://perl-users.jp/articles/advent-calendar/2010/sym/',
+    CallbackTarget => '/articles/advent-calendar/2010/sym/',
 );
 ||<
 

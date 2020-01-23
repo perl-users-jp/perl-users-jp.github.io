@@ -2,7 +2,7 @@ Text::Xslateで安全なテンプレート生活を送ろう！
 
 いよいよクリスマスまで残り4日となりましたが皆様はいかがお過ごしでしょうか。クリスマスが終わると年越しですね。年末年始は枕を高くして眠りたいですね。XSSの恐怖に怯えたくないですね。テンプレートファイルのgrepログを眺めるだけの単純なお仕事で時間を使いたくありませんね。それなら[http://xslate.org/:title=Text::Xslate]を使ってエスケープのことは忘れましょう！
 Text::Xslateはウェブアプリケーションのために最適化したテンプレートエンジンです。Xslateの一部は今年のJPerl Advent Calendar Casual Trackでも紹介されていますね((KolonというのはXslateのデフォルトのテンプレート構文です。))。
-- [http://perl-users.jp/articles/advent-calendar/2010/casual/8:title=Kolonでかこう]
+- [/articles/advent-calendar/2010/casual/8:title=Kolonでかこう]
 さて、ウェブアプリケーションではユーザーからの入力をHTMLページに埋め込むことがよくありますが、そこで気をつけなければならないのがXSSですね。このあたりのことは私よりも詳しい方がおおぜいいらっしゃるのでそちらを参考にしてください。
 - [http://labs.cybozu.co.jp/blog/kazuho/archives/2008/12/textmicrotemplate.php:title=Text::MicroTemplate - テンプレートエンジンのセキュリティと利便性]
 - [http://developer.cybozu.co.jp/kazuho/2010/10/xss-f211.html:title=XSSに強いウェブサイトを作る – テンプレートエンジンの選定基準とスニペットの生成手法]

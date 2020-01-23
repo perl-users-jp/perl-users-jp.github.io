@@ -4,7 +4,7 @@ meta-tags: perl, acme
 
 こんにちは。
 Acme Track再登場のtoritori0318です。
-[http://perl-users.jp/articles/advent-calendar/2011/acme/7:title=前回]の最後に「フォーゼモジュール書くかも」といった話をしましたが、
+[/articles/advent-calendar/2011/acme/7:title=前回]の最後に「フォーゼモジュール書くかも」といった話をしましたが、
 今回はそれを実装しましたー、というお話です。
 
 

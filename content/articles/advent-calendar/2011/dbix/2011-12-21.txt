@@ -70,7 +70,7 @@ for my $row (@$rows) {
 
 というか、そもそもfetchrow_hogehoge()とかselectall_hogehoge()とか覚えられないから毎回ググッててダメすぎます。ORMを使うというのは1つのやり方なんですが、クエリは生がいい。。。
 
-そんな感じで悶々としながらDBIx Trackを読んでいたら、tomi-ruさんが「[http://perl-users.jp/articles/advent-calendar/2011/dbix/8:title=DBIx::Simple ふたたび - Perl Advent Calendar Japan 2011 Dbix Track]」というエントリを書かれていました。恥ずかしながらこれ知りませんでしたが、僕みたいなゆるふわにはとっても便利そうです。そして、よくドキュメントを読んでると、なんと<a href="http://search.cpan.org/~juerd/DBIx-Simple-1.35/lib/DBIx/Simple/Examples.pod#EXAMPLES_WITH_SQL::Interp">:SQL::Interpにも対応したメソッド</a>が生えているではありませんか！試しにnekokakさんの[http://perl-users.jp/articles/advent-calendar/2011/dbix/1:title=DBIx::Handler]と組み合わせてみましょう！
+そんな感じで悶々としながらDBIx Trackを読んでいたら、tomi-ruさんが「[/articles/advent-calendar/2011/dbix/8:title=DBIx::Simple ふたたび - Perl Advent Calendar Japan 2011 Dbix Track]」というエントリを書かれていました。恥ずかしながらこれ知りませんでしたが、僕みたいなゆるふわにはとっても便利そうです。そして、よくドキュメントを読んでると、なんと<a href="http://search.cpan.org/~juerd/DBIx-Simple-1.35/lib/DBIx/Simple/Examples.pod#EXAMPLES_WITH_SQL::Interp">:SQL::Interpにも対応したメソッド</a>が生えているではありませんか！試しにnekokakさんの[/articles/advent-calendar/2011/dbix/1:title=DBIx::Handler]と組み合わせてみましょう！
 
 >||
 use DBIx::Handler;
@@ -165,7 +165,7 @@ __DATA__
 
 ちなみに、Amon2::DBIにはdo_i()という関数があってSQL::Interpを使えるんですが、これはDBI->do()を呼んでいるので、select系では使えないなーと思ってたところでした(認識間違ってたらすみません＞＜)。
 
-あと、最初はSQL::Interpの挙動が謎で一体どんなSQL投げてんだよ、って思うときがあると思いますが、そういう時はゆるふわ王子鈴木xaicronさんが[http://perl-users.jp/articles/advent-calendar/2011/dbix/9:title=DBIx::QueryLog]というすばらしいモジュールを公開してるので、これをuseしながらデバッグすると良いと思います。
+あと、最初はSQL::Interpの挙動が謎で一体どんなSQL投げてんだよ、って思うときがあると思いますが、そういう時はゆるふわ王子鈴木xaicronさんが[/articles/advent-calendar/2011/dbix/9:title=DBIx::QueryLog]というすばらしいモジュールを公開してるので、これをuseしながらデバッグすると良いと思います。
 
 * おわりに
 

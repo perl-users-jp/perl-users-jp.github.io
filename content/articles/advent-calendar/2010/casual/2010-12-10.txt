@@ -3,7 +3,7 @@ meta-author: hisaichi5518
 meta-tags: perl, validator
 
 はじめまして！<a href="http://twitter.com.hisaichi5518">@hisaichi5518</a>です。就活生です。誰か雇ってください。
-Text::Xatenaについて書こうと思っていたんですが、もう<a href="http://perl-users.jp/articles/advent-calendar/2010/meta_adcal/5">Text::Xatenaの記事</a>が他のトラックにあるので、今日はgfxさんによってリリースされた<a href="https://github.com/gfx/p5-Data-Validator">Data::Validator</a>を紹介しようと思います。
+Text::Xatenaについて書こうと思っていたんですが、もう<a href="/articles/advent-calendar/2010/meta_adcal/5">Text::Xatenaの記事</a>が他のトラックにあるので、今日はgfxさんによってリリースされた<a href="https://github.com/gfx/p5-Data-Validator">Data::Validator</a>を紹介しようと思います。
 
 **Data::Validator とは
 実行時型チェック / パラメーターチェックが出来る便利なモジュールです。

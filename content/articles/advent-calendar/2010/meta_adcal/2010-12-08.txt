@@ -103,12 +103,12 @@ while ( $t->mday <= 25 ) {
 
 動いている例は以下の URL を参照下さい。
 
-http://perl-users.jp/articles/advent-calendar/2010/acme/calendar
-http://perl-users.jp/articles/advent-calendar/2010/casual/calendar
-http://perl-users.jp/articles/advent-calendar/2010/win32/calendar
-http://perl-users.jp/articles/advent-calendar/2010/meta_adcal/calendar
-http://perl-users.jp/articles/advent-calendar/2010/english/calendar
-http://perl-users.jp/articles/advent-calendar/2010/hacker/calendar
-http://perl-users.jp/articles/advent-calendar/2010/sym/calendar
+/articles/advent-calendar/2010/acme/calendar
+/articles/advent-calendar/2010/casual/calendar
+/articles/advent-calendar/2010/win32/calendar
+/articles/advent-calendar/2010/meta_adcal/calendar
+/articles/advent-calendar/2010/english/calendar
+/articles/advent-calendar/2010/hacker/calendar
+/articles/advent-calendar/2010/sym/calendar
 
 簡単ですね。

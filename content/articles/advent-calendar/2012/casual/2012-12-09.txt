@@ -2,7 +2,7 @@ CPAN Author になりました - Dist::Zilla のご紹介
 meta-author: yak_ex <yakex@cpan.org>
 meta-tags: perl, CPAN, Dist::Zilla
 
-Hacker track で[http://perl-users.jp/articles/advent-calendar/2012/hacker/8:title=記事]を読んで頂いた方はこんにちは。それ以外の方は初めましてだと思います。数ヵ月前に [http://search.cpan.org/~yakex:title=CPAN Author] になりました [http://twitter.com/yak_ex:title=yak_ex] と申します。
+Hacker track で[/articles/advent-calendar/2012/hacker/8:title=記事]を読んで頂いた方はこんにちは。それ以外の方は初めましてだと思います。数ヵ月前に [http://search.cpan.org/~yakex:title=CPAN Author] になりました [http://twitter.com/yak_ex:title=yak_ex] と申します。
 
 Perl を使い始めてから既に 10 年以上経っておりモジュールもたまに書いたりはしていたのですが、CPAN Author となると色々と手順があって大変なんじゃないか、そんな思いもありずっと憧れの存在でありました((後はこんなモジュール上げちゃっていいんだろうか、という障壁))。同じように感じている人もいるんじゃないだろうかということで、そんな自分が CPAN Author となるハードルを下げてもらった [http://search.cpan.org/perldoc?Dist%3A%3AZilla:title=Dist::Zilla] についてご紹介させて頂きます。なお、Dist::Zilla で CPAN Author になった、なので他の CPAN Author 向けモジュールとの比較はできません。ご了承ください。
 

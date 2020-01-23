@@ -44,7 +44,7 @@ our $VERSION = '0.01';
 1;
 ||<
 
-合体には<a href="http://perl-users.jp/articles/advent-calendar/2009/casual/05.html">昨年のアドベントカレンダー</a>でも取り上げられた<a href="http://search.cpan.org/dist/Sex/">Sex</a>を使います。いざAcme合体！
+合体には<a href="/articles/advent-calendar/2009/casual/05.html">昨年のアドベントカレンダー</a>でも取り上げられた<a href="http://search.cpan.org/dist/Sex/">Sex</a>を使います。いざAcme合体！
 
 >|perl|
 $ perl -I./lib -MAcme::CatToastDevice
@@ -175,7 +175,7 @@ our $VERSION = '0.01';
 1;
 ||<
 
-We can use <a href="http://search.cpan.org/dist/Sex/">Sex</a> module which was taken in <a href="http://perl-users.jp/articles/advent-calendar/2009/casual/05.html">last yeat advent calendar</a>. Let's Acme-unite!
+We can use <a href="http://search.cpan.org/dist/Sex/">Sex</a> module which was taken in <a href="/articles/advent-calendar/2009/casual/05.html">last yeat advent calendar</a>. Let's Acme-unite!
 
 >|perl|
 $ perl -I./lib -MAcme::CatToastDevice

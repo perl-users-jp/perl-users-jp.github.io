@@ -110,7 +110,7 @@ my ($fh, $filename) = tempfile(DIR => $tmpdir);
 ** 機種依存文字を含んだファイルがどうやっても開けません
 
 Win32API::File を頑張って使えば開けますが、そんなに人生は長くないので、Win32::Unicode::Native を書きました。
-詳しくは、[http://perl-users.jp/articles/advent-calendar/2009/hacker/20.html:title=去年の記事]を参照ください。
+詳しくは、[/articles/advent-calendar/2009/hacker/20.html:title=去年の記事]を参照ください。
 内部的には全く変わってますが、インターフェースは一緒なのできっと大丈夫！
 
 ちなみに、これを使うと全くポータブルじゃなくなりますのでご注意ください。

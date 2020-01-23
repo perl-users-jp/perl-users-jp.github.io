@@ -1,6 +1,6 @@
 記号だけのPerlプログラミングの基本原理
 
-こんにちは。[http://perl-users.jp/articles/advent-calendar/2010/casual/3:title=casual track 3日目]でも書かせていただきました、sugyanです。記号プログラミングはPerlくらいしかわからない素人ですが頑張って書いてみようと思います。よろしくおねがいします。
+こんにちは。[/articles/advent-calendar/2010/casual/3:title=casual track 3日目]でも書かせていただきました、sugyanです。記号プログラミングはPerlくらいしかわからない素人ですが頑張って書いてみようと思います。よろしくおねがいします。
 
 今日はPerlで記号プログラミングをするための基礎知識を説明します。[http://search.cpan.org/dist/Acme-EyeDrops/lib/Acme/EyeDrops.pm:title=Acme::EyeDrops]でも使われているテクニックです。
 

@@ -75,7 +75,7 @@ growl_notify(
     description => '君も記号プログラミングしてみないか？ ｳﾎｯ',
     icon        => 'http://api.dan.co.jp/twicon/hasegawayosuke/bigger',
     on_click    => sub {
-        `open http://perl-users.jp/articles/advent-calendar/2010/sym/`;
+        `open /articles/advent-calendar/2010/sym/`;
         $cv->send;
     },
     on_timeout => sub {
@@ -154,6 +154,6 @@ $cv->recv;
 ぜひ皆さんもやってみて下さい！
 
 その他 Perl と Growl の組み合わせとしては、Gearman を使いサーバ側で云々という話もありますが、長くなるので省略します。
-詳しくは <a href="http://perl-users.jp/articles/advent-calendar/2010/win32/12">Win32 のトラック</a>を参照してください。
+詳しくは <a href="/articles/advent-calendar/2010/win32/12">Win32 のトラック</a>を参照してください。
 
 次は... 誰かな？

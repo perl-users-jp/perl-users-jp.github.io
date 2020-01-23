@@ -83,7 +83,7 @@ print $pl->GetNProcesses;
 さて、まさか本当に終わるとは思っていなかった Win32 Track はこれでおしまいです。
 初日から全部みたあなたは、もう立派な Win32 Perl Monger です。
 教えることはもう何もありません。
-この記事だけ読んだあなたは、ぜひ[http://perl-users.jp/articles/advent-calendar/2010/win32/:title=最初から読みましょう。]きっと面白いよ！
+この記事だけ読んだあなたは、ぜひ[/articles/advent-calendar/2010/win32/:title=最初から読みましょう。]きっと面白いよ！
 
 これで、日本の Win32 Perl Monger も 100人ぐらいにはなったはずなので、Perl-Win32 Con 的なのが開催できる日も近いですね！
 それではみなさんまた逢う日まで！アディオス！！

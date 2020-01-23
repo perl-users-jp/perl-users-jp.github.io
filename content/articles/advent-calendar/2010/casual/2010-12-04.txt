@@ -4,7 +4,7 @@ meta-tags: perl, charset, encoding
 
 こんばんわ。現在ユクモ村にて療養中の<a href="http://d.hatena.ne.jp/hiratara/">id:hiratara</a>です。ATNDにて予定していた順番と多少入れ変わっての登場ですが、よろしくお願いします。
 
-去年のAdvent Calendarでは、xaicronさんが<a href="http://perl-users.jp/articles/advent-calendar/2009/casual/10.html">Encodeでラクラク日本語処理</a>というわかりやすいエントリを書いていて、これを読めばEncode.pmの使い方はばっちりわかります。ところが、先日miyagawaさんより、文字コードの扱いについて以下のような気になる指摘がありました。
+去年のAdvent Calendarでは、xaicronさんが<a href="/articles/advent-calendar/2009/casual/10.html">Encodeでラクラク日本語処理</a>というわかりやすいエントリを書いていて、これを読めばEncode.pmの使い方はばっちりわかります。ところが、先日miyagawaさんより、文字コードの扱いについて以下のような気になる指摘がありました。
 
 >>
 Never use the term "utf8 flagged strings"

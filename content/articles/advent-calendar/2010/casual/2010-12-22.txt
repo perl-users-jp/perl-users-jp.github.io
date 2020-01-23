@@ -60,7 +60,7 @@ $ perl -Mforks -e 'print threads->VERSION'
 
 ってやるとthreadsの互換バージョンがわかります。
 
-あんまり役に立つネタじゃなくてごめんなさい。おまけとして<a href="http://perl-users.jp/articles/advent-calendar/2010/acme/22">acmeトラックに補足記事</a>を用意しました。ではさようなら。
+あんまり役に立つネタじゃなくてごめんなさい。おまけとして<a href="/articles/advent-calendar/2010/acme/22">acmeトラックに補足記事</a>を用意しました。ではさようなら。
 
 さあ、明日はgfxさんです！
 

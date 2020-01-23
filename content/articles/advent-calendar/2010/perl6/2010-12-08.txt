@@ -2,7 +2,7 @@
 meta-author: uasi <uasi@99cm.org>
 meta-tags: perl6 rakudo
 
-5日目の「[http://perl-users.jp/articles/advent-calendar/2010/perl6/5:title=モジュールを書いてみよう]」は読みましたか？モジュール書いてみましたか？もう書いた？すばらしい！
+5日目の「[/articles/advent-calendar/2010/perl6/5:title=モジュールを書いてみよう]」は読みましたか？モジュール書いてみましたか？もう書いた？すばらしい！
 
 そうすると次は……公開してみたくなりますよね？
 

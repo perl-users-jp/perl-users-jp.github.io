@@ -71,10 +71,10 @@ Containerを使うととてもすっきりするのですが、残念ながら�
 *** どこからでもアクセスできるグーバル変数化によるスコープ無限拡大
 基本的には、どこで使われてもいいようにContainerにいれてしまうんですが、「このインスタンスはそのケースで使用することを想定せずにnewのオプション渡しているよ」みたいな、Cotainerにインスタンス化のコード書いた人と別の人がなんとなくContainerにはいっているインスタンスを使い始めて、実は予期しないバグを生む可能性があるので注意です。
 
-また、[http://perl-users.jp/articles/advent-calendar/2010/hacker/3:title=『Scope::Container でリソース管理を行う』]でkazeburoさんが指摘されているように、データベースのコネクション管理上問題が出てくるケースもあるようです。
+また、[/articles/advent-calendar/2010/hacker/3:title=『Scope::Container でリソース管理を行う』]でkazeburoさんが指摘されているように、データベースのコネクション管理上問題が出てくるケースもあるようです。
 
 *** インスタンスの中身が変化するタイプのインスタンスには使用できない
-基本的にはContainerにキャッシュしたインスタンスは何回も使いまわす設定になっているので、DateTimeや、[http://perl-users.jp/articles/advent-calendar/2011/casual/3:title=第三回にytnobodyさんが紹介されたCrypt::SaltedHash]のように使っていくうちに、インスタンスの中身がかわったりするモジュールのインスタンスをキャッシュするのには向きません。
+基本的にはContainerにキャッシュしたインスタンスは何回も使いまわす設定になっているので、DateTimeや、[/articles/advent-calendar/2011/casual/3:title=第三回にytnobodyさんが紹介されたCrypt::SaltedHash]のように使っていくうちに、インスタンスの中身がかわったりするモジュールのインスタンスをキャッシュするのには向きません。
 
 
 **デメリットの克服

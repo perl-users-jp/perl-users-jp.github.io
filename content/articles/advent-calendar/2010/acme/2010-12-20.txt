@@ -3,7 +3,7 @@ meta-author: sugyan <sugi1982@gmail.com>
 meta-tags: perl, acme, sym
 
 こんにちは、[http://twitter.com/sugyan:title=@sugyan]です。
-先日、[http://perl-users.jp/articles/advent-calendar/2010/sym/:title=sym track]にて"[http://perl-users.jp/articles/advent-calendar/2010/sym/12:title=7種類の記号だけでPerlプログラムを書く]"という記事を書きまして、せっかくノウハウが出来たので一応モジュール化しておこうと思い"Acme::HeptaSymbolize"というものを作りました。
+先日、[/articles/advent-calendar/2010/sym/:title=sym track]にて"[/articles/advent-calendar/2010/sym/12:title=7種類の記号だけでPerlプログラムを書く]"という記事を書きまして、せっかくノウハウが出来たので一応モジュール化しておこうと思い"Acme::HeptaSymbolize"というものを作りました。
 リポジトリはこちらです。 [https://github.com/sugyan/Acme-HeptaSymbolize]
 特に依存は無いはずなのでサクっとインストールできると思います。
 

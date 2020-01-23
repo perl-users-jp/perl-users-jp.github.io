@@ -6,7 +6,7 @@ meta-tags: perl, testing, http, testdouble
 
 こんにちは。ikasam_a です。
 
-8日目に bayashi さんが [http://perl-users.jp/articles/advent-calendar/2011/test/8:title=HTTP通信を含むモジュールのテスト] というエントリを書かれていますが、今日はその続編的な話をします。
+8日目に bayashi さんが [/articles/advent-calendar/2011/test/8:title=HTTP通信を含むモジュールのテスト] というエントリを書かれていますが、今日はその続編的な話をします。
 
 **フェイクとスタブ
 

@@ -5,11 +5,11 @@ meta-tag: perl6 rakudo networking
 こんにちは、[http://twitter.com/lopnor:title=@lopnor]こと檀上です。と、これまで誰も名乗らずにここまできてしまいましたJPerl Advent Calendar 2010 - perl6 trackですが、ここでこれまでの執筆者をご紹介します。
 
 - [http://twitter.com/risou:title=@risou]さん
--- [http://perl-users.jp/articles/advent-calendar/2010/perl6/7:title=インタラクティブな実行環境を使おう]
+-- [/articles/advent-calendar/2010/perl6/7:title=インタラクティブな実行環境を使おう]
 - [http://twitter.com/uasi:title=@uasi]さん
--- [http://perl-users.jp/articles/advent-calendar/2010/perl6/8:title=モジュールを公開してみよう]
+-- [/articles/advent-calendar/2010/perl6/8:title=モジュールを公開してみよう]
 - [http://twitter.com/VienosNotes:title=@VienosNotes]さん
--- [http://perl-users.jp/articles/advent-calendar/2010/perl6/9:title=『Perl6入門』入門]
+-- [/articles/advent-calendar/2010/perl6/9:title=『Perl6入門』入門]
 - [http://twitter.com/lopnor:title=@lopnor]
 -- 残りの記事
 

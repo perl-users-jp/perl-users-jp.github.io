@@ -238,4 +238,4 @@ Ruby1.8で記号プログラミングするときとやり方は一緒ですね�
 *参考文献
 
 -<a href="http://d.hatena.ne.jp/ucq/20100709/1278682579">記号だけでErlangプログラミング - 勇士Ｑの日記</a>
--<a href="http://perl-users.jp/articles/advent-calendar/2010/sym/4">Ruby1.8で学ぶ、簡単?!記号プログラミング - JPerl advent calendar 2010 sym Track</a>
+-<a href="/articles/advent-calendar/2010/sym/4">Ruby1.8で学ぶ、簡単?!記号プログラミング - JPerl advent calendar 2010 sym Track</a>

@@ -6,7 +6,7 @@ meta-tags: perl, acme
 
 こんにちは。もうだいたい持っているネタは尽きかけてる<a href="http://twitter.com/maka2_donzoko">makamaka</a>です。
 
-今日は以前作った<a href="https://github.com/makamaka/p5-acme-brainfucktory">Acme::Brainfucktory</a>について記事を書きます。このモジュールはAcme::Brainfuck系のモジュールをお手軽につくるためのモジュールです。なお、Brainf*ckについては素晴らしいことに<a href="http://perl-users.jp/articles/advent-calendar/2010/sym/1">sym track 1日目</a>でも取り上げられていますので、そちらをご参照ください。
+今日は以前作った<a href="https://github.com/makamaka/p5-acme-brainfucktory">Acme::Brainfucktory</a>について記事を書きます。このモジュールはAcme::Brainfuck系のモジュールをお手軽につくるためのモジュールです。なお、Brainf*ckについては素晴らしいことに<a href="/articles/advent-calendar/2010/sym/1">sym track 1日目</a>でも取り上げられていますので、そちらをご参照ください。
 
 さて、CPANには<a href="http://search.cpan.org/dist/Acme-Brainfuck/">Acme::Brainfuck</a>、<a href="http://search.cpan.org/dist/Acme-Ook/">Acme::Ook</a>などのbrainfuck系Acmeモジュールがいくつかあります。またAcmeではなくLanguage系モジュールとして<a href="http://search.cpan.org/dist/Language-BF/">Language::BF</a>（brainfuckを扱う）さえあります。
 
@@ -153,7 +153,7 @@ TITLE: Easy Brainf*ck with Acme::Brainfucktory
 
 Hello, this is <a href="http://twitter.com/maka2_donzoko">makamaka</a>.
 
-I introduce <a href="https://github.com/makamaka/p5-acme-brainfucktory">Acme::Brainfucktory</a> today. It is a module for making Acme::Brainfuck-like module easily. For Brainf*ck detail, please see to <a href="http://perl-users.jp/articles/advent-calendar/2010/sym/1">sym track 1st day</a>.
+I introduce <a href="https://github.com/makamaka/p5-acme-brainfucktory">Acme::Brainfucktory</a> today. It is a module for making Acme::Brainfuck-like module easily. For Brainf*ck detail, please see to <a href="/articles/advent-calendar/2010/sym/1">sym track 1st day</a>.
 
 On CPAN, there are <a href="http://search.cpan.org/dist/Acme-Brainfuck/">Acme::Brainfuck</a>, <a href="http://search.cpan.org/dist/Acme-Ook/">Acme::Ook</a> and so on. And <a href="http://search.cpan.org/dist/Language-BF/">Language::BF</a> even exists.
 

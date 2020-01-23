@@ -85,7 +85,7 @@ $img_base->blend($img_load, 1, 0, 0, 100, 100, 20, 20, 50, 50); # 画像を合�
 $img_base->save('/path/to/image_saved.png');  # 保存
 ||<
 
-詳しくは，[http://perl-users.jp/articles/advent-calendar/2009/casual/24.html:title=昨年のJperl Advent Calendarにaomushi510さんのナイスなチュートリアルがある]ので，こちらをご覧になるのがよいでしょう．
+詳しくは，[/articles/advent-calendar/2009/casual/24.html:title=昨年のJperl Advent Calendarにaomushi510さんのナイスなチュートリアルがある]ので，こちらをご覧になるのがよいでしょう．
 
 
 

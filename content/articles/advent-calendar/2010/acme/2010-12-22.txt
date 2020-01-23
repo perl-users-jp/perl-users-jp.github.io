@@ -25,7 +25,7 @@ print ref $obj,"\n";
 
 
 恐ろしいですね。素晴らしいですね。
-<a href="http://search.cpan.org/dist/forks/">forks</a>というCPANモジュールが重複してDESTROYの呼び出しをしないようにするために<a href="http://cpansearch.perl.org/src/RYBSKEJ/forks-0.34/Makefile.PL">依存</a>しています。今日の<a href="http://perl-users.jp/articles/advent-calendar/2010/casual/22">casualトラックの記事</a>にforksの紹介を書きました。
+<a href="http://search.cpan.org/dist/forks/">forks</a>というCPANモジュールが重複してDESTROYの呼び出しをしないようにするために<a href="http://cpansearch.perl.org/src/RYBSKEJ/forks-0.34/Makefile.PL">依存</a>しています。今日の<a href="/articles/advent-calendar/2010/casual/22">casualトラックの記事</a>にforksの紹介を書きました。
 
 というわけで、このお正月は依存されるAcmeモジュールを探してみると「うひょひょ」となれるのではないでしょうか。
 
@@ -57,7 +57,7 @@ print ref $obj,"\n";
 Oh terrible! Oh great!
 
 
-<a href="http://search.cpan.org/dist/forks/">forks</a> <a href="http://cpansearch.perl.org/src/RYBSKEJ/forks-0.34/Makefile.PL">requires</a> this for avoiding to duplicate DESTROY subroutine call. I wrote a <a href="http://perl-users.jp/articles/advent-calendar/2010/casual/22">casual track article</a> about forks.
+<a href="http://search.cpan.org/dist/forks/">forks</a> <a href="http://cpansearch.perl.org/src/RYBSKEJ/forks-0.34/Makefile.PL">requires</a> this for avoiding to duplicate DESTROY subroutine call. I wrote a <a href="/articles/advent-calendar/2010/casual/22">casual track article</a> about forks.
 
 Well, in this winter vacation, would you like to quest Acme modules required by others.
 

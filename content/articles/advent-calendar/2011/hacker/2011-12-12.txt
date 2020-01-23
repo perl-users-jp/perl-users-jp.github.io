@@ -8,7 +8,7 @@ meta-tags: perl, time
 今回はPerl歴2年弱の初心者である私が作った[http://search.cpan.org/~takuji/Time-Piece-Plus-0.02/:title=Time::Piece::Plus]というモジュールを紹介します。Hacker(笑)となってしまった方はすみません。
 
 さて皆さん、[http://search.cpan.org/~msergeant/Time-Piece-1.20/Piece.pm:title=Time::Piece]というモジュールはご存知でしょうか？
-既に[http://perl-users.jp/articles/advent-calendar/2011/hacker/7:title=7日目のトラック]にて紹介されているのでご存知でない方はそちらを見ていただければと思います。
+既に[/articles/advent-calendar/2011/hacker/7:title=7日目のトラック]にて紹介されているのでご存知でない方はそちらを見ていただければと思います。
 
 このTime::Piece、非常に軽快でシンプルが故に意外とかゆいところに手が届かないことがあるのではないでしょうか？
 例えば[http://search.cpan.org/~drolsky/DateTime-0.70/lib/DateTime.pm:title=DateTime]にあるtruncateメソッドはTime::Pieceにはありません。

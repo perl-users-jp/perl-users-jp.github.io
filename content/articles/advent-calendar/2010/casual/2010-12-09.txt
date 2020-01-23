@@ -107,7 +107,7 @@ my $new_row = $worksheet->add_row(
         name => $config->{username}, 
         'ネタ記事タイトル'
              => 'テスト投稿', 
-        url  => 'http://perl-users.jp/articles/advent-calendar/2010/casual/9', 
+        url  => '/articles/advent-calendar/2010/casual/9', 
         date => "$date",
     }
 );

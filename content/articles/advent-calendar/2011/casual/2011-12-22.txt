@@ -82,7 +82,7 @@ use Web::Query;
 
 my $ua = LWP::UserAgent->new;
 
-my $url = 'http://perl-users.jp/articles/advent-calendar/2009/';
+my $url = '/articles/advent-calendar/2009/';
 my @tracks = wq($url)->find('#alpha-inner h3 a')->attr('href');
 for my $track (@tracks) {
     $track =~ s!^\./!!;

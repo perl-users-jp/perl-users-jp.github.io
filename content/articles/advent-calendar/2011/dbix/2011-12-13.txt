@@ -236,4 +236,4 @@ DBI Profile Data (DBI::ProfileDumper 2.013956)
 これでずいぶん見やすくなったのではないでしょうか。これを素に実行計画を確認すると色々と捗るのではないかと思います。
 
 ** まとめ
-DBI::Profileを使ったプロファイリングのメリットは、そのお手軽さにあります。DBI::ProfileはDBIのディストリに含まれているので、追加でライブラリをインストールしなくても使えるはずです。しかし、計測対象が多くなるとノイズ増えるというデメリットがあります。そのような場合はDBIx Trackでも既出の[http://perl-users.jp/articles/advent-calendar/2011/dbix/9:title=DBIx::QueryLog]や[http://search.cpan.org/perldoc?DBIx%3A%3AProfileManager:title=DBIx::ProfileManager]を使うといいではないでしょうか。
+DBI::Profileを使ったプロファイリングのメリットは、そのお手軽さにあります。DBI::ProfileはDBIのディストリに含まれているので、追加でライブラリをインストールしなくても使えるはずです。しかし、計測対象が多くなるとノイズ増えるというデメリットがあります。そのような場合はDBIx Trackでも既出の[/articles/advent-calendar/2011/dbix/9:title=DBIx::QueryLog]や[http://search.cpan.org/perldoc?DBIx%3A%3AProfileManager:title=DBIx::ProfileManager]を使うといいではないでしょうか。

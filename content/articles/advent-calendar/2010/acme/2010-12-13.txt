@@ -7,7 +7,7 @@ meta-tags: perl, acme
 
 さて、先日<a href="http://search.cpan.org/~dameo/Acme-W-0.03/lib/Acme/W.pm">Acme::W</a>なるモジュールを書いてみましたので今回はその紹介をさせて頂きます。
 
-このAcme::Wというモジュールも<a href="http://perl-users.jp/articles/advent-calendar/2010/acme/8">acme Track 8日目</a>を担当された<a href="http://d.hatena.ne.jp/hide_o_55/">hide_o_55さん</a>の<a href="https://github.com/hideo55/p5-Acme-Tsu">Acme::Tsu</a>と同様にソース書き換え系のモジュールです。
+このAcme::Wというモジュールも<a href="/articles/advent-calendar/2010/acme/8">acme Track 8日目</a>を担当された<a href="http://d.hatena.ne.jp/hide_o_55/">hide_o_55さん</a>の<a href="https://github.com/hideo55/p5-Acme-Tsu">Acme::Tsu</a>と同様にソース書き換え系のモジュールです。
 
 使い方は簡単。cpanからAcme::Wをインストールし、先頭に「use Acme::W;」と書くだけです。
 
@@ -63,9 +63,9 @@ Acme::Wを作るにあたり<a href="http://search.cpan.org/~dconway/Acme-Bleach
 
 Acme::Wではコメント文やクォートで囲まれた箇所は置換の対象としていません。
 
-気になるあの子にどうしてもサプライズメッセージを伝えたい場合はクォート部を読みにくくするために<a href="http://perl-users.jp/articles/advent-calendar/2010/sym/">記号プログラミング</a>を組み合わせてみればいいのではないでしょうか。
+気になるあの子にどうしてもサプライズメッセージを伝えたい場合はクォート部を読みにくくするために<a href="/articles/advent-calendar/2010/sym/">記号プログラミング</a>を組み合わせてみればいいのではないでしょうか。
 
-<a href="http://perl-users.jp/articles/advent-calendar/2010/sym/5">sym Track 5日目</a>を担当されたsugyanさんのやり方で書いてみましょう。
+<a href="/articles/advent-calendar/2010/sym/5">sym Track 5日目</a>を担当されたsugyanさんのやり方で書いてみましょう。
 >|perl|
 use Acme::W;
 

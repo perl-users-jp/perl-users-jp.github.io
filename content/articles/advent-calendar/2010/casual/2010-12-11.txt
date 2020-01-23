@@ -4,7 +4,7 @@ meta-tags: perl
 
 今年の Advent Calendar もいよいよ中盤戦。
 もういくつ寝ると、メリークリ○○ス！
-きのうの Acme Track (<a href="http://perl-users.jp/articles/advent-calendar/2010/acme/10">Acme::Yomeru</a>) につづいて Casual Track にやってまいりました <a href="http://twitter.com/#!/bayashi">bayashi</a> です。こんにちは！
+きのうの Acme Track (<a href="/articles/advent-calendar/2010/acme/10">Acme::Yomeru</a>) につづいて Casual Track にやってまいりました <a href="http://twitter.com/#!/bayashi">bayashi</a> です。こんにちは！
 
 さて、みなさん、コード書いてますか、コード読んでますか。
 短く簡潔なコードを読むと、気持ちもスッキリしますね。

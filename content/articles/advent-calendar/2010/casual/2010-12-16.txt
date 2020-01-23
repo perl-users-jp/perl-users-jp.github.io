@@ -237,7 +237,7 @@ if ($req->upload('image')) {
 - Filterの種類はHTML::Shakan::Filters::以下
 - constraintsの種類は<a href="http://search.cpan.org/dist/FormValidator-Lite">FormValidator-Lite</a>からConstraint以下
 - 独自バリデーションの作成はperldoc <a href="http://search.cpan.org/perldoc?HTML::Shakan">HTML::Shakan</a>のcustom_validation
-- DBIx::Skinnyについては去年の<a href="http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny - JPerl Advent Calendar 2009</a>を参照
+- DBIx::Skinnyについては去年の<a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny - JPerl Advent Calendar 2009</a>を参照
 
 
 * Next...

@@ -3,7 +3,7 @@ meta-author: songmu
 meta-tags: perl
 meta-format: markdown
 
-![相手は死ぬ](http://perl-users.jp/articles/advent-calendar/img/aitehashinu.png)
+![相手は死ぬ](/articles/advent-calendar/img/aitehashinu.png)
 
 @songmuです。Hackerではありませんが、僭越ながら書かせていただきます。
 

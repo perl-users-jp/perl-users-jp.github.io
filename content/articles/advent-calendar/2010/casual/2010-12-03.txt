@@ -3,7 +3,7 @@
 鎌倉で毎日[http://bowls-cafe.jp/:title=どんぶり]食べてます、sugyanです こんにちは！
 皆さん、ターミナルやシェルは何をお使いでしょうか？僕は現在MacにてiTerm2+zshを使っています(あんまり使いこなせてませんが…)。
 プログラミングして書いたコードを実行するには、ターミナルでコマンドを打つのがほぼ必須ですよね。皆さんも毎日たくさんのコマンドをターミナルで叩いていることと思います。
-CPANで配布されているモジュールたちは、Perlスクリプト内でuseして使うためのものだけではなく、シェルから実行できるコマンドが用意されている場合もあります。[http://perl-users.jp/articles/advent-calendar/2010/casual/1:title=1日目]で紹介されたperlbrewやcpanmも、Perlで書かれたコマンドラインツールですよね。
+CPANで配布されているモジュールたちは、Perlスクリプト内でuseして使うためのものだけではなく、シェルから実行できるコマンドが用意されている場合もあります。[/articles/advent-calendar/2010/casual/1:title=1日目]で紹介されたperlbrewやcpanmも、Perlで書かれたコマンドラインツールですよね。
 今回はそんなコマンドたちを紹介してみようと思います。
 
 * ■開発環境系
@@ -12,7 +12,7 @@ CPANで配布されているモジュールたちは、Perlスクリプト内で
 - [http://search.cpan.org/dist/App-cpanminus/lib/App/cpanminus.pm:title=cpanm]
 - [http://search.cpan.org/dist/App-pmuninstall/lib/App/pmuninstall.pm:title=pm-uninstall]
 - [http://search.cpan.org/dist/App-cpanoutdated/bin/cpan-outdated:title=cpan-outdated]
-perlコマンドはまぁ当然ですね。知らないと話になりません。perlbrew, cpanm, pm-uninstall, cpan-outdatedに関しては[http://perl-users.jp/articles/advent-calendar/2010/casual/1:title=1日目]に書かれているのでそちらを読みましょう。perlの環境構築においてとても便利なコマンドたちで、CPANではそれぞれはApp::****というパッケージ名で配布されていますね。
+perlコマンドはまぁ当然ですね。知らないと話になりません。perlbrew, cpanm, pm-uninstall, cpan-outdatedに関しては[/articles/advent-calendar/2010/casual/1:title=1日目]に書かれているのでそちらを読みましょう。perlの環境構築においてとても便利なコマンドたちで、CPANではそれぞれはApp::****というパッケージ名で配布されていますね。
 
 * ■便利系
 - [http://search.cpan.org/~petdance/ack-1.94/Ack.pm:title=ack]
@@ -62,7 +62,7 @@ assets_path: assets
 base_path: /articles/advent-calendar
 description: Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？
 links:
-  - href: http://perl-users.jp/
+  - href: /
     label: perl-users.jp
   - href: http://japan.perlassociation.org/
     label: Japan Perl Association

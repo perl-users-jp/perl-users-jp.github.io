@@ -2,7 +2,7 @@
 meta-author: nipotan
 meta-tags: perl, hacker, regexp
 
-<a href="http://perl-users.jp/articles/advent-calendar/2008/">2 年前の JPerl Advent Calendar</a> では<a href="http://perl-users.jp/articles/advent-calendar/2008/16.html">風邪でブッチ</a>した前科を持つ <a href="http://blog.livedoor.jp/nipotan/">nipotan</a> です。今回、<a href="http://perl-users.jp/articles/advent-calendar/2010/casual/">Casual Track</a> に申し込んだとついさっきまで思い込んでて、うっかり今年もやらかすところでした。
+<a href="/articles/advent-calendar/2008/">2 年前の JPerl Advent Calendar</a> では<a href="/articles/advent-calendar/2008/16.html">風邪でブッチ</a>した前科を持つ <a href="http://blog.livedoor.jp/nipotan/">nipotan</a> です。今回、<a href="/articles/advent-calendar/2010/casual/">Casual Track</a> に申し込んだとついさっきまで思い込んでて、うっかり今年もやらかすところでした。
 
 Hacker Track は自分のモジュール紹介ということなので、今まで一度も紹介していない、結構軽いノリのやつでいかせてもらいます。
 

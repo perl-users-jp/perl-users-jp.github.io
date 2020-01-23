@@ -2,7 +2,7 @@ dotcloudで複数サーバーが必要なシステムを立ち上げたりした
 meta-author: lestrrat
 meta-tags: perl, dotcloud
 
-どうも、<a href="http://perl-users.jp/articles/advent-calendar/2011/test/18">最近あまりコード書いてない</a>と思ってたけど、よく考えたら今回ネタにしているアプリに関して*だけ*はコード書いてるlestrratです
+どうも、<a href="/articles/advent-calendar/2011/test/18">最近あまりコード書いてない</a>と思ってたけど、よく考えたら今回ネタにしているアプリに関して*だけ*はコード書いてるlestrratです
 
 皆さんは<a href="http://dotcloud.com">dotcloud</a>使ってますか？僕は基本的にはdotcloudにほれこんでいて、料金とかの問題がGAEとかみたいに表面化しなければしばらくは使っていきたいと考えています。
 
