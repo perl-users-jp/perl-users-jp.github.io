@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app39.us.archive.org';v.server_ms=1585;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
+<script type="text/javascript">
+WB_wombat_Init("http://web.archive.org/web/", "20161018102750", "perl-users.jp");
+</script>
+<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
+<script type="text/javascript">
+__wbhack.init('http://web.archive.org/web');
+</script>
+<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
+<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
+<!-- End Wayback Rewrite JS Include -->
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018102750cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Inflate の定義を使いまわす - JPerl Advent Calendar 2009
+</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20161018102750/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018102750cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
+<meta http-equiv="Content-Script-Type" content="text/javascript"/>
+<script type="text/javascript" src="http://web.archive.org/web/20161018102750js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018102750js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018102750js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+<script type="text/javascript">
+    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
+</script>
+
+<style type="text/css">
+    pre {
+        border-left: 2px solid #cccccc;
+        padding-left: 4px;
+        margin-left: 10px;
+        overflow: auto;
+    }
+</style>
+
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Inflate の定義を使いまわす - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Inflate の定義を使いまわす<a href="http://web.archive.org/web/20161018102750/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/data-model/12.html"><img src="http://web.archive.org/web/20161018102750im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/data-model/12.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<h3> はじめに</h3>
+
+<p>昨日は Inflate/Deflate を設定して利用する事を紹介しました。</p>
+<p>昨日の方法では、 column ごとにコードリファレンスを書いていって、別の column で同じ設定を使いたい時にコピペプログラミングになってしまうので微妙です。</p>
+<p>まぁ、本当にひとつのカラムで使いたければ昨日の方法でも良いんですが create_at を DateTime のオブジェクトにしたい時は面倒です。</p>
+
+<p>そこで本日は、そういった面倒な事を回避出来る Inflate の設定を紹介します。</p>
+</div>
+<div class="section">
+<h3> inflate_type の設定</h3>
+
+<p>使い回し可能な Inflate の設定をするには Data::Model::Schema::Inflate が export する inflate_type 関数を利用します。</p>
+<p>昨日の DateTime の Inflate 設定を行うには以下のように書きます。</p>
+
+<pre>
+    # inflate setup
+    use Data::Model::Schema::Inflate;
+    use DateTime;
+
+    inflate_type DateTime =&gt; {
+        inflate =&gt; sub {
+            DateTime-&gt;from_epoch( epoch =&gt; $_[0] );
+        },
+        deflate =&gt; sub {
+            ref($_[0]) &amp;&amp; $_[0]-&gt;isa('DateTime') ? $_[0]-&gt;epoch : $_[0];
+        },
+    };
+</pre>
+
+<p>inflate_type の第一引数に定義名を書き、第二引数に inflate, defulate を key にして value に CODE リファレンスを書いた HASH リファレンスを渡します。</p>
+<p>HASH-ref の中身の inflate と deflate の中身は全く変わっていません。</p>
+
+<p>これを、利用するには column の定義の中の inflate に対して定義名を渡すだけです。</p>
+
+
+<pre>
+    column create_at =&gt; int =&gt; {
+        required =&gt; 1,
+        unsigned =&gt; 1,
+        default =&gt; sub { time() },
+        inflate =&gt; 'DateTime',
+    };
+</pre>
+
+<p>ちょっと簡潔になりましたね。</p>
+
+<p>ちなみに、組み込みの inflate 定義として URI と Hex があります。</p>
+<p>定義は以下のように成っています。</p>
+
+<pre>
+# in Data::Model::Schema::Inflate
+my %INFLATE = (
+    inflate =&gt; {
+        URI  =&gt; sub { URI-&gt;new($_[0]) },
+        Hex  =&gt; sub { unpack("H*", $_[0]) },
+    },
+    deflate =&gt; {
+        URI  =&gt; sub { $_[0]-&gt;as_string },
+        Hex  =&gt; sub { pack("H*", $_[0]) },
+    },
+);
+</pre>
+</div>
+<div class="section">
+<h3> 使ってみる</h3>
+
+<p>利用方法は昨日のコピペですが以下のようになります。</p>
+
+<p>以下のように使います。</p>
+
+<pre>
+    $bookmark-&gt;set( bookmark =&gt; [1, 1] );
+    my $row = $bookmark-&gt;lookup( bookmark =&gt; [1, 1] );
+    print $row-&gt;create_at . "\n";
+
+    my $dt = DateTime-&gt;new( year =&gt; 1978, month =&gt; 3, day =&gt; 20 );
+    $row-&gt;create_at( $dt );
+    print $row-&gt;create_at . "\n";
+    $row-&gt;update;
+
+    my $row2 = $bookmark-&gt;lookup( bookmark =&gt; [1, 1] );
+    print $row2-&gt;create_at . "\n";
+    $row2-&gt;create_at( 0 );
+    print $row2-&gt;create_at . "\n";
+    $row2-&gt;update;
+
+    my $row3 = $bookmark-&gt;lookup( bookmark =&gt; [1, 1] );
+    print $row3-&gt;create_at . "\n";
+</pre>
+
+<p>結果は下記の通り。</p>
+
+<pre>
+(この行は実行した時間が入ります)
+1978-03-20T00:00:00
+1978-03-20T00:00:00
+0
+1970-01-01T00:00:00
+</pre>
+</div>
+<div class="section">
+<h3> まとめ</h3>
+
+<p>本日は再利用可能な Inflate に関して説明しました。</p>
+<p>明日は Inflate と組み合わせると便利になる昨日の紹介をします。</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="http://web.archive.org/web/20161018102750/http://perl-users.jp/articles/advent-calendar/2009/data-model/12.html">Mon, 14 Dec 2009 05:51:02 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018102750/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20161018102750/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20161018102750im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018102750/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20161018102750/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20161018102750im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018102750/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20161018102750/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20161018102750im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018102750/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20161018102750/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20161018102750im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018102750/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20161018102750/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20161018102750im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://web.archive.org/web/20161018102750/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102750/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102750/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102750/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102750/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102750/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://web.archive.org/web/20161018102750/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<!--
+     FILE ARCHIVED ON 10:27:50 Oct 18, 2016 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 16:53:45 Jan 23, 2020.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+-->
+<!--
+playback timings (ms):
+  PetaboxLoader3.resolve: 211.741
+  captures_list: 1163.933
+  exclusion.robots.policy: 0.154
+  esindex: 0.01
+  exclusion.robots: 0.168
+  LoadShardBlock: 690.336 (3)
+  load_resource: 411.222
+  RedisCDXSource: 456.818
+  PetaboxLoader3.datanode: 886.346 (4)
+  CDXLines.iter: 13.442 (3)
+-->

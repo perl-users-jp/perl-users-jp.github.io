@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app56.us.archive.org';v.server_ms=2243;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
+<script type="text/javascript">
+WB_wombat_Init("http://web.archive.org/web/", "20170417053838", "perl-users.jp:80");
+</script>
+<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
+<script type="text/javascript">
+__wbhack.init('http://web.archive.org/web');
+</script>
+<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
+<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
+<!-- End Wayback Rewrite JS Include -->
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20170417053838cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>紹介しきれなかったメソッドまとめ #01 - JPerl Advent Calendar 2009
+</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20170417053838/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20170417053838cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
+<meta http-equiv="Content-Script-Type" content="text/javascript"/>
+<script type="text/javascript" src="http://web.archive.org/web/20170417053838js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20170417053838js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20170417053838js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+<script type="text/javascript">
+    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
+</script>
+
+<style type="text/css">
+    pre {
+        border-left: 2px solid #cccccc;
+        padding-left: 4px;
+        margin-left: 10px;
+        overflow: auto;
+    }
+</style>
+
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">紹介しきれなかったメソッドまとめ #01 - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">紹介しきれなかったメソッドまとめ #01<a href="http://web.archive.org/web/20170417053838/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/22.html"><img src="http://web.archive.org/web/20170417053838im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/22.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>こんにちわ！こんにちわ！nekokakです！</p>
+<p>☆４ついただきました！</p>
+<p><a href="http://web.archive.org/web/20170417053838/http://cpanratings.perl.org/dist/DBIx-Skinny">http://cpanratings.perl.org/dist/DBIx-Skinny</a></p>
+
+<p>ということで、本日は久々に俺のターンということで</p>
+<p>今までで説明しきれなかったDBIx::Skinnyの各種メソッドを紹介してみようと思います。</p>
+</div>
+<div class="section">
+<h3> set_dbh</h3>
+
+<p>DBIx::Skinnyをいままでつかっておらず、例えばDBI直接使っているコードがあり、</p>
+<p>いきなり全てDBIx::Skinnyに置き換えるのが困難なケースもあるでしょう。</p>
+
+<p>普通にDBIx::Skinnyを使う場合は、newする時の引数や、DBIx::SkinnyをuseしているModelクラスがわで</p>
+<p>コネクション情報を書いておけば新規にコネクションをはりますが、</p>
+<p>コネクション数を増やしたくないけど、DBIx::Skinnyを使ってみたい場合に</p>
+<p>set_dbhメソッドをつかいます。</p>
+
+<pre>
+# もともとの処理でDBIを使っているとする
+my $dbh = DBI-&gt;connect(...);
+# このコネクションをDBIx::Skinnyに渡す。
+Proj::DB-&gt;set_dbh($dbh);
+# あとはいつも通りにDBIx::Skinnyを使う
+Proj::DB-&gt;single('user', {name =&gt; 'nekokak'});
+</pre>
+
+<p>これだけで、今まで使っていたDBコネクションをつかいまわせます。</p>
+</div>
+<div class="section">
+<h3> sql_for_unixtime</h3>
+
+<p>いまさらですがunixtimeは何気につかいたくなることがあります。</p>
+<p>DBIx::Skinnyを使っているQudoでもunixtimeを利用しています。</p>
+
+<p>DBIx::Skinnyでunixtimeをつかうには以下のようにします。</p>
+
+<pre>
+Proj::DB-&gt;dbd-&gt;sql_for_unixtime;
+Proj::DB-&gt;dbh-&gt;selectrow_array("SELECT $unixtime_sql")
+</pre>
+
+<p>こうすることで、接続しているDBDに応じたunixtimeを取得することができます。</p>
+
+<p>本日はここまで。</p>
+<p>明日はnekoya氏のターンです。</p>
+
+<p>have a nice skinny days!:)</p>
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="http://web.archive.org/web/20170417053838/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/22.html">Tue, 22 Dec 2009 02:06:01 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20170417053838/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20170417053838/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20170417053838im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20170417053838/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20170417053838/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20170417053838im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20170417053838/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20170417053838/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20170417053838im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20170417053838/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20170417053838/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20170417053838im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20170417053838/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20170417053838/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20170417053838im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://web.archive.org/web/20170417053838/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20170417053838/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20170417053838/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20170417053838/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20170417053838/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20170417053838/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://web.archive.org/web/20170417053838/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<!--
+     FILE ARCHIVED ON 05:38:38 Apr 17, 2017 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 16:53:05 Jan 23, 2020.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+-->
+<!--
+playback timings (ms):
+  esindex: 0.012
+  load_resource: 646.668
+  exclusion.robots.policy: 0.123
+  RedisCDXSource: 332.268
+  captures_list: 1585.606
+  CDXLines.iter: 13.434 (3)
+  PetaboxLoader3.resolve: 83.369
+  PetaboxLoader3.datanode: 1708.423 (4)
+  LoadShardBlock: 1234.493 (3)
+  exclusion.robots: 0.134
+-->

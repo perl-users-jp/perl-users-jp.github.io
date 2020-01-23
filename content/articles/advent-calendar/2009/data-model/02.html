@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app105.us.archive.org';v.server_ms=2190;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
+<script type="text/javascript">
+WB_wombat_Init("http://web.archive.org/web/", "20161018051359", "perl-users.jp");
+</script>
+<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
+<script type="text/javascript">
+__wbhack.init('http://web.archive.org/web');
+</script>
+<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
+<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
+<!-- End Wayback Rewrite JS Include -->
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018051359cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>index の種類、複合 index - JPerl Advent Calendar 2009
+</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20161018051359/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018051359cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
+<meta http-equiv="Content-Script-Type" content="text/javascript"/>
+<script type="text/javascript" src="http://web.archive.org/web/20161018051359js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018051359js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018051359js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+<script type="text/javascript">
+    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
+</script>
+
+<style type="text/css">
+    pre {
+        border-left: 2px solid #cccccc;
+        padding-left: 4px;
+        margin-left: 10px;
+        overflow: auto;
+    }
+</style>
+
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">index の種類、複合 index - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">index の種類、複合 index<a href="http://web.archive.org/web/20161018051359/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/data-model/02.html"><img src="http://web.archive.org/web/20161018051359im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/data-model/02.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<h3> はじめに</h3>
+
+<p>昨日は、 Data::Model を install して、簡単なテーブル操作を行うところまでやりました。</p>
+
+<p>ちなみに、本トラックで書いているサンプルを github に上げています。</p>
+<p><a href="http://web.archive.org/web/20161018051359/http://github.com/yappo/document-datamodel-advent-calendar-2009-examples">http://github.com/yappo/document-datamodel-advent-calendar-2009-examples</a></p>
+<p>最終日にはなんかしら動くものが出来るかなと思う今日この頃です。</p>
+
+<p>本日は、 primary key をはじめとした index の tips のご紹介です。</p>
+</div>
+<div class="section">
+<h3> unique index</h3>
+
+<p>普通の RDBMS には UNIQUE をカラムに指定できますよね。もちろん Data::Model でだって制約できます！</p>
+
+<p>user テーブルの nickname なんてのは重複しちゃいやだと思うので、 unique 制約かけましょう。</p>
+
+<pre>
+install_model user =&gt; schema {
+    key 'id';
+    unique 'nickname';　＃ここ
+    columns qw/ id nickname /;
+};
+</pre>
+
+<p>以下のコードで、ちゃんと ERROR! が出力されるハズです。</p>
+
+<pre>
+    # id = 1, nickname = 'Yappo' で user テーブルにレコードを作成
+    $bookmark-&gt;set(
+        user =&gt; 1 =&gt; {
+            nickname =&gt; 'Yappo',
+        },
+    );
+
+    # id = 2, nickname = 'Yappo' で user テーブルにレコードを作成しようとする
+    eval {
+        $bookmark-&gt;set(
+            user =&gt; 2 =&gt; {
+                nickname =&gt; 'Yappo',
+            },
+        );
+    };
+    print "ERROR!\n" if $@;
+</pre>
+</div>
+<div class="section">
+<h3> ふつうの index</h3>
+
+<p>さて、ここまでは primary key やら unique 制約のついたものでした。</p>
+
+<p>普通に index を使うのも unique と同じ感じでできます。</p>
+
+<pre>
+install_model bookmark =&gt; schema {
+    key [qw/ url_id user_id /];
+    index 'user_id'; # ここ
+    columns qw/ url_id user_id /;
+};
+</pre>
+</div>
+<div class="section">
+<h3> index で検索</h3>
+
+<p>unique/index を活用してレコードを取得するには lookup の代わりに get を使います。</p>
+
+<pre>
+    # index を使って検索
+    # SELECT * FROM user WHERE user_id = 2; してレコードを取得
+    my $itr = $bookmark-&gt;get(
+        bookmark =&gt; {
+            index =&gt; { user_id =&gt; 2 }
+        }
+    );
+    $row = $itr-&gt;next; # 最初の1レコード目を取得
+    print sprintf "URL_ID: %d\nUSER_ID: %s\n", $row-&gt;url_id, $row-&gt;user_id;
+
+    # SELECT * FROM user WHERE nickname = 'Yappo'; してレコードを一件取得
+    my $itr = $bookmark-&gt;get(
+        user =&gt; {
+            index =&gt; { nickname =&gt; 'Yappo' }
+        }
+    );
+    my $row = $itr-&gt;next; # 最初の1レコード目を取得
+    print sprintf "ID: %d\nNICKNAME: %s\n", $row-&gt;id, $row-&gt;nickname;
+</pre>
+
+<p>unique と index の違いは、 unique 制約の有る無しだけなので、検索する時の使い方は違いありません。</p>
+
+</div>
+<div class="section">
+<h3> 複合 primary key</h3>
+
+<p>昨日は user テーブルの id というカラムに primary key を張りました。</p>
+
+<pre>
+install_model user =&gt; schema {
+    key 'id';
+    columns qw/ id nickname /;
+};
+</pre>
+
+<p>実はこれ、 key に対して ARRAY リファレンスを渡すだけで、複合 index の設定ができるんです。</p>
+
+<p>試しに bookmark テーブルの primary key を複合 index にしてみましょう。</p>
+
+<pre>
+install_model bookmark =&gt; schema {
+    key [qw/ url_id user_id /];
+    columns qw/ url_id user_id /;
+};
+</pre>
+
+<p>たった、これだけです。</p>
+
+<p>で、実際に使うわけですが、昨日は Data::Model は KVS 指向の API を提供していると言いました。</p>
+<p>これの考えで使い方を考えると、 key の定義が ARRAY リファレンスなんだから、 ARRAY リファレンスを key にして使えば良い。となります。</p>
+
+<p>実際、以下のような使い方です。</p>
+
+<pre>
+my $bookmark = MyBookmark-&gt;new;
+
+# url_id = 1, user_id = 2 で bookmark テーブルにレコードを作成
+$bookmark-&gt;set(
+    bookmark =&gt; [1, 2]
+);
+
+# SELECT * FROM bookmark WHERE url_id = 1 AND user_id = 2; してレコードを一件取得
+my $row = $bookmark-&gt;lookup( bookmark =&gt; [1, 2] );
+print sprintf "URL_ID: %d\nUSER_ID: %s\n", $row-&gt;url_id, $row-&gt;user_id;
+
+# 取得したレコードを DELETE 文で削除
+$row-&gt;delete;
+</pre>
+
+<p>実行結果は下記の通り</p>
+<pre>
+$ perl 02.pl
+URL_ID: 1
+USER_ID: 2
+</pre>
+
+<p>key の定義したカラムの順番に値を指定すれば良いことが分かります。</p>
+
+<h4> key だけで済む場合はちょっと違う</h4>
+
+<p>ちなみに、昨日の user テーブルへの値の保存方法が</p>
+<pre>
+$bookmark-&gt;set(
+    user =&gt; 1 =&gt; {
+        nickname =&gt; 'Yappo',
+    },
+);
+</pre>
+
+<p>だったのに対して</p>
+
+<pre>
+$bookmark-&gt;set(
+    bookmark =&gt; [1, 2]
+);
+</pre>
+
+<p>と、 HASH リファレンスがなくなっています。</p>
+
+<p>なぜかというと、 bookmark の定義を思い出して欲しいんですけど定義されてるカラム全てに対して primary key の index が張られているので、わざわざカラムに対する値を設定する必要がないのです。</p>
+</div>
+<div class="section">
+<h3> 複合 index/unique</h3>
+
+<p>もちろん index/unique にも複合 index を設定できます。</p>
+<p>ただし index name を指定しなければいけませんので注意してください。</p>
+
+<pre>
+install_model foo =&gt; schema {
+    unique index_name1 =&gt; [qw/ a b /];
+    index index_name2 =&gt; [qw/ c d /];
+    columns qw/ a b c d /;
+};
+</pre>
+
+<p>これはそれぞれ以下のように検索出来ます。</p>
+
+<pre>
+    # unique 制約の index (index_name1) で検索
+    # SELECT * FROM foo WHERE a = 'a_data' AND b = 'b_data';
+    my $itr = $bookmark-&gt;get(
+    foo =&gt; {
+        index =&gt; { index_name1 =&gt; [qw/ a_data b_data /] },
+    );
+
+    # ふつうの index (index_name2) で検索
+    # SELECT * FROM foo WHERE c = 'c_data' AND d = 'd_data';
+    my $itr = $bookmark-&gt;get(
+    foo =&gt; {
+        index =&gt; { index_name2 =&gt; [qw/ c_data d_data /] },
+    );
+</pre>
+</div>
+<div class="section">
+<h3> まとめ</h3>
+
+<p>今日は index の設定に焦点をあてました。</p>
+
+<p>明日は、チュートリアル的なモノを skip して tips を書きたいです！</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="http://web.archive.org/web/20161018051359/http://perl-users.jp/articles/advent-calendar/2009/data-model/02.html">Thu, 03 Dec 2009 06:35:01 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018051359/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20161018051359/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20161018051359im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018051359/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20161018051359/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20161018051359im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018051359/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20161018051359/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20161018051359im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018051359/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20161018051359/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20161018051359im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018051359/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20161018051359/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20161018051359im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://web.archive.org/web/20161018051359/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018051359/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018051359/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018051359/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018051359/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018051359/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://web.archive.org/web/20161018051359/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<!--
+     FILE ARCHIVED ON 05:13:59 Oct 18, 2016 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 16:51:25 Jan 23, 2020.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+-->
+<!--
+playback timings (ms):
+  captures_list: 1591.444
+  exclusion.robots.policy: 0.107
+  PetaboxLoader3.resolve: 521.418
+  CDXLines.iter: 13.716 (3)
+  RedisCDXSource: 1312.327
+  PetaboxLoader3.datanode: 279.825 (4)
+  esindex: 0.013
+  LoadShardBlock: 262.555 (3)
+  exclusion.robots: 0.116
+  load_resource: 586.624
+-->

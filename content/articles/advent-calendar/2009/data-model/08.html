@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app22.us.archive.org';v.server_ms=12450;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
+<script type="text/javascript">
+WB_wombat_Init("http://web.archive.org/web/", "20161018052534", "perl-users.jp");
+</script>
+<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
+<script type="text/javascript">
+__wbhack.init('http://web.archive.org/web');
+</script>
+<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
+<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
+<!-- End Wayback Rewrite JS Include -->
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018052534cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Data::Model::SQL を使ってオブジェクト定義から SQL を作る - JPerl Advent Calendar 2009
+</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20161018052534/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018052534cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
+<meta http-equiv="Content-Script-Type" content="text/javascript"/>
+<script type="text/javascript" src="http://web.archive.org/web/20161018052534js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018052534js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018052534js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+<script type="text/javascript">
+    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
+</script>
+
+<style type="text/css">
+    pre {
+        border-left: 2px solid #cccccc;
+        padding-left: 4px;
+        margin-left: 10px;
+        overflow: auto;
+    }
+</style>
+
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Data::Model::SQL を使ってオブジェクト定義から SQL を作る - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Data::Model::SQL を使ってオブジェクト定義から SQL を作る<a href="http://web.archive.org/web/20161018052534/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/data-model/08.html"><img src="http://web.archive.org/web/20161018052534im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/data-model/08.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<h3> はじめに</h3>
+
+<p>5日目に Mixin 機能の紹介として SELECT COUNT(*) FROM foo を行う MyBookmark::Mixin::Count を作りました。</p>
+
+<p>ここで問題なのは、テーブルの全件カウントしか取れない中途半端さで使いにくい点です。</p>
+
+<p>今日は特定の絞り込み条件を MyBookmark::Mixin::Count に実装するための前提知識としてオブジェクトから SQL を組み立てる方法を解説します。</p>
+</div>
+<div class="section">
+<h3> 導入</h3>
+
+<p>Data::Model には SQL::Abstract 的な事が出来る Data::Model::SQL という物が付属しています。</p>
+
+<p>実際 get/update/delete メソッドの条件式を SQL に変換する部分で使われています。</p>
+
+<p>Data::Model::SQL に対してのパラメータは、4日目にとりああげた様々な方法での検索の仕方も殆ど同じようにかけます。</p>
+
+<pre>
+    my $sql = Data::Model::SQL-&gt;new(
+        select =&gt; [qw/ id nickname /], # 取り出すカラム
+        from   =&gt; 'user',              # テーブル名
+        where  =&gt; [                    # 検索条件
+            id       =&gt; { '&lt;=' =&gt; 100 },
+            nickname =&gt; 'Yappo'
+        ],
+        limit =&gt; 10,
+    );
+</pre>
+
+<p>get メソッド等と違うところは、 SELECT で取ってくるカラム名一覧とテーブル名を明示的に指定することです。</p>
+
+<p>組み立てたオブジェクトを SQL にするには as_sql メソッドが使えます。</p>
+
+<pre>
+    # 組み立てた SQL を出力
+    # SELECT id, nickname FROM user WHERE (id &lt;= ?) AND (nickname = ?) LIMIT 10
+    print $sql-&gt;as_sql . "\n";
+</pre>
+
+<p>そして、重要なのは WHERE 句の中で使われている bind された値を取り出すことです。</p>
+
+<p>それには bind メソッドを使います。</p>
+
+<pre>
+    # bind されたカラム名 を取り出す
+    # id, nickname
+    print join(", ", @{ $sql-&gt;bind_column }) . "\n";
+</pre>
+
+<p>bind メソッドの値に対応するカラム名も必要になる時もあるので bind_column メソッドで取り出すことが出来ます。</p>
+
+<pre>
+    # bind されたカラム名 を取り出す
+    # id, nickname
+    print join(", ", @{ $sql-&gt;bind_column }) . "\n";
+</pre>
+
+<h4> index 定義から検索</h4>
+
+<p>ちなみに index 定義を使って絞り込むとかはよくあるパターンなのですが、それを実現するには Data::Model::Driver::DBI の中にある add_index_to_where メソッドを使うと簡単に実現出来ます。</p>
+
+<p>しかし add_index_to_where の引数には、スキーマ定義オブジェクトが必要になるのですが、これはスキーマオブジェクトから簡単に取得することが出来ます。</p>
+
+<p>先程の where 条件式で nickname を絞り込んでいたものを、 nickname index 定義を使って絞り込む物に変えた場合は以下のようになります。</p>
+
+<pre>
+    my $sql = Data::Model::SQL-&gt;new(
+        select =&gt; [qw/ id nickname /], # 取り出すカラム
+        from   =&gt; 'user',              # テーブル名
+        where  =&gt; [                    # 検索条件
+            id       =&gt; { '&lt;=' =&gt; 100 },
+        ],
+        limit  =&gt; 10,
+    );
+
+    # user テーブルのスキーマ定義を取り出して index カラムの設定をする
+    my $schema = $bookmark-&gt;get_schema('user');
+    # nickname index を Yappo で絞り込み
+    Data::Model::Driver::DBI-&gt;add_index_to_where($schema, $sql, { nickname =&gt; 'Yappo' });
+
+    # 組み立てた SQL を出力
+    # SELECT id, nickname FROM user WHERE (id &lt;= ?) AND (nickname = ?) LIMIT 10
+    print $sql-&gt;as_sql . "\n";
+
+    # bind されたカラム名 を取り出す
+    # id, nickname
+    print join(", ", @{ $sql-&gt;bind_column }) . "\n";
+
+    # bind された値を取り出す
+    # 100, Yappo
+    print join(", ", @{ $sql-&gt;bind }) . "\n";
+</pre>
+
+<h4> primary key で検索</h4>
+
+<p>primary key で絞り込む場合ですが、これも Data::Model::Driver::DBI の中にある add_key_to_where を使います。</p>
+
+<p>add_index_to_where とはやや統一感のない引数になってますが以下のように使えます。</p>
+
+<pre>
+    my $sql = Data::Model::SQL-&gt;new(
+        select =&gt; [qw/ url_id user_id /], # 取り出すカラム
+        from   =&gt; 'bookmark',             # テーブル名
+    );
+
+    # bookmark テーブルのスキーマ定義を取り出して primary key 検索の設定をする
+    my $schema = $bookmark-&gt;get_schema('bookmark');
+    # url_id = 1 AND user_id = 2 で絞り込み
+    Data::Model::Driver::DBI-&gt;add_key_to_where($sql, $schema-&gt;key, [ 1, 2 ]);
+
+    # 組み立てた SQL を出力
+    # SELECT url_id, user_id FROM bookmark WHERE (url_id = ?) AND (user_id = ?)
+    print $sql-&gt;as_sql . "\n";
+
+    # bind されたカラム名 を取り出す
+    # url_id, user_id
+    print join(", ", @{ $sql-&gt;bind_column }) . "\n";
+
+    # bind された値を取り出す
+    # 1, 2
+    print join(", ", @{ $sql-&gt;bind }) . "\n";
+</pre>
+</div>
+<div class="section">
+<h3> まとめ</h3>
+
+<p>今日は Count Mixin の機能強化の為に必要なオブジェクトから SQL を作る方法を紹介しました。</p>
+
+<p>もちろん Mixin でなくとも Row クラスにメソッドを生やす add_method 等でも使うことは出来ます。</p>
+
+<p>明日はいよいよ Count Mixin に条件指定機能を組み込みましょう。今日の内容を踏まえればあっという間のはず。</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="http://web.archive.org/web/20161018052534/http://perl-users.jp/articles/advent-calendar/2009/data-model/08.html">Wed, 09 Dec 2009 17:02:08 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018052534/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20161018052534/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20161018052534im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018052534/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20161018052534/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20161018052534im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018052534/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20161018052534/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20161018052534im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018052534/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20161018052534/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20161018052534im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018052534/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20161018052534/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20161018052534im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://web.archive.org/web/20161018052534/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018052534/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018052534/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018052534/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018052534/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018052534/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://web.archive.org/web/20161018052534/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<!--
+     FILE ARCHIVED ON 05:25:34 Oct 18, 2016 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 16:52:30 Jan 23, 2020.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+-->
+<!--
+playback timings (ms):
+  load_resource: 2609.343
+  CDXLines.iter: 32.005 (3)
+  PetaboxLoader3.datanode: 5585.212 (4)
+  captures_list: 9813.832
+  exclusion.robots: 0.296
+  PetaboxLoader3.resolve: 6366.562 (4)
+  RedisCDXSource: 417.43
+  esindex: 0.021
+  LoadShardBlock: 9358.772 (3)
+  exclusion.robots.policy: 0.276
+-->

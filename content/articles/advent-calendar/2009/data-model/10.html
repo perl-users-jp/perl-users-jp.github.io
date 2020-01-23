@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app23.us.archive.org';v.server_ms=1899;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
+<script type="text/javascript">
+WB_wombat_Init("http://web.archive.org/web/", "20161018102514", "perl-users.jp");
+</script>
+<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
+<script type="text/javascript">
+__wbhack.init('http://web.archive.org/web');
+</script>
+<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
+<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
+<!-- End Wayback Rewrite JS Include -->
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018102514cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>クエリダンプについて - JPerl Advent Calendar 2009
+</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20161018102514/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018102514cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
+<meta http-equiv="Content-Script-Type" content="text/javascript"/>
+<script type="text/javascript" src="http://web.archive.org/web/20161018102514js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018102514js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018102514js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+<script type="text/javascript">
+    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
+</script>
+
+<style type="text/css">
+    pre {
+        border-left: 2px solid #cccccc;
+        padding-left: 4px;
+        margin-left: 10px;
+        overflow: auto;
+    }
+</style>
+
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">クエリダンプについて - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">クエリダンプについて<a href="http://web.archive.org/web/20161018102514/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/data-model/10.html"><img src="http://web.archive.org/web/20161018102514im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/data-model/10.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>こんにちわ！ yappo です！</p>
+<p>十日目は Data::Model での SQL プロファイリングにつての考察です。</p>
+
+<p>Data::Model では、もともと単純なクエリを吐いて使うことを想定しているので難しいクエリの最適化なんか考える場面は少ないです。</p>
+
+<p>複雑なクエリ履きたいなら、そもそも ORM のレイヤなんか生でやればいいじゃんどうでもいいよという事です。</p>
+
+<p>そんな酔っぱらいの yappo はどうでもいいです。</p>
+
+<p>という冗談はさておき、生 DBI で 生 SQL を書く場合は、クエリの最適化を行うのは用意ですね。</p>
+
+<pre>
+$dbh-&gt;prepare('SELECT * FROM user');
+</pre>
+
+<p>と、SQLがみえてるので、ちゃちゃっと print debug などをかければいいと思います。</p>
+
+<p>問題は、通常のメソッドや Data::Model::SQL で生成したクエリのダンプを取りたいとき、 bind 値を見たい時ですが Data::Model では、発行しているクエリの内容を出力するために便利なフックポイントがあります。</p>
+
+<p>Data::Model::Driver::DBI に start_query というメソッドが生えており、 Data::Model の内部でクエリを発行するときに、発行する SQL と bind された値を引数にして呼び出しています。</p>
+
+<p>昨日の mixin の実装で</p>
+<pre>
+        $driver-&gt;start_query($sql, $sql_obj-&gt;bind); # クエリログ用
+</pre>
+<p>と記述して特に説明をしていないメソッドがそれです。</p>
+
+<p>実際は以下のように記述します。</p>
+
+<pre>
+{
+    package Data::Model::Driver::DBI;
+
+    no warnings 'redefine';
+    sub start_query {
+        my($self, $sql, $bind) = @_;
+        my $params;
+        if (ref($bind) eq 'HASH') {
+            # insert or replace
+            $params = join ', ', map { "$_ =&gt; $bind-&gt;{$_}" } keys %{ $bind };
+        } elsif (ref($bind) eq 'ARRAY') {
+            # select or update or delete
+            $params = join ', ', @{ $bind };
+        }
+
+        print "--- QUERY DUMP START
+SQL : $sql
+BIND: $params
+--- QUERY DUMP END
+";
+    }
+}
+</pre>
+
+<p>現在の仕様では、 update クエリのみが { column_name =&gt; value } という HASH リファレンスが $bind に入ります。</p>
+<p>それ以外のクエリでは、 bind された値が順番に ARRAY リファレンスとして格納されます。</p>
+
+<p>ここの仕様は将来的に若干変更される予定です。</p>
+
+<p>このコードを有効にした状態で下記のコードを実行します。</p>
+<pre>
+my $bookmark = MyBookmark-&gt;new;
+$bookmark-&gt;set(
+    user =&gt; 1 =&gt; { nickname =&gt; 'Yappo' }
+);
+my $row = $bookmark-&gt;lookup( user =&gt; 1 );
+$row-&gt;nickname('takefumi');
+$row-&gt;update;
+$row-&gt;delete;
+</pre>
+
+<p>すると以下のように出力されます。</p>
+
+<pre>
+--- QUERY DUMP START
+SQL : INSERT INTO user
+(nickname, id)
+VALUES (?, ?)
+
+BIND: nickname =&gt; Yappo, id =&gt; 1
+--- QUERY DUMP END
+--- QUERY DUMP START
+SQL : SELECT id, nickname
+FROM user
+WHERE (id = ?)
+
+BIND: 1
+--- QUERY DUMP END
+--- QUERY DUMP START
+SQL : UPDATE user SET nickname = ? WHERE (id = ?)
+
+BIND: takefumi, 1
+--- QUERY DUMP END
+--- QUERY DUMP START
+SQL : DELETE FROM user
+WHERE (id = ?)
+
+BIND: 1
+--- QUERY DUMP END
+</pre>
+
+<p>発行したSQLとbindした値が一緒にでます。</p>
+<p>こうすればどのようなSQLを実際に実行したのかわかるようになるので、デバッグしやすいですね！</p>
+
+<p>have a nice data-model days!:)</p>
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="http://web.archive.org/web/20161018102514/http://perl-users.jp/articles/advent-calendar/2009/data-model/10.html">Sat, 12 Dec 2009 11:07:06 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018102514/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20161018102514/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20161018102514im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018102514/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20161018102514/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20161018102514im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018102514/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20161018102514/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20161018102514im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018102514/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20161018102514/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20161018102514im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018102514/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20161018102514/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20161018102514im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://web.archive.org/web/20161018102514/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102514/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102514/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102514/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102514/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102514/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://web.archive.org/web/20161018102514/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<!--
+     FILE ARCHIVED ON 10:25:14 Oct 18, 2016 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 16:52:52 Jan 23, 2020.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+-->
+<!--
+playback timings (ms):
+  load_resource: 578.966
+  exclusion.robots.policy: 0.25
+  esindex: 0.02
+  RedisCDXSource: 186.887
+  PetaboxLoader3.datanode: 1331.89 (4)
+  CDXLines.iter: 39.816 (3)
+  exclusion.robots: 0.268
+  captures_list: 1295.355
+  PetaboxLoader3.resolve: 300.034
+  LoadShardBlock: 1062.154 (3)
+-->

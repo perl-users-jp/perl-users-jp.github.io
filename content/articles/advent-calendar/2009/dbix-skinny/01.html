@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app105.us.archive.org';v.server_ms=1311;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
+<script type="text/javascript">
+WB_wombat_Init("http://web.archive.org/web/", "20161018042606", "perl-users.jp");
+</script>
+<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
+<script type="text/javascript">
+__wbhack.init('http://web.archive.org/web');
+</script>
+<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
+<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
+<!-- End Wayback Rewrite JS Include -->
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018042606cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>introduction DBIx::Skinny #01 - JPerl Advent Calendar 2009
+</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20161018042606/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018042606cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
+<meta http-equiv="Content-Script-Type" content="text/javascript"/>
+<script type="text/javascript" src="http://web.archive.org/web/20161018042606js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018042606js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018042606js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+<script type="text/javascript">
+    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
+</script>
+
+<style type="text/css">
+    pre {
+        border-left: 2px solid #cccccc;
+        padding-left: 4px;
+        margin-left: 10px;
+        overflow: auto;
+    }
+</style>
+
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">introduction DBIx::Skinny #01 - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">introduction DBIx::Skinny #01<a href="http://web.archive.org/web/20161018042606/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/01.html"><img src="http://web.archive.org/web/20161018042606im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/01.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>こんにちわ！こんにちわ！nekokakです！</p>
+<p>このアドベントカレンダーではid:nekokakが作ったDBIx::Skinnyを紹介します。</p>
+<p>DBIx::Skinnyの魅力を２５日かけてみっちり紹介したいと思います。</p>
+
+<p>初日はDBIx::Skinnyとはなにか、DBIx::Skinnyをなぜ作ったのかや、設計方針を書いてみたいと思います。</p>
+
+
+<p>DBIx::SkinnyはsimpleでliteなDBIのラッパーでありつつ、</p>
+<p>DBICのようなOR mapperとしても使えるように設計しています。</p>
+
+
+<p>DBIx::Skinnyは、DBICの色々な不満を解消すべくスクラッチで書き起こしました。</p>
+<p>DBICの不満点は色々とありますが、</p>
+<p>行き着くところはパフォーマンスではないでしょうか？</p>
+<p>複雑なPerlのデータ構造をもとに組み立てるSQLは生でSQLを書く事と比べると効率が落ちる事が良くあります。</p>
+<p>勿論DBICでも生のSQLを発行する事は可能です。</p>
+<p>ただ、生のSQLを発行してもDBICのschemaに定義したinflateなどの便利機能がつかえず、DBICを使ううまみが全くなくなってしまいます。</p>
+
+
+<p>DBIx::Skinnyでは生のSQLを簡単に書く事ができ、結果データをinflateするなど設定した便利機能を問題なく使えるようになっています。</p>
+
+
+<p>また、個人的にはバッチ系の処理でDBICを使ったスクリプトを叩く時とDBIx::Skinnyを使ったスクリプトを叩く時の</p>
+<p>応答速度を比較するだけでもDBICのもっさりした感覚を特に実感できると思います。</p>
+
+
+<p>もちろん、mod_perlやTheSchwartzなどの常駐プロセスにしてしまえば起動時のもっさり感はなくなりますが、</p>
+<p>バッチでも早い方がいいですよね:)</p>
+
+
+<p>DBIx::Skinnyをリリースしたあとに色々な人とDBICについて話しましたが、</p>
+<p>パフォーマンスを問題にしている人がとても多かったです。</p>
+
+
+<p>私はごく最近のDBICをちゃんとチェックはしていないので、間違った情報をもっていることがあるかもしれません。</p>
+<p>ですので、反対意見などもあればどんどん言ってください。</p>
+
+
+<p>DBIx::Skinnyはほぼ同時期に開発が始まったid:yappoさんのData::Modelや6AのData::ObjectDriverを参考にさせていただきました。</p>
+<p>特にData::ModelはSchemaの設定方法周りを大変参考にさせていただきました。有り難うございます。</p>
+
+
+<p>Data::Modelもすばらしいプロダクトなのでチェックしてみるといいでしょう。</p>
+
+
+<p>DBIx::Skinnyではこのようにパフォーマンスを意識して開発しています。</p>
+<p>勿論DBICよりも機能がすくないこともあるので、より高速に動作します。</p>
+<p>もしDBICより遅いところがあればそれは私がチューニングをサボっているだけなので教えて下さい！</p>
+
+
+<p>DBIx::Skinnyはgithubで開発しています。</p>
+<p>CPANにもアップされていますが、githubの方が色々機能が増えていたりbugfixされていたりするのでgithubのバージョンがおすすめです。</p>
+
+
+<p><a href="http://web.archive.org/web/20161018042606/http://github.com/nekokak/p5-dbix-skinny">http://github.com/nekokak/p5-dbix-skinny</a></p>
+
+
+<p>何か質問があればIRCで聞いてもらうかメールで直接きいてもらってもOKです。</p>
+<p>irc: #dbix-skinny@irc.perl.org</p>
+<p>mail: nekokak+skinny _at_ gmail.com</p>
+
+
+<p>ちなみにDBIx::Skinnyではモバイルファクトリーの新規プロジェクトでどんどん使われています。</p>
+<p>今後mixiアプリなどでも利用される予定です。</p>
+
+<p>これをきっかけでDBIx::Skinnyを使う人が増えてくれるとうれしいです。</p>
+
+<p>have a nice skinny days!:)</p>
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="http://web.archive.org/web/20161018042606/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/01.html">Wed, 02 Dec 2009 07:59:05 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018042606/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20161018042606/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20161018042606im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018042606/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20161018042606/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20161018042606im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018042606/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20161018042606/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20161018042606im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018042606/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20161018042606/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20161018042606im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018042606/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20161018042606/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20161018042606im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://web.archive.org/web/20161018042606/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018042606/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018042606/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018042606/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018042606/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018042606/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://web.archive.org/web/20161018042606/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<!--
+     FILE ARCHIVED ON 04:26:06 Oct 18, 2016 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 16:49:39 Jan 23, 2020.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+-->
+<!--
+playback timings (ms):
+  captures_list: 1083.188
+  exclusion.robots.policy: 0.169
+  PetaboxLoader3.resolve: 111.58
+  CDXLines.iter: 12.608 (3)
+  RedisCDXSource: 263.473
+  PetaboxLoader3.datanode: 819.586 (4)
+  esindex: 0.017
+  LoadShardBlock: 803.751 (3)
+  exclusion.robots: 0.182
+  load_resource: 221.786
+-->

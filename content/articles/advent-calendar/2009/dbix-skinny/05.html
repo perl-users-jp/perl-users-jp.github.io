@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app40.us.archive.org';v.server_ms=1914;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
+<script type="text/javascript">
+WB_wombat_Init("http://web.archive.org/web/", "20161018044429", "perl-users.jp");
+</script>
+<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
+<script type="text/javascript">
+__wbhack.init('http://web.archive.org/web');
+</script>
+<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
+<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
+<!-- End Wayback Rewrite JS Include -->
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018044429cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>色々な検索方法1 #05 - JPerl Advent Calendar 2009
+</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20161018044429/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018044429cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
+<meta http-equiv="Content-Script-Type" content="text/javascript"/>
+<script type="text/javascript" src="http://web.archive.org/web/20161018044429js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018044429js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018044429js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+<script type="text/javascript">
+    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
+</script>
+
+<style type="text/css">
+    pre {
+        border-left: 2px solid #cccccc;
+        padding-left: 4px;
+        margin-left: 10px;
+        overflow: auto;
+    }
+</style>
+
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">色々な検索方法1 #05 - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">色々な検索方法1 #05<a href="http://web.archive.org/web/20161018044429/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/05.html"><img src="http://web.archive.org/web/20161018044429im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/05.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>こんにちわ！skinnyトラックを達成するとかんかんが焼き肉をおごってくれるんじゃないかと期待しているnekokakです！</p>
+<p>五日目はDBIx::SkinnyでのDB検索の細かい使い方についてです。</p>
+</div>
+<div class="section">
+<h3> search</h3>
+
+<p>DBIx::SkinnyにはDBICにあるようなsearchメソッドが用意されています。</p>
+
+<pre>
+my $itr = $db-&gt;search('user',
+    { name =&gt; 'nekokak' },
+    { }
+);
+</pre>
+
+<p>一つ目に検索対象とするtable名を指定します</p>
+<p>二つ目のhashrefに検索条件を指定します</p>
+<p>三つ目のhashrefにorderやlimitなどのオプションを渡せます。</p>
+
+<p>searchメソッドはメソッドの返り値をスカラーコンテキストで受けるかリストコンテキストでうけるかで</p>
+<p>返り値の情報が変わりま。</p>
+<p>スカラーコンテキストで受けた場合はDBIx::Skinny::Iteratorが取得でき、</p>
+<p>リストコンテキストで受けた場合は結果Rowの配列を取得することができます。</p>
+</div>
+<div class="section">
+<h3> 色々な検索条件</h3>
+
+<p>searchメソッドで色々複雑な検索条件を指定したい場合があると思いますので</p>
+<p>色々な例をあげましょう。</p>
+
+<p>inで複数の値をつかって検索したい場合:</p>
+<pre>
+#SELECT id, name, birth_on FROM user WHERE (name IN (?,?,?))
+$db-&gt;search('user',
+    { name =&gt; [qw/nekokak yappo kan/] },
+);
+# もしくは
+$db-&gt;search('user',
+    { name =&gt; {in =&gt; [qw/nekokak yappo kan/]} },
+);
+</pre>
+
+<p>not inで検索したい場合:</p>
+<pre>
+#SELECT id, name, birth_on FROM user WHERE (name NOT IN (?,?,?))
+$db-&gt;search('user',
+    { name =&gt; {'not in' =&gt; [qw/nekokak yappo kan/]} },
+);
+</pre>
+
+<p>範囲指定で検索したい場合:</p>
+<pre>
+#SELECT id, name, birth_on FROM user WHERE (id &lt; ?)
+$db-&gt;search('user',
+    {
+        id =&gt; {'&lt;' =&gt; '10'},
+    }
+);
+#SELECT id, name, birth_on FROM user WHERE (id &gt; ?)
+$db-&gt;search('user',
+    {
+        id =&gt; {'&gt;' =&gt; '10'},
+    }
+);
+</pre>
+
+<p>IS NOT NULLで検索したい場合:</p>
+
+<pre>
+#SELECT id, name, birth_on FROM user WHERE (name IS NOT NULL)
+$db-&gt;search('user',
+    {
+        name =&gt; \'IS NOT NULL',
+    }
+);
+</pre>
+
+<p>and検索したい場合:</p>
+<pre>
+#SELECT id, name, birth_on FROM user WHERE (name = ?) AND (id &lt; ?)
+$db-&gt;search('user',
+    {
+        id   =&gt; {'&lt;' =&gt; '10'},
+        name =&gt; 'nekokak',
+    }
+);
+</pre>
+
+<p>同じカラムをand検索したい場合</p>
+<pre>
+# SELECT id, name, birth_on FROM user WHERE ((id &lt; ?) AND (id &gt; ?))
+$db-&gt;search('user',
+    {
+        id =&gt; [-and =&gt; {'&lt;' =&gt; 100},{'&gt;' =&gt; 20}],
+    }
+);
+#SELECT id, name, birth_on FROM user WHERE ((id = ?) AND (id = ?) AND (id = ?))
+$db-&gt;search('user',
+    {
+        id =&gt; [-and =&gt; 1,2,3],
+    }
+);
+</pre>
+
+<p>同じカラムをor検索したい場合:</p>
+<pre>
+#SELECT id, name, birth_on FROM user WHERE ((name = ?) OR (name = ?))
+$db-&gt;search('user',
+    {
+        name =&gt; [{'=' =&gt; 'nekokak'},{'=' =&gt; 'yappo'}],
+    }
+);
+</pre>
+
+<p>limit/offsetをかけたい場合:</p>
+
+<pre>
+#SELECT id, name, birth_on FROM user LIMIT 10 OFFSET 1
+$db-&gt;search('user',
+    {},
+    {
+        limit  =&gt; 10,
+        offset =&gt; 1,
+    }
+);
+</pre>
+
+<p>order byをかけたい場合:</p>
+
+<pre>
+#SELECT id, name, birth_on FROM user ORDER BY id desc
+$db-&gt;search('user',
+    {},
+    {
+        order_by =&gt; { 'id' =&gt; 'DESC' },
+    }
+);
+#SELECT id, name, birth_on FROM user ORDER BY id DESC, name DESC
+$db-&gt;search('user',
+    {},
+    {
+        order_by =&gt; [
+            { 'id'   =&gt; 'DESC' },
+            { 'name' =&gt; 'DESC' },
+        ],
+    }
+);
+</pre>
+
+<p>このように色々な検索条件を指定できます。</p>
+<p>DBICとは少しインタフェースが異なるので注意してください。</p>
+</div>
+<div class="section">
+<h3> single</h3>
+
+<p>singleメソッドはレコードを１行だけ取得したい時に使用します。</p>
+
+<pre>
+my $row = $db-&gt;single('user', {id =&gt; 1});
+</pre>
+
+<p>一つ目に検索対象とするtable名を指定し、</p>
+<p>二つ目のhashrefに検索条件を指定します。</p>
+
+<p>singleメソッドでは二つ目の引数で設定した検索条件で複数レコードが取れる場合であっても</p>
+<p>内部でlimit 1を自動で設定するようにしているので、</p>
+<p>どのような場合でも１レコードしか取得しません。</p>
+
+<p>DBIx::SkinnyではDBICのfindの用にプライマリキーで検索するメソッドを特別に用意していないので、</p>
+<p>プライマリキーを検索する場合はsingleを用います。</p>
+</div>
+<div class="section">
+<h3> count</h3>
+
+<p>レコードのcountを取りたい場合もあると思うので、countメソッドも用意してあります。</p>
+
+<pre>
+my $count = $db-&gt;count('user' , 'id', {name =&gt; 'nekokak'});
+</pre>
+
+<p>一つ目に検索対象とするtable名を指定し、</p>
+<p>二つ目の引数がcountを取る対象となるカラム情報で</p>
+<p>三つ目の引数がcountを取る条件となります。</p>
+
+<p>明日は引き続きDBIx::Skinnyでのデータの検索方法について書きます。</p>
+
+<p>have a nice skinny days!:)</p>
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="http://web.archive.org/web/20161018044429/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/05.html">Fri, 04 Dec 2009 15:33:02 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018044429/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20161018044429/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20161018044429im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018044429/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20161018044429/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20161018044429im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018044429/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20161018044429/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20161018044429im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018044429/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20161018044429/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20161018044429im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018044429/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20161018044429/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20161018044429im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://web.archive.org/web/20161018044429/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018044429/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018044429/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018044429/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018044429/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018044429/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://web.archive.org/web/20161018044429/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<!--
+     FILE ARCHIVED ON 04:44:29 Oct 18, 2016 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 16:50:22 Jan 23, 2020.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+-->
+<!--
+playback timings (ms):
+  load_resource: 491.719
+  esindex: 0.021
+  exclusion.robots: 0.377
+  exclusion.robots.policy: 0.351
+  LoadShardBlock: 794.371 (3)
+  PetaboxLoader3.datanode: 1132.128 (4)
+  CDXLines.iter: 21.032 (3)
+  RedisCDXSource: 460.389
+  captures_list: 1308.861
+  PetaboxLoader3.resolve: 113.474
+-->

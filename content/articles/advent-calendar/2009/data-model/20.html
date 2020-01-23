@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app57.us.archive.org';v.server_ms=979;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
+<script type="text/javascript">
+WB_wombat_Init("http://web.archive.org/web/", "20161018102758", "perl-users.jp");
+</script>
+<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
+<script type="text/javascript">
+__wbhack.init('http://web.archive.org/web');
+</script>
+<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
+<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
+<!-- End Wayback Rewrite JS Include -->
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018102758cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>トランザクションについて - JPerl Advent Calendar 2009
+</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20161018102758/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018102758cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
+<meta http-equiv="Content-Script-Type" content="text/javascript"/>
+<script type="text/javascript" src="http://web.archive.org/web/20161018102758js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018102758js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018102758js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+<script type="text/javascript">
+    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
+</script>
+
+<style type="text/css">
+    pre {
+        border-left: 2px solid #cccccc;
+        padding-left: 4px;
+        margin-left: 10px;
+        overflow: auto;
+    }
+</style>
+
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">トランザクションについて - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">トランザクションについて<a href="http://web.archive.org/web/20161018102758/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/data-model/20.html"><img src="http://web.archive.org/web/20161018102758im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/data-model/20.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>こんにちわ！ Yappo です！</p>
+<p>2十日目は Data::Model でのトランザクションの使い方です。</p>
+
+<p>トランザクションについての説明は省きます。</p>
+<p><a href="http://web.archive.org/web/20161018102758/http://e-words.jp/w/E38388E383A9E383B3E382B6E382AFE382B7E383A7E383B3.html">http://e-words.jp/w/E38388E383A9E383B3E382B6E382AFE382B7E383A7E383B3.html</a></p>
+<p>このあたりを読めばいいんじゃないでしょうか。</p>
+
+<p>早速試しましょう。</p>
+<p>ちなみに実験するときはトランザクションに対応しているRDBMSを使ってください。</p>
+<p>MySQL の場合だと MyISAM でためしても MyISAM がトランザクションに対応していないのでいみがありません。</p>
+<p>InnoDBで試しましょう。</p>
+
+<p>なお、 install_model　にて CREATE TABLE 文を作るときのテーブルオプションを与える事で TYPE=InnoDB のような CREATE TABLE SQL が作成出来ます。</p>
+
+<pre>
+    install_model txn_test =&gt; schema {
+        key 'id';
+        columns qw( id name );
+        schema_options create_sql_attributes =&gt; {
+            mysql =&gt; 'TYPE=InnoDB',
+        };
+    };
+</pre>
+
+<p>のようにして  schema_options を設定します。</p>
+<p>create_sql_attributes は CRATE TABLE NAME (); の attribute のとこに任意の SQL を追加できるというオプションで、任意の SQL を HASH リファレンスの中に書きます。</p>
+<p>HASH リファレンスの key は DBD ドライバ名で mysql や SQLite などが指定でき、 value に実際追加したい SQL を書きます。</p>
+
+<p>上記の定義を as_sqls すると下記のようになります。</p>
+
+<pre>
+CREATE TABLE txn_test (
+    id              CHAR(255)      ,
+    name            CHAR(255)      ,
+    PRIMARY KEY (id)
+) TYPE=InnoDB;
+</pre>
+</div>
+<div class="section">
+<h3> 使ってみる</h3>
+
+<pre>
+# トランザクションの開始
+my $txn = $db-&gt;txn_scope;
+
+# INSERT
+$txn-&gt;set(
+    txn_test =&gt; 1 =&gt; { name =&gt; 'Yappo' }
+);
+
+# トランザクションを終了してデータを commit する！
+$txn-&gt;commit;
+</pre>
+
+<p>このように書くと、 txn_scope メソッドを呼び出したときに帰ってくるオブジェクトを保持しているあいだ</p>
+<p>トランザクションが有効となります。</p>
+<p>なので</p>
+
+<pre>
+# トランザクションの開始
+my $txn = $db-&gt;txn_scope;
+
+# LOOKUP
+my $row = $txn-&gt;lookup( txn_test =&gt; 1 );
+
+# data の update
+$txn-&gt;update($row);
+
+die 'oooops';
+
+# トランザクションを終了してデータを commit する！
+$txn-&gt;commit;
+</pre>
+
+<p>set/update/delete メソッドの後の処理が die などで異常終了した場合、</p>
+<p>set/update/delete メソッドでの更新が rollback されます。</p>
+
+<p>もっと詳しくいうと、 $txn のスコープが外れた時に $txn-&gt;commit されていなければ強制的に rollback されます。</p>
+<p>これは DBIx::Class::Storage::TxnScopeGuard とほとんど同じ挙動です。</p>
+</div>
+<div class="section">
+<h3> 通常との違い</h3>
+
+<p>上記の例では、 $db-&gt;set を使わずに $txn-&gt;set などを使って INSERT していました。</p>
+<p>これは、トランザクションスコープ内では直接レコードの更新を許さないという設計によるものです。</p>
+
+<p>START TRANSACTION してる間に他のメソッドを呼びだして、そのメソッドの中で意図しない更新クエリが走った時に抑制してくれたりします。</p>
+
+<p>実際にトランザクションスコープ中に通常の方法で更新系を呼び出すと、下記のようにエラーになります。</p>
+
+<pre>
+my $txn = $db-&gt;txn_scope;
+eval {
+    $db-&gt;set(
+        txn_test =&gt; 1 =&gt; { name =&gt; 'Yappo' }
+    );
+};
+warn $@ if $@;# say "The 'set' method can not be performed during a transaction."
+
+eval {
+    $row-&gt;delete;
+};
+warn $@ if $@;# say "The 'delete' method can not be performed during a transaction."
+</pre>
+
+<p>これは、 lookup などして取得した Row オブジェクトなどに生えている update, delete メソッドに対しても有効となっています。</p>
+
+<p>なので、更新系は txn_scope が返すインスタンス経由で実行する必要があります。</p>
+<p>Row オブジェクトの update, delete メソッドは $txn-&gt;update($row) などとして txn_scope が返すインスタンスのメソッド経由で更新します。</p>
+
+<pre>
+# INSERT
+$txn-&gt;set(
+    txn_test =&gt; 1 =&gt; { name =&gt; 'Yappo' }
+);
+
+# LOOKUP
+my $row = $txn-&gt;lookup( txn_test =&gt; 1 );
+warn $row-&gt;name;
+
+# UPDATE
+$row-&gt;name('nekokak');
+$txn-&gt;update($row);
+
+# GET
+my $itr = $txn-&gt;get('txn_test');
+while (&lt;$itr&gt;) {
+    warn $_-&gt;name;
+}
+
+# delete
+$txn-&gt;delete($row);
+
+$txn-&gt;commit;
+</pre>
+
+</div>
+<div class="section">
+<h3> まとめ</h3>
+
+<p>トランザクションをうまく使うとデータの一貫性を保証した処理を書くことができますので</p>
+<p>びしばしつかってみてください。</p>
+
+<p>have a nice data-model days!:)</p>
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="http://web.archive.org/web/20161018102758/http://perl-users.jp/articles/advent-calendar/2009/data-model/20.html">Tue, 22 Dec 2009 08:37:02 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018102758/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20161018102758/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20161018102758im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018102758/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20161018102758/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20161018102758im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018102758/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20161018102758/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20161018102758im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018102758/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20161018102758/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20161018102758im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018102758/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20161018102758/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20161018102758im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://web.archive.org/web/20161018102758/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102758/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102758/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102758/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102758/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102758/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://web.archive.org/web/20161018102758/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<!--
+     FILE ARCHIVED ON 10:27:58 Oct 18, 2016 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 16:54:54 Jan 23, 2020.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+-->
+<!--
+playback timings (ms):
+  captures_list: 544.183
+  exclusion.robots: 0.366
+  CDXLines.iter: 14.022 (3)
+  RedisCDXSource: 252.177
+  PetaboxLoader3.resolve: 316.091
+  load_resource: 424.148
+  esindex: 0.013
+  LoadShardBlock: 274.096 (3)
+  exclusion.robots.policy: 0.31
+  PetaboxLoader3.datanode: 378.963 (4)
+-->

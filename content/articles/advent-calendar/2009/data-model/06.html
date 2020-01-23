@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app12.us.archive.org';v.server_ms=1606;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
+<script type="text/javascript">
+WB_wombat_Init("http://web.archive.org/web/", "20161018102706", "perl-users.jp");
+</script>
+<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
+<script type="text/javascript">
+__wbhack.init('http://web.archive.org/web');
+</script>
+<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
+<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
+<!-- End Wayback Rewrite JS Include -->
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018102706cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Row クラスにメソッドを追加 - JPerl Advent Calendar 2009
+</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20161018102706/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018102706cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
+<meta http-equiv="Content-Script-Type" content="text/javascript"/>
+<script type="text/javascript" src="http://web.archive.org/web/20161018102706js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018102706js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018102706js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+<script type="text/javascript">
+    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
+</script>
+
+<style type="text/css">
+    pre {
+        border-left: 2px solid #cccccc;
+        padding-left: 4px;
+        margin-left: 10px;
+        overflow: auto;
+    }
+</style>
+
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Row クラスにメソッドを追加 - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Row クラスにメソッドを追加<a href="http://web.archive.org/web/20161018102706/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/data-model/06.html"><img src="http://web.archive.org/web/20161018102706im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/data-model/06.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<h3> はじめに</h3>
+
+<p>昨日は、スキーマクラスに任意のメソッドをはやす Mixin の作り方を紹介しました。</p>
+
+<p>今日は検索した Row クラスに対してメソッドを生やす add_method について紹介します。</p>
+
+<p>Row クラスとは、 get メソッドや lookup メソッドから得られたレコードの行データが格納されている物です。</p>
+</div>
+<div class="section">
+<h3> add method する</h3>
+
+<p>初日に Data::Model にはリレーションの機能が無いと説明しましたが、 add_method を使って簡易的なリレーションシップができます。</p>
+
+<p>たとえば MyBookmark クラスで定義してる bookmark テーブルは、 url テーブルの id と user テーブルの id とで関連付け出来るんで、 bookmark テーブルの Row オブジェクトから、それぞれのレコードを簡単に取れるようにしてみます。</p>
+
+<p>実際以下するコードは下記のようなものになっています。</p>
+
+<pre>
+    add_method user =&gt; sub {
+        my $row = shift;
+        $row-&gt;get_model-&gt;lookup( user =&gt; $row-&gt;user_id );
+    };
+</pre>
+
+<p>add_method の第一引数にメソッド名、第二引数に実際のコードリファレンスを渡します。</p>
+
+<p>bookmark テーブルの Row クラスにメソッドを生やすだけなので、コードリファレンスの中身としては第一引数は Row オブジェクトそのものです。</p>
+
+<p>第二第三以降は任意の引数がそのまま渡されますし、戻り値もそのまま戻されます。</p>
+
+<p>Row オブジェクトには get_model という Row オブジェクトを作るのに使ったスキーマオブジェクトが取れるので get_model から利用できるスキーマオブジェクトを取り出して、それを使って lookup 検索をかけています。</p>
+<p>(この get_model メソッドはさっき github に push したので CPAN の方では今現在利用できません。)</p>
+
+
+<p>install_model bookmark の全体の定義は以下のようになります。</p>
+
+<pre>
+install_model bookmark =&gt; schema {
+    key [qw/ url_id user_id /];
+    index 'user_id';
+    columns qw/ url_id user_id /;
+
+    add_method user =&gt; sub {
+        my $row = shift;
+        $row-&gt;get_model-&gt;lookup( user =&gt; $row-&gt;user_id );
+    };
+};
+</pre>
+
+</div>
+<div class="section">
+<h3> 使ってみる</h3>
+
+<p>使い方は簡単で bookmark テーブルの Row オブジェクトから生やしたメソッドを呼ぶだけです。</p>
+
+<pre>
+$row-&gt;user;
+</pre>
+
+<p>データの insert も含めたコード例としては以下のような感じです。</p>
+
+<pre>
+my $bookmark = MyBookmark-&gt;new;
+$bookmark-&gt;set(
+    user =&gt; 1 =&gt; { nickname =&gt; 'Yappo' }
+);
+$bookmark-&gt;set(
+    bookmark =&gt; [1, 1]
+);
+
+my $bookmark_row = $bookmark-&gt;lookup( bookmark =&gt; [1, 1] );
+my $user_row     = $bookmark_row-&gt;user;
+print "nickname = " . $user_row-&gt;nickname . "\n";
+</pre>
+
+<p>実行結果は下記の通り。</p>
+<pre>
+nickname = Yappo
+</pre>
+
+<p>これだけじゃ DBIC で言うところの prefetch 相当の事は出来ませんが、ちょっとした関連データを取るコードがすっきり書けるようになりました。</p>
+</div>
+<div class="section">
+<h3> おわりに</h3>
+
+<p>add_method を使うと、ちょっとしたメソッドを Row クラスに生やすことが出来ます。</p>
+
+<p>今日のような単純なリレーションをはじめとして、カラムの値の単位変換などでも利用出来ます。</p>
+
+<p>が、単位変換は別途 Inflation を利用した方がよいでしょう。</p>
+
+<p>ということで今日はここまで。</p>
+</div>
+<div class="section">
+<h3> 追記 10/01/04</h3>
+
+<p>antipop さんが、メソッドを追加する別の方法を指摘してくださいました。</p>
+<p>こっちの方法を使えば継承とかしてメソッドの使い回しがきくんすよね。。</p>
+<p>すっかり忘れてた。</p>
+
+<p><a href="http://web.archive.org/web/20161018102706/http://d.hatena.ne.jp/antipop/20100102/1262441380">http://d.hatena.ne.jp/antipop/20100102/1262441380</a></p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="http://web.archive.org/web/20161018102706/http://perl-users.jp/articles/advent-calendar/2009/data-model/06.html">Mon, 04 Jan 2010 08:33:02 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018102706/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20161018102706/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20161018102706im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018102706/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20161018102706/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20161018102706im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018102706/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20161018102706/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20161018102706im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018102706/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20161018102706/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20161018102706im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018102706/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20161018102706/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20161018102706im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://web.archive.org/web/20161018102706/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102706/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102706/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102706/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102706/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102706/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://web.archive.org/web/20161018102706/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<!--
+     FILE ARCHIVED ON 10:27:06 Oct 18, 2016 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 16:52:01 Jan 23, 2020.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+-->
+<!--
+playback timings (ms):
+  LoadShardBlock: 234.401 (3)
+  captures_list: 279.626
+  exclusion.robots: 0.205
+  esindex: 0.018
+  RedisCDXSource: 26.547
+  CDXLines.iter: 14.753 (3)
+  PetaboxLoader3.resolve: 270.833
+  load_resource: 1315.856
+  exclusion.robots.policy: 0.188
+  PetaboxLoader3.datanode: 1268.541 (4)
+-->

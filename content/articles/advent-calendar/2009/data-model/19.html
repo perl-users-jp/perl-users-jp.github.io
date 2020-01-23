@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app31.us.archive.org';v.server_ms=1439;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
+<script type="text/javascript">
+WB_wombat_Init("http://web.archive.org/web/", "20160505044232", "perl-users.jp");
+</script>
+<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
+<script type="text/javascript">
+__wbhack.init('http://web.archive.org/web');
+</script>
+<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
+<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
+<!-- End Wayback Rewrite JS Include -->
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20160505044232cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>カラムの定義を使いまわす3 Alias との連携 - JPerl Advent Calendar 2009
+</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20160505044232/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20160505044232cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
+<meta http-equiv="Content-Script-Type" content="text/javascript"/>
+<script type="text/javascript" src="http://web.archive.org/web/20160505044232js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20160505044232js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20160505044232js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+<script type="text/javascript">
+    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
+</script>
+
+<style type="text/css">
+    pre {
+        border-left: 2px solid #cccccc;
+        padding-left: 4px;
+        margin-left: 10px;
+        overflow: auto;
+    }
+</style>
+
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">カラムの定義を使いまわす3 Alias との連携 - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">カラムの定義を使いまわす3 Alias との連携<a href="http://web.archive.org/web/20160505044232/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/data-model/19.html"><img src="http://web.archive.org/web/20160505044232im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/data-model/19.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<h3> はじめに</h3>
+
+<p>本日で Column Sugar 集中講座最終日です。気合入れて行きましょう。</p>
+
+<p>前回では Column.pm に Column Sugar の定義を移動してきました、記憶力の良い方は覚えているでしょうが Alias Column の時に例題で出していた global.epoch も移行していました。</p>
+<p>global.epoch は create_dt という alias を張って DateTime で inflate してました。以下のような感じです。</p>
+
+<pre>
+install_model bookmark =&gt; schema {
+# 略
+    column 'global.epoch' =&gt; 'create_at' =&gt; {
+        default =&gt; sub { time() },
+    };
+    alias_column create_at =&gt; create_dt =&gt; {
+        inflate =&gt; 'DateTime',
+    };
+</pre>
+
+<p>これとおんなじ事を diary でもやりたくなると</p>
+
+<pre>
+install_model create =&gt; schema {
+# 略
+    column 'global.epoch' =&gt; 'create_at' =&gt; {
+        default =&gt; sub { time() },
+    };
+    alias_column create_at =&gt; create_dt =&gt; {
+        inflate =&gt; 'DateTime',
+    };
+</pre>
+
+<p>のようにおんなじコピペだらけになってしまいます。。。。</p>
+
+<p>そこで登場するのが Column Sugar の Alias 設定です。</p>
+</div>
+<div class="section">
+<h3> 定義する</h3>
+
+<p>まずは Column Sugar の定義を変更します。</p>
+<p>前回までは以下の形だったのを</p>
+
+<pre>
+column_sugar 'global.epoch'
+    =&gt; int =&gt; {
+        required =&gt; 1,
+        unsigned =&gt; 1,
+    };
+</pre>
+
+<p>次のように変更します。</p>
+
+<pre>
+column_sugar 'global.epoch'
+    =&gt; int =&gt; {
+        required =&gt; 1,
+        unsigned =&gt; 1,
+        alias =&gt; {
+            epoch_dt =&gt; {
+                inflate =&gt; 'DateTime',
+            },
+            epoch_dt_utc =&gt; {
+                inflate =&gt; 'DateTimeUTC',
+            },
+            epoch_dt_jst =&gt; {
+                inflate =&gt; 'DateTimeJST',
+            },
+        },
+
+    };
+</pre>
+
+<p>alias という値を追加します。ここで与える HASH リファレンスは aliased_name =&gt; \%append_params という形式になっています。</p>
+
+<p>新しいエイリアスカラム名を key にして、それに対する追加カラム定義を value とした HASH リファレンスです。</p>
+
+<p>HASH リファレンスなので、複数の定義も同時に行えるので epoch_dt, epoch_dt_jst, epoch_dt_utc と作ってみました。</p>
+<p>DateTimeUTC, DateTimeJST それぞれの Inflate 定義の中身は割愛します。</p>
+</div>
+<div class="section">
+<h3> 定義を利用する</h3>
+
+<p>こうして作ったエイリアス定義済みの Column Sugar を使ってみましょう。</p>
+<p>もちろん</p>
+
+<pre>
+    column 'global.epoch' =&gt; 'create_at' =&gt; {
+        default =&gt; sub { time() },
+    };
+</pre>
+
+<p>すれば, table.create_at という形で使えます。使えますが、 alias されたカラムを使う時は $table-&gt;create_dt とかなって欲しいのに $table-&gt;epoch_dt とかになってしまいます。</p>
+<p>これはちょっと混乱して大変ですよね。</p>
+
+<p>なので、この Column Sugar で定義されたエイリアスカラムのカラム名を変更する仕組みも用意されています。</p>
+
+<p>下記のようにして column 定義することによりリネームできます。</p>
+
+<pre>
+    column 'global.epoch' =&gt; 'create_at' =&gt; {
+        default      =&gt; sub { time() },
+        alias_rename =&gt; {
+            epoch_dt     =&gt; 'create_dt',
+            epoch_dt_utc =&gt; 'create_dt_utc',
+            epoch_dt_jst =&gt; 'create_dt_jst',
+        },
+    };
+</pre>
+
+<p>column 定義の追加定義欄に alias_rename という key で HASH リファレンスを渡します。</p>
+<p>HASH リファレンスの内容は、元のエイリアス名 =&gt; リネーム後のエイリアス名 という形です。これも複数個指定可能です。</p>
+</div>
+<div class="section">
+<h3> 使ってみる</h3>
+
+<p>ここまで準備できれば、あとは何も考える必要がありません。</p>
+<p>alias されたカラムメソッドを使うだけです。</p>
+<p>複数にエイリアスを張っていた時に、どれかのエイリアスの値を変更してもきちんとすべてのエイリアスの値は変更されています。</p>
+
+<p>試しに以下のように使ってみますか。</p>
+
+<pre>
+    my $yappo = $bookmark-&gt;set( user =&gt; { nickname =&gt; 'Yappo' } );
+    my $diary = $diary-&gt;set(
+        diary =&gt; {
+            user_id =&gt; $yappo-&gt;id,
+        }
+    );
+
+    printf "create_at    : %s\n", $diary-&gt;create_at;
+    printf "create_dt    : %s\n", $diary-&gt;create_dt;
+    printf "create_dt_utc: %s\n", $diary-&gt;create_dt_utc;
+    printf "create_dt_jst: %s\n", $diary-&gt;create_dt_jst;
+
+    # create_dt_jst から生えてるメソッドを変えても Data::Model は検知できないので
+    # 他のエイリアスに値が反映されないので、意図的に set しなおしてます
+    $diary-&gt;create_dt_jst(
+        $diary-&gt;create_dt_jst-&gt;
+            set_year(2012)-&gt;set_month(12)-&gt;set_day(21)-&gt;
+                set_hour(12)-&gt;set_minute(0)-&gt;set_second(0)
+    );
+    print "\nchange ddate\n";
+
+    printf "create_at    : %s\n", $diary-&gt;create_at;
+    printf "create_dt    : %s\n", $diary-&gt;create_dt;
+    printf "create_dt_utc: %s\n", $diary-&gt;create_dt_utc;
+    printf "create_dt_jst: %s\n", $diary-&gt;create_dt_jst;
+</pre>
+
+<p>実行した結果は下記のようになります。</p>
+
+<pre>
+create_at    : 1261383942
+create_dt    : 2009-12-21T08:25:42
+create_dt_utc: 2009-12-21T08:25:42
+create_dt_jst: 2009-12-21T17:25:42
+
+change ddate
+create_at    : 1356058800
+create_dt    : 2012-12-21T03:00:00
+create_dt_utc: 2012-12-21T03:00:00
+create_dt_jst: 2012-12-21T12:00:00
+</pre>
+
+<p>create_dt_jst を変えただけなのに、 create_at, create_dt, create_dt_utc と全てが変更されてる事がわかりますね。</p>
+</div>
+<div class="section">
+<h3> まとめ</h3>
+
+<p>本日までで Data::Model のユニークな Column Sugar 並びに Alias Column についての紹介をしました。</p>
+<p>他の ORM よりも柔軟にかつ簡単に役割を追加できる事がわかったとおもいます。</p>
+<p>このあたりの機能はきちんとテストケースが書かれているので安心して利用できます。</p>
+
+
+<p>という事で次回からはまた別の方面の紹介をします。</p>
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="http://web.archive.org/web/20160505044232/http://perl-users.jp/articles/advent-calendar/2009/data-model/19.html">Mon, 21 Dec 2009 08:32:01 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20160505044232/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20160505044232/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20160505044232im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20160505044232/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20160505044232/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20160505044232im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20160505044232/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20160505044232/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20160505044232im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20160505044232/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20160505044232/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20160505044232im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20160505044232/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20160505044232/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20160505044232im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://web.archive.org/web/20160505044232/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20160505044232/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20160505044232/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20160505044232/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20160505044232/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20160505044232/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://web.archive.org/web/20160505044232/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<!--
+     FILE ARCHIVED ON 04:42:32 May 05, 2016 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 16:54:46 Jan 23, 2020.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+-->
+<!--
+playback timings (ms):
+  exclusion.robots.policy: 0.19
+  PetaboxLoader3.resolve: 311.249 (2)
+  esindex: 0.014
+  PetaboxLoader3.datanode: 341.87 (5)
+  exclusion.robots: 0.206
+  load_resource: 539.257
+  RedisCDXSource: 684.268
+  CDXLines.iter: 13.757 (3)
+  captures_list: 889.566
+  LoadShardBlock: 186.982 (3)
+-->

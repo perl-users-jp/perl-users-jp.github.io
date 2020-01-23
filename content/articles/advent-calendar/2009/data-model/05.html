@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app39.us.archive.org';v.server_ms=1012;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
+<script type="text/javascript">
+WB_wombat_Init("http://web.archive.org/web/", "20161018102710", "perl-users.jp");
+</script>
+<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
+<script type="text/javascript">
+__wbhack.init('http://web.archive.org/web');
+</script>
+<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
+<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
+<!-- End Wayback Rewrite JS Include -->
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018102710cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Mixin 機能その1 - JPerl Advent Calendar 2009
+</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20161018102710/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018102710cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
+<meta http-equiv="Content-Script-Type" content="text/javascript"/>
+<script type="text/javascript" src="http://web.archive.org/web/20161018102710js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018102710js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018102710js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+<script type="text/javascript">
+    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
+</script>
+
+<style type="text/css">
+    pre {
+        border-left: 2px solid #cccccc;
+        padding-left: 4px;
+        margin-left: 10px;
+        overflow: auto;
+    }
+</style>
+
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Mixin 機能その1 - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Mixin 機能その1<a href="http://web.archive.org/web/20161018102710/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/data-model/05.html"><img src="http://web.archive.org/web/20161018102710im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/data-model/05.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<h3> はじめに</h3>
+
+<p>さて、昨日はレコード総数をとるための COUNT クエリを投げるのがめんどくさいというところで終わりました。</p>
+
+<p>Data::Model にはスキーマクラスに任意のメソッドを生やす為の Mixin という仕組みがあります。</p>
+
+<p>今日はその Mixin 機能を使って COUNT クエリを楽に発行できるようにしましょう。</p>
+</div>
+<div class="section">
+<h3> Mixin を作る</h3>
+
+<p>mixin を作るためには以下のようなクラスを作ります。</p>
+
+<pre>
+package MyBookmark::Mixin::Count;
+use strict;
+use warnings;
+
+sub register_method {
+    +{
+        count =&gt; \&count;,
+    };
+}
+
+sub count {
+    my($self, $model) = @_;
+
+    my $dbh = $self-&gt;get_driver($model)-&gt;r_handle;
+    my $sth = $dbh-&gt;prepare_cached(
+       'SELECT COUNT(*) AS count FROM ' . $model
+    );
+    $sth-&gt;execute;
+    my $count;
+    $sth-&gt;bind_columns(undef, \$count);
+    $count = 0 unless $sth-&gt;fetch;
+    $sth-&gt;finish;
+    return $count;
+}
+
+1;
+</pre>
+
+<p>昨日の COUNT クエリのためのコードにいくつかコードをくるんだ感じになりました。</p>
+
+<p>Data::Model の Mixin として機能するためには register_method が定義されているだけで良いのです。</p>
+
+<p>register_method は HASH リファレンスを返して、 key が生やしたいメソッド名を入れて value は、そのメソッドのコードリファレンスを渡します。</p>
+
+<p>mixin で追加したメソッドの第一引数にはスキーマクラスのオブジェクト( MyBookmark-&gt;new した時のオブジェクト)が渡され、第二引数以降はユーザによって渡された引数がそのまま入ります。</p>
+</div>
+<div class="section">
+<h3> Mixin をスキーマに割り当てる</h3>
+
+<p>mixin を作ったらスキーマクラスで使えるようにする必要があります。</p>
+
+<p>例えば MyBookmark クラスに以下の一行を追加すればokです</p>
+<pre>
+use Data::Model::Mixin modules =&gt; ['+MyBookmark::Mixin::Count'];
+</pre>
+
+<p>ここで MyBookmark.pm の先頭は以下のようになってます。</p>
+
+<pre>
+package MyBookmark;
+use strict;
+use warnings;
+use base 'Data::Model';
+use Data::Model::Schema;
+use Data::Model::Mixin modules =&gt; ['+MyBookmark::Mixin::Count'];
+</pre>
+
+<p>これだけです。</p>
+</div>
+<div class="section">
+<h3> mixin のメソッドを使う</h3>
+
+<p>一度割り当てたら set/get/lookup メソッド等と同じように使えます。</p>
+
+<pre>
+my $count = $bookmark-&gt;count('user');
+</pre>
+
+<p>とするだけで、特定のテーブルの COUNT を行うことができます。</p>
+
+<p>適当にレコードを作って COUNT するサンプルは下記の通り。</p>
+
+<pre>
+use strict;
+use warnings;
+use MyBookmark;
+
+my $bookmark = MyBookmark-&gt;new;
+$bookmark-&gt;set(
+    user =&gt; 1 =&gt; { nickname =&gt; 'Yappo' }
+);
+$bookmark-&gt;set(
+    user =&gt; 11 =&gt; { nickname =&gt; 'nekokak' }
+);
+$bookmark-&gt;set(
+    user =&gt; 101 =&gt; { nickname =&gt; 'kan' }
+);
+
+print "COUNT: " . $bookmark-&gt;count('user') . "\n";
+</pre>
+
+<p>実行結果</p>
+
+<pre>
+COUNT: 3
+</pre>
+
+<p>となれば成功です。</p>
+</div>
+<div class="section">
+<h3> まとめ</h3>
+
+<p>今日はスキーマクラスにメソッドを生やす為の Mixin の作り方を紹介しました。</p>
+
+<p>ただ、今回作った count は InnoDB だと悲惨なことになるので、特定のインデクスの結果を COUNT に取るようにしたい所ですが、それはまた今度。</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="http://web.archive.org/web/20161018102710/http://perl-users.jp/articles/advent-calendar/2009/data-model/05.html">Sun, 06 Dec 2009 11:26:02 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018102710/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20161018102710/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20161018102710im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018102710/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20161018102710/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20161018102710im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018102710/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20161018102710/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20161018102710im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018102710/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20161018102710/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20161018102710im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018102710/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20161018102710/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20161018102710im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://web.archive.org/web/20161018102710/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102710/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102710/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102710/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102710/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102710/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://web.archive.org/web/20161018102710/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<!--
+     FILE ARCHIVED ON 10:27:10 Oct 18, 2016 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 16:51:52 Jan 23, 2020.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+-->
+<!--
+playback timings (ms):
+  PetaboxLoader3.resolve: 52.498
+  captures_list: 880.395
+  exclusion.robots.policy: 0.173
+  esindex: 0.007
+  exclusion.robots: 0.187
+  LoadShardBlock: 719.184 (3)
+  load_resource: 123.083
+  RedisCDXSource: 139.796
+  PetaboxLoader3.datanode: 774.85 (4)
+  CDXLines.iter: 18.136 (3)
+-->

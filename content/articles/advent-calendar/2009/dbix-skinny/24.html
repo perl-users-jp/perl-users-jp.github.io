@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app29.us.archive.org';v.server_ms=2179;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
+<script type="text/javascript">
+WB_wombat_Init("http://web.archive.org/web/", "20161018043454", "perl-users.jp");
+</script>
+<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
+<script type="text/javascript">
+__wbhack.init('http://web.archive.org/web');
+</script>
+<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
+<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
+<!-- End Wayback Rewrite JS Include -->
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018043454cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>DBIx::Skinny::InflateColumn::DateTimeで勝手にinflate/deflate #24 - JPerl Advent Calendar 2009
+</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20161018043454/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018043454cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
+<meta http-equiv="Content-Script-Type" content="text/javascript"/>
+<script type="text/javascript" src="http://web.archive.org/web/20161018043454js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018043454js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018043454js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+<script type="text/javascript">
+    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
+</script>
+
+<style type="text/css">
+    pre {
+        border-left: 2px solid #cccccc;
+        padding-left: 4px;
+        margin-left: 10px;
+        overflow: auto;
+    }
+</style>
+
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">DBIx::Skinny::InflateColumn::DateTimeで勝手にinflate/deflate #24 - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">DBIx::Skinny::InflateColumn::DateTimeで勝手にinflate/deflate #24<a href="http://web.archive.org/web/20161018043454/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/24.html"><img src="http://web.archive.org/web/20161018043454im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/24.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>昨日に続きましてnekoyaがお送りします。</p>
+
+<p>今日もSkinny関連モジュールの紹介です。DBIx::Skinny::InflateColumn::DateTimeという名前だけで何をするかだいたい理解できそうな小物モジュールとなっております。</p>
+
+<p>インストールは、CPANから</p>
+<pre>
+cpan DBIx::Skinny::InflateColumn::DateTime
+</pre>
+<p>するか、<a href="http://web.archive.org/web/20161018043454/http://github.com/nekoya/p5-dbix-skinny-inflatecolumn-datetime">githubから</a>どうぞ。</p>
+
+<p>これも昨日のSchema::Loaderと同じく、DBIx::Skinny本体のバージョンが古いと動きません。0.05以上にアップデートしておいてください。</p>
+
+<p>利用方法は、Schemaクラスで</p>
+<pre>
+package Your::DB::Schema;
+use DBIx::Skinny::Schema;
+use DBIx::Skinny::InflateColumn::DateTime;
+</pre>
+<p>のように、useするだけです。</p>
+
+<p>useすると、XXXX_at, XXXX_onなカラムが自動的にDateTimeオブジェクトにinflate/deflateされます。</p>
+
+<p>実際にやっていることも、このAdvent Calenderの<a href="http://web.archive.org/web/20161018043454/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/04.html">4日目</a>でnekokakさんが紹介したサンプルとほぼ同等のごくシンプルなモジュールです。</p>
+
+<p>と、これだけで終わると寂しいので、もう一つおまけを紹介します。</p>
+
+<pre>
+package Your::DB::Schema;
+use DBIx::Skinny::Schema;
+use DBIx::Skinny::InflateColumn::DateTime::Auto;
+</pre>
+
+<p>のように、DBI::Skinny::InflateColumn::DateTime::Auto（Inflate::DateTimeに同梱されています）をuseすると、insert/update時に特定のカラムに操作時刻を自動設定してくれます。</p>
+
+<p>設定されるtriggerと対象カラムは以下になります。</p>
+
+<table>
+<tr>
+<td> pre_insert: </td>
+<td> created_at, created_on, updated_at, updated_on</td>
+</tr>
+<tr>
+<td> pre_update: </td>
+<td> updated_at, updated_on</td>
+</tr>
+</table>
+
+<p>こうしたカラムの操作はDBの機能を使ってすることも可能ですが、DBに依存せずにアプリケーション側で処理したい場合は使ってみてください。</p>
+
+<p>この機能は、hidekさんの</p>
+<ul>
+<li><a href="http://web.archive.org/web/20161018043454/http://blog.hide-k.net/archives/2006/08/dbixclassauto_i.php">DBIx::Classでauto insert/update datetime - hide-k.net#blog</a></li>
+</ul>
+<p>にインスパイアされて盛り込みました。hidek++</p>
+
+<p>実は、<a href="http://web.archive.org/web/20161018043454/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/04.html">4日目</a>に紹介されたcommon_triggerの機能は、このモジュールを作るのに欲しかったので追加したという経緯があります。あなたも周辺モジュールを書いていて「本体にこんな機能が欲しい」と思ったら、パッチを送ったり、IRCやブログで話を投げてみてください。</p>
+
+<p>明日はいよいよ最終日。nakokakさんの大団円エンディングにご期待ください。</p>
+
+<p>have a nice skinny days!:)</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="http://web.archive.org/web/20161018043454/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/24.html">Thu, 24 Dec 2009 02:45:01 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018043454/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20161018043454/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20161018043454im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018043454/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20161018043454/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20161018043454im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018043454/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20161018043454/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20161018043454im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018043454/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20161018043454/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20161018043454im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018043454/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20161018043454/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20161018043454im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://web.archive.org/web/20161018043454/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018043454/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018043454/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018043454/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018043454/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018043454/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://web.archive.org/web/20161018043454/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<!--
+     FILE ARCHIVED ON 04:34:54 Oct 18, 2016 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 16:53:23 Jan 23, 2020.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+-->
+<!--
+playback timings (ms):
+  PetaboxLoader3.datanode: 1004.397 (4)
+  captures_list: 1486.082
+  RedisCDXSource: 515.955
+  esindex: 0.018
+  PetaboxLoader3.resolve: 419.13 (2)
+  exclusion.robots.policy: 0.337
+  LoadShardBlock: 942.038 (3)
+  exclusion.robots: 0.354
+  CDXLines.iter: 21.919 (3)
+  load_resource: 675.87
+-->

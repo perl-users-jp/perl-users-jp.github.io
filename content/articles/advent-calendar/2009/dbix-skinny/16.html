@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app105.us.archive.org';v.server_ms=826;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
+<script type="text/javascript">
+WB_wombat_Init("http://web.archive.org/web/", "20161018044029", "perl-users.jp");
+</script>
+<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
+<script type="text/javascript">
+__wbhack.init('http://web.archive.org/web');
+</script>
+<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
+<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
+<!-- End Wayback Rewrite JS Include -->
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018044029cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>DB Shardingについて1 #16 - JPerl Advent Calendar 2009
+</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20161018044029/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018044029cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
+<meta http-equiv="Content-Script-Type" content="text/javascript"/>
+<script type="text/javascript" src="http://web.archive.org/web/20161018044029js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018044029js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018044029js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+<script type="text/javascript">
+    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
+</script>
+
+<style type="text/css">
+    pre {
+        border-left: 2px solid #cccccc;
+        padding-left: 4px;
+        margin-left: 10px;
+        overflow: auto;
+    }
+</style>
+
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">DB Shardingについて1 #16 - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">DB Shardingについて1 #16<a href="http://web.archive.org/web/20161018044029/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/16.html"><img src="http://web.archive.org/web/20161018044029im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/16.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>こんにちわ！nekokakです！</p>
+<p>十六日目はDB ShardingとShardingしたDBにどのようにDBIx::Skinnyからアクセスするかについてです。</p>
+
+
+<p>DBのShardingの方法は色々あります。</p>
+<p>RDBMS側で提供される機能をつかうのも良いでしょう。</p>
+<p>アプリケーションがわで任意の方法でShardingするのも良いでしょう。</p>
+
+<p>ご自分の得意分野を活かしてShardingするといいと思います。</p>
+<p>私は普段MySQLしか使わないので、今回はMySQLに限ったお話になりますが、参考にしていただければと思います。</p>
+
+</div>
+<div class="section">
+<h3> テーブルパーティショニング</h3>
+
+<p>MySQL5.1から使えるようになったテーブルパーティショニングの場合、</p>
+<p>MySQLが内部でデータファイルを分割しており、アプリケーショ側は特に意識する必要はありません。</p>
+
+<p>MySQL5.1のテーブルパーティショニングについては</p>
+<p><a href="http://web.archive.org/web/20161018044029/http://itpro.nikkeibp.co.jp/article/COLUMN/20080710/310540/">http://itpro.nikkeibp.co.jp/article/COLUMN/20080710/310540/</a></p>
+<p>こちらを参考にするとよいでしょう。</p>
+</div>
+<div class="section">
+<h3> Spider</h3>
+
+<p>他には、斯波さんが作られている、SpiderというMySQLのストレージエンジンを使えば</p>
+<p>MySQL5.1のテーブルパーティショニングとは異なり、</p>
+<p>物理的に異なるサーバをつかってshardingすることが可能です。</p>
+
+<p>この場合でも、アプリケーション側は特に意識する必要がありません。</p>
+
+<p>Spiderについては</p>
+<p><a href="http://web.archive.org/web/20161018044029/http://wild-growth-ja.blogspot.com/">http://wild-growth-ja.blogspot.com/</a></p>
+<p><a href="http://web.archive.org/web/20161018044029/http://labs.unoh.net/2009/07/mysqlspider.html">http://labs.unoh.net/2009/07/mysqlspider.html</a></p>
+<p>を参考にするとよいと思います。</p>
+
+
+<p>上記２つはアプリケーション側では特に意識しなくてもRDBMSがわ（MySQL側）で勝手にshardingしてくれて、</p>
+<p>データへのアクセスも特に意識することなく利用することができます。</p>
+
+<p>このようなミドルウェアを使いこなせる方は試してみると良いと思います。</p>
+</div>
+<div class="section">
+<h3> Incline</h3>
+
+<p>次に奥一穂さんが作られているInclineというMySQLのプラグインを使う手もあります。</p>
+
+<p>Inclineについては</p>
+<p><a href="http://web.archive.org/web/20161018044029/http://www.slideshare.net/kazuho/ss-2620503">http://www.slideshare.net/kazuho/ss-2620503</a></p>
+<p>を参考にすると良いと思います。</p>
+
+<p>InclineはMySQLのテーブルパーティショニングやSpiderとはことなり、</p>
+<p>データへのアクセスはアプリケーション側で管理する必要があります。</p>
+
+<p>InclineでshardingしたDBへのアクセス管理は</p>
+<p>奥さんが作られているDBIx::ShardManagerをつかうとよいでしょう。</p>
+<p><a href="http://web.archive.org/web/20161018044029/http://svn.coderepos.org/share/lang/perl/DBIx-ShardManager/">http://svn.coderepos.org/share/lang/perl/DBIx-ShardManager/</a></p>
+
+<p>今日は特別DBIx::Skinnyの話はでてきませんでしたが、</p>
+<p>ミドルウェアを有効に使ってアプリケーション側で楽をすることで、</p>
+<p>DBIx::Skinny側で特別なにかしなくても良い方法を考えるもの一つの手でしょう。</p>
+
+<p>明日はミドルウェアに頼らないDB Shardingについてやろうとおもいます。</p>
+
+<p>have a nice skinny days!:)</p>
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="http://web.archive.org/web/20161018044029/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/16.html">Wed, 16 Dec 2009 02:25:01 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018044029/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20161018044029/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20161018044029im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018044029/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20161018044029/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20161018044029im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018044029/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20161018044029/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20161018044029im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018044029/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20161018044029/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20161018044029im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018044029/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20161018044029/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20161018044029im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://web.archive.org/web/20161018044029/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018044029/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018044029/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018044029/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018044029/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018044029/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://web.archive.org/web/20161018044029/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<!--
+     FILE ARCHIVED ON 04:40:29 Oct 18, 2016 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 16:52:05 Jan 23, 2020.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+-->
+<!--
+playback timings (ms):
+  captures_list: 635.932
+  exclusion.robots.policy: 0.181
+  PetaboxLoader3.resolve: 127.714
+  CDXLines.iter: 11.577 (3)
+  RedisCDXSource: 473.22
+  PetaboxLoader3.datanode: 199.317 (4)
+  esindex: 0.009
+  LoadShardBlock: 146.246 (3)
+  exclusion.robots: 0.194
+  load_resource: 183.1
+-->

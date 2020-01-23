@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app40.us.archive.org';v.server_ms=1707;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
+<script type="text/javascript">
+WB_wombat_Init("http://web.archive.org/web/", "20161018102721", "perl-users.jp");
+</script>
+<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
+<script type="text/javascript">
+__wbhack.init('http://web.archive.org/web');
+</script>
+<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
+<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
+<!-- End Wayback Rewrite JS Include -->
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018102721cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Mixin 機能その2 mixin method に柔軟なクエリを - JPerl Advent Calendar 2009
+</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20161018102721/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018102721cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
+<meta http-equiv="Content-Script-Type" content="text/javascript"/>
+<script type="text/javascript" src="http://web.archive.org/web/20161018102721js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018102721js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018102721js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+<script type="text/javascript">
+    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
+</script>
+
+<style type="text/css">
+    pre {
+        border-left: 2px solid #cccccc;
+        padding-left: 4px;
+        margin-left: 10px;
+        overflow: auto;
+    }
+</style>
+
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Mixin 機能その2 mixin method に柔軟なクエリを - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Mixin 機能その2 mixin method に柔軟なクエリを<a href="http://web.archive.org/web/20161018102721/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/data-model/09.html"><img src="http://web.archive.org/web/20161018102721im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/data-model/09.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<h3> はじめに</h3>
+
+<p>昨日は Data::Model::SQL を使って様々な SQL を作り出す事を紹介しました。</p>
+
+<p>さていよいよ5日目に作った MyBookmark::Mixin::Count に条件で絞り込んだレコードの count を取る機能をつけます。</p>
+</div>
+<div class="section">
+<h3> count メソッドの要件をまとめる</h3>
+
+<p>実際にコードを作る前に count メソッドをどう使うか考えましょう。</p>
+
+<p>今回は次のようあ使い方を想定します。</p>
+
+<pre>
+# 検索条件無し
+$obj-&gt;count( $table_nae );
+
+# プライマリキーで絞り込み
+$obj-&gt;count( $table_nae =&gt; 1 );
+
+# 複合プライマリキーで絞り込み
+$obj-&gt;count( $table_nae =&gt; [1, 2] );
+
+# index で絞り込み
+$obj-&gt;count( $table_nae =&gt; { index =&gt; { idx_name =&gt; 1 } } );
+
+# その他 where とかもでも絞り込み
+$obj-&gt;count( $table_nae =&gt; { where =&gt; [ column =&gt; 'x' ] } );
+
+# プライマリキー or 複合プライマリキーと where とかで絞り込み
+$obj-&gt;count( $table_nae =&gt; 1 =&gt; { where =&gt; [ column =&gt; 'x' ] } );
+</pre>
+
+<p>プライマリキーで絞り込んだら数値は1以下になるんですが、複合プライマリキーの時にキーをひとつだけ入れた時とかに使えるので入れておきます。</p>
+</div>
+<div class="section">
+<h3> count メソッドを拡張する</h3>
+
+<p>さて、実際に count メソッドをしてみましょう。元のコードは5日目に作った Count.pm です。</p>
+
+<p>まずは、引数を受け取ってテーブルに対応したスキーマ定義オブジェクトを取り出します。</p>
+
+<pre>
+sub count {
+    my($self, $model, $key, $query) = @_;
+    my $driver = $self-&gt;get_driver($model);
+    my $schema = $self-&gt;get_schema($model);
+</pre>
+
+<p>get_driver メソッドで、ストレージドライバーを取得します。</p>
+
+<p>get_schema メソッドは、未定義のテーブル名を入れると自動的にエラーを発生するためパラメータチェックは不要です。</p>
+
+<p>次は、検索条件が特定の ARRAY ref/HASH ref/string になってるか調べます。</p>
+
+<pre>
+    if (defined $key &amp;&amp; ref($key) eq '') {
+        # primary key は array-ref である必要がある
+        $key = [ $key ];
+    } elsif (ref($key) ne 'ARRAY') {
+        $query = $key;
+        undef $key;
+    }
+    unless (defined $query) {
+        $query = {};
+    } else {
+        die "query should be hash-ref" unless ref($query) eq 'HASH';
+    }
+</pre>
+
+<p>第二引数が省略可能なのでちょっと複雑になってます。</p>
+
+<p>こんどは SQL オブジェクト構築です。</p>
+<p>昨日紹介したメソッドを使って index やら primary key やらの設定も行います。</p>
+
+<p>$driver は Data::Model::Driver::DBI のインスタンスのため Data::Model::Driver::DBI からクラスメソッドを呼ばなくても良くなっています。</p>
+
+<pre>
+    my %q = (
+        select =&gt; 'COUNT(*) AS count',
+        from   =&gt; $model,
+        %{ $query }
+    );
+    my $index = $q{index};
+    my $sql_obj = Data::Model::SQL-&gt;new( %q );
+    $driver-&gt;add_key_to_where($sql_obj, $schema-&gt;key, $key) if $key;
+    $driver-&gt;add_index_to_where($schema, $sql_obj, $index) if $index;
+    my $sql = $sql_obj-&gt;as_sql;
+</pre>
+
+<p>select で取ってくるカラムに COUNT(*) AS count を指定してレコードの件数を取れるようにします。</p>
+
+<p>bind と bind_column メソッドで、検索条件のカラム名とバインドされるべき値が取れると昨日説明しましたが、これを DBI のステートメントハンドルに bind する為の Data::Model::Driver::DBI の便利メソッドに渡す前処理をします。</p>
+
+<pre>
+    # パラメータをバインドする為の前処理
+    my @params;
+    for my $i (1..scalar(@{ $sql_obj-&gt;bind })) {
+        push @params, [ $sql_obj-&gt;bind_column-&gt;[$i - 1], $sql_obj-&gt;bind-&gt;[$i - 1] ];
+    }
+</pre>
+
+<p>前処理が終わったら実際にクエリを発行します。</p>
+
+<pre>
+    my $sth;
+    my $count = 0;
+    eval {
+        # SELECT する為の dbh を取得
+        my $dbh = $driver-&gt;r_handle;
+        $driver-&gt;start_query($sql, $sql_obj-&gt;bind); # クエリログ用
+        $sth = $dbh-&gt;prepare($sql);
+        # パラメータを bind する
+        $driver-&gt;bind_params($schema, \@params, $sth);
+        $sth-&gt;execute;
+        $sth-&gt;bind_columns(undef, \$count);
+        $count = 0 unless $sth-&gt;fetch;
+        $sth-&gt;finish;
+        $driver-&gt;end_query($sth); # クエリログ用
+    };
+    if ($@) {
+        # エラーがあったらスタックトレース吐いて終了
+        $driver-&gt;_stack_trace($sth, $sql, $sql_obj-&gt;bind, $@);
+    }
+    return $count;
+</pre>
+
+<p>$driver に生えている bind_params メソッドで、先程作った @params を元にステートメントハンドルに検索条件の値を bind していきます。</p>
+
+<p>それぞれ start_query と end_query は、今度紹介するクエリトレース機能でトレースするために使う為のメソッドです。</p>
+
+<p>最後の _stack_trace は、クエリ実行中に何かしらのエラーがあったときにスタックトレースを出して死ぬメソッドです。なんでか private method でやんの。。。</p>
+</div>
+<div class="section">
+<h3> 使ってみよう</h3>
+
+<p>では、早速使ってみよう</p>
+
+<pre>
+    $bookmark-&gt;set(
+        user =&gt; 1 =&gt; { nickname =&gt; 'Yappo' }
+    );
+    $bookmark-&gt;set(
+        user =&gt; 11 =&gt; { nickname =&gt; 'nekokak' }
+    );
+    $bookmark-&gt;set(
+        user =&gt; 101 =&gt; { nickname =&gt; 'kan' }
+    );
+</pre>
+
+<p>としてレコードを作って</p>
+
+<pre>
+    my $count = $bookmark-&gt;count(
+        user =&gt; {
+            where =&gt; [
+                id =&gt; { '&lt;' =&gt; 100 }
+            ],
+        }
+    );
+    print "Count: $count\n"; # Count: 2
+</pre>
+
+<p>として使えます。</p>
+
+<p>primary key で絞り込みなどだと</p>
+
+<pre>
+    $bookmark-&gt;set( bookmark =&gt; [1, 1] );
+    $bookmark-&gt;set( bookmark =&gt; [2, 1] );
+    $bookmark-&gt;set( bookmark =&gt; [3, 1] );
+    $bookmark-&gt;set( bookmark =&gt; [4, 1] );
+    $bookmark-&gt;set( bookmark =&gt; [1, 2] );
+    $bookmark-&gt;set( bookmark =&gt; [2, 2] );
+    $bookmark-&gt;set( bookmark =&gt; [3, 2] );
+    $bookmark-&gt;set( bookmark =&gt; [4, 2] );
+</pre>
+
+<p>として、レコードを作って以下のレコードで絞り込みます。</p>
+
+<pre>
+    # url_id = 1 のレコード数
+    warn $bookmark-&gt;count( bookmark =&gt; 1 );
+    # url_id = 2 で user_id &lt; 2 のレコード数
+    warn $bookmark-&gt;count( bookmark =&gt; 1 =&gt; { where =&gt; [ user_id =&gt; { '&lt;' =&gt; 2 } ] } );
+    # user_id = 2 のレコード数
+    warn $bookmark-&gt;count( bookmark =&gt; { index =&gt; { user_id =&gt; 2 } } );
+</pre>
+
+<p>それぞれ、 2, 1, 4 と結果が帰ってくれば成功です。</p>
+</div>
+<div class="section">
+<h3> まとめ</h3>
+
+<p>二日がかりで Count を取る為の Mixin を作ってみました。 Data::Model のコアにはまだ無い mixin なので、もうすこしブラッシュアップしてから取り込もうかなと思います。</p>
+
+<p>なお、これを書くに当たりもろもろの API の使い勝手悪くて嫌になったので API が変更されるかもです。ので、変更されたら追記しようと思います。</p>
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="http://web.archive.org/web/20161018102721/http://perl-users.jp/articles/advent-calendar/2009/data-model/09.html">Fri, 11 Dec 2009 05:47:13 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018102721/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20161018102721/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20161018102721im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018102721/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20161018102721/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20161018102721im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018102721/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20161018102721/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20161018102721im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018102721/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20161018102721/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20161018102721im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018102721/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20161018102721/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20161018102721im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://web.archive.org/web/20161018102721/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102721/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102721/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102721/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102721/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102721/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://web.archive.org/web/20161018102721/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<!--
+     FILE ARCHIVED ON 10:27:21 Oct 18, 2016 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 16:52:43 Jan 23, 2020.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+-->
+<!--
+playback timings (ms):
+  load_resource: 469.337
+  esindex: 0.024
+  exclusion.robots: 0.73
+  exclusion.robots.policy: 0.707
+  LoadShardBlock: 740.287 (3)
+  PetaboxLoader3.datanode: 950.139 (4)
+  CDXLines.iter: 24.086 (3)
+  RedisCDXSource: 446.114
+  captures_list: 1217.681
+  PetaboxLoader3.resolve: 227.439
+-->

@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app29.us.archive.org';v.server_ms=1243;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
+<script type="text/javascript">
+WB_wombat_Init("http://web.archive.org/web/", "20161018102405", "perl-users.jp");
+</script>
+<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
+<script type="text/javascript">
+__wbhack.init('http://web.archive.org/web');
+</script>
+<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
+<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
+<!-- End Wayback Rewrite JS Include -->
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018102405cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>カラムの定義を使いまわす - JPerl Advent Calendar 2009
+</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20161018102405/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018102405cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
+<meta http-equiv="Content-Script-Type" content="text/javascript"/>
+<script type="text/javascript" src="http://web.archive.org/web/20161018102405js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018102405js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018102405js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+<script type="text/javascript">
+    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
+</script>
+
+<style type="text/css">
+    pre {
+        border-left: 2px solid #cccccc;
+        padding-left: 4px;
+        margin-left: 10px;
+        overflow: auto;
+    }
+</style>
+
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">カラムの定義を使いまわす - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">カラムの定義を使いまわす<a href="http://web.archive.org/web/20161018102405/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/data-model/16.html"><img src="http://web.archive.org/web/20161018102405im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/data-model/16.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<h3> はじめに</h3>
+
+<p>二日間に渡ってカラム定義の方法を紹介しました。</p>
+<p>ここまでは、だいぶ普通の ORM と変わらない感じですね。</p>
+<p>Inflate の定義とかはちょっと変わってるかもしれないですが、これは DBIx::MoCo からいただいた要素です。</p>
+
+<p>今日からは Data::Model のユニークな機能としての Column Sugar について紹介しましょう。</p>
+</div>
+<div class="section">
+<h3> What is Column Sugar?</h3>
+
+<p>これは何をするものかというと、カラム定義の雛形を登録しておいて複数のカラムから雛形を作るという事ができます。</p>
+<p>たとえば、レコードの作成日付を保存する created_on なんていうのは複数のテーブルで同じ定義をつかいたいものですから、共通化できると便利です。</p>
+
+<p>他にも user_id なんかのカラムは複数のテーブルへカラム定義するケースが多いでしょう。特に正規化などをちゃんとするほど。</p>
+
+<h4> 定義化をすると何がいいのか</h4>
+
+<p>個人的な小さいアプリケーションや、開発のごく初期ではカラム定義の内容を細かく変えるケースがあるんじゃないかと思います。</p>
+<p>そういう時は Schema Loader を使ったり ALTER TABLE しまくったり(もしくは DROP TABLE &amp; CREATE TABLE)することでしょう。</p>
+
+<p>まぁ、それでいいんですけど、開発の初期なんかは DROP TABLE &amp; CREATE TABLE してた方が手っ取り早かったりすると思います。</p>
+<p>で、この  DROP TABLE &amp; CREATE TABLE しまくりの時に SQL で CREATE TABLE 文を書く、そして前述のいろんなテーブルで使われるような user_id の定義を変える。</p>
+<p>といったときに Column Sugar で設定したカラム定義を一箇所書き換えるだけで済むので定義の変更漏れとかがなくなるというマニアックのシチュエーションがあります。</p>
+
+
+<p>その他には、前述の通りにたような役割のカラムを一回だけ定義しておけば、テーブルのカラム定義では定義名を指定するだけで使いまわせるので楽になります。</p>
+
+<p>たとえば Inflate の設定やら Default 値を CODE リファレンスで作ってるようなカラム定義で楽ができますよ。</p>
+</div>
+<div class="section">
+<h3> 定義してみゆ</h3>
+
+<p>さて、さっそくここで Column Sugar の定義でもしてみようと思います。</p>
+
+<p>主に user テーブルの id カラムを作る人向けの定義は以下のようになります。</p>
+
+<pre>
+  column_sugar 'user.id'
+      =&gt; int =&gt; {
+          required =&gt; 1,
+          unsigned =&gt; 1,
+      };
+</pre>
+
+<p>普通のカラム定義の column の使い方とほとんど同じです。</p>
+<p>column の代わりに column_sugar を使います。また、 column は install_model $tablename =&gt; {}; の中でしか利用できませんが、 column_sugar はどこで書いても OK です。</p>
+
+
+<p>第一引数が "テーブル名.カラム名" という感じで、テーブル名とカラム名を . でつなげた形で指定します。</p>
+<p>第二引数はカラム型。</p>
+<p>第三引数がカラムの詳細な定義となります。</p>
+<p>二と三は column と同じです。</p>
+
+<p>重要なのが第一引数で "user.id" と定義した Column Sugar は、 user テーブルのカラム定義の中で使うと id というカラム名になり、 bookmark テーブルの中のカラム定義で使うと user_id というカラム名になります。</p>
+
+<p>実際先程の column_sugar の定義を使ってみましょう。</p>
+
+<pre>
+install_model user =&gt; schema {
+    key 'id';
+    unique 'nickname';
+    column 'user.id';
+    columns qw/ nickname /;
+};
+install_model bookmark =&gt; schema {
+    key [qw/ url_id user_id /];
+    index 'user_id';
+    column url_id =&gt; int =&gt; {};
+    column 'user.id';
+};
+</pre>
+
+<p>このような定義をすると以下のような CREATE TABLE 文に対応します。</p>
+
+<pre>
+CREATE TABLE user (
+    id              INT             UNSIGNED NOT NULL,
+    nickname        CHAR(255)      ,
+    PRIMARY KEY (id),
+    UNIQUE (nickname)
+);
+CREATE TABLE bookmark (
+    url_id          INT            ,
+    user_id         INT             UNSIGNED NOT NULL,
+    create_at       INT             UNSIGNED NOT NULL,
+    PRIMARY KEY (url_id, user_id)
+);
+CREATE INDEX user_id ON bookmark (user_id);
+</pre>
+
+<p>user.id は user テーブルの中だと user の部分を省略して id というカラム名になって、 user テーブル以外だと user_ の prefix がついて user_id というカラム名になってることがわかると思います。</p>
+</div>
+<div class="section">
+<h3> 定義を上書きする</h3>
+
+<p>さて、カラム定義の使い回しがし易いという column_sugar なんですが、定義を流用したいけども部分的に定義を変更したいケースがあると思います。例えば auto_increment をつけるとか。</p>
+
+<p>そういった差分で上書きしたいときもちゃんと上書きして設定する事ができます。</p>
+
+<p>例えば以下のようにcolumn_sugar の定義つけた unsigned =&gt; 1 を無効化したいときに以下のようかけます。</p>
+
+<pre>
+install_model user =&gt; schema {
+    key 'id';
+    unique 'nickname';
+    column 'user.id' =&gt; {
+        unsigned =&gt; 0
+    };
+    columns qw/ nickname /;
+};
+</pre>
+
+<p>これは下記の SQL になります。</p>
+
+<pre>
+CREATE TABLE user (
+    id              INT             NOT NULL,
+    nickname        CHAR(255)      ,
+    PRIMARY KEY (id),
+    UNIQUE (nickname)
+);
+</pre>
+
+<p>先程あった、 UNSIGNED の属性が消えてるのがわかると思います。</p>
+
+<p>今度は、属性を追加したいときは単純に追加するだけです。</p>
+
+<pre>
+install_model user =&gt; schema {
+    key 'id';
+    unique 'nickname';
+    column 'user.id' =&gt; {
+        auto_increment =&gt; 1,
+    };
+    columns qw/ nickname /;
+};
+</pre>
+
+<p>このように auto_increment 属性を追加した場合は</p>
+
+<pre>
+CREATE TABLE user (
+    id              INTEGER         NOT NULL PRIMARY KEY,
+    nickname        CHAR(255)      ,
+    UNIQUE (nickname)
+);
+</pre>
+
+<p>以上のように PRIMARY KEY 属性が追加されました。</p>
+
+</div>
+<div class="section">
+<h3> カラム名を変更する</h3>
+
+<p>さて、今度はカラム名だけを変えたいという時もあるでしょう。</p>
+
+<p>そういう時は、以下のように定義すると名前だけかえられます。</p>
+<pre>
+# global.epoch という定義
+column_sugar 'global.epoch'
+    =&gt; int =&gt; {
+        required =&gt; 1,
+        unsigned =&gt; 1,
+    };
+
+
+install_model bookmark =&gt; schema {
+    key [qw/ url_id user_id /];
+    index 'user_id';
+    column url_id =&gt; int =&gt; {};
+    column 'user.id';
+
+    # create_at を生の値でも使いたい
+    column 'global.epoch' =&gt; 'create_at';
+};
+</pre>
+
+<p>単純に、 column の第二引数に書き換えたいカラム名を指定するだけですみます。</p>
+<p>上記の定義は下記の　 CREATE TABLE になります。</p>
+
+<pre>
+CREATE TABLE bookmark (
+    url_id          INT            ,
+    user_id         INT             UNSIGNED NOT NULL,
+    create_at       INT             UNSIGNED NOT NULL,
+    PRIMARY KEY (url_id, user_id)
+);
+</pre>
+
+<p>じゃぁ名前変更と属性変更を同時にしたい場合はどうするか！？という時は、単純に書き換えたカラム名の次の引数に差し替えたい属性の HASH リファレンスを書けばいいだけです。</p>
+
+<pre>
+install_model bookmark =&gt; schema {
+    key [qw/ url_id user_id /];
+    index 'user_id';
+    column url_id =&gt; int =&gt; {};
+    column 'user.id';
+
+    # create_at を生の値でも使いたい
+    column 'global.epoch' =&gt; 'create_at';
+        default =&gt; sub { time() },
+    };
+};
+</pre>
+</div>
+<div class="section">
+<h3> まとめ</h3>
+
+<p>今日は Data::Model らしい Column Sugar に関して紹介しました。変に長文になってしまってあれですけど、明日は今日の続きを書きたいなとおもいます。</p>
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="http://web.archive.org/web/20161018102405/http://perl-users.jp/articles/advent-calendar/2009/data-model/16.html">Fri, 18 Dec 2009 19:58:01 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018102405/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20161018102405/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20161018102405im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018102405/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20161018102405/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20161018102405im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018102405/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20161018102405/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20161018102405im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018102405/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20161018102405/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20161018102405im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018102405/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20161018102405/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20161018102405im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://web.archive.org/web/20161018102405/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102405/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102405/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102405/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102405/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102405/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://web.archive.org/web/20161018102405/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<!--
+     FILE ARCHIVED ON 10:24:05 Oct 18, 2016 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 16:54:22 Jan 23, 2020.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+-->
+<!--
+playback timings (ms):
+  PetaboxLoader3.datanode: 515.566 (4)
+  captures_list: 928.15
+  RedisCDXSource: 448.723
+  esindex: 0.02
+  PetaboxLoader3.resolve: 131.823
+  exclusion.robots.policy: 0.31
+  LoadShardBlock: 432.599 (3)
+  exclusion.robots: 0.337
+  CDXLines.iter: 30.648 (3)
+  load_resource: 294.811
+-->

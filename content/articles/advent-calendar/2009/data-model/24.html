@@ -1,0 +1,426 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app57.us.archive.org';v.server_ms=1512;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
+<script type="text/javascript">
+WB_wombat_Init("http://web.archive.org/web/", "20161018102533", "perl-users.jp");
+</script>
+<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
+<script type="text/javascript">
+__wbhack.init('http://web.archive.org/web');
+</script>
+<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
+<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
+<!-- End Wayback Rewrite JS Include -->
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018102533cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>ドライバを作る - JPerl Advent Calendar 2009
+</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20161018102533/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018102533cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
+<meta http-equiv="Content-Script-Type" content="text/javascript"/>
+<script type="text/javascript" src="http://web.archive.org/web/20161018102533js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018102533js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018102533js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+<script type="text/javascript">
+    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
+</script>
+
+<style type="text/css">
+    pre {
+        border-left: 2px solid #cccccc;
+        padding-left: 4px;
+        margin-left: 10px;
+        overflow: auto;
+    }
+</style>
+
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">ドライバを作る - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">ドライバを作る<a href="http://web.archive.org/web/20161018102533/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/data-model/24.html"><img src="http://web.archive.org/web/20161018102533im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/data-model/24.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<h3> はじめに</h3>
+
+<p>さぁ、何日か立て続けに Data::Model に用意されている各種 Driver の使い方を紹介してきました。</p>
+
+<p>Driver 編最終回は Driver を作る方法について紹介しましょう。</p>
+</div>
+<div class="section">
+<h3> Driver を作るために必要な知識</h3>
+
+<p>Driver を作るためにはある程度規則に従う必要があります。</p>
+<p>ゼロから独自の Driver を作るには Data::Model::Driver の中で空定義してあるメソッドを上書きする必要があります。</p>
+<p>そして Data::Model::Driver の各メソッドは Data::Model より delegation されているので、 Data::Model のコードも読んでおく必要があります。</p>
+
+<p>このあたりはドキュメントされていません。</p>
+<p>また、内部 API が変わってしまうと互換性が無くなる可能性もあり厄介です。</p>
+
+<p>ということで本日は、需要がありそうで簡単そうな Driver を作る方法を軽く紹介します。</p>
+</div>
+<div class="section">
+<h3> Driver::DBI を拡張する</h3>
+
+<p>主に一昨日紹介した Driver::DBI::MasterSlave の挙動が気にくわないと言った事で作りたい欲求が出るでしょう。</p>
+
+<p>Driver::DBI::MasterSlave は Driver::DBI の dbh のやりくりを制御する部分を独自にハンドリングして master, slave の dbh を切り替えるという要求にしたがって作られています。</p>
+
+<p>rw_handle, r_handle が返す値をうまい具合にやりくりすれば、独自のレプリケーション対応の Driver がかけます。</p>
+
+<p>Driver::DBI::MasterSlave のコードを元にして、どのあたりをいじれば良いのかを紹介しましょう。</p>
+
+<h4> 継承するクラス</h4>
+
+<p>なので、しちめんどい set,get,update,delte,lookup などの処理は再実装しないで Driver::DBI にやってもらえばいいので、これを継承します。</p>
+
+<pre>
+package Data::Model::Driver::DBI::MasterSlave;
+use strict;
+use warnings;
+use base 'Data::Model::Driver::DBI';
+</pre>
+
+<h4> クラス初期化</h4>
+
+<p>Data::Model::Driver の初期化は new メソッドの引数を全て bless { %args }, $class のようにして保存してから、 init メソッドを単純に呼び出しています。</p>
+<p>なので、独自 Driver の初期化処理は init メソッドの中で行います。</p>
+
+<pre>
+sub init {
+    my $self = shift;
+    my $master = $self-&gt;{master}
+        or Carp::croak "'master' configuration is required";
+    my $slave  = $self-&gt;{slave} || $master;
+
+    if (my($type) = $master-&gt;{dsn} =~ /^dbi:(\w*)/i) {
+        $self-&gt;{dbd} = Data::Model::Driver::DBI::DBD-&gt;new($type);
+    }
+    $self-&gt;{dbi_config} = +{
+        master =&gt; +{ %{ $master } },
+        slave  =&gt; +{ %{ $slave } },
+    };
+}
+</pre>
+
+<p>今回は rw_handle, r_handle を自由に差し替えたいという要求を設定しました。</p>
+<p>Driver::DBI のでは、このあたりも自由に差し替えするコードを書きやすくしてあります。</p>
+
+<p>状況に応じた DBI のインスタンスを複数作れる用になっており、複数のインスタンスを作るためには DBI の設定を複数設定しておく準備が必要です。</p>
+
+<p>具体的には $self-&gt;{dbi_config} に config_name =&gt; $config という形で HASH リファレンスを指定します。</p>
+
+<p>Driver::DBI::MasterSlave では master と slave という設定名を使って、二つの設定を保存しています。</p>
+
+<p>$self-&gt;{dbd} に Data::Model::Driver::DBI::DBD のインスタンスを入れているところは Driver::DBI で各種 DBD に対応した SQL を吐くために必須ですので注意してください。</p>
+</div>
+<div class="section">
+<h3> dbh を使い分ける</h3>
+
+<p>さぁ DBI インスタンスの設定を複数作ったら、あとはそれぞれ使うだけです。</p>
+
+<p>これはrw_handle と r_handle のメソッドをそれぞれ上書きします。</p>
+
+<pre>
+sub rw_handle { shift-&gt;_get_dbh('master', @_) };
+# トランザクション中は master のみを返す
+sub r_handle  { my $self = shift;$self-&gt;_get_dbh( ($self-&gt;{active_transaction} ? 'master' : 'slave'), @_ ) };
+</pre>
+
+<p>見れば分かりますが $self-&gt;_get_dbh(config_name) といった形で _get_dbh のプライベートメソッドを読んでいます。</p>
+
+<p>通常は、このように $self-&gt;{dbi_config} に格納した設定名を引数にして呼び出せば、その設定を引数にして自動的に DBI インスタンスを作ってくれるので、それを戻すだけでやりたい事が出来ます。</p>
+
+<p>r_handle では $self-&gt;{active_transaction} が真だったら master を見るようにしていますが、これは txn_scope 下では常に master を見るべきという設計によるものです。</p>
+<p>今の Data::Model の Driver::DBI では、このあたりもハンドリングしてあげる必要があります。</p>
+
+<h4> 応用</h4>
+
+<p>例えば複数台の slave の設定を設定してランダムにその slave を使いたい場合は下記の用な Driver を書きます。</p>
+
+<pre>
+package Data::Model::Driver::DBI::ManySlave;
+use strict;
+use warnings;
+use base 'Data::Model::Driver::DBI::MasterSlave';
+
+sub init {
+    my $self = shift;
+    my $master = $self-&gt;{master}
+        or Carp::croak "'master' configuration is required";
+    my $slave  = $self-&gt;{slave} ? ref($self-&gt;{slave}) eq 'ARRAY'
+        ? $self-&gt;{slave} : [ $self-&gt;{slave} ] : [ $master ];
+    $self-&gt;SUPER::init(
+        master =&gt; $master,
+        slave  =&gt; $slave,
+    );
+}
+</pre>
+
+<p>slave のオプションを ARRAY ref にする感じです。</p>
+<p>殆ど Driver::DBI::MasterSlave の実装を使いまわすので、ここは Data::Model::Driver::DBI::MasterSlave をそのまま継承します。</p>
+
+<p>次は rw_handle と r_handle かと思いますが、 Driver::DBI::MasterSlave の物をそのまま使います。</p>
+
+<p>では、 slave の r_handle を複数から選択するのは選択するの?という疑問ですが、新しく紹介するメソッドを上書きして使います。</p>
+
+<p>dbi_config というメソッドを上書きします。</p>
+
+<p>$self-&gt;{dbi_config} に DBI への設定を入れていたと思いますが、この設定を取り出すためのメソッドとして定義されています。</p>
+
+<pre>
+sub dbi_config {
+    my($self, $name) = @_;
+    return $self-&gt;{dbi_config}-&gt;{master} if $name eq 'master';
+    my $slave = $self-&gt;{dbi_config}-&gt;{slave};
+    return $slave-&gt;[rand(@{ $slave })];
+}
+</pre>
+
+<p>このようにして master の時は $self-&gt;{dbi_config}-&gt;{master} を返して、 slave の時は slave の設定をどれかランダムで返すのです。</p>
+
+<p>DBI のインスタンスを作る為のメソッドの中では dbi_config を使って DBI の設定を取得しているので、ここだけを変更すればうまく行きます。</p>
+
+<h4> 使ってみる</h4>
+
+<p>さて、この作った Driver::DBI::ManySlave を使ってみますか。</p>
+
+<pre>
+my $many = Data::Model::Driver::DBI::ManySlave-&gt;new(
+    master =&gt; {
+        dsn =&gt; 'dbi:mysql:host=master.server:database=test',
+    },
+    slave =&gt; [
+        { dsn =&gt; 'dbi:mysql:host=slave1.server:database=test' },
+        { dsn =&gt; 'dbi:mysql:host=slave2.server:database=test' },
+        { dsn =&gt; 'dbi:mysql:host=slave3.server:database=test' },
+        { dsn =&gt; 'dbi:mysql:host=slave4.server:database=test' },
+    ],
+);
+</pre>
+
+<p>これだけです。</p>
+
+<h4> とりとめのない話</h4>
+
+<p>これだけの為にわざわざコード書くのはちょっと面倒なので Driver::DBI の設定だけでうまく行くようにしようと思います。</p>
+
+<p>現状でも微妙に出来そうなコード片が入ってるのですが、完璧じゃないのでもすこし書き直してから公開しようとおもいます。</p>
+
+</div>
+<div class="section">
+<h3> Driver::Cache を拡張する</h3>
+
+<p>さて、次は透過的なキャッシュをする Driver を独自の物に書いてみましょう。</p>
+
+<p>標準では Perl 固有の HASH の中にキャッシュするか、 Memcached なオブジェクトへのキャッシュしか選択出来ません。</p>
+
+<p>しかし Driver::DBI と比べてもさらにシンプルなんです。</p>
+
+<p>基本的な Driver としての実装は Data::Model::Driver::Cache の中で実装されており、これを継承して Driver::Cache 用のインターフェイスを満たせば OK なんです。</p>
+
+<p>これも既存の Driver::Cache::HASH のコードを元に説明しましょう。</p>
+
+<h4> データ追加</h4>
+
+<p>データの追加するメソッドを定義します。</p>
+
+<pre>
+sub add_to_cache {
+    my($self, $key, $data) = @_;
+
+    my $ret = $CACHE{$key} = $data;
+    return if !defined $ret;
+    return $ret;
+}
+</pre>
+
+<p>add_to_cache の第一引数に key を、第二引数に value が渡されます。</p>
+<p>成功したら value をそのまま返してください。</p>
+<p>失敗時は undef を返します。</p>
+
+<h4> データ取得</h4>
+
+<p>データを取得する処理で使われます</p>
+
+<pre>
+sub get_from_cache {
+    my($self, $key) = @_;
+
+    my $ret = $CACHE{$key};
+    return if !defined $ret;
+    return $ret;
+}
+</pre>
+
+<p>get_to_cache の第一引数に key が渡されます。</p>
+<p>成功したら key に対応する value をそのまま返してください。</p>
+<p>失敗時は undef を返します。</p>
+
+<h4> データ削除</h4>
+
+<p>データを削除する処理で使われます</p>
+
+<pre>
+sub remove_from_cache {
+    my($self, $key) = @_;
+    
+    my $ret = delete $CACHE{$key};
+    return if !defined $ret;
+    return $ret;
+}
+</pre>
+
+<p>remove_from_cache の第一引数に key が渡されます。</p>
+<p>失敗したら undef を返してください。</p>
+<p>成功したら undef 以外を返してください。</p>
+
+<p>今現在 0 や '' などを返しても失敗したと誤認識するバグが発見されました。</p>
+
+<h4> その他</h4>
+
+<p>update 処理は、該当する key の削除のみを行うという挙動になっています。</p>
+
+<p>トランザクションとの組み合わせは、現在完全な透過処理が行われません。</p>
+
+<p>lookup_multi 系のクエリは get_multi_from_cache を上書きします。</p>
+<p>以下に Memcached で利用してるコードを張り付けます。</p>
+
+<pre>
+sub get_multi_from_cache {
+    my($self, $keys) = @_;
+
+    my $ret = $self-&gt;{memcached}-&gt;get_multi($keys);
+    return if !defined $ret;
+    return $ret;
+}
+</pre>
+</div>
+<div class="section">
+<h3> まったく新規に Driver を作る</h3>
+
+<p>もうちょっと詳細に書く予定でしたが、基本的に本日紹介した方法を見れば大体の Driver 作成の要求を満たせるかなと思ったので今回は省略させてください。</p>
+
+<p>もし、そのような需要がある場合は Yappo を捕まえて相談してみてください。</p>
+</div>
+<div class="section">
+<h3> 他の DBD 対応</h3>
+
+<p>Driver とは直接関係ないですが mysql や SQLite 以外の DBD 対応へのポインタを示します。</p>
+
+<p>Data::Model::Driver::DBI::DBD 以下の名前空間の実装を見てください。</p>
+
+<p>基本的に SQL generator からの delegation されるコードですので delegation 元の Data::Model::Schema::SQL などを読んでみてください。</p>
+
+<p>DBD::Pg に関しては sfujiwara さんが実装してくださったので僕の merge まちです＞＜</p>
+</div>
+<div class="section">
+<h3> まとめ</h3>
+
+<p>本日は Driver hack についてあれこれ書きました。</p>
+
+<p>さぁ、明日はいよいよ最終回です。</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="http://web.archive.org/web/20161018102533/http://perl-users.jp/articles/advent-calendar/2009/data-model/24.html">Thu, 24 Dec 2009 11:06:01 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018102533/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20161018102533/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20161018102533im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018102533/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20161018102533/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20161018102533im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018102533/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20161018102533/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20161018102533im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018102533/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20161018102533/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20161018102533im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018102533/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20161018102533/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20161018102533im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://web.archive.org/web/20161018102533/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102533/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102533/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102533/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102533/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102533/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://web.archive.org/web/20161018102533/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<!--
+     FILE ARCHIVED ON 10:25:33 Oct 18, 2016 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 16:55:33 Jan 23, 2020.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+-->
+<!--
+playback timings (ms):
+  captures_list: 664.066
+  exclusion.robots: 0.129
+  CDXLines.iter: 12.78 (3)
+  RedisCDXSource: 250.865
+  PetaboxLoader3.resolve: 133.693
+  load_resource: 713.706
+  esindex: 0.016
+  LoadShardBlock: 397.023 (3)
+  exclusion.robots.policy: 0.12
+  PetaboxLoader3.datanode: 439.606 (4)
+-->

@@ -1,0 +1,360 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app43.us.archive.org';v.server_ms=1011;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
+<script type="text/javascript">
+WB_wombat_Init("http://web.archive.org/web/", "20161018045803", "perl-users.jp");
+</script>
+<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
+<script type="text/javascript">
+__wbhack.init('http://web.archive.org/web');
+</script>
+<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
+<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
+<!-- End Wayback Rewrite JS Include -->
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018045803cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>DB Shardingについて2 #17 - JPerl Advent Calendar 2009
+</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20161018045803/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018045803cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
+<meta http-equiv="Content-Script-Type" content="text/javascript"/>
+<script type="text/javascript" src="http://web.archive.org/web/20161018045803js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018045803js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018045803js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+<script type="text/javascript">
+    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
+</script>
+
+<style type="text/css">
+    pre {
+        border-left: 2px solid #cccccc;
+        padding-left: 4px;
+        margin-left: 10px;
+        overflow: auto;
+    }
+</style>
+
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">DB Shardingについて2 #17 - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">DB Shardingについて2 #17<a href="http://web.archive.org/web/20161018045803/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/17.html"><img src="http://web.archive.org/web/20161018045803im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/17.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>こんにちわ！秘密主義のnekokakです！</p>
+<p>十七日目は昨日のDBIx::SkinnyでのDB Shardingについての続きです。</p>
+
+<p>昨日はミドルウェアでShardingして、アプリケーション側では楽をしようと言うお話でした。</p>
+
+<p>しかし、私はミドルウェア屋さんではないので、ミドルウェアの細かいところまで面倒みれません。</p>
+<p>面倒みれないので、ミドルウェアに頼らずに、アプリケーション側で何とかしようと考えてしまいます。</p>
+
+<p>そこで今日は私が今まで試したことのあるDB Shardingの方法を紹介してみたいと思います。</p>
+
+<p>関連記事としては、</p>
+<p><a href="http://web.archive.org/web/20161018045803/http://d.hatena.ne.jp/nekokak/20090917/1253119002">http://d.hatena.ne.jp/nekokak/20090917/1253119002</a></p>
+<p>こちらを見ていただけると良いかと思います。</p>
+<p>この記事で紹介した方法は、考察であって実際に運用で使ったことはありません。</p>
+
+
+<p>では本題。</p>
+<p>今回紹介するshardingの方法は以前WEB+DBの記事で紹介されたMixiさんでつかわれているというshardingの方法を参考にしたやり方です。</p>
+
+<p>sharding管理用のmaster tableを作成します。</p>
+<pre>
+CREATE TABLE db_node (
+  id     int(10) unsigned NOT NULL AUTO_INCREMENT,
+  number int(10) unsigned NOT NULL、
+  host   varchar(20) NOT NULL COMMENT 'DB接続先Host名',
+  role   enum('master','slave') NOT NULL COMMENT 'nodeの用途',
+  status enum('ok','down','wait') NOT NULL COMMENT 'nodeの状態',
+  type   varchar(20) NOT NULL COMMENT '何に使うnodeなのかex)message',
+  timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY db_node_idx (type,role,status)
+) ENGINE=InnoDB COMMENT='DB接続先マスター情報';
+
+CREATE TABLE db_node_map (
+  id     int(10) unsigned NOT NULL AUTO_INCREMENT,
+  db_node_id int(10) unsigned NOT NULL,
+  type_key varchar(30) NOT NULL,
+  timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY db_node_map (db_node_id,type_key),
+  KEY db_node_id (db_node_id)
+) ENGINE=InnoDB COMMENT='DB接続先管理テーブル';
+</pre>
+
+<p>db_nodeテーブルには、接続対象とできる、hostの管理をしています。</p>
+<p>db_node_mapテーブルでは、db_nodeを任意のキーで割り振るマッピングをしています。</p>
+
+<p>参考レコードとしては</p>
+<pre>
+&gt; select id, number, host, role, status, type from db_node;
++----+--------+--------------+--------+--------+---------+
+| id | number | host         | role   | status | type    |
++----+--------+-----------------+-----+--------+---------+
+|  1 |      1 | 192.168.1.10 | master | ok     | message |
+|  2 |      2 | 192.168.1.10 | master | ok     | message |
+|  3 |      3 | 192.168.1.10 | master | ok     | message |
+|  4 |      4 | 192.168.1.10 | master | ok     | message |
+|  5 |      5 | 192.168.1.10 | master | ok     | message |
++----+--------+-----------------+-----+--------+---------+
+</pre>
+
+<p>このようになります。</p>
+<p>また、db_node_mapの参考レコードとしては</p>
+
+<pre>
+&gt; select id, db_node_id, type_key from db_node_map;
++----+------------+------------+
+| id | db_node_id | type_key   |
++----+------------+------------+
+|  1 |          1 | nekokak    |
+|  2 |          2 | yappo      |
+|  3 |          3 | nekoya     |
+|  4 |          4 | walf443    |
+|  5 |          5 | kan        |
++----+------------+------------+
+</pre>
+
+<p>このようになります。</p>
+<p>db_node_mapは必要に応じて自動でレコードが追加されるようにしますが、</p>
+<p>db_nodeは事前にレコードを作成しておく必要があります。</p>
+
+<p>さて、このデータをどのようにDBIx::Skinnyで使うかです。</p>
+
+<p>db_node/db_node_mapのデータを管理利用するmodelを作成します。</p>
+<p>このmodelではuserテーブルのnameをキーに使ってどのdb_node/db_node_mapを使うかを決めます。</p>
+
+<pre>
+package Proj::Model::DBShardManager;
+use strict;
+use warnings;
+use Proj::DB;
+
+sub new {
+    my $class = shift;
+    bless {
+        # db_node/db_node_mapの入っているdatabaseに接続する
+        db =&gt; Proj::DB-&gt;new(....),
+    }, $class;
+}
+
+# db_node_mapに$user_nameに対応するレコードを登録する
+sub setup_handler_setting {
+    my ($self, $user_name) = @_;
+    die "user_name is not defined!" unless $user_name;
+
+    # db_node_mapにすでに登録されている場合はスルー
+    return if $self-&gt;{db}-&gt;single('db_node_map',{type_key =&gt; $user_name});
+
+    # 使える全masterノード取得
+    my @db_node_ids = map { $_-&gt;id } $self-&gt;{db}-&gt;search_by_sql(
+        q{
+            SELECT id
+            FROM   db_node
+            WHERE  type   = 'message'
+            AND    role   = 'master'
+            AND    status = 'ok'
+        }, [], 'db_node'
+    );
+    die 'undefined db_node!!!' unless @db_node_ids;
+
+    # 既に使用されているノードを取得
+    my %list = map { $_-&gt;db_node_id =&gt; $_-&gt;count } $self-&gt;{db}-&gt;search_by_sql(
+        q{
+            SELECT db_node_map.db_node_id, count(db_node_map.db_node_id) AS count
+            FROM db_node, db_node_map
+            WHERE db_node.id   = db_node_map.db_node_id
+            AND   db_node.type = 'message'
+            GROUP BY db_node_map.db_node_id
+            ORDER BY count ASC
+        }, [], 'db_node_map'
+    );
+
+    my $use_db_node = +{};
+    for my $db_node_id (@db_node_ids) {
+        next if defined $use_db_node-&gt;{count} &amp;&amp; ($use_db_node-&gt;{count} &lt;= ($list{$db_node_id}||0));
+        $use_db_node = +{
+            count      =&gt; $list{$db_node_id}||0,
+            db_node_id =&gt; $db_node_id,
+        };
+    }
+
+    $self-&gt;{db}-&gt;insert('db_node_map',
+        {
+            db_node_id =&gt; $use_db_node-&gt;{db_node_id},
+            type_key   =&gt; $user_name,
+        }
+    );
+}
+
+my $datasource = +{
+    dsn      =&gt; '',
+    username =&gt; 'user',
+    password =&gt; 'password',
+};
+sub handler_for {
+    my ($self, $user_name) = @_;
+    die "user_name is not defined!" unless $user_name;
+
+    my $row = $self-&gt;{db}-&gt;search_by_sql(
+        q{
+            SELECT db_node.id, db_node.number, db_node.host, db_node.type
+            FROM   db_node, db_node_map
+            WHERE  db_node.id = db_node_map.db_node_id
+            AND    db_node.type         = 'message'
+            AND    db_node.role         = 'master'
+            AND    db_node_map.type_key = ?
+            LIMIT 1
+        }, [$user_name], 'db_node'
+    )-&gt;first;
+
+    if ($row) {
+        $datasource-&gt;{dsn} = $row-&gt;gen_dsn;
+    } else {
+        $datasource-&gt;{dsn} = $self-&gt;setup_handler_setting($user_name)-&gt;gen_dsn;
+    }
+
+    my $db = Proj::DB-&gt;new($datasource);
+    # 必要であればset namesを打つ
+    $db-&gt;do(q{SET NAMES utf8});
+    $db;
+}
+</pre>
+
+<p>このProj::Model::DBShardManagerをつかうことで、</p>
+<p>dbの接続先を変えたDBIx::Skinnyのインスタンスを取得することができるようになります。</p>
+
+<pre>
+use strict;
+use warnings;
+use Proj::Model::DBShardManager;
+
+my $sm = Proj::Model::DBShardManager-&gt;new;
+# user_name: nekokakをキーにしたDBIx::Skinnyのインスタンスを取得
+my $db = $sm-&gt;handler_for('nekokak');
+# DBIx::Skinnyのインスタンス取得後は普通のDBIx::Skinnyの操作を行うのみ
+</pre>
+
+<p>このようになります。</p>
+<p>Proj::Model::DBShardManagerをもう少し工夫すれば、</p>
+<p>slaveへの接続をとりだしたりすることもできますね。</p>
+
+<p>駆け足の説明なので、わかりにくいこともあるかと思いますが</p>
+<p>わからないことはどんどんircで質問してみてください。</p>
+
+<p>他にもshardingの方法はあるので、また別の機会にでも。</p>
+
+<p>というかこの方法は特別DBIx::Skinnyに特化しているわけではないので</p>
+<p>何かの参考にしていただければと思います。</p>
+
+<p>今日はここまで。</p>
+
+<p>have a nice skinny days!:)</p>
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="http://web.archive.org/web/20161018045803/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/17.html">Thu, 17 Dec 2009 05:26:02 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018045803/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20161018045803/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20161018045803im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018045803/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20161018045803/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20161018045803im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018045803/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20161018045803/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20161018045803im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018045803/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20161018045803/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20161018045803im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018045803/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20161018045803/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20161018045803im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://web.archive.org/web/20161018045803/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018045803/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018045803/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018045803/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018045803/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018045803/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://web.archive.org/web/20161018045803/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<!--
+     FILE ARCHIVED ON 04:58:03 Oct 18, 2016 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 16:52:19 Jan 23, 2020.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+-->
+<!--
+playback timings (ms):
+  esindex: 0.02
+  exclusion.robots: 0.307
+  captures_list: 869.076
+  CDXLines.iter: 17.596 (3)
+  load_resource: 124.501
+  PetaboxLoader3.datanode: 230.184 (4)
+  LoadShardBlock: 185.163 (3)
+  RedisCDXSource: 661.029
+  exclusion.robots.policy: 0.287
+  PetaboxLoader3.resolve: 54.56
+-->

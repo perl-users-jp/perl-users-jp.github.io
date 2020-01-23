@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app22.us.archive.org';v.server_ms=5183;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
+<script type="text/javascript">
+WB_wombat_Init("http://web.archive.org/web/", "20161018102416", "perl-users.jp");
+</script>
+<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
+<script type="text/javascript">
+__wbhack.init('http://web.archive.org/web');
+</script>
+<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
+<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
+<!-- End Wayback Rewrite JS Include -->
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018102416cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>ドライバを知る - JPerl Advent Calendar 2009
+</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20161018102416/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"/>
+    <link rel="stylesheet" href="http://web.archive.org/web/20161018102416cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
+<meta http-equiv="Content-Script-Type" content="text/javascript"/>
+<script type="text/javascript" src="http://web.archive.org/web/20161018102416js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018102416js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
+<script type="text/javascript" src="http://web.archive.org/web/20161018102416js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
+<script type="text/javascript">
+    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
+</script>
+
+<style type="text/css">
+    pre {
+        border-left: 2px solid #cccccc;
+        padding-left: 4px;
+        margin-left: 10px;
+        overflow: auto;
+    }
+</style>
+
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">ドライバを知る - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">ドライバを知る<a href="http://web.archive.org/web/20161018102416/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/data-model/21.html"><img src="http://web.archive.org/web/20161018102416im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/data-model/21.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<h3> はじめに</h3>
+
+<p>これまでは Data::Model カラムの定義周りを重点的にボリュームを上げて書いていました。</p>
+<p>これからは最終回に向けて、より確実に Data::Model を使えるような内容でお送りしたいと思います。</p>
+</div>
+<div class="section">
+<h3> Driver</h3>
+
+<p>Data::Model を ORM 的に使うには use base 'Data::Model' して use Data::Model:Schema して DSL を使ってスキーマ定義をすると説明してきました。</p>
+
+<p>ただ、これだけではデータベースと接続する事ができません。なぜならスキーマ定義にはデータベースと接続する機能がないからです。</p>
+
+<p>データベースなどのデータソースと接続するためにはドライバーを利用しなければなりません。</p>
+
+<p>このあたりは Data::ObjectDriver と同じです。もしかしたら DBIx::MoCo も当てはまるかもしれません。</p>
+
+<p>簡単な Driver の定義は下記のような形です。</p>
+
+<pre>
+    use Data::Model::Driver::DBI;
+    my $driver = Data::Model::Driver::DBI-&gt;new(
+        dsn =&gt; 'dbi:SQLite:dbname=mybookmark.db'
+    );
+</pre>
+
+<p>new のオプションは Driver によって異なります。</p>
+<p>DBI Driver の全オプションを含めると以下のようなコードになります。</p>
+
+<pre>
+  my $driver = Data::Model::Driver::DBI-&gt;new(
+      dsn             =&gt; 'dbi:mysql:host=localhost:database=test',
+      username        =&gt; 'user',
+      password        =&gt; 'password',
+      connect_options =&gt; $dbi_connect_options,
+      reuse_dbh       =&gt; 1,
+  );
+</pre>
+
+<p>dsn, username, password などは DBI のあれと同じですね。</p>
+<p>connect_options は  DBI-&gt;connect( $dsn, $user, $pass, $connect_options ) の $connect_options に渡されるものと同等です。</p>
+<p>default で RaiseError =&gt; 1, PrintError =&gt; 0, AutoCommit =&gt; 1 がそれぞれ設定されます。</p>
+
+<p>reuse_dbh は、同じ dsn の接続は1つの接続を使いまわすようにしてくれます。</p>
+<p>例えば、 DB::User, DB::Bookmark, DB::Diary, DB::Fotolife と複数のスキーマ定義をしておいて、それぞれ別々の Data::Model::Driver::DBI インスタンスを使っているときに、 dsn は同じ物を利用していた場合に reuse_dbh を真にしておくと DB 接続は一つだけにしてくれるようになります。</p>
+</div>
+<div class="section">
+<h3> 様々な Driver</h3>
+
+<p>Data::Model では DBI 以外にも様々なデータソースが扱えます。代表的な物としては Driver::Memcached なのですが、これは17日に dann さんが素敵な紹介を寄稿していただいたのでそちらを参照ください。</p>
+<p><a href="http://web.archive.org/web/20161018102416/http://perl-users.jp/articles/advent-calendar/2009/data-model/17.html">http://perl-users.jp/articles/advent-calendar/2009/data-model/17.html</a></p>
+<p>kumofs にデータを出し入れするために僕は使っています。</p>
+<p>この Driver の圧縮オプションをつけまくる事で素の Cache::Memcached などのライブラリを使うよりは利点があると思っています。</p>
+
+<h4> Driver::Memory</h4>
+
+<p>依存ライブラリ無しでかつ on memory でデータの管理をしてくれるドライバです。</p>
+
+<p>sort や where や index, unique を始めとした Driver::DBI とほぼ同等のクエリが利用出来ます。</p>
+
+<p>一応 Driver::DBI と同じテストコードを通しているので品質もそこそこです。</p>
+
+<h4> Driver::Logic</h4>
+
+<p>モデルロジック処理をデータソースとして扱うためのラッパーを書くたに作りましたがちょっと不評ちゃんです。</p>
+
+<p>もうちょっと作戦立ててから作り替えて使いやすくしようと思ってますが、あまり使って欲しくないので undocumented なのです。</p>
+
+<h4> Driver::HASH</h4>
+
+<p>スキーマレスになデータモデルに好きなときに好きなだけ index はれたりするような物を作ろうとしてますが現在コードがありません。</p>
+
+<h4> Driver::DBI::MasterSlave</h4>
+<h4> Driver::Queue::Q4M</h4>
+<h4> Driver::Cache</h4>
+
+<p>上記3種類はそれぞれ個別で紹介しようと思います。</p>
+</div>
+<div class="section">
+<h3> スキーマ定義の設定</h3>
+
+<p>最初の方でスキーマ定義を下だけではデータソースを使うことができませんとありました。</p>
+<p>実際にスキーマ定義と Driver を紐づける必要がありますので以下で紹介します。</p>
+
+<p>ちなみにここでのサンプルは全て Data::Model::Driver::Memory を使ってます余計なコードないので。</p>
+
+<h4> スキーマ定義の中で全テーブルに設定する</h4>
+
+<p>基本的に DB サーバの database の単位や、役割ごとにスキーマ定義ファイルを書くと思いますが、そういった場合はもちろんスキーマクラスの中で定義されている DSN やら DB サーバは同一になるはずなので一括で Driver の設定を行います。</p>
+
+<pre>
+package MyDatabase;
+use strict;
+use warnings;
+use base 'Data::Model';
+use Data::Model::Schema;
+use Data::Model::Driver::Memory;
+my $driver = Data::Model::Driver::Memory-&gt;new;
+
+# MyBookmark の中で定義したテーブル全てで $driver を使う
+base_driver $driver;
+</pre>
+
+<p>base_driver 関数でスキーマ定義全体で使う Driver を設定します。</p>
+
+<h4> テーブル毎に Driver を変える</h4>
+
+<p>基本的にはありえないのですが、テーブル毎に driver を変える事が出来ます。</p>
+
+<pre>
+package MyDatabase;
+use strict;
+use warnings;
+use base 'Data::Model';
+use Data::Model::Schema;
+use Data::Model::Driver::Memory;
+my $driver1 = Data::Model::Driver::Memory-&gt;new;
+
+# MyBookmark の中で定義したテーブル全てで $driver1 を使う
+base_driver $driver1;
+install_model yappo =&gt; schema {
+};
+
+my $driver2 = Data::Model::Driver::Memory-&gt;new;
+install_model nekokak =&gt; schema {
+    # このテーブルだけ $driver2 をつかう
+    driver $driver2;
+};
+
+# kan さんは $driver1
+install_model kan =&gt; schema {
+};
+</pre>
+
+<p>driver は install_model の定義の中だけで使えます。</p>
+<p>base_driver で設定した driver を部分的に上書きするので、 yappo, kan は $driver1 を使って nekokak は $driver2 を使います。</p>
+
+
+<h4> 使うときに設定する</h4>
+
+<p>スキーマ定義の中だけではなくて、そのスキーマ定義を実際に利用する時に定義することが出来ます。</p>
+<p>これは　Web フレームワークの中に Data::Model を組み込んだ際に実行環境によって Driver の設定を変えたい時に利用すると便利になります。</p>
+
+<pre>
+    my $model = MyDatabase-&gt;new;
+
+    # MyDatabase の base_driver として $driver1 を設定する
+    my $driver1 = Data::Model::Driver::Memory-&gt;new;
+    $model-&gt;set_base_driver( $driver1 );
+
+    # MyDatabase の nekokak テーブルの driver として $driver2 を設定する
+    my $driver2 = Data::Model::Driver::Memory-&gt;new;
+    $model-&gt;set_driver( nekokak =&gt; $driver2 );
+</pre>
+
+<p>スキーマ定義の時に使った driver と base_driver に set_ の接頭辞をつけたメソッドをスキーマオブジェクトにはやして使います。</p>
+</div>
+<div class="section">
+<h3> その他関連メソッド</h3>
+
+<p>今これを書いてる時に気がついたのですがスキーマクラスに生えている set_driver や set_base_driver が undocument でした。</p>
+
+<p>ついでに関連する未文書なメソッドを紹介します。</p>
+
+<h4> driver 定義を取得する</h4>
+
+<p>set_driver や set_base_driver のついとなる get_driver などのメソッドがあります。</p>
+
+<pre>
+    my $model = MyDatabase-&gt;new;
+
+    # MyDatabase の base_driver を取り出す
+    $model-&gt;get_base_driver;
+
+    # MyDatabase の nekokak テーブルの driver をとりだす
+    $model-&gt;get_driver( 'nekokak' );
+</pre>
+
+<h4> 定義されたテーブルの一覧を取り出す</h4>
+
+<p>スキーマ定義にて定義した install_model もテーブルの一覧を返すメソッドがあります。</p>
+
+<pre>
+    my $model = MyDatabase-&gt;new;
+    # 定義されたテーブルのリストを返す
+    # yappo, nekokak, kan が返る
+    say join ',', $model-&gt;schema_names;
+</pre>
+
+<p>普通の人はあまり使わないかもしれませんが Data::Model-&gt;as_sqls にて以下のように使っています。</p>
+
+<pre>
+sub as_sqls {
+    my $self   = shift;
+    my $target = shift;
+    my @sql = ();
+    for my $model ($self-&gt;schema_names) {
+        next if $target &amp;&amp; $model ne $target;
+        push @sql, $self-&gt;get_schema($model)-&gt;sql-&gt;as_sql;
+    }
+    @sql;
+}
+</pre>
+</div>
+<div class="section">
+<h3> まとめ</h3>
+
+<p>本日は Data::Model の重要な要素の Driver に関して紹介しました。</p>
+<p>どのようにしてデータソースとつなげるかが理解できたかと思います。</p>
+
+<p>これからラストまで Driver 関連の解説を行う予定です。</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="http://web.archive.org/web/20161018102416/http://perl-users.jp/articles/advent-calendar/2009/data-model/21.html">Thu, 24 Dec 2009 07:47:01 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018102416/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20161018102416/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20161018102416im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018102416/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20161018102416/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20161018102416im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018102416/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20161018102416/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20161018102416im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/web/20161018102416/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20161018102416/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20161018102416im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/web/20161018102416/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20161018102416/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20161018102416im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://web.archive.org/web/20161018102416/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102416/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102416/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102416/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102416/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://web.archive.org/web/20161018102416/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://web.archive.org/web/20161018102416/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<!--
+     FILE ARCHIVED ON 10:24:16 Oct 18, 2016 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 16:55:05 Jan 23, 2020.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+-->
+<!--
+playback timings (ms):
+  load_resource: 2388.473
+  CDXLines.iter: 19.45 (3)
+  PetaboxLoader3.datanode: 3966.063 (4)
+  captures_list: 2779.801
+  exclusion.robots: 0.187
+  PetaboxLoader3.resolve: 615.872 (3)
+  RedisCDXSource: 549.251
+  esindex: 0.019
+  LoadShardBlock: 2206.463 (3)
+  exclusion.robots.policy: 0.173
+-->
