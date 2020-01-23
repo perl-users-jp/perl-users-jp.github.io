@@ -1,42 +1,10 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
-<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
-<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app41.us.archive.org';v.server_ms=1286;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
-<script type="text/javascript">
-WB_wombat_Init("http://web.archive.org/web/", "20161018163850", "perl-users.jp");
-</script>
-<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
-<script type="text/javascript">
-__wbhack.init('http://web.archive.org/web');
-</script>
-<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
-<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
-<!-- End Wayback Rewrite JS Include -->
-
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <link rel="stylesheet" href="http://web.archive.org/web/20161018163850cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
-    <title>Perlではじめるテキストマイニング - JPerl Advent Calendar 2009
-</title>
-    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20161018163850/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"/>
-    <link rel="stylesheet" href="http://web.archive.org/web/20161018163850cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
-<meta http-equiv="Content-Script-Type" content="text/javascript"/>
-<script type="text/javascript" src="http://web.archive.org/web/20161018163850js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
-<script type="text/javascript" src="http://web.archive.org/web/20161018163850js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
-<script type="text/javascript" src="http://web.archive.org/web/20161018163850js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
-<script type="text/javascript">
-    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
-</script>
-
-<style type="text/css">
-    pre {
-        border-left: 2px solid #cccccc;
-        padding-left: 4px;
-        margin-left: 10px;
-        overflow: auto;
-    }
-</style>
-
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Perlではじめるテキストマイニング - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
 </head>
 <body class="layout-two-column-right">
 <div id="container">
@@ -58,7 +26,7 @@ __wbhack.init('http://web.archive.org/web');
 
 
 <div class="entry">
-    <h1 class="entry-header">Perlではじめるテキストマイニング<a href="http://web.archive.org/web/20161018163850/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/hacker/11.html"><img src="http://web.archive.org/web/20161018163850im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/hacker/11.html" alt="B!"/></a></h1>
+    <h1 class="entry-header">Perlではじめるテキストマイニング<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/hacker/11.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/hacker/11.html" alt="B!"/></a></h1>
 
     <div class="entry-content">
         <div class="section">
@@ -84,7 +52,7 @@ __wbhack.init('http://web.archive.org/web');
 <p>持ってきたHTMLデータにはヘッダやらフッタやらサイドメニューやら、おおよそ本文とは関係ない部分がたっぷり含まれていますよね。</p>
 <p>これらのノイズをどうにかして除去したい。逆に言うと本文だけを効率よく抽出したい、と考えるわけです。</p>
 
-<p>そこで<a href="http://web.archive.org/web/20161018163850/http://search.cpan.org/~miki/HTML-Feature/">HTML::Feature</a>というモジュールをつくりました。</p>
+<p>そこで<a href="http://search.cpan.org/~miki/HTML-Feature/">HTML::Feature</a>というモジュールをつくりました。</p>
 
 <p>事前の定義とか一切なしで、おおよそいい感じで本文部分を推測して抽出してくれます。</p>
 
@@ -133,7 +101,7 @@ print $f-&gt;parse($url)-&gt;text;
 <p>まずはこんな感じで本文と思わしきところだけを適当に引っこ抜いておきます。楽チンですね！</p>
 
 <p>　参考）</p>
-<p>　　<a href="http://web.archive.org/web/20161018163850/http://d.hatena.ne.jp/download_takeshi/20090728/1248813497">http://d.hatena.ne.jp/download_takeshi/20090728/1248813497</a></p>
+<p>　　<a href="http://d.hatena.ne.jp/download_takeshi/20090728/1248813497">http://d.hatena.ne.jp/download_takeshi/20090728/1248813497</a></p>
 
 
 
@@ -147,7 +115,7 @@ print $f-&gt;parse($url)-&gt;text;
 <p>情報検索の世界では特徴語抽出は「いろはのいの字」的なものです。それに関しては古くから「TF/IDF」というアルゴリズムが王道中の王道とされてきました。</p>
 <p>ところが、いざ真面目に取り組もうとすると、仕込みというか事前準備がそれなりに必要となってしまい、「気軽に試してみる」というにはちょいと面倒な処理でした。</p>
 
-<p>そこで「精度はちょっとテキトーでもいいから手軽にやってみたいよー」というラテン系な人のために<a href="http://web.archive.org/web/20161018163850/http://search.cpan.org/~miki/Lingua-JA-TFIDF/">Lingua::JA::TFIDF</a>というモジュールを作りました。</p>
+<p>そこで「精度はちょっとテキトーでもいいから手軽にやってみたいよー」というラテン系な人のために<a href="http://search.cpan.org/~miki/Lingua-JA-TFIDF/">Lingua::JA::TFIDF</a>というモジュールを作りました。</p>
 
 <p>なんの前準備もいらないので手軽です。内部的にかなり大胆な(テキトーな）計算をしてるんですが、その割にまあまあの精度がでます。</p>
 
@@ -164,13 +132,13 @@ print Dumper $result-&gt;list(10);
 <p>最近ではTF/IDFのかわりに「BM25」というアルゴリズムも使われるようです。TF/IDFの改良版みたいなものですね。</p>
 <p>こっちについてはつい数日前にモジュール化してみました。</p>
 
-<p><a href="http://web.archive.org/web/20161018163850/http://search.cpan.org/~miki/Lingua-JA-OkapiBM25/">Lingua::JA::OkapiBM25</a>です。</p>
+<p><a href="http://search.cpan.org/~miki/Lingua-JA-OkapiBM25/">Lingua::JA::OkapiBM25</a>です。</p>
 
 <p>使い方はLingua::JA::TFIDFとほぼ同じなのでコードは割愛しますが、試してみるとTF/IDFよりもややバランスがいいかな、といった結果が得られました。</p>
 
 <p>　参考）</p>
-<p>　　<a href="http://web.archive.org/web/20161018163850/http://d.hatena.ne.jp/download_takeshi/20081031/1225463411">http://d.hatena.ne.jp/download_takeshi/20081031/1225463411</a></p>
-<p>　　<a href="http://web.archive.org/web/20161018163850/http://d.hatena.ne.jp/download_takeshi/20091206/1260130230">http://d.hatena.ne.jp/download_takeshi/20091206/1260130230</a></p>
+<p>　　<a href="http://d.hatena.ne.jp/download_takeshi/20081031/1225463411">http://d.hatena.ne.jp/download_takeshi/20081031/1225463411</a></p>
+<p>　　<a href="http://d.hatena.ne.jp/download_takeshi/20091206/1260130230">http://d.hatena.ne.jp/download_takeshi/20091206/1260130230</a></p>
 
 
 
@@ -186,7 +154,7 @@ print Dumper $result-&gt;list(10);
 <p>先ほどのLingua::JA::TFIDFなどでのアウトプットとして { URL =&gt; { 特徴語 =&gt; スコア, 特徴語 =&gt; スコア, ... }, ... } なデータが大量に蓄積できました。</p>
 
 <p>これらのデータを使ってなにか面白いことができそうな気がしますよね！？</p>
-<p>それでは<a href="http://web.archive.org/web/20161018163850/http://search.cpan.org/~miki/Lingua-JA-Categorize/">Lingua::JA::Categorize</a>を使ってベイジアンによる文書分類器でもつくってみましょう。</p>
+<p>それでは<a href="http://search.cpan.org/~miki/Lingua-JA-Categorize/">Lingua::JA::Categorize</a>を使ってベイジアンによる文書分類器でもつくってみましょう。</p>
 
 <p>Lingua::JA::Categorize は「お好みのカテゴリ構成の分類器をスピーディーに作るため」に書いたモジュールというかフレームワークのようなものです。</p>
 
@@ -213,7 +181,7 @@ print Dumper $result-&gt;score; # 分類結果（1位から3位）
 <p>らくらくですね♪</p>
 
 <p>　（参考）</p>
-<p>　　<a href="http://web.archive.org/web/20161018163850/http://d.hatena.ne.jp/download_takeshi/20081124/1227539934">http://d.hatena.ne.jp/download_takeshi/20081124/1227539934</a></p>
+<p>　　<a href="http://d.hatena.ne.jp/download_takeshi/20081124/1227539934">http://d.hatena.ne.jp/download_takeshi/20081124/1227539934</a></p>
 
 
 
@@ -228,9 +196,9 @@ print Dumper $result-&gt;score; # 分類結果（1位から3位）
 
 <p>そこでちょっと視点をかえて、K-means法などを使って与えられたデータを自然なカタチにクラスタリング処理して、その上で各クラスタの重心にあつまってるデータを目視して、実際のカテゴリを検討する、みたいなことをしたくなるはずです。</p>
 
-<p>そこで<a href="http://web.archive.org/web/20161018163850/http://search.cpan.org/~miki/Text-Bayon/">Text::Bayon</a>の登場です！ (昨日書いたばかりのできたてホヤホヤだよ!)</p>
+<p>そこで<a href="http://search.cpan.org/~miki/Text-Bayon/">Text::Bayon</a>の登場です！ (昨日書いたばかりのできたてホヤホヤだよ!)</p>
 
-<p>「<a href="http://web.archive.org/web/20161018163850/http://alpha.mixi.co.jp/blog/?p=1049">Bayon</a>」というのは非常に優秀な軽量クラスタリングツールでして、Mixiのfujisawaさんという方が開発＆公開されています。</p>
+<p>「<a href="http://alpha.mixi.co.jp/blog/?p=1049">Bayon</a>」というのは非常に優秀な軽量クラスタリングツールでして、Mixiのfujisawaさんという方が開発＆公開されています。</p>
 
 <p>Text::Bayon はこの便利なBayonをperlからシームレスに利用するためのハンドリングモジュールです。これを使えばperlから透過的にBayonを使えるようになります。</p>
 
@@ -278,7 +246,7 @@ print Dumper $output;
 
     </div>
     <div class="entry-meta">
-        <a rel="bookmark" href="http://web.archive.org/web/20161018163850/http://perl-users.jp/articles/advent-calendar/2009/hacker/11.html">Thu, 10 Dec 2009 17:26:43 GMT</a>
+        <a rel="bookmark" href="/articles/advent-calendar/2009/hacker/11.html">Thu, 10 Dec 2009 17:26:43 GMT</a>
         &nbsp;|&nbsp;
         <a href="./index.html">Index</a>
     </div>
@@ -293,9 +261,9 @@ print Dumper $output;
                     <h2 class="module-header">Main Tracks</h2>
                     <div class="module-content">
                         <ul>
-                            <li><a href="/web/20161018163850/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20161018163850/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20161018163850im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
-                            <li><a href="/web/20161018163850/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20161018163850/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20161018163850im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
-                            <li><a href="/web/20161018163850/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20161018163850/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20161018163850im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
                     </ul>
                     </div>
                 </div>
@@ -304,8 +272,8 @@ print Dumper $output;
                     <h2 class="module-header">Yet Anthor Tracks</h2>
                     <div class="module-content">
                         <ul>
-                            <li><a href="/web/20161018163850/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20161018163850/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20161018163850im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
-                            <li><a href="/web/20161018163850/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20161018163850/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20161018163850im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
                         </ul>
                     </div>
                 </div>
@@ -314,19 +282,19 @@ print Dumper $output;
                     <h2 class="module-header">Other Sites</h2>
                     <div class="module-content">
                         <ul>
-                            <li><a href="http://web.archive.org/web/20161018163850/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
-                            <li><a href="http://web.archive.org/web/20161018163850/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
-                            <li><a href="http://web.archive.org/web/20161018163850/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
-                            <li><a href="http://web.archive.org/web/20161018163850/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
-                            <li><a href="http://web.archive.org/web/20161018163850/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
-                            <li><a href="http://web.archive.org/web/20161018163850/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
                         </ul>
                     </div>
                 </div>
                 <!-- powered by -->
                 <div class="module-powered module">
                     <div class="module-content">
-                        Powered by <a href="http://web.archive.org/web/20161018163850/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
                     </div>
                 </div>
 
@@ -336,24 +304,3 @@ print Dumper $output;
 </div>
 </body>
 </html>
-<!--
-     FILE ARCHIVED ON 16:38:50 Oct 18, 2016 AND RETRIEVED FROM THE
-     INTERNET ARCHIVE ON 15:06:53 Jan 23, 2020.
-     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
-
-     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
-     SECTION 108(a)(3)).
--->
-<!--
-playback timings (ms):
-  load_resource: 249.297
-  PetaboxLoader3.datanode: 750.238 (4)
-  captures_list: 1015.482
-  exclusion.robots: 0.257
-  exclusion.robots.policy: 0.238
-  PetaboxLoader3.resolve: 308.331
-  CDXLines.iter: 19.216 (3)
-  RedisCDXSource: 173.848
-  LoadShardBlock: 817.045 (3)
-  esindex: 0.019
--->

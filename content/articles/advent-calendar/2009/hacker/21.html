@@ -1,42 +1,10 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
-<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
-<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app105.us.archive.org';v.server_ms=891;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
-<script type="text/javascript">
-WB_wombat_Init("http://web.archive.org/web/", "20161018163616", "perl-users.jp");
-</script>
-<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
-<script type="text/javascript">
-__wbhack.init('http://web.archive.org/web');
-</script>
-<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
-<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
-<!-- End Wayback Rewrite JS Include -->
-
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <link rel="stylesheet" href="http://web.archive.org/web/20161018163616cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
-    <title>FormValidator::LazyWay で検証ルールをまとめよう - JPerl Advent Calendar 2009
-</title>
-    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20161018163616/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"/>
-    <link rel="stylesheet" href="http://web.archive.org/web/20161018163616cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
-<meta http-equiv="Content-Script-Type" content="text/javascript"/>
-<script type="text/javascript" src="http://web.archive.org/web/20161018163616js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
-<script type="text/javascript" src="http://web.archive.org/web/20161018163616js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
-<script type="text/javascript" src="http://web.archive.org/web/20161018163616js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
-<script type="text/javascript">
-    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
-</script>
-
-<style type="text/css">
-    pre {
-        border-left: 2px solid #cccccc;
-        padding-left: 4px;
-        margin-left: 10px;
-        overflow: auto;
-    }
-</style>
-
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>FormValidator::LazyWay で検証ルールをまとめよう - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
 </head>
 <body class="layout-two-column-right">
 <div id="container">
@@ -58,7 +26,7 @@ __wbhack.init('http://web.archive.org/web');
 
 
 <div class="entry">
-    <h1 class="entry-header">FormValidator::LazyWay で検証ルールをまとめよう<a href="http://web.archive.org/web/20161018163616/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/hacker/21.html"><img src="http://web.archive.org/web/20161018163616im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/hacker/21.html" alt="B!"/></a></h1>
+    <h1 class="entry-header">FormValidator::LazyWay で検証ルールをまとめよう<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/hacker/21.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/hacker/21.html" alt="B!"/></a></h1>
 
     <div class="entry-content">
         <div class="section">
@@ -67,7 +35,7 @@ __wbhack.init('http://web.archive.org/web');
 ということで僕もハッカーではないけれど、自分がメンテナンスしてるモジュールの中から一つ紹介させてもらいますね。
 </p>
 
-<p>今日は <a href="http://web.archive.org/web/20161018163616/http://search.cpan.org/dist/FormValidator-LazyWay/">FormValidator::LazyWay</a> で検証ルールをまとめちゃいます。</p>
+<p>今日は <a href="http://search.cpan.org/dist/FormValidator-LazyWay/">FormValidator::LazyWay</a> で検証ルールをまとめちゃいます。</p>
 </div>
 <div class="section">
 <h3>フォームの検証</h3>
@@ -161,7 +129,7 @@ my $result = $fv-&gt;check($q, {
 <div class="section">
 <h3>検証結果</h3>
 
-<p>検証結果には <a href="http://web.archive.org/web/20161018163616/http://search.cpan.org/~taro/FormValidator-LazyWay-0.11/lib/FormValidator/LazyWay/Result/JA.pod">FormValidator::LazyWay::Result</a> オブジェクトが返ってきます。</p>
+<p>検証結果には <a href="http://search.cpan.org/~taro/FormValidator-LazyWay-0.11/lib/FormValidator/LazyWay/Result/JA.pod">FormValidator::LazyWay::Result</a> オブジェクトが返ってきます。</p>
 
 <pre>
 # $result が FormValidator::LazyWay::Result オブジェクト
@@ -269,7 +237,7 @@ config:
 
 <p>そのほかにもメッセージのカスタマイズとか、param メソッド持ってないただのハッシュの検証とか色々機能があります。</p>
 
-<p><a href="http://web.archive.org/web/20161018163616/http://search.cpan.org/~taro/FormValidator-LazyWay-0.11/lib/FormValidator/LazyWay/JA.pod">日本語の POD もあるのでご参照いただければ幸いです</a></p>
+<p><a href="http://search.cpan.org/~taro/FormValidator-LazyWay-0.11/lib/FormValidator/LazyWay/JA.pod">日本語の POD もあるのでご参照いただければ幸いです</a></p>
 
 <p>明日は……誰か書きませんか！</p>
 <p>JPerl Advent Calendar hacker track の明日を作るのはあなたです！</p>
@@ -277,7 +245,7 @@ config:
 
     </div>
     <div class="entry-meta">
-        <a rel="bookmark" href="http://web.archive.org/web/20161018163616/http://perl-users.jp/articles/advent-calendar/2009/hacker/21.html">Mon, 21 Dec 2009 10:01:01 GMT</a>
+        <a rel="bookmark" href="/articles/advent-calendar/2009/hacker/21.html">Mon, 21 Dec 2009 10:01:01 GMT</a>
         &nbsp;|&nbsp;
         <a href="./index.html">Index</a>
     </div>
@@ -292,9 +260,9 @@ config:
                     <h2 class="module-header">Main Tracks</h2>
                     <div class="module-content">
                         <ul>
-                            <li><a href="/web/20161018163616/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20161018163616/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20161018163616im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
-                            <li><a href="/web/20161018163616/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20161018163616/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20161018163616im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
-                            <li><a href="/web/20161018163616/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20161018163616/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20161018163616im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
                     </ul>
                     </div>
                 </div>
@@ -303,8 +271,8 @@ config:
                     <h2 class="module-header">Yet Anthor Tracks</h2>
                     <div class="module-content">
                         <ul>
-                            <li><a href="/web/20161018163616/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20161018163616/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20161018163616im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
-                            <li><a href="/web/20161018163616/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20161018163616/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20161018163616im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
                         </ul>
                     </div>
                 </div>
@@ -313,19 +281,19 @@ config:
                     <h2 class="module-header">Other Sites</h2>
                     <div class="module-content">
                         <ul>
-                            <li><a href="http://web.archive.org/web/20161018163616/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
-                            <li><a href="http://web.archive.org/web/20161018163616/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
-                            <li><a href="http://web.archive.org/web/20161018163616/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
-                            <li><a href="http://web.archive.org/web/20161018163616/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
-                            <li><a href="http://web.archive.org/web/20161018163616/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
-                            <li><a href="http://web.archive.org/web/20161018163616/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
                         </ul>
                     </div>
                 </div>
                 <!-- powered by -->
                 <div class="module-powered module">
                     <div class="module-content">
-                        Powered by <a href="http://web.archive.org/web/20161018163616/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
                     </div>
                 </div>
 
@@ -335,24 +303,3 @@ config:
 </div>
 </body>
 </html>
-<!--
-     FILE ARCHIVED ON 16:36:16 Oct 18, 2016 AND RETRIEVED FROM THE
-     INTERNET ARCHIVE ON 15:08:07 Jan 23, 2020.
-     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
-
-     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
-     SECTION 108(a)(3)).
--->
-<!--
-playback timings (ms):
-  captures_list: 732.707
-  exclusion.robots.policy: 0.18
-  PetaboxLoader3.resolve: 158.145 (2)
-  CDXLines.iter: 14.011 (3)
-  RedisCDXSource: 490.857
-  PetaboxLoader3.datanode: 189.73 (4)
-  esindex: 0.014
-  LoadShardBlock: 224.204 (3)
-  exclusion.robots: 0.195
-  load_resource: 147.199
--->

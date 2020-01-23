@@ -1,42 +1,10 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
-<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
-<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app102.us.archive.org';v.server_ms=930;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
-<script type="text/javascript">
-WB_wombat_Init("http://web.archive.org/web/", "20161018164335", "perl-users.jp");
-</script>
-<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
-<script type="text/javascript">
-__wbhack.init('http://web.archive.org/web');
-</script>
-<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
-<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
-<!-- End Wayback Rewrite JS Include -->
-
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <link rel="stylesheet" href="http://web.archive.org/web/20161018164335cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
-    <title>Plack::Requestとか使って小さなWebアプリを作ろう！ - JPerl Advent Calendar 2009
-</title>
-    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20161018164335/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"/>
-    <link rel="stylesheet" href="http://web.archive.org/web/20161018164335cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
-<meta http-equiv="Content-Script-Type" content="text/javascript"/>
-<script type="text/javascript" src="http://web.archive.org/web/20161018164335js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
-<script type="text/javascript" src="http://web.archive.org/web/20161018164335js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
-<script type="text/javascript" src="http://web.archive.org/web/20161018164335js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
-<script type="text/javascript">
-    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
-</script>
-
-<style type="text/css">
-    pre {
-        border-left: 2px solid #cccccc;
-        padding-left: 4px;
-        margin-left: 10px;
-        overflow: auto;
-    }
-</style>
-
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Plack::Requestとか使って小さなWebアプリを作ろう！ - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
 </head>
 <body class="layout-two-column-right">
 <div id="container">
@@ -58,7 +26,7 @@ __wbhack.init('http://web.archive.org/web');
 
 
 <div class="entry">
-    <h1 class="entry-header">Plack::Requestとか使って小さなWebアプリを作ろう！<a href="http://web.archive.org/web/20161018164335/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/casual/07.html"><img src="http://web.archive.org/web/20161018164335im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/casual/07.html" alt="B!"/></a></h1>
+    <h1 class="entry-header">Plack::Requestとか使って小さなWebアプリを作ろう！<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/casual/07.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/casual/07.html" alt="B!"/></a></h1>
 
     <div class="entry-content">
         <div class="section">
@@ -75,7 +43,7 @@ __wbhack.init('http://web.archive.org/web');
 
 <p>そして、名前をノリで「Chekera!」と名付けました。先に、紹介しておきますが、githubにレポジトリも設けていまして、場所はこちらになります。</p>
 
-<p><a href="http://web.archive.org/web/20161018164335/http://github.com/yusukebe/Chekera">http://github.com/yusukebe/Chekera</a></p>
+<p><a href="http://github.com/yusukebe/Chekera">http://github.com/yusukebe/Chekera</a></p>
 
 
 </div>
@@ -84,11 +52,11 @@ __wbhack.init('http://web.archive.org/web');
 
 <p>再生リストにどのような動画が含まれているかを取得するためにYouTube APIを使います。YouTube APIは基本的に情報取得系のメソッドですと、クエリを含んだリクエストを投げればAtomフィードに独自のフォーマットを加えたYouTube GData形式でレスポンスが返ってきます。再生リストのAPIについては以下のリファレンスページで知ることができます。</p>
 
-<p><a href="http://web.archive.org/web/20161018164335/http://code.google.com/intl/ja-JP/apis/youtube/2.0/reference.html#Playlist_feed">http://code.google.com/intl/ja-JP/apis/youtube/2.0/reference.html#Playlist_feed</a></p>
+<p><a href="http://code.google.com/intl/ja-JP/apis/youtube/2.0/reference.html#Playlist_feed">http://code.google.com/intl/ja-JP/apis/youtube/2.0/reference.html#Playlist_feed</a></p>
 
 <p>このページからすると、以下のようなURLへGETリクエストを発行すればビデオフィードが得られるとのことです。</p>
 
-<p><a href="http://web.archive.org/web/20161018164335/http://gdata.youtube.com/feeds/api/playlists/">http://gdata.youtube.com/feeds/api/playlists/</a>再生リストのID</p>
+<p><a href="http://gdata.youtube.com/feeds/api/playlists/">http://gdata.youtube.com/feeds/api/playlists/</a>再生リストのID</p>
 
 <p>では、早速どのように情報が得られるかをXML::Feedというモジュールを使って取得＆パースしてみましょう。</p>
 
@@ -107,7 +75,7 @@ for my $entry ( $feed-&gt;entries() ) {
 
 <p>このスクリプトを実行すると</p>
 
-<p><a href="http://web.archive.org/web/20161018164335/http://www.youtube.com/view_play_list?p=CD06A83DE0A8F4B0">http://www.youtube.com/view_play_list?p=CD06A83DE0A8F4B0</a></p>
+<p><a href="http://www.youtube.com/view_play_list?p=CD06A83DE0A8F4B0">http://www.youtube.com/view_play_list?p=CD06A83DE0A8F4B0</a></p>
 
 <p>こちらのPerfume関連の動画リストに含まれるビデオのタイトルとリンクが出力されます。YouTubeの動画というのはビデオのIDさえわかれば、そのサムネイル画像やプレイヤーのURLを簡単に構築できるので、以下の様な正規表現をループの中に加えてビデオIDとタイトルだけ後ほど利用するようにしましょう。</p>
 
@@ -120,7 +88,7 @@ for my $entry ( $feed-&gt;entries() ) {
 
 <p>Plackの詳細については、現在進行中のmiyagawaさんによる「Plack Advent Calendar」に導入から丁寧に解説されているので、そちらを参考にしてください。</p>
 
-<p><a href="http://web.archive.org/web/20161018164335/http://advent.plackperl.org/">http://advent.plackperl.org/</a></p>
+<p><a href="http://advent.plackperl.org/">http://advent.plackperl.org/</a></p>
 
 <p>今回は、今回扱う最低限のPlack周りについて解説します。Chekera!では、Plack::RequestというPlackとは別になっているモジュールが、後ほどの拡張を見込んで便利そうなので使用します。また、jsやcssファイルを静的コンテンツとして配信したいためにPlack::Middleware::StaticをPlack::Builder経由で呼び出しています。.psgiファイルのひな形は以下になります。</p>
 
@@ -355,7 +323,7 @@ function onytplayerStateChange(newState) {
 
 <p>スクショ:</p>
 
-<p><a href="http://web.archive.org/web/20161018164335/http://gyazo.com/8abdddb586604d8bc39f37b0f4382d25.png">http://gyazo.com/8abdddb586604d8bc39f37b0f4382d25.png</a></p>
+<p><a href="http://gyazo.com/8abdddb586604d8bc39f37b0f4382d25.png">http://gyazo.com/8abdddb586604d8bc39f37b0f4382d25.png</a></p>
 
 <p>jsの部分はちょっと特殊なことをしていたりしていて詳細の解説省きますが、これでリストの動画一覧が表示されてクリックすればウイーンってウィンドウがでてきて動画が再生されるはずです！</p>
 </div>
@@ -369,7 +337,7 @@ function onytplayerStateChange(newState) {
 
     </div>
     <div class="entry-meta">
-        <a rel="bookmark" href="http://web.archive.org/web/20161018164335/http://perl-users.jp/articles/advent-calendar/2009/casual/07.html">Mon, 07 Dec 2009 01:40:02 GMT</a>
+        <a rel="bookmark" href="/articles/advent-calendar/2009/casual/07.html">Mon, 07 Dec 2009 01:40:02 GMT</a>
         &nbsp;|&nbsp;
         <a href="./index.html">Index</a>
     </div>
@@ -384,9 +352,9 @@ function onytplayerStateChange(newState) {
                     <h2 class="module-header">Main Tracks</h2>
                     <div class="module-content">
                         <ul>
-                            <li><a href="/web/20161018164335/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20161018164335/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20161018164335im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
-                            <li><a href="/web/20161018164335/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20161018164335/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20161018164335im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
-                            <li><a href="/web/20161018164335/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20161018164335/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20161018164335im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
                     </ul>
                     </div>
                 </div>
@@ -395,8 +363,8 @@ function onytplayerStateChange(newState) {
                     <h2 class="module-header">Yet Anthor Tracks</h2>
                     <div class="module-content">
                         <ul>
-                            <li><a href="/web/20161018164335/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20161018164335/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20161018164335im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
-                            <li><a href="/web/20161018164335/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20161018164335/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20161018164335im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
                         </ul>
                     </div>
                 </div>
@@ -405,19 +373,19 @@ function onytplayerStateChange(newState) {
                     <h2 class="module-header">Other Sites</h2>
                     <div class="module-content">
                         <ul>
-                            <li><a href="http://web.archive.org/web/20161018164335/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
-                            <li><a href="http://web.archive.org/web/20161018164335/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
-                            <li><a href="http://web.archive.org/web/20161018164335/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
-                            <li><a href="http://web.archive.org/web/20161018164335/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
-                            <li><a href="http://web.archive.org/web/20161018164335/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
-                            <li><a href="http://web.archive.org/web/20161018164335/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
                         </ul>
                     </div>
                 </div>
                 <!-- powered by -->
                 <div class="module-powered module">
                     <div class="module-content">
-                        Powered by <a href="http://web.archive.org/web/20161018164335/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
                     </div>
                 </div>
 
@@ -427,24 +395,3 @@ function onytplayerStateChange(newState) {
 </div>
 </body>
 </html>
-<!--
-     FILE ARCHIVED ON 16:43:35 Oct 18, 2016 AND RETRIEVED FROM THE
-     INTERNET ARCHIVE ON 15:01:06 Jan 23, 2020.
-     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
-
-     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
-     SECTION 108(a)(3)).
--->
-<!--
-playback timings (ms):
-  exclusion.robots.policy: 0.201
-  load_resource: 263.281
-  exclusion.robots: 0.215
-  PetaboxLoader3.datanode: 371.822 (4)
-  PetaboxLoader3.resolve: 86.677
-  LoadShardBlock: 218.361 (3)
-  captures_list: 654.036
-  RedisCDXSource: 417.906
-  CDXLines.iter: 13.469 (3)
-  esindex: 0.017
--->

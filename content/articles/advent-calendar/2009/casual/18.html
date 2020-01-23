@@ -1,42 +1,10 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
-<head profile="http://purl.org/net/ns/metaprof"><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
-<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app56.us.archive.org';v.server_ms=957;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/ait-client-rewrite.js" charset="utf-8"></script>
-<script type="text/javascript">
-WB_wombat_Init("http://web.archive.org/web/", "20161018164327", "perl-users.jp");
-</script>
-<script type="text/javascript" src="/_static/js/wbhack.js" charset="utf-8"></script>
-<script type="text/javascript">
-__wbhack.init('http://web.archive.org/web');
-</script>
-<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css" />
-<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css" />
-<!-- End Wayback Rewrite JS Include -->
-
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <link rel="stylesheet" href="http://web.archive.org/web/20161018164327cs_/http://bulknews.typepad.com/test/styles.css" media="all"/>
-    <title>Log::Dispatch::Screen::Color で色つきログでデバッグ！ - JPerl Advent Calendar 2009
-</title>
-    <link rel="alternate" type="application/rss+xml" title="RSS" href="http://web.archive.org/web/20161018164327/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"/>
-    <link rel="stylesheet" href="http://web.archive.org/web/20161018164327cs_/http://perl-users.jp/articles/advent-calendar/prettify.css" type="text/css" media="screen"/>
-<meta http-equiv="Content-Script-Type" content="text/javascript"/>
-<script type="text/javascript" src="http://web.archive.org/web/20161018164327js_/http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
-<script type="text/javascript" src="http://web.archive.org/web/20161018164327js_/http://perl-users.jp/articles/advent-calendar/adventcal2009.js"></script>
-<script type="text/javascript" src="http://web.archive.org/web/20161018164327js_/http://s.hatena.ne.jp/js/HatenaStar.js"></script>
-<script type="text/javascript">
-    Hatena.Star.SiteConfig = { entryNodes: { 'div.entry': { uri: 'document.location', title: 'document.title', container: 'h1.entry-header' } } };
-</script>
-
-<style type="text/css">
-    pre {
-        border-left: 2px solid #cccccc;
-        padding-left: 4px;
-        margin-left: 10px;
-        overflow: auto;
-    }
-</style>
-
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Log::Dispatch::Screen::Color で色つきログでデバッグ！ - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
 </head>
 <body class="layout-two-column-right">
 <div id="container">
@@ -58,7 +26,7 @@ __wbhack.init('http://web.archive.org/web');
 
 
 <div class="entry">
-    <h1 class="entry-header">Log::Dispatch::Screen::Color で色つきログでデバッグ！<a href="http://web.archive.org/web/20161018164327/http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/casual/18.html"><img src="http://web.archive.org/web/20161018164327im_/http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/casual/18.html" alt="B!"/></a></h1>
+    <h1 class="entry-header">Log::Dispatch::Screen::Color で色つきログでデバッグ！<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/casual/18.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/casual/18.html" alt="B!"/></a></h1>
 
     <div class="entry-content">
         <div class="section">
@@ -70,7 +38,7 @@ __wbhack.init('http://web.archive.org/web');
 <div class="section">
 <h3> Log::Dispatch</h3>
 
-<p><a href="http://web.archive.org/web/20161018164327/http://search.cpan.org/dist/Log-Dispatch">Log::Dispatch</a> はログの出力先を標準エラーやファイルへの書き込み、メールで飛ばしたり、DBI で DB に突っ込んだり、と Log::Dispatch::* を指定して切り替えられる便利 logger です。</p>
+<p><a href="http://search.cpan.org/dist/Log-Dispatch">Log::Dispatch</a> はログの出力先を標準エラーやファイルへの書き込み、メールで飛ばしたり、DBI で DB に突っ込んだり、と Log::Dispatch::* を指定して切り替えられる便利 logger です。</p>
 
 <pre>
 use Log::Dispatch;
@@ -143,7 +111,7 @@ $dispatcher-&gt;log( level =&gt; 'emergency', message =&gt; 'error 以上なの�
 <div class="section">
 <h3> Log::Dispatch::Config</h3>
 
-<p><a href="http://web.archive.org/web/20161018164327/http://search.cpan.org/dist/Log-Dispatch-Config/">Log::Dispatch::Config</a> を使うと Log::Dispatch::* オブジェクトの追加とかを Config に書き出せておけます。</p>
+<p><a href="http://search.cpan.org/dist/Log-Dispatch-Config/">Log::Dispatch::Config</a> を使うと Log::Dispatch::* オブジェクトの追加とかを Config に書き出せておけます。</p>
 <p>プログラムの方はこんな感じで書いておいて、</p>
 
 <pre>
@@ -183,9 +151,9 @@ dispatchers には用意した設定で使わない設定を外すとその設�
 
 <p>さて本題です！</p>
 
-<p>色々書いてるうちに Log::Dispatch の話題がほとんどになってしまいましたが、<a href="http://web.archive.org/web/20161018164327/http://search.cpan.org/dist/Log-Dispatch-Screen-Color/">Log::Dispatch::Screen::Color</a> で色をつけて終わりにしましょう。</p>
+<p>色々書いてるうちに Log::Dispatch の話題がほとんどになってしまいましたが、<a href="http://search.cpan.org/dist/Log-Dispatch-Screen-Color/">Log::Dispatch::Screen::Color</a> で色をつけて終わりにしましょう。</p>
 
-<p>せっかくなので <a href="http://web.archive.org/web/20161018164327/http://search.cpan.org/dist/Log-Dispatch-Configurator-YAML/">Log::Dispatch::Configurator::YAML</a> を使って YAML で設定を示しましょう。</p>
+<p>せっかくなので <a href="http://search.cpan.org/dist/Log-Dispatch-Configurator-YAML/">Log::Dispatch::Configurator::YAML</a> を使って YAML で設定を示しましょう。</p>
 
 <pre>
 use Log::Dispatch::Config;
@@ -230,28 +198,28 @@ $log-&gt;alert('alert message is red on white!');
 
 <p>色ついた！</p>
 
-<p><a href="http://web.archive.org/web/20161018164327/http://vkgtaro.jp/img/jperl_advent_calendar_2009/log_color.png"><img src="http://web.archive.org/web/20161018164327im_/http://vkgtaro.jp/img/jperl_advent_calendar_2009/log_color.png" alt="http://vkgtaro.jp/img/jperl_advent_calendar_2009/log_color.png"/></a></p>
+<p><a href="http://vkgtaro.jp/img/jperl_advent_calendar_2009/log_color.png"><img src="http://vkgtaro.jp/img/jperl_advent_calendar_2009/log_color.png" alt="http://vkgtaro.jp/img/jperl_advent_calendar_2009/log_color.png"/></a></p>
 
 <p>ログに色がつくと開発時とかわかりやすくて良いです。</p>
 
-<p>ちなみに Log::Dispatch で色をつけるモジュールは拙作の <a href="http://web.archive.org/web/20161018164327/http://search.cpan.org/dist/Log-Dispatch-Colorful/">Log::Dispatch::Colorful</a> なんてのもありますが、こっちは変数の dump もしたくて Log::Dispatch 自体にも手を加えてしまい、他の Log::Dispatch::* との共存がしづらくなります。</p>
+<p>ちなみに Log::Dispatch で色をつけるモジュールは拙作の <a href="http://search.cpan.org/dist/Log-Dispatch-Colorful/">Log::Dispatch::Colorful</a> なんてのもありますが、こっちは変数の dump もしたくて Log::Dispatch 自体にも手を加えてしまい、他の Log::Dispatch::* との共存がしづらくなります。</p>
 
-<p>色をつけたいだけなら、Yappo さん作のこの <a href="http://web.archive.org/web/20161018164327/http://search.cpan.org/dist/Log-Dispatch-Screen-Color/">Log::Dispatch::Screen::Color</a> をお薦めします。Windows 環境でも色が着くようです。</p>
+<p>色をつけたいだけなら、Yappo さん作のこの <a href="http://search.cpan.org/dist/Log-Dispatch-Screen-Color/">Log::Dispatch::Screen::Color</a> をお薦めします。Windows 環境でも色が着くようです。</p>
 
-<p>Catalyst でお手軽に色をつけたければ <a href="http://web.archive.org/web/20161018164327/http://search.cpan.org/dist/Catalyst-Plugin-Log-Colorful">Catalyst::Plugin::Log::Colorful</a> なんてのもあります。</p>
+<p>Catalyst でお手軽に色をつけたければ <a href="http://search.cpan.org/dist/Catalyst-Plugin-Log-Colorful">Catalyst::Plugin::Log::Colorful</a> なんてのもあります。</p>
 
 <p>
-<a href="http://web.archive.org/web/20161018164327/http://search.cpan.org/~rra/ANSIColor-2.02/ANSIColor.pm">Term::ANSIColor</a> 使えばエスケープシーケンスを意識しなくても出力に色がつけられるので、他の Logger で色つけたいという方はモジュール作ってみてはいかがでしょうか！<br/>
+<a href="http://search.cpan.org/~rra/ANSIColor-2.02/ANSIColor.pm">Term::ANSIColor</a> 使えばエスケープシーケンスを意識しなくても出力に色がつけられるので、他の Logger で色つけたいという方はモジュール作ってみてはいかがでしょうか！<br/>
 （Log::Dispatch::Screen::Color は Win32::Console::ANSI 使って windows 対策してますね）
 </p>
 
-<p><a href="http://web.archive.org/web/20161018164327/http://vkgtaro.jp/img/jperl_advent_calendar_2009/nobjas_san.png"><img src="http://web.archive.org/web/20161018164327im_/http://vkgtaro.jp/img/jperl_advent_calendar_2009/nobjas_san.png" alt="http://vkgtaro.jp/img/jperl_advent_calendar_2009/nobjas_san.png"/></a></p>
+<p><a href="http://vkgtaro.jp/img/jperl_advent_calendar_2009/nobjas_san.png"><img src="http://vkgtaro.jp/img/jperl_advent_calendar_2009/nobjas_san.png" alt="http://vkgtaro.jp/img/jperl_advent_calendar_2009/nobjas_san.png"/></a></p>
 
 </div>
 
     </div>
     <div class="entry-meta">
-        <a rel="bookmark" href="http://web.archive.org/web/20161018164327/http://perl-users.jp/articles/advent-calendar/2009/casual/18.html">Thu, 17 Dec 2009 13:10:47 GMT</a>
+        <a rel="bookmark" href="/articles/advent-calendar/2009/casual/18.html">Thu, 17 Dec 2009 13:10:47 GMT</a>
         &nbsp;|&nbsp;
         <a href="./index.html">Index</a>
     </div>
@@ -266,9 +234,9 @@ $log-&gt;alert('alert message is red on white!');
                     <h2 class="module-header">Main Tracks</h2>
                     <div class="module-content">
                         <ul>
-                            <li><a href="/web/20161018164327/http://perl-users.jp/articles/advent-calendar/2009/">2009 top page</a><a href="/web/20161018164327/http://perl-users.jp/articles/advent-calendar/2009/index.xml"><img src="/web/20161018164327im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
-                            <li><a href="/web/20161018164327/http://perl-users.jp/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/web/20161018164327/http://perl-users.jp/articles/advent-calendar/2009/hacker/index.xml"><img src="/web/20161018164327im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
-                            <li><a href="/web/20161018164327/http://perl-users.jp/articles/advent-calendar/2009/casual/">casual track</a><a href="/web/20161018164327/http://perl-users.jp/articles/advent-calendar/2009/casual/index.xml"><img src="/web/20161018164327im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
                     </ul>
                     </div>
                 </div>
@@ -277,8 +245,8 @@ $log-&gt;alert('alert message is red on white!');
                     <h2 class="module-header">Yet Anthor Tracks</h2>
                     <div class="module-content">
                         <ul>
-                            <li><a href="/web/20161018164327/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/web/20161018164327/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/web/20161018164327im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
-                            <li><a href="/web/20161018164327/http://perl-users.jp/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/web/20161018164327/http://perl-users.jp/articles/advent-calendar/2009/data-model/index.xml"><img src="/web/20161018164327im_/http://perl-users.jp/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
                         </ul>
                     </div>
                 </div>
@@ -287,19 +255,19 @@ $log-&gt;alert('alert message is red on white!');
                     <h2 class="module-header">Other Sites</h2>
                     <div class="module-content">
                         <ul>
-                            <li><a href="http://web.archive.org/web/20161018164327/http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
-                            <li><a href="http://web.archive.org/web/20161018164327/http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
-                            <li><a href="http://web.archive.org/web/20161018164327/http://advent.plackperl.org/">Plack Advent Calendar</a></li>
-                            <li><a href="http://web.archive.org/web/20161018164327/http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
-                            <li><a href="http://web.archive.org/web/20161018164327/http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
-                            <li><a href="http://web.archive.org/web/20161018164327/http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
                         </ul>
                     </div>
                 </div>
                 <!-- powered by -->
                 <div class="module-powered module">
                     <div class="module-content">
-                        Powered by <a href="http://web.archive.org/web/20161018164327/http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
                     </div>
                 </div>
 
@@ -309,24 +277,3 @@ $log-&gt;alert('alert message is red on white!');
 </div>
 </body>
 </html>
-<!--
-     FILE ARCHIVED ON 16:43:27 Oct 18, 2016 AND RETRIEVED FROM THE
-     INTERNET ARCHIVE ON 15:02:38 Jan 23, 2020.
-     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
-
-     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
-     SECTION 108(a)(3)).
--->
-<!--
-playback timings (ms):
-  esindex: 0.033
-  load_resource: 211.313
-  exclusion.robots.policy: 0.129
-  RedisCDXSource: 471.31
-  captures_list: 732.588
-  CDXLines.iter: 14.683 (3)
-  PetaboxLoader3.resolve: 70.196
-  PetaboxLoader3.datanode: 281.546 (4)
-  LoadShardBlock: 242.892 (3)
-  exclusion.robots: 0.14
--->
