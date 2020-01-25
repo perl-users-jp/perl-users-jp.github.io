@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>色々なデータの更新方法1 #08 - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">色々なデータの更新方法1 #08 - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">色々なデータの更新方法1 #08<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/08.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/08.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>こんにちわ！nekokakです！</p>
+<p>八日目はDBIx::Skinnyでのデータ更新メソッドの説明です。</p>
+</div>
+<div class="section">
+<h3> create</h3>
+
+<p>createメソッドを使うと指定したテーブルにデータをinsertする事が出来ます。</p>
+
+<pre>
+# INSERT INTO user (name) VALUES(?);
+# bind: nekokak
+my $row = $db-&gt;create('user',{name =&gt; 'nekokak'});
+</pre>
+
+<p>createメソッドの返り値はinsertしたデータのrowオブジェクトとなっていますので</p>
+
+<pre>
+$row-&gt;name;
+</pre>
+
+<p>と、アクセスする事が可能です。</p>
+</div>
+<div class="section">
+<h3> bulk_insert</h3>
+
+<p>bulk_insertを利用すると、複数のデータを一気にinsertする事ができます。</p>
+<p>同一テーブルに対して複数レコードまとめてinsertを行いたい場合に使用してください。</p>
+
+<pre>
+$db-&gt;bulk_insert('user',
+    [
+        {name =&gt; 'nekokak'},
+        {name =&gt; 'yappo'},
+        {name =&gt; 'nekoya'},
+    ]
+);
+</pre>
+
+<p>createメソッドをinsertする回数分呼び出すよりも高速に動作します。</p>
+</div>
+<div class="section">
+<h3> find_or_create</h3>
+
+<p>find_or_createメソッドを利用することで、</p>
+<p>条件にあったレコードがDBに存在するかをチェックし、</p>
+<p>DBにデータがなければinsertを発行して、結果をrowオブジェクトにして返す事ができます。</p>
+
+<pre>
+my $row = $db-&gt;find_or_create('user',{name =&gt; 'nekokak'});
+</pre>
+</div>
+<div class="section">
+<h3> update</h3>
+
+<p>updateメソッドでは既にあるレコードを更新します。</p>
+
+<pre>
+$db-&gt;update('user',{name =&gt; 'yappo'}, {id =&gt; 1});
+</pre>
+
+<p>一つ目の引数に対象となるテーブル名</p>
+<p>二つ目の引数にupdateする内容</p>
+<p>三つ目の引数にupdate対象となるレコードの条件</p>
+<p>を指定します。</p>
+
+<p>また、rowオブジェクトから直接updateをかける事も出来ます。</p>
+
+<pre>
+$row-&gt;update({name =&gt; 'yappo'});
+</pre>
+
+<p>rowオブジェクトからupdateをかける場合はtableと対象レコードの指定は省略します。</p>
+</div>
+<div class="section">
+<h3> delete</h3>
+
+<p>deleteメソッドでは既にあるレコードを削除します。</p>
+
+<pre>
+$db-&gt;delete('user',{id =&gt; 1});
+</pre>
+
+<p>一つ目の引数に対象となるテーブル</p>
+<p>二つ目の引数に削除する対象となるレコードの条件を指定します。</p>
+
+<p>またdeleteメソッドもupdateメソッドと同様にrowオブジェクトから直接deleteをかける事も出来ます。</p>
+
+<pre>
+$row-&gt;delete;
+</pre>
+
+<p>rowオブジェクトからdeleteをかける場合はtableと対象レコードの指定は省略します。</p>
+
+<p>今日はDBIx::Skinnyの更新系メソッドinsert/bulk_insert/update/deleteの説明をしました</p>
+<p>明日は引き続きDBIx::Sknnyが持っている更新メソッドの説明をしたいと思います。</p>
+
+<p>have a nice skinny days!:)</p>
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/dbix-skinny/08.html">Tue, 08 Dec 2009 01:25:02 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+

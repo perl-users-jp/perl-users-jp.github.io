@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="koji**(koji_magi) <kojiel@gmail.com>">
+        <title>Acme::Time::Reverse - 時間を戻したい貴方のために - Articles Advent Calendar 2011 Acme</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Acme::Time::Reverse - 時間を戻したい貴方のために</h1>
+
+        <p>こんにちは。過去の栄光より未来の笑顔、koji_magiです。<br />
+<a href="http://hokkaido.pm.org/">Hokkaido.pm #6</a>の懇親会で「AcmeDrugは１週回ってkoji_magiさんの番になるんじゃない？」と突っ込まれるまで気づけなかったので木曜日まで時間を戻したい気分です。</p>
+
+<div class="section">
+    <h4>「それ、Acmeで出来るよ」</h4>
+    <p>という天の声が聞こえた気がしたので時間を戻せるAcmeを20分で準備しました。パズ○に負けてますね。</p><p><a href="https://github.com/koji--/p5-acme-time-reverse">Acme::Time::Reverse</a></p><p>こんな感じで使いませう。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+use Acme::Time::Reverse qw(time_reverse);
+
+print time_reverse(&#34;%F %T&#34;); # 20:11:00 01-21-1102</pre>
+<p>はい！時間が逆になりました！きっと明日は一日前のはず。Advent Calendarをうっかり書きそびれても、これで安心ですね！</p><p>ちなみにワンライナーで書くとこんな感じですね。</p>
+
+    <pre class="code lang-perl">$ perl -MTime::Piece -e &#39;print reverse(localtime-&gt;strftime(&#34;%F %T&#34;))&#39;;</pre>
+<p>こんなに簡単に時間を戻せるなんて、perlの黒魔術は素晴らしいですね！ちなみに戻したい日が水曜日じゃないのはBleach効果です。空気読んでください。</p><p>さて、次に書くのは誰でしょうか？</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

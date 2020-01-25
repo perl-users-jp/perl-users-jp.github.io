@@ -1,0 +1,84 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+    <head profile="http://purl.org/net/ns/metaprof">
+        <!-- Document Metadata -->
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta http-equiv="Content-Language" content="ja" />
+        <meta http-equiv="Content-Style-Type" content="text/css" />
+        <meta http-equiv="Content-Script-Type" content="text/javascript" />
+        <meta http-equiv="imagetoolbar" content="no" />
+
+        <!-- Atom news feed -->
+
+        <link rel="alternate" type="application/rss+xml" title="RSS feed" href="http://coderepos.org/share/log/websites/perl-users.jp?limit=100&amp;mode=stop_on_copy&amp;format=rss" />
+        <link rel="stylesheet" type="text/css" href="/css/perl-users.jp.css" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+        <link rel="icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+
+        <title>Devel::Cover - モダンなPerl入門 - モダンなPerl入門</title>
+
+        <script src="http://www.google-analytics.com/urchin.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            _uacct = "UA-4463402-1";
+            urchinTracker();
+        </script>
+        <!-- script src="/js/codepress/codepress.js" type="text/javascript"></script -->
+    </head>
+    <body>
+        <div id="head-navigation"><a href="/">Perl-users.jp</a></div>
+<!-- content start -->
+<h1>Devel::Cover</h1>
+
+<p><img src="http://gyazo.com/19c23218831cb08b764cf96c93255743.png" alt="Devel::Cover" /></p>
+
+<p>テストを漫然と書いても、網羅率の高いテストは書けません。「ふう。よく書けた」とおもって
+も、実はまだ網羅できてないところがあるものです。そんなわけで、網羅率をはかるために Devel::Cover
+をつかうとよいでしょう。</p>
+
+<p>使い方は簡単です。</p>
+
+<pre><code>perl Makefile.PL
+make test
+</code></pre>
+
+<p>するかわりに</p>
+
+<pre><code>perl Makefile.PL
+HARNESS_PERL_SWITCHES=-MDevel::Cover=+ignore,inc make test
+cover
+</code></pre>
+
+<p>または</p>
+
+<pre><code>perl Makefile.PL
+cover -test -ignore_re "^inc/"
+</code></pre>
+
+<p>とするだけ。</p>
+
+<p>これで、モジュールのコードとt/以下のテスト内容を調べてカバレッジ率を出してくれます。</p>
+
+<p>incをよけてるのはModule::Installのカバレッジを取っても仕方ないためです。</p>
+
+<p>HTML が出力されるので、ブラウザでみるとよいでしょう。</p>
+
+<h2>HTMLの読み方</h2>
+
+<ul>
+<li>stmt: Statement coverage 命令網羅率 (C0) … テストに通していない文があったら減点</li>
+<li>bran: Branch coverage 分岐網羅率 (C1) … if/else文とかで分岐するところで、テストが両方みていないと減点</li>
+<li>cond: Condition coverage 条件網羅率 (C2) … $a and $b and $c みたいなところで、それぞれの全パターン網羅してないと減点</li>
+<li>sub: Subroutine coverage サブルーチン網羅率 (独自) … テストで使ってないサブルーチンあると減点。 _ で始まるサブルーチンは内部関数とみなして減点にならないので、privateな関数は_つけたほうがよさげ</li>
+<li>pod: POD coverge ドキュメント網羅率 (独自) … サブルーチンでPODにかかれてないものがあると減点（Pod::Coverage）</li>
+</ul>
+
+<p>なにはなくとも、subroutine coverage は 100% になるようにがんばるべきでしょう。</p>
+
+<p>網羅率をたかめるというのは、楽しい作業ですが、油断していると目的を見失って網羅率を高めること自体が目的になりますから、注意が必要です。</p>
+
+<!-- content end -->
+        <hr />
+        <p><a href="/modern_introduction_perl/">目次へ</a></p>
+        <p>Last modified: $Date: 2008-05-22T09:21:23.154313Z $</p>
+    </body>
+</html>

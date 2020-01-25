@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>レプリケーションとQ4Mを使う - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">レプリケーションとQ4Mを使う - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">レプリケーションとQ4Mを使う<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/data-model/22.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/data-model/22.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<h3> はじめに</h3>
+
+<p>さぁ Driver 集中講義二回目です。</p>
+
+<p>ホントは別々に書こうと思ったのですが MySQL 関連という事でまとめて紹介します。</p>
+</div>
+<div class="section">
+<h3> レプリケーションを使う</h3>
+
+<p>MySQL にはレプリケーション機能があるのはとても知られている事です。</p>
+
+<p>レプリケーションの無い MySQL は、ブラウン管の無いブラウン管テレビくらいの物でしょう。</p>
+
+<p>そして ORM でも切っても切れない物では無いでしょうか。</p>
+
+<p>Data::ObjectDriver でも livedoor のどっかのサービスで自作 Driver 書いて使ってるとか</p>
+<p>DBIC の世界でも DBIx::Class::Storage::DBI::Replicated なんて物があるようです。</p>
+
+<p>もちろん Data::Model でも対応しています。</p>
+
+<p>Driver::DBI::MasterSlave です。 Driver::DBI を使った事がある人ならとても簡単な物となっています。</p>
+
+<pre>
+  use Data::Model::Driver::DBI::MasterSlave;
+  
+  my $dbi_connect_options = {};
+  my $driver = Data::Model::Driver::DBI::MasterSlave-&gt;new(
+      # master の接続設定
+      master =&gt; {
+          dsn =&gt; 'dbi:mysql:host=master.server:database=test',
+          username =&gt; 'master',
+          password =&gt; 'master',
+          connect_options =&gt; $dbi_connect_options,
+      },
+      # slave の接続設定
+      slave  =&gt; {
+          dsn =&gt; 'dbi:mysql:host=slave.server:database=test',
+          username =&gt; 'slave',
+          password =&gt; 'slave',
+          connect_options =&gt; $dbi_connect_options,
+      },
+  );
+
+  # base driver の設定をする
+  base_driver $driver;
+</pre>
+
+<p>上記の用に master =&gt; $conf, slave =&gt; $conf という形で設定するだけです。 $conf の中身は先日紹介した Driver::DBI の設定と全く同じ物がつかえます。</p>
+
+<h4> 仕組み</h4>
+
+<p>Driver::DBI も 内部的には DBI のインスタンスを使って DBI 接続を行っていて DBI::MasterSlave では DBI のインスタンスを2個作って、それぞれ master, slave 用として使います。</p>
+
+<p>Driver::DBI は SELECT クエリでは r_handle を使い それ以外のクエリでは rw_handle を使っており、それぞれの handle にたいして master, slave の DBI のインスタンスを割り当てるので、うまい具合 master, slave でクエリを振り分ける事ができるのです。</p>
+
+<h4> 注意</h4>
+
+<p>txn_scope を使ったトランザクション中は、全てのクエリが rw_master に向かいますので注意してください。</p>
+
+<h4> 複数の slave を扱うにはどうするの?</h4>
+
+<p>DBIC の世界だと複数台の slave をうまいこと扱ってくれる仕組みがあるのですが Data::Model では、そのような仕組みはありません。</p>
+
+<p>バグ?手抜き? いえいえ、元からこういう設計です。</p>
+
+<p>そういった複数台の slave を持つ場合には lvs などを使って、より低いレイヤーにて分散環境を整えてください。</p>
+
+<p>このような低いレベルでやるべき処理を Perl のレイヤでやるよりかは、それなりに実績がある低レイヤ処理するべきだと思っています。</p>
+
+<p>しかも slave の分散クエリなんて lvs で十分事足りるし Perl のコード書くよりも高度な事ができるので良いです。</p>
+
+<p>まぁ、インテグレーションというのは時と場合によって思うとおりの道具が使えないでしょうから、細かい要求などは Data::Model::Driver の自分向けに書いてくださいという事になります。この辺の詳しい話は後日書きます。</p>
+</div>
+<div class="section">
+<h3> Q4M を使う</h3>
+
+<p>Data::Model の特色の一つとして Q4M 対応が行われているということです。</p>
+
+<p>このあたりのエッセンスは3日目( <a href="/articles/advent-calendar/2009/data-model/03.html">http://perl-users.jp/articles/advent-calendar/2009/data-model/03.html</a> )に紹介してますが、3日目は超応用編だったので今日は Driver::Queue::Q4M の使い方を紹介します。</p>
+
+
+<h4> Q4M とは</h4>
+
+<p>Q4M とは、サイボウズラボの奥一穂(以下略</p>
+
+<h4> スキーマ定義</h4>
+
+<p>スキーマ定義は、通常の定義と殆どおんなじ感じです。</p>
+
+<pre>
+    package TestQueue;
+    use base 'Data::Model';
+    use Data::Model::Schema;
+    # Queue::Q4M の mixin が必須
+    use Data::Model::Mixin modules =&gt; ['Queue::Q4M'];
+    use Data::Model::Driver::Queue::Q4M;
+
+    my $driver = Data::Model::Driver::Queue::Q4M-&gt;new(
+        dsn =&gt; 'dbi:mysql:database=test'
+    );
+    base_driver $driver;
+
+    install_model queue_test =&gt; schema {
+        columns qw/ id job_name /;
+
+        # as_sqls の為にも TYPE=Queue を入れとく
+        schema_options create_sql_attributes =&gt; {
+            mysql =&gt; 'TYPE=Queue',
+        };
+    };
+</pre>
+
+<p>Q4M 専用のメソッドを追加するために mixin を指定するのと CREATE TABLE 文の為に schema_options create_sql_attributes を指定します。</p>
+
+<p>as_sqls で出来上がる SQL は下記のようになります。</p>
+
+<pre>
+CREATE TABLE queue_test (
+    id              CHAR(255)      ,
+    job_name        CHAR(255)      
+) TYPE=Queue;
+</pre>
+
+<p>Q4M では index のサポートが行われていないので、 primary key などの事は忘れましょう。</p>
+<p>もちろんユニーク制約なんてのも使えませんからね。</p>
+
+<h4> Queue を作る</h4>
+
+<p>Q4M の Queue を作るのはとても簡単です！</p>
+<p>なんてったって普通の MySQL のテーブルの用に扱えるのが Q4M の良いところの一つなんで、普通に set メソッドして INSERT すれば良いんです.</p>
+
+<pre>
+    # queue を一つ作る
+    $queue-&gt;set(
+        queue_test =&gt; {
+            id       =&gt; 1,
+            job_name =&gt; 'get http://example.com/',
+        },
+    );
+</pre>
+
+<h4> Queue を読む</h4>
+
+<p>Q4M を使う場合は queue_wait を使って dequeue してからデータを読むことが一般的ですが抜く、一応 Data::Model ごしでも Queue の内容を直接読むことが出来ます。</p>
+<p>ただし primary key とかは無いので where とか使って見る必要があるでしょう。</p>
+
+<p>index を使ってないですが、そもそも Q4M に Queue が大量に保存されてることはありえないので問題にならないでしょう。大量にあるんだったらお前のアプリの書き方がとち狂ってる。</p>
+
+<pre>
+    # queue を読む
+    my($q) = $queue-&gt;get('queue_test');
+    warn $q-&gt;job_name;
+</pre>
+
+<h4> Queue の削除</h4>
+
+<p>普通は Q4M が勝手に削除するんですが、どうしても手動で消したい人の為に書いておきます。</p>
+<p>基本的にはスキーマオブジェクトの delete メソッドを叩くだけです。</p>
+
+<pre>
+    # こういう delete はできない
+    $q-&gt;delete;
+
+    # 直接 query を吐いて delete する
+    $queue-&gt;delete('queue_test', {
+        where =&gt; [
+            id =&gt; 1,
+        ],
+    });
+
+    # DELETE FROM queue_test; はこれ
+    $queue-&gt;delete('queue_test', {});
+</pre>
+
+<p>$q-&gt;delete のように Row オブジェクトの delete メソッドは primary key が無いテーブルには使えないため上記のコードのようなコメントになっています。</p>
+
+<h4> update</h4>
+
+<p>(略</p>
+
+<h4> dequeue する</h4>
+
+<p>Q4M では queue_wait を使って dequeue をします、細かいことはドキュメント読んでください。</p>
+
+<p>まぁこんな SQL ですね。</p>
+
+<pre>
+mysql&gt; SELECT queue_wait('high_priority_table', 'low_priority_table', 10);
+</pre>
+
+<p>これに相当する Data::Model の使い方としては queue_running メソッドを使います。</p>
+
+<pre>
+  my $queue = TestQueue-&gt;new;
+  my $retval = $queue-&gt;queue_running(
+      high_priority_table =&gt; sub {
+          my $row = shift;
+          # 何かの処理
+      },
+      low_priority_table  =&gt; sub {
+          my $row = shift;
+          # 何かの処理
+      },
+      timeout =&gt; 10,
+  );
+</pre>
+<p>queue_running の引数に table_name =&gt; CODE リファレンス という構造の HASH を渡してあげます。</p>
+<p>timeout だけは例外的に queue_wait に渡すタイムアウトを指定します。</p>
+
+<p>table_name の queue table に enqueue されると、オーナーモードになった行の Row オブジェクトを引数としてコードを実行します。</p>
+
+<p>簡単ですね。</p>
+
+<h4> queue_abort</h4>
+
+<p>Q4M では queue が何らかの処理で以上になった時に queue の先頭に enqueue してくれる queue_abort という物があります。</p>
+<p>もちろん Data::Model でも使えます。</p>
+
+<pre>
+    my $ret = $queue-&gt;queue_running(
+        queue_test =&gt; sub {
+            my $row = shift;
+            warn $row-&gt;id;
+            warn $row-&gt;job_name;
+            $queue-&gt;queue_abort;
+        },
+    );
+    warn $ret;
+</pre>
+
+<p>このようにスキーマオブジェクトから生えている queue_abort メソッドを呼ぶだけです。</p>
+<p>$ret の内容は、 queue_running が失敗してるだけ undef になります。</p>
+
+<p>ちなみに CODE リファレンス中で die してしまった時も内部的には queue_abort されます。</p>
+
+<pre>
+    eval {
+        my $ret = $queue-&gt;queue_running(
+            queue_test =&gt; sub {
+                die "abort"; # ここで queue_abort が呼ばれる
+            },
+        );
+    };
+    $@ and warn $@; # 'abort' と表示
+    warn $ret;
+</pre>
+
+<p>ここの $ret も undef です。</p>
+
+<h4> queue_end</h4>
+
+<p>Q4M で queue の正常終了を表す queue_end という物が用意されています。</p>
+
+<p>Data::Model では CODE リファレンスの中だけが Q4M のオーナーモードでいるという設計になっているので、 CODE リファレンスの中で queue_abort が呼ばれないまま return した時に自動的に queue_end が呼ばれます。</p>
+
+<pre>
+    my $ret = $queue-&gt;queue_running(
+        queue_test =&gt; sub {
+            return; # ここで queue_end が呼ばれる
+        },
+    );
+    warn $ret; # 処理した queue テーブル名を表示
+</pre>
+
+<p>queue の処理が成功した場合に queue_running は queue_wait で処理した queue table 名を戻り値として返します。</p>
+
+<h4> queue_running と queue_abort はどこから来たの?</h4>
+
+<p>冒頭に Queue::Q4M mixin を使う設定をすると書いてありますが、この Mixin がスキーマオブジェクトに queue_running と queue_abort メソッドを生やしているんです。</p>
+
+<p>単純に Driver に処理を delegation してるだけです。</p>
+</div>
+<div class="section">
+<h3> まとめ</h3>
+
+<p>今日は、レプリケーションと Q4M を Data::Model で使う為にどうするかといった事を紹介しました。</p>
+
+<p>サックリ紹介するつもりが長文になって DNBK です。</p>
+
+<p>明日はキャッシュ戦略について紹介します。</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/data-model/22.html">Thu, 24 Dec 2009 11:06:01 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="cho45">
+        <title>生DBIの構成例 - Articles Advent Calendar 2011 Dbix</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>生DBIの構成例</h1>
+
+        <p>こんにちは、最近 Nintendo 3DS の電池が一瞬で切れてしまってまともにゲームができないと嘆いていたら「それ、HOME ボタン押してソフトをサスペンドすると電池減りにくくなりますよ」とスーパーハックを教えてもらった cho45 です。</p><p>DBI を生で使うときの罠はだいたいもう書いてあるし特に書くことがありませんし、DBIx 系は最近だと DBIx::TransactionManager 以外使ってないので、最近の僕の構成を紹介してお茶を濁します。</p>
+
+<div class="section">
+    <h3>構成例</h3>
+    
+<div class="section">
+    <h4>connect_cached を使わない</h4>
+    <p>1リクエストごとに connect しなおすようにしています。1リクエスト内に関しては自力で dbh インスタンスをキャッシュするようにしています。</p><p>connect_cached はハマりがちで、DB サーバにコネクションを残しまくったりしたので、なんかもう面倒になってやめました。</p><p></p>
+
+</div>
+<div class="section">
+    <h4>SQL::NamedPlaceholder を使う</h4>
+    <p>どこで SQL が構築されたかさえわかれば SQL ビルダー系を使うのはメリット (細かい条件の WHERE とかの条件を安全に書けるとか) があると思うのですが、現時点で簡単なクエリしか作らないので、SQL をほぼそのまま書けるようにしています。</p><p>SQL は DB からデータひいてくることに関する DSL なわけで、それに SQL::Abstract 的なラッパーをかぶせると、DSL に DSL を被せるみたいになってキモいのでできるだけやりたくないのです。</p><p></p>
+
+</div>
+<div class="section">
+    <h4>モデルで DB をひかない</h4>
+    <p>モデルクラスで勝手にDBをひいたりしてしまうと、「DB をひいている」という意識が低下するので、絶対しないようにしていて、本当にただのデータとロジックの集合になるようにしています。</p><p>いわゆるリレーション的なものは、モデルの外でひいて、必要なデータだけをセットするようにしています。</p><p></p>
+
+</div>
+<div class="section">
+    <h4>DBIx::TransactionManager を使う</h4>
+    <p>トランザクションをはるときは DBIx::TransactionManager を使っています。おまじないっぽい eval を書かなくてすむのでよいです。</p>
+
+</div>
+</div>
+<div class="section">
+    <h3>まとめ</h3>
+    <p>DBI 生で使うのはいろいろ面倒なことも多いので、個人的になんか作るなら Teng 使うのがいいと思います。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

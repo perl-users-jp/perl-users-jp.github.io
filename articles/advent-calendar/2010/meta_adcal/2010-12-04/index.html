@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>見た目重要 - Articles Advent Calendar 2010 Meta_adcal</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>見た目重要</h1>
+
+        <p>いい加減ネタ切れなので、そろそろ次の人に書いて欲しいkanです。</p><p>昨日までで本当に最低限の機能を持ったカレンダーアプリが出来ました。しかし、このままだといかにも寂しいです。せめて、突貫工事で作られた[/articles/advent-calendar/2009/:title=去年のカレンダー]と同じ程度にはしたいところ。</p><p>まずは、本文を装飾できるように、何らかの記法が使えるようにします。去年のカレンダーでもはてな記法が使えたので、今回も使えるようにしてみます。perlではてな記法と言えば Text::Hatena がありますが、今回は cho45さんの Text::Xatena を使ってみます。きっと後に使い方の不味いところを直してくれることでしょう。</p>
+
+    <pre class="code lang-perl">my $xatena = Text::Xatena-&gt;new();
+my $formatted_body = $xatena-&gt;format($body);</pre>
+<p>基本的にはこうするだけで、$formatted_bodyには変換されたHTMLが入ります。1つ注意が必要なのは、Text::Xslateは標準で変数展開をエスケープするため、そのまま使うと「&lt;div&gt;.....&lt;/div&gt;」のようにHTMLが出力されてしまいます。Text::Xslate::mark_rawで値にフラグをつけておくとエスケープされなくなるので、そのように対処しておきます。</p>
+
+    <pre class="code lang-perl">Text::Xslate::mark_raw($formatted_body);</pre>
+<p>記事本文がなんとかなったところで、ページ全体の見た目をなんとかしようと思います。cssファイルやjsファイル、画像ファイルなどを読み出せるようにします。</p>
+
+    <pre class="code lang-perl">use Plack::Builder;
+
+builder {
+    enable &#39;Static&#39;, path =&gt; qr{^/(?:img|css|js)/}, root =&gt; &#34;$conf-&gt;{assets_path}/htdocs/&#34;;
+    enable &#39;ContentLength&#39;;
+    enable &#39;Lint&#39;;
+    $app;
+};</pre>
+<p>app.psgiファイルを↑のように変更してみました。enable 'Static' (ry で有効にしている Plack::Middleware::Static モジュールを使うと、特定パスへのアクセスをローカルファイルへの参照として扱って処理してくれます。ついでに説明しておくと、ContentLengthモジュールはContent-Lengthヘッダを、contentの長さから自動的につけてくれるモジュールで、Lintモジュールは出力が正しい形式かどうかチェックしてくれるモジュールです。</p><p>余談ですが、Staticモジュールを設定したものの、そのあとコピーしてきた2009年のカレンダーのテンプレートでは全て外部のCSS,JSを参照していたため、この機能が使われることはありませんでした……。</p><p>これで、名実ともにアドベントカレンダーアプリが出来ました。非効率なところや、足りてない機能もありますが、それは今後他の人が追加してくれるはずです(実際、もりもりと現在のApp::AdventCalendarには機能が追加されていっています)。</p><p>興味のある人は、githubの p5-app-adventcalendar プロジェクトをチェックしてみて下さい。機能修正、追加をしてみたい場合は、irc.freenode.org の #perl-casual で kan_fushihara, tokuhirom, yappoあたりに声をかけてもらえれば、commit権を設定します。</p><p>それでは、私以外の誰かが書く5日目をお楽しみに。</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

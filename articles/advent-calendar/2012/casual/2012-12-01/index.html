@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="Cside">
+        <title>Perlでアプリケーションをささっと書くのに役立つTips - Articles Advent Calendar 2012 Casual</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Perlでアプリケーションをささっと書くのに役立つTips</h1>
+
+        <p>@Cside_ です。Perlを書き始めて3年ほど経ち、Perlで何か作る際の効率化の手法がそれなりに確立してきたので、それを思いつくままに紹介しようと思います。主に多言語から来てPerlにほどんど慣れてない方などを想定しています。</p><p></p>
+
+<div class="section">
+    <h4>覚えにくい/タイプ数の多い イディオムはコードスニペット化する習慣をもつ</h4>
+    <p>たまに使うけどすぐ忘れるイディオムとか、よく使うけどやたらタイプ数の多いイディオムってありますよね。たとえば</p>
+
+<ul>
+<li>Test::Baseを使ったテストの書き方</li>
+<li>DBIのメソッドのusage。selectrow_なんちゃらrefとかselectall_なんちゃらrefとか</li>
+</ul><p>など。こういうのはコードスニペットとして保存しておいて、必要なときすぐ呼び出せるようにショートカットを割り振っておくと良いです。同じイディオムを2回以上調べたり、タイプするのだるいなーと思った瞬間に即スニペットに登録するようにすると良いでしょう。</p><p>コードスニペットの登録 + 呼び出しを具体的にどうやって実現するかですが、neosnippetというVimプラグインを使うと良いです。以下のエントリが参考になります。</p><p><a href="http://kazuph.hateblo.jp/entry/2012/11/28/105633">Vim&#x306E;snippet&#x306B;&#x3064;&#x3044;&#x3066;&#x3042;&#x307E;&#x308A;&#x77E5;&#x3089;&#x306A;&#x304B;&#x3063;&#x305F;&#x306E;&#x3067;&#x8A2D;&#x5B9A;&#x3057;&#x3066;&#x307F;&#x305F;&#x3089;&#x4FBF;&#x5229;&#x904E;&#x304E;&#x3066;&#x3064;&#x3089;&#x3044; - &#x50D5;&#x306E;&#x8ECA;&#x8F2A;&#x306E;&#x518D;&#x767A;&#x660E;</a></p><p>スニペット設定例も貼っておきます。</p><p><a href="https://github.com/zentooo/rc/blob/master/.vim/snippets/perl.snip">https://github.com/zentooo/rc/blob/master/.vim/snippets/perl.snip</a></p><p></p>
+
+</div>
+<div class="section">
+    <h4>quickrun.vimでPerl用に便利な設定</h4>
+    <p><a href="https://github.com/thinca/vim-quickrun">quickrun.vim</a> は編集中のファイルをVimを起動した状態のまま実行できるVimプラグインです。かなり浸透してるので解説の必要はなさそうですが、それにしても毎度毎度Vimを抜けてシェルに戻る手間が省けるのはたいへん楽ですね。</p><p>で、なんですが、編集中の.pmや.tファイルをquickrunしたら、プロジェクトの lib/ や t/lib にパスが通ってなくて「Can't locate...」と怒られてた経験は誰にでもあると思います。そういうときは .vimrc の設定に以下を書き足すと良いです。</p>
+
+    <pre class="code lang-vim">let g:quickrun_config = {}
+let g:quickrun_config.perl = {&#39;command&#39; : &#39;perl&#39;, &#39;cmdopt&#39;: &#39;-MProject::Libs&#39; }</pre>
+<p>Project::Libsはプロジェクトの lib/ や t/lib/ を探しだして実行パスに含めるモジュールです。こいつをquickrun実行時にuseしてやればいいというわけです。</p><p><a href="http://cside.hatenadiary.com/entry/2012/09/02/155055">quickrun.vim + Project::Libs &#x306E;&#x7D44;&#x307F;&#x5408;&#x308F;&#x305B;&#x304C;&#x4FBF;&#x5229; - Cside::Weblog</a></p><p></p>
+
+</div>
+<div class="section">
+    <h4>CPANモジュールガイドはとりあえず読んでおく</h4>
+    <p>どんなコードもメンテされる限りコストになるわけで、書かなくていいコードを書かないことは大きな効率化です。うっかり車輪の再発明をしないために、CPANモジュールガイドを読んで基本的なモジュールをおさえた経験は、その後たいへん役に立ちました。</p><p><a href="http://www.amazon.co.jp/exec/obidos/ASIN/486267108X">Amazon.co.jp&#xFF1A; Perl CPAN&#x30E2;&#x30B8;&#x30E5;&#x30FC;&#x30EB;&#x30AC;&#x30A4;&#x30C9;: &#x51A8;&#x7530;&#x5C1A;&#x6A39;, &#x30BF;&#x30CA;&#x30AB;&#x30E6;&#x30AB;&#x30EA;: &#x672C;</a></p><p>この本では多彩なジャンルのデファクトスタンダードなモジュールがおさえられています。「このケースではこういうモジュールを使えばいいのかー」というマッピングを頭に作っておくことで、未来で必要になったときに車輪の再発明をせずに済むというわけです。</p><p></p>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>期せずして半分以上Vimの話になってしまいましたがこんな感じです。ツッコミや、他にもこんなことすると捗るよ! というのがありましたらコメントもらえると嬉しいです。</p><p></p>
+
+</div>
+<div class="section">
+    <h4>More？</h4>
+    
+<ul>
+<li><a href="http://soh335.hatenablog.com/entry/2012/09/29/180250">watchdogs.vim &#x3067; Project::Libs &#x3067;&#x3088;&#x3057;&#x306A;&#x306B;</a>
+<ul>
+<li>保存時にシンタックスチェックをする話</li>
+</ul></li>
+<li><a href="http://qiita.com/items/3d186671b361672f1e51">Vim&#x3067;Perl&#xFF08;&#x306B;&#x9650;&#x3089;&#x306A;&#x3044;&#x3051;&#x3069;&#xFF09;&#x3092;&#x66F8;&#x304F;&#x3068;&#x304D;&#x306B;&#x3053;&#x308C;&#x3060;&#x3051;&#x306F;&#x3084;&#x3063;&#x3066;&#x307B;&#x3057;&#x3044;&#x8A2D;&#x5B9A; #Perl #Vim - Qiita</a>
+<ul>
+<li>自分のおすすめVim設定</li>
+</ul></li>
+<li><a href="http://cside.hatenadiary.com/entry/2012/11/13/232807">Perl&#x3067;&#x88DC;&#x5B8C;&#x306E;&#x304D;&#x304F;&#x30A4;&#x30F3;&#x30BF;&#x30E9;&#x30AF;&#x30C6;&#x30A3;&#x30D6;&#x30B7;&#x30A7;&#x30EB; - Cside::Weblog</a>
+<ul>
+<li>RubyでいうpryのPerl版</li>
+<li>この記事で書き忘れましたがソースコードの中でREPLするには <a href="http://blog.kentarok.org/entry/20110728/1311824669">Carp::REPL</a> というモジュールが使えます</li>
+</ul></li>
+</ul>
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

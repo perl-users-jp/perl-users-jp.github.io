@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>トランザクションについて #10 - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">トランザクションについて #10 - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">トランザクションについて #10<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/10.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/10.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>こんにちわ！nekokakです！</p>
+<p>十日目はDBIx::Skinnyでのトランザクションの使い方です。</p>
+
+<p>トランザクションについての説明は省きます。</p>
+<p><a href="http://e-words.jp/w/E38388E383A9E383B3E382B6E382AFE382B7E383A7E383B3.html">http://e-words.jp/w/E38388E383A9E383B3E382B6E382AFE382B7E383A7E383B3.html</a></p>
+<p>このあたりを読めばいいんじゃないでしょうか。</p>
+
+<p>早速試しましょう。</p>
+<p>ちなみに実験するときはトランザクションに対応しているRDBMSを使ってください。</p>
+<p>MySQLの場合だとMyISAMでためしてもMyISAMがトランザクションに対応していないのでいみがありません。</p>
+<p>InnoDBで試しましょう。</p>
+
+<pre>
+# トランザクションの開始
+my $txn = $db-&gt;txn_scope;
+
+# dataのupdate
+$row-&gt;update({name =&gt; 'yappo'});
+
+# トランザクション内で実行したいいろいろな処理
+
+# トランザクションを終了してデータをcommitする！
+$txn-&gt;commit;
+</pre>
+
+<p>このように書くと、txn_scopeメソッドを呼び出したときに帰ってくるオブジェクトを保持しているあいだ</p>
+<p>トランザクションが有効となります。</p>
+<p>なので</p>
+
+<pre>
+# トランザクションの開始
+my $txn = $db-&gt;txn_scope;
+
+# dataのupdate
+$row-&gt;update({name =&gt; 'yappo'});
+
+die 'oooops';
+
+# トランザクションを終了してデータをcommitする！
+$txn-&gt;commit;
+</pre>
+
+<p>updateメソッドの後の処理がdieなどで異常終了した場合、</p>
+<p>updateメソッドでの更新がrollbackされます。</p>
+
+<p>また、$txn-&gt;commitをよびださずに処理を終了させた場合、</p>
+<p>正常に処理が行われなかったとみなし、強制rollbackされます。</p>
+
+<p>トランザクションをうまく使うとデータの一貫性を保証した処理を書くことができますので</p>
+<p>びしばしつかってみてください。</p>
+
+<p>明日は今まで発行してきたSQLのプロファイリングについて考えたいと思います。</p>
+
+<p>have a nice skinny days!:)</p>
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/dbix-skinny/10.html">Thu, 10 Dec 2009 01:36:42 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+

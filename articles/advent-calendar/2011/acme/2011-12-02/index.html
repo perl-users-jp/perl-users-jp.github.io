@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="makamaka, kan">
+        <title>Acme::PrettyCure - プリキュアは永遠に不滅です - Articles Advent Calendar 2011 Acme</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Acme::PrettyCure - プリキュアは永遠に不滅です</h1>
+
+        <p>こんにちは、アイドルマスターのアニメが最終回を迎えてしまい半分くらい魂が抜けているkanです。大遅刻申し訳ありません。makamakaさんの素敵なリリーフテキストは消すには偲びなかったので巻末に残しておきました! makamakaさんありがとうございます! そしてごめんなさい＞＜</p><p>Acme::PrettyCureがどんなものかは[/articles/advent-calendar/2010/acme/6:title=去年のエントリ]を読んで頂けると良いかと思います。</p><p>プリキュアシリーズも無事に8年目を迎え(ありがたいことに9年目も確定しているようです)、Acme::PrettyCureも更新されています。</p>
+
+    <pre class="code lang-perl">use Acme::PrettyCure;
+
+my ($hibi, $kana, $eren, $ako) = Acme::PrettyCure-&gt;girls(&#39;Suite&#39;);
+
+$hibi-&gt;transform($kana);</pre>
+<p>今年はSplashStar以来の<s>百合</s>パートナーが居ないと変身できない仕様なので、当然モジュールの挙動も対応しています。</p>
+
+    <pre class="code lang-perl">$hibi-&gt;transform;
+# =&gt; 奏がいないと変身できないニャ!</pre>
+<p>プリキュアも遂に総勢23名、今後も継続的にモジュールをアップデート出来るよう、内部的にはMouse(Moose)のRoleの仕組みを使って実装を共通化して記述をコンパクトにしたりと無駄に最適化を続けています。来年は画像とかをFurlで取ってこられるようにしたいですね。</p><p>今年はスイートプリキュアの全メンバーが正式に確定するまでモジュールのアップデートが遅れてしまいましたが、来年は放映初日に更新することをお約束してエントリを〆めさせて頂きます。</p>
+
+<blockquote >
+    <p>プリキュアの力を信じる</p><p>ここは<a href="http://twitter.com/__kan">kan</a>さんがAcme::PrettyCureの紹介をする予定地です。きっともうすぐ書いてくれるはずです！</p><p>で、それまでの間、わたくし<a href="http://twitter.com/maka2_donzoko">makamaka</a>がプリキュアの簡単な紹介をしたいと思います（なのでこの記事は後ほど削除されます）。</p><p>プリキュアシリーズは2004年に始まりました。最初の作品は「ふたりはプリキュア」です。伝説の戦士プリキュアとなった二人の女子中学生が活躍します。8話とかほんと良かったですね！　変身や必殺技は手をつながないと発動しないのが特徴です。これはAcme::PrettyCureにちゃんと反映されています。続編として「ふたりはプリキュア Max Heart」が始まり、仲間が一人増えます。</p><p>次の作品は設定が完全に別物になる「ふたりはプリキュア Splash Star」です。途中で仲間が二人増えますが、あれだけ活躍したのにプリキュアに含まれないのが悲しいですね。</p><p>次の作品は「Yes! プリキュア5」です。一気に5人になりまして、単独で変身できます。キュアルージュ推し。続編の「Yes! プリキュア5 Go Go!」でが1人増えます。</p><p>次の作品は「フレッシュプリキュア！」です。最初3人で、後から1人増えます。イース推し（パッションではない）。</p><p>どんどん説明が短くなっていきますが次は「ハートキャッチプリキュア！」で2→4人。</p><p>で、現在は「スイートプリキュア♪」が放映中で佳境に入ってます。</p><br />
+<p>以上で説明を終わりますが、Acme::PrettyCureは素晴らしいモジュールなのでkanさんによる紹介が待ち遠しいですね。というわけで、クリスマスにはプリキュアが来ると信じて待ってます！</p>
+
+    
+</blockquote>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

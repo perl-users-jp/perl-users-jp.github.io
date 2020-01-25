@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>#08 search - Articles Advent Calendar 2011 Teng</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>#08 search</h1>
+
+        <p>今日はsearchメソッドを紹介します。</p><p>まず、searchメソッドはsingleのようにPRIMARY KEYで１行取得するわけではないが、<br />
+そんなに複雑じゃない場合に利用するといいと思います。</p>
+
+    <pre class="code">my $itr = $teng-&gt;search(&#39;user&#39;, +{name =&gt; &#39;nekokak&#39;}, +{order_by =&gt; &#39;id&#39;});
+# SELECT * FROM user WHERE name = &#39;nekokak&#39; ORDER BY id;</pre>
+<p>のように利用します。</p><p>こうすることでnameがnekokakな人をまとめて取得しイテレータ経由でレコードにアクセス出来るようになります。<br />
+また、第三引数にオプションを指定でき、ORDER BYなどを指定すことが可能です。</p><p>LIMIT / OFFSETを指定したい場合は</p>
+
+    <pre class="code">my $itr = $teng-&gt;search(&#39;user&#39;, +{name =&gt; &#39;nekokak&#39;}, +{limit =&gt; 1, offset =&gt; 1,});
+# SELECT * FROM user WHERE name = &#39;nekokak&#39; LIMIT 1 OFFSET 1;</pre>
+<p>といったように指定することができます。</p><p>TengのsearchメソッドはSQL::Makerのselectメソッドのラッパーになっていますので<br />
+詳細はそちらを参照していただくほうがよいでしょう。</p><br />
+<p>searchメソッドやsearch_by_sqlメソッドなどTeng::Iteratorが取得されるメソッドは<br />
+コンテキストによってイテレータ以外の値を取得することも可能です。</p><p>たとえば</p>
+
+    <pre class="code">my $itr = $teng-&gt;search(&#39;user&#39;, +{name =&gt; &#39;nekokak&#39;}, +{order_by =&gt; &#39;id&#39;});</pre>
+<p>このようにsearchメソッドの受け取りがscalarの場合はTeng::Iteratorが返されますが、</p>
+
+    <pre class="code">my @rows = $teng-&gt;search(&#39;user&#39;, +{name =&gt; &#39;nekokak&#39;}, +{order_by =&gt; &#39;id&#39;});</pre>
+<p>このようにarrayで結果を受け取ろうとすると、内部で$itr->allが実行された結果が返されることになります。</p><p>イテレータが不要でarrayで結果を受け取りたい場合はarray contextでsearc系メソッドを実行するとよいでしょう。</p><br />
+<p>明日はupdate / deleteメソッドを紹介します。</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+    <head profile="http://purl.org/net/ns/metaprof">
+        <!-- Document Metadata -->
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta http-equiv="Content-Language" content="ja" />
+        <meta http-equiv="Content-Style-Type" content="text/css" />
+        <meta http-equiv="Content-Script-Type" content="text/javascript" />
+        <meta http-equiv="imagetoolbar" content="no" />
+
+        <!-- Atom news feed -->
+
+        <link rel="alternate" type="application/rss+xml" title="RSS feed" href="http://coderepos.org/share/log/websites/perl-users.jp?limit=100&amp;mode=stop_on_copy&amp;format=rss" />
+        <link rel="stylesheet" type="text/css" href="/css/perl-users.jp.css" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+        <link rel="icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+
+        <title>RSS を parse する - モダンなPerl入門 - モダンなPerl入門</title>
+
+        <script src="http://www.google-analytics.com/urchin.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            _uacct = "UA-4463402-1";
+            urchinTracker();
+        </script>
+        <!-- script src="/js/codepress/codepress.js" type="text/javascript"></script -->
+    </head>
+    <body>
+        <div id="head-navigation"><a href="/">Perl-users.jp</a></div>
+<!-- content start -->
+<h1>RSS を parse する</h1>
+
+<p>http://search.cpan.org/dist/XML-Feed/</p>
+
+<p>XML::Feed という CPAN モジュールをつかうと容易に RSS をパーズすることができます。</p>
+
+<p>以下がスクリプト実装例です。</p>
+
+<pre><code>use strict;
+use warnings;
+use XML::Feed;
+use URI;
+binmode STDOUT, ":utf8";
+
+my $url = "http://d.hatena.ne.jp/naoya/rss";
+
+my $feed = XML::Feed-&gt;parse( URI-&gt;new( $url ) );
+for my $item ( $feed-&gt;entries ) {
+    print $item-&gt;title, "\n";
+}
+</code></pre>
+
+<p>出力例は以下のとおり。</p>
+
+<pre><code>補足: 新はてなブックマークと Flash の利用について
+はてなブックマークエンジニア、ディレクターを募集します
+インターフェイス指向設計
+Introduction to Information Retrieval #5 の復習資料
+YAPC::Asia 2008
+Introduction to DBIx::MoCo
+Hadoop Streaming
+</code></pre>
+
+<!-- content end -->
+        <hr />
+        <p><a href="/modern_introduction_perl/">目次へ</a></p>
+        <p>Last modified: $Date: 2008-05-22T09:21:23.154313Z $</p>
+    </body>
+</html>

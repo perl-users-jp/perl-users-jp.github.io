@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="tokuhirom">
+        <title>どの Flavor つかったらいいのん? - Articles Advent Calendar 2011 Amon2</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>どの Flavor つかったらいいのん?</h1>
+
+        <p>ふっつかっめです! tokuhirom です。</p>
+
+    <pre class="code">% amon2-setup.pl --flavor=Lite Foo</pre>
+<p>みたいにして、フレーバーをみなさん指定いるかとおもいますが、これのつかいわけの話をかこうかとおもいます。</p>
+
+<div class="section">
+    <h3>標準添付のフレーバー</h3>
+    <p>現在標準添付の Flavor は Amon2::Setup::Flavor::Basic と Amon2::Setup::Flavor::Minimum そして Amon2::Setup::Flavor::Large です。</p><p>それぞれのつかいわけがむずかしいなあとおもうところもあるので、それぞれの使い分けかたをここにしるす次第です。</p>
+
+<div class="section">
+    <h4>Amon2::Setup::Flavor::Basic</h4>
+    <p>これが一番の基本形です。Basic となづけてあるところからも明白です。これこそがまさにデフォルトです。</p><p>とくに理由がなければこれがいいんじゃないでしょうか、というかんじです。</p>
+
+</div>
+<div class="section">
+    <h4>Amon2::Setup::Flavor::Large</h4>
+    <p>なんかこう仕事とかで長期的にいじるサイトとかだと管理画面とかつくりたくなりますよね。そういうような規模のサイトをつくるときようのフレーバーです。</p>
+
+</div>
+<div class="section">
+    <h4>Amon2::Setup::Flavor::Minimum</h4>
+    <p>依存関係おおいんですけど! って DIS られたときに「Minimumフレーバーというものがあってですね」といいわけするためだけに存在するフレーバーです。</p><p>通常はつかう必要がありません。</p>
+
+</div>
+</div>
+<div class="section">
+    <h3>オプショナルなフレーバー</h3>
+    
+<div class="section">
+    <h4>Amon2::Setup::Flavor::Lite</h4>
+    <p>Sinatra 的というか、メインのロジックを1ファイルにまとめてもいいかなーという規模のサイトをつくるときにはこれでいいかもしれません。</p><p>コードサンプルをかくときなんかにも便利です。</p>
+
+</div>
+<div class="section">
+    <h4>Amon2::Setup::Flavor::MobileJP</h4>
+    <p>ガラケーむけサイトをつくるときようのフレーバーです。 Large フレーバーをベースにしています。</p><p>サイトをこういう風につくるといいんじゃない? というオススメモジュールのテンプレ的な意味がつよいフレーバーです。</p>
+
+<ul>
+<li>ガラケー用のセッション</li>
+<li>全角カタカナを半角カタカナに変換する</li>
+<li>非対応端末用のページを表示する機能</li>
+<li>ガラケー用のサイトとPC用のサイトのだしわけ</li>
+</ul><p>などなどが実装されています。</p>
+
+</div>
+</div>
+<div class="section">
+    <h3>サードパーティーフレーバー</h3>
+    
+<div class="section">
+    <h4>Amon2::Setup::Flavor::Teng</h4>
+    <p>ka2u さんによるフレーバーです。 Teng を簡単につかえてべんりですね。 ka2u+=</p>
+
+</div>
+</div>
+<div class="section">
+    <h3>まとめ</h3>
+    <p>今日はフレーバーのつかいわけについてかいてみました。個人的には Basic > Lite >>>>> (越えられない壁) >> Large ぐらいの頻度で利用しています。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>#20 標準Plugin2 - Articles Advent Calendar 2011 Teng</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>#20 標準Plugin2</h1>
+
+        <p>今日は昨日に引き続き標準Pluginをします。</p>
+
+<div class="section">
+    <h3>Count</h3>
+    <p>COUNT(column)を行いその結果を返すcountメソッドを提供します</p>
+
+    <pre class="code">my $count = $teng-&gt;count(&#39;user&#39;, &#39;*&#39;, {type =&gt; 2})
+# SELECT COUNT(*) FROM user WHERE type = 2;</pre>
+<p>このように使います。簡単ですね。</p>
+
+</div>
+<div class="section">
+    <h3>FindOrCreate</h3>
+    <p>find_or_createメソッドを提供します。</p>
+
+    <pre class="code">my $row = $teng-&gt;find_or_create(&#39;user&#39;,{name =&gt; &#39;lestrrat&#39;});</pre>
+<p>このようにするとname=lestrratなrowがすでにあればそれをDBからとってきて、なければinsertしてくれます。<br />
+便利ですね！</p>
+
+</div>
+<div class="section">
+    <h3>Replace</h3>
+    <p>replaceメソッドを提供します。</p>
+
+    <pre class="code">my $row = $teng-&gt;replace(&#39;user&#39;,{name =&gt; &#39;lestrrat&#39;});</pre>
+<p><a href="http://dev.mysql.com/doc/refman/5.1/ja/replace.html">REPLACE INTO句</a>を用いてSQLを実行します。<br />
+便利ですね！</p><p></p>
+
+</div>
+<div class="section">
+    <h3>まとめ</h3>
+    <p>以上でTengの標準プラグインのすべてです。実はBulkInsertというものもあるのですが、こちらは最近Teng本体にbulk_insertメソッドが付いたためにDeprecatedとなっています。このようにTengの標準プラグイン構成はまだまだ未完成ですので意見を#dbix-skinny@irc.perl.orgで出しあっていくとよいのではないでしょうか。</p><br />
+<p>明日の予定は未定です。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

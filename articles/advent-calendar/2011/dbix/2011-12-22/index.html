@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="lestrrat">
+        <title>敢えてDBIx::Connectorを紹介してやろうじゃないか - Articles Advent Calendar 2011 Dbix</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>敢えてDBIx::Connectorを紹介してやろうじゃないか</h1>
+
+        <p>わりと古くから<a href="https://metacpan.org/release/DBIx-Connector">DBIx::Connector</a>使ってるんで、DBIx::Handlerマンセーなこのadvent calendarでDBIx::Connectorをどう使ってるのかを軽く話したいと思います。</p>
+
+<div class="section">
+    <h4>使いどころ</h4>
+    <p>DBIx::ConnectorにしろDBIx::Handlerにしろ、DBIの面倒くさいところを簡単にしてくれるツールですよね。でも僕のスタンスとしては「どちらにしろ帯に短したすきに長しじゃねーの？」と思ってます。もちろん便利なんだけど、別に全てのかゆいところまで手が届くわけじゃないし・・・やってほしくないことをする事もあるし・・・というわけで本当に本当にコントロールが必要な部分では今でも自分で制御できるように自分で細かい所まで書く事にしています。</p><p>じゃあDBIx::Connectorをどこで使ってるかというと、「DBへの接続が切れるかもしれないぐらい長く走るスクリプトで、気にせずにSQL発効したい」時に使ってます。まぁ具体的に言えばでっけぇバッチとかですよね。</p><p>（最初に言っておきますが、mysqlならDBD::mysqlmysql_auto_reconnect使えばいいじゃん、は無しです。AutoCommitがオフだと動かないとかそういう条件覚えたくないので、「繋ぎ直して！」ってところだけ注目してます）</p><p>以下のようなスクリプトがあったとしましょう。特定の条件の行のPKをとってきて、それのPKを使ってHTTP通信をして、その結果を使ってUPDATEをかける、と。こんな感じです。</p>
+
+    <pre class="code lang-perl">    my $dbh = DBI-&gt;connect( ... );
+
+    my $lwp = LWP::UserAgent-&gt;new;
+    my $last_pk = 0;
+    while( 1 ) {
+        my $primary_keys = $dbh-&gt;selectall_arrayref(
+            &#34;SELECT * FROM hoge WHERE id &gt; ? AND ... LIMIT 100&#34;,
+            { Slice =&gt; {} },
+            $last_pk,
+        );
+        last unless @$primary_keys;
+        
+        $last_pk = $primary_keys-&gt;[-1]; 
+
+        foreach my $pk (@$primary_keys) {
+            my $res = $lwp-&gt;get( &#34;http://myapp.com/hoge.json?id=$pk&#34; );
+
+            $dbh-&gt;do(
+                &#34;UPDATE fuga SET xxx = ? WHERE hoge_id = ?&#34;,
+                undef,
+                $res-&gt;content,
+                $pk
+            );
+        }
+    }</pre>
+<p>まぁ数十万件くらいだったらわりとすぐおわるかもしれませんが、HTTP通信にそれなりに時間がかかって、なおかつ数千万件とかあるとそれなりに時間かかります。そうなってくるとまれにですが"mysql has gone away" とか言われたりしちゃいますよね。もう一回やりなおせばいいんですが、それはいかにも面倒くさいです。</p><p>かといって、毎回</p>
+
+    <pre class="code lang-perl">    if (! $dbh-&gt;ping) {
+        $dbh-&gt;disconnect;
+        $dbh = DBI-&gt;connect( ... );
+    }</pre>
+<p>とかするのはいくらなんでもですよね。というわけでDBIx::Connectorつかっちゃいましょう、と。</p>
+
+    <pre class="code lang-perl">    my $conn = DBIx::Connector-&gt;new( $dsn, $username, $password, \%attr );
+    $conn-&gt;mode(&#39;fixup&#39;);
+
+    my $lwp = LWP::UserAgent-&gt;new;
+    my $last_pk = 0;
+    while( 1 ) {
+        my $primary_keys = $conn-&gt;run( sub {
+            $_-&gt;selectall_arrayref(
+                &#34;SELECT * FROM hoge WHERE id &gt; ? AND ... LIMIT 100&#34;,
+                { Slice =&gt; {} },
+                $last_pk,
+            );
+        });
+        last unless @$primary_keys;
+        $last_pk = $primary_keys-&gt;[-1];
+
+        foreach my $pk (@$primary_keys) {
+            my $res = $lwp-&gt;get( &#34;http://myapp.com/hoge.json?id=$pk&#34; );
+
+            $conn-&gt;run(sub {
+                $dbh-&gt;do(
+                    &#34;UPDATE fuga SET xxx = ? WHERE hoge_id = ?&#34;,
+                    undef,
+                    $res-&gt;content,
+                    $pk
+                );
+            });
+        }
+    }</pre>
+<p>さて、賢明な皆様ならすでにperldox DBIx::Connectorしてドキュメントを読んでいるかもしれませんが、DBIx::Connectorは基本的にはDBへの接続を管理してくれるモジュールですね。みんなそこでトランザクション管理とかもできるんだ！って思いがちですけど、ここではあくまで再接続をハンドリングしてくれる、というところだけ使ってます。</p><p>トランザクションの整合性なんてアプリケーションによって違うんだからわーかるわけないって！名前もDBIx::TransactionじゃなくてDBIx::Connectorだから接続ができてるかの管理だけしてもらいます。というわけで 各SQLの実行部分をそれぞれ>||$conn->run||<で囲んであげて、その部分でデータベースへの接続を気にしないで済むように使ってます。</p><p>この際、DBIx::Connectorの特性を理解してやる必要があります。modeという概念があって、これはrun()を呼ぶ際にDBへの接続ができてるかどうかをどう確認するかを指定しています。'ping'であれば毎回pingを送り、'fixup'だと「ブロックの実行に失敗したらもう一回だけリトライする」という実装になってます。(no_pingもあるけど、これは使うなという雰囲気なので触れません)</p><p>上記の場合だと、SELECTかUPDATEに失敗したらもう一回トライして、それも駄目だったら例外を投げて落ちる、という状態です。基本的に上記のSQLが接続が切れた、ということ以外で失敗するのはもう致命的な何かが起きた時なので、素直にfixupモードにしていざというときは2回やってもらいます。</p><p>はい、というわけで長いバッチスクリプトとか書いてる時に限定的にこういうの使うといいですね、って話でした。ちなみにDBIx::Handlerと同様fork()した時もよきようにはからってくれますのでその辺りも便利ですね。</p>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>というわけでDBIx::Connectorを僕が使うときの話をさらっと書きました。</p><p>別にDBIx::Handlerがいけてないわけではありません。</p><p>ただ、こうやって使えるし、実際これで3億個くらいデータ動かしたりしてるし、それぞれの特徴とかあるんですよ、単純に「どっちを使ってもいいんだけど、○○さんがそう言ってるからそっち使おう」っていうんじゃなくて用途やTPOに合わせて<b>自分で考えて</b>柔軟にやっていくのが一番いいよ、ってことを言いたかっただけです。実際この記事もs/DBIx::Connector/DBIx::Handler/しても多分内容はほとんど変わりません。</p><p>明日は誰だか知らないや！</p>
+
+</div>
+<div class="section">
+    <h4>蛇足</h4>
+    <p>最後に蛇足。</p><p>これがベストプラクティスかと聞かれると僕も自信がないのですが、本気でトランザクション管理したい場合はスマートに書こうなんて思わないで、トランザクションの明示的な指示はトップレベルでしかしない、という暗黙的なルールをつけてガリガリとベタ書きしてevalでくくってます。</p>
+
+    <pre class="code lang-perl">    eval {
+        $dbh-&gt;do( ... );
+        ...
+        ... 他のコードたくさん ...
+        ...
+        $dbh-&gt;do( ... );
+        $dbh-&gt;commit;
+    };
+    if ($@) {
+        $dbh-&gt;rollback;
+    }</pre>
+<p>でもevalでトラップって結構細かい事を気にしなきゃいけなかったりするので、最近はもうガードオブジェクトでお茶を濁してます</p>
+
+    <pre class="code lang-perl">    use Scope::Guard qw(guard);
+
+    my $dbh = DBI-&gt;connect(...);
+    my $guard = guard { $dbh-&gt;rollback };
+    $dbh-&gt;do( ... );
+    ...
+    ... 他のコードたくさん ...
+    ...
+    $dbh-&gt;do( ... );
+    $dbh-&gt;commit;
+    $guard-&gt;dismiss;</pre>
+<p>これだとうっかりが減るのでいいんじゃないかな、と。やってることはDBIx::TransactionManagerと一緒なんだけど、この記事の前半にも書いた通り、本気で必要な時は自分でトランザクション管理するので、こういうやり方してます、ってだけです。</p><p>以上蛇足でした。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

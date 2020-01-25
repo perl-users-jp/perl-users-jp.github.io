@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="nihen">
+        <title>CGI::Expand - フラットなハッシュをネストデータに変換 - Articles Advent Calendar 2011 Casual</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>CGI::Expand - フラットなハッシュをネストデータに変換</h1>
+
+        <p>こんにちは、こんばんはおはようございます。nihenです。<br />
+自分のよく使っているモジュールであまり他で紹介されていないものって何かなーと探していたら<a href="http://search.cpan.org/dist/CGI-Expand/">CGI::Expand</a>はあまり紹介されてないなと思ったので紹介します。</p><p></p>
+
+<div class="section">
+    <h4>フラットなハッシュをネストデータに</h4>
+    <p>CGI::Expandという名前がついていますが、CGI.pmやCommonGatewayInterfaceとはそんなに関係がありません。<br />
+このモジュールの使いどころですが、httpのリクエストにおけるパラメータの受け渡しは</p>
+
+    <pre class="code">key=value&amp;key2=value</pre>
+<p>といった、フラットなハッシュデータなわけです。ただしよく配列を表すのに</p>
+
+    <pre class="code">key=value&amp;key=value2&amp;key=value3</pre>
+<p>といったデータで受け渡しを行うことがあります。こういったデータに対してしてCGI.pmの->paramはArrayRefを返すようになっていますし、Plack::RequestではHash::MultiValueを使っているので->get_allを使うことにより配列として取得できます。</p><p>しかし、ネストしたハッシュデータを扱う術は提供されていません。例えば</p><p>    <form method="post"><br />
+        <table><br />
+            <tr><br />
+                <th>no.</th><br />
+                <th>name</th><br />
+                <th>remarks</th><br />
+            </tr><br />
+            <tr><br />
+                <td>0</td><br />
+                <td><input type="text" name="user.0.name" value="千葉" /></td><br />
+                <td><input type="text" name="user.0.remarks" value="びこう" /></td><br />
+            </tr><br />
+            <tr><br />
+                <td>1</td><br />
+                <td><input type="text" name="user.1.name" value="nihen" /></td><br />
+                <td><input type="text" name="user.1.remarks" remarks="あー" /></td><br />
+            </tr><br />
+            <tr><br />
+                <td>2</td><br />
+                <td><input type="text" name="user.2.name" value="東京" /></td><br />
+                <td><input type="text" name="user.2.remarks" value="タワー" /></td><br />
+            </tr><br />
+        </table><br />
+        <input type="submit" value="post" /><br />
+    </form></p><p>このようなフォームがあったときにデータの扱いが面倒になります。そこでCGI::Expandの出番になります。</p>
+
+    <pre class="code lang-html">    &lt;form method=&#34;post&#34;&gt;
+        &lt;table&gt;
+            &lt;tr&gt;
+                &lt;th&gt;no.&lt;/th&gt;
+                &lt;th&gt;name&lt;/th&gt;
+                &lt;th&gt;remarks&lt;/th&gt;
+            &lt;/tr&gt;
+            &lt;tr&gt;
+                &lt;td&gt;0&lt;/td&gt;
+                &lt;td&gt;&lt;input type=&#34;text&#34; name=&#34;user.0.name&#34; value=&#34;千葉&#34; /&gt;&lt;/td&gt;
+                &lt;td&gt;&lt;input type=&#34;text&#34; name=&#34;user.0.remarks&#34; value=&#34;びこう&#34; /&gt;&lt;/td&gt;
+            &lt;/tr&gt;
+            &lt;tr&gt;
+                &lt;td&gt;1&lt;/td&gt;
+                &lt;td&gt;&lt;input type=&#34;text&#34; name=&#34;user.1.name&#34; value=&#34;nihen&#34; /&gt;&lt;/td&gt;
+                &lt;td&gt;&lt;input type=&#34;text&#34; name=&#34;user.1.remarks&#34; remarks=&#34;あー&#34; /&gt;&lt;/td&gt;
+            &lt;/tr&gt;
+            &lt;tr&gt;
+                &lt;td&gt;2&lt;/td&gt;
+                &lt;td&gt;&lt;input type=&#34;text&#34; name=&#34;user.2.name&#34; value=&#34;東京&#34; /&gt;&lt;/td&gt;
+                &lt;td&gt;&lt;input type=&#34;text&#34; name=&#34;user.2.remarks&#34; value=&#34;タワー&#34; /&gt;&lt;/td&gt;
+            &lt;/tr&gt;
+        &lt;/table&gt;
+        &lt;input type=&#34;submit&#34; value=&#34;post&#34; /&gt;
+    &lt;/form&gt;</pre>
+<p>上記のフォームのソースがこのようになっていたとして</p><p></p>
+
+    <pre class="code lang-perl">use strict;
+use Plack::Request;
+use CGI::Expand qw/expand_hash/;
+use Data::Dumper;
+my $app = sub {
+    my $env = shift;
+
+    my $req = Plack::Request-&gt;new($env);
+
+    print Dumper(expand_hash($req-&gt;body_parameters-&gt;as_hashref));
+}</pre>
+<p>このようなPOST実行先をPSGIアプリを実行すると、</p>
+
+    <pre class="code">$VAR1 = {
+          &#39;user&#39; =&gt; [
+                      {
+                        &#39;name&#39; =&gt; &#39;千葉&#39;,
+                        &#39;remarks&#39; =&gt; &#39;びこう&#39;
+                      },
+                      {
+                        &#39;name&#39; =&gt; &#39;nihen&#39;,
+                        &#39;remarks&#39; =&gt; &#39;あー&#39;
+                      },
+                      {
+                        &#39;name&#39; =&gt; &#39;東京&#39;,
+                        &#39;remarks&#39; =&gt; &#39;タワー&#39;
+                      }
+                    ]
+        };</pre>
+<p>のようになっており、大変扱いやすいデータになっております。</p><p></p>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>CGI::Expandを駆け足で紹介しました。</p><p>formをjavascriptで動的に変更していたりしている場合なんかにも有効に使えるモジュールだと思います。</p><p>さて明日は neko_gata_s(shinpei) さんです。んがんぐ</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="dameninngenn">
+        <title>Term::UI - サクッと対話的に入力を求める - Articles Advent Calendar 2011 Casual</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Term::UI - サクッと対話的に入力を求める</h1>
+
+        <p>こんにちは、コンビニに行くたびに店員さんから舌打ちされるdameninngennです。サックリと書きます！</p>
+
+<div class="section">
+    <h4>Term::UI</h4>
+    <p>対話的に処理を進めるスクリプト書いたりしますよね！あの[yes/no]とか聞かれて入力するやつです！！<br />
+例えばrsyncで--dry-runオプション付きで一旦実行して、そこから[yes/no]を聞いて本当にsyncするかどうかみたいな感じのやつです！！！</p><p>まず、標準入力から受け取るだけであれば、</p>
+
+    <pre class="code lang-perl">my $str = &lt;STDIN&gt;;
+chomp $str;
+# do something
+# ...</pre>
+<p>こんな感じに受け取ったりするかと思いますが、本当に[yes/no]が入力されたのか判定したりそうじゃなかったらもう一回入力求めたりとか書くのめんどくさいですよね。</p><p>そこらへんのめんどくささとかを解消してくれるTerm::UIというモジュールがあります。<br />
+誤解を招くかもしれませんがTerm::UIモジュール自体は本当の本体ではなくTerm::ReadLineというモジュールのサポートさんです。Term::UIモジュールをuseすることによってTerm::ReadLineがパワーアップするイメージですね。イメージです。</p><p>早速[yes/no]を聞いてみましょう。もしもーし</p>
+
+    <pre class="code lang-perl">#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use Term::UI;
+use Term::ReadLine;
+
+my $term = Term::ReadLine-&gt;new(&#39;BizarreAdventure&#39;);
+my $bool = $term-&gt;ask_yn(
+    print_me =&gt; &#39;WRYYYYYYYYYYYYYYY!!&#39;,
+    prompt   =&gt; &#39;Will you give up to live as a human?&#39;,
+    default  =&gt; &#39;y&#39;,
+);</pre>
+<p>ask_ynメソッドはyesかnoかを聞いてその結果yesであれば1をnoであれば0を返します。引数にprint_meとpromptを指定すると表示されるメッセージを指定できます。<br />
+これを実行すると、</p>
+
+    <pre class="code">WRYYYYYYYYYYYYYYY!!
+Will you give up to live as a human? [Y/n]: </pre>
+<p>となり入力待ちになります。Yが大文字になっているのはdefaultで指定しているためです。何も入力せずエンターのみ押すとdefaultで指定したものが適用されます。<br />
+ここで'y'と入力しても'yes'と入力しても'YES'と入力してもちゃんと判断して$boolには1が入ります。nの場合は0です。</p><p>'yes'や'no'以外の文字を入力した場合は下記のように再度入力待ちになってくれます。</p>
+
+    <pre class="code">Will you give up to live as a human? [Y/n]: hoge
+Invalid selection, please try again: [Y/n] </pre>
+<p>また、[yes/no]だけではなくリストから選んで番号を入力してもらうにはget_replyメソッドを使います。</p>
+
+    <pre class="code lang-perl">my $choice_reply = $term-&gt;get_reply(
+    prompt  =&gt; &#39;right fist or left fist?&#39;,
+    choices =&gt; [qw|right left both|],
+    default =&gt; &#39;both&#39;,
+);</pre>
+<p>これを実行すると、</p>
+
+    <pre class="code">  1&gt; right
+  2&gt; left
+  3&gt; both
+
+right fist or left fist? [3]: </pre>
+<p>と表示されます。先ほどと異なるのは引数にchoicesを渡しています。この場合数字を選んで入力してもらうことになりますが$choice_replyには数字に対応する文字列が入ります。上記の例で3を選択すると'both'の文字列が入ります。</p><p>選択を1つのみでなく複数選択してもらうことも可能です。引数にmulti=>1を指定すると配列で値が返ってきます。</p>
+
+    <pre class="code lang-perl">my @multi_reply = $term-&gt;get_reply(
+    prompt  =&gt; &#39;Which part do you like?&#39;,
+    choices =&gt; [qw|Part1 Part2 Part3 Part4 Part5 Part6 Part7 Part8|],
+    multi   =&gt; 1,
+);</pre>
+<p>実行すると、</p>
+
+    <pre class="code">  1&gt; Part1
+  2&gt; Part2
+  3&gt; Part3
+  4&gt; Part4
+  5&gt; Part5
+  6&gt; Part6
+  7&gt; Part7
+  8&gt; Part8
+
+Which part do you like?</pre>
+<p>となり、スペース区切りで番号を入力すると選択した番号に対応する文字列が配列で返ってきます。</p>
+
+    <pre class="code">Which part do you like?4 3 5 2
+
+$VAR1 = &#39;Part4&#39;;
+$VAR2 = &#39;Part3&#39;;
+$VAR3 = &#39;Part5&#39;;
+$VAR4 = &#39;Part2&#39;;</pre>
+<p>最後になりますが、もちろん文字列を入力してそのまま渡すことも可能です。その際に引数にallowを指定すると受け取りたい文字列を制限することができます。</p>
+
+    <pre class="code lang-perl">my $reply = $term-&gt;get_reply(
+    prompt =&gt; &#34;Joske&#39;s nickname?&#34;,
+    allow  =&gt; qr/^(jo){2}$/i,
+);</pre>
+<p>上記ではallowに正規表現を指定していますが他にも色々できるようです。Params::Checkのallowメソッドを使っているようですので詳しくはそちらをご覧下さい。</p>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>対話的処理を含むスクリプトを書くのに便利なTerm::UIを紹介しました。<br />
+私はカジュアルすぎてあまりCPANモジュールに明るくはないので、「Term::UI使うよりこっち使ったほうがいいよ！」とかあれば是非教えて下さいm(_ _)m</p><p>次は、dukkiedukkieさんです！</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

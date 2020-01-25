@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="xaicron">
+        <title>prove についてのおさらい - Articles Advent Calendar 2011 Test</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>prove についてのおさらい</h1>
+
+        
+<div class="section">
+    <h4>はじめに</h4>
+    <p>忘年会シーズンまっただ中で皆さんは毎日お酒を飲んでいることでしょうが、僕は友達が少ないため忘年会とか全然無いので財布はまだホットな状態なんですが、なぜ僕の妹は小鳩ちゃんじゃないんだっていうかそもそも妹いないしもう死ぬって感じの xaicron です。こんにちは。</p><p>そろそろ prove について簡単に説明しときますよっと。</p>
+
+</div>
+<div class="section">
+    <h4>prove のよく使うオプション</h4>
+    <p>prove にはいっぱいオプションがあるんですが、ここではよく使いそうなやつをピックアップして紹介しちゃいますよ！</p>
+
+    <pre class="code">-v, --verbose    # いっぱい出力する
+-l, --lib        # lib を INC についかする perl -Ilib 相当
+-b, --blib       # blib/lib とか blib/arch を INC につかする -Mblib 相当
+-c, --color      # カラフルになる！ MSWin32 だと意味ないぜ！
+-r, --recurse    # 指定したディレクトリ配下を再帰的に調べてテストを実行
+-s, --shuffle    # シャッフル！してテストをおこなう
+-m, --merge      # STDERR を STDOUT に混ぜる。エラったときに出力が崩れる場合に有効
+-f, --failures   # コケたテストをわかりやすくしてくれる
+    --timer      # テストにかかった時間がでる！便利
+    --trap       # SIGINT (Ctrl-C) 送ったときに、そこまでの結果を出力してくれる！
+    --norc       # .proverc を読み込まない
+
+-I               # INC を追加
+-j, --jobs N     # テストを並列実行する。DB とか使ってるとたいていコケる。
+    --rc=rcfile  # rcfile を指定する
+    --state=opts # テスト結果を保存したりなんだり
+    --exec       # 起動するコマンドを指定
+    --formatter  # JUnit 形式などに出力結果を変えられる！</pre>
+<p>いっぱいあって覚えられませんね！</p><p> --shuffle は、実行順に依存しないテストであることを保証したいときに便利ですね。CI ツールのときとかは、つけとくといいんじゃないかと思います。</p><p> --jobs N は --jobs 9 とかすると 9 並列でテストが動くんですが、うまく動かないことも多々あります。けど、早くテストが終わるので嬉しいですね。</p>
+
+</div>
+<div class="section">
+    <h4>おすすめオプション</h4>
+    <p>しょうがないのでこれを指定しといたほうが捗る！ってやつを指定しときましょう</p>
+
+    <pre class="code">$ prove -lcfrm --timer --trap</pre>
+<p>詳細に観たい場合は、-v 、シャッフルしたいばあいは -s を一緒に追加します。</p>
+
+</div>
+<div class="section">
+    <h4>毎回打つのがだるい</h4>
+    <p>オプション長すぎて毎回打つのがだいぶだるいですね。そこで .proverc です！これに</p>
+
+    <pre class="code">$ cat .proverc
+--lib
+--color
+--failures
+--recurse
+--merge
+--timer
+--trap</pre>
+<p>とか書いておくと、prove とするだけでこのオプションが全部有効になります！<br />
+.proverc を読み込み体育ない場合は、--norc すれば OK です。</p><p>ちなみに、自分は .proverc に</p>
+
+    <pre class="code">--exec &#34;perl -Ilib -MTest:Flatten -MTest::Name::FromLine&#34;</pre>
+<p>っていうのを最近はよく入れてます。Test::Flatten は自分で書いたんですが、subtest の出力をフラットにしてくれるモジュールです。ちょこっとテストが見やすくなるのでオススメ。<br />
+あと、Test::Name::FromLine は cho45 先生が書いたやつで、マジおすすめというかこれなんで Test::More のデフォじゃないの馬鹿なの死ぬのって感じなのでぜひ使いましょう。どっちも use するだけで動くんだぜ！！</p><p>ただし、こういう書き方してるといまいち動かないケースもあるらしいですね。</p><p>.proverc とかを駆使して良い感じにテストする方法については、lestrrat さんが [/articles/advent-calendar/2011/test/18:title=テストのためにデーモンを自動的に起動するやりかた2011年版] で詳しく書いているので、そちらを御覧くださいまし。</p>
+
+</div>
+<div class="section">
+    <h4>出力形式を変更する</h4>
+    <p> --formatter を指定すると変えられます。例えば、JUnit 形式にしたければ、</p>
+
+    <pre class="code">$ prove -lvc --formatter TAP::Formatter::JUnit t</pre>
+<p>とかするといいです！簡単ですね！</p>
+
+</div>
+<div class="section">
+    <h4>state を使いこなす</h4>
+    <p> --state っていうオプションがあるわけですが、オプションと挙動が多くてまぁ基本的に覚えられません。<br />
+まず、state が受け付ける引数の一覧を出しときましょう。</p>
+
+    <pre class="code">save   # テストの結果を .prove に保存
+last   # 前回実行したテストを実行
+failed # 前回失敗したテストのみ実行
+passed # 前回成功したテストのみ実行
+all    # すべてのテストを実行
+hot    # 直近で失敗したテストから実行
+todo   # TODO があるファイルのみ実行
+slow   # 前回実行時間が遅かったものから実行
+fast   # 前回実行時間が短かったものから実行
+new    # タイムスタンプが新しいものから実行
+old    # タイムスタンプが古いものから実行
+fresh  # 前回の実行以降に変更されているもののみ実行</pre>
+<p>多すぎですね。もう絶望感漂って来ました。指定するときは , 区切りにするか、--state をいっぱい連ねます。</p><p>まず、--state を使うにあたって --state=save をつけてテストを実行します。そうしないと他のオプションはなにも使えません。しょっぱなからむずいですね。</p>
+
+    <pre class="code">$ prove -lcrmf --state=save t</pre>
+<p>とかやると、.prove というファイルができています。中身は YAML になっていて、割と詳細な情報が出てるので、テストが終わったあとにこいつをパースして結果を IRC に出すとかやると捗るかもですね！</p><p>で、これ以降はターゲットを指定するとまたそのテストも走っちゃうので</p>
+
+    <pre class="code">$ prove -lcrmf --state=save</pre>
+<p>としてやります。t を指定しないでねっことですね。難しいですね。</p><p>次にオプションの指定ですが、これは左結合になっています。どういうことかというと、指定した順番に適用されるってことです。前回失敗したテストだけ実行したい場合は、</p>
+
+    <pre class="code">$ prove -lcrmf --state=failed,save</pre>
+<p>とかしてやると、失敗したテストだけ実行されて、かつその結果がセーブされます。コケたテストだけ実行できるので便利ですね！でもマジむずいですね！</p><p>オプションがいっぱいあるので全部は説明できないんですが、ここではとりあえず必殺技だけ伝授しときます！詳しい使い方は頑張って習得してください。</p>
+
+    <pre class="code">$ prove -lcrmf --state=adrian</pre>
+<p>ってやると、hot,all,save とおんなじ効果になります！すごい！！エイドリアン！！</p><p>ちなみに、あんまり state ばっかり使ってると、壊れたテストばっかり直してていままで動いてたテストが実は動かなくなってました〜みたいなことも起こりうるので注意が必要です。</p><p>そんなときは、--state を付けずに実行すればいいですね。</p>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>prove はオプション多すぎてマジむずいですね！しかもかなりプラッガブルな実装になっているので、コードも入り組んでて結構読みづらいです。</p><p>でも普通に使う分にはかなり便利なので、今日紹介したオプションとかを駆使して良い感じにテストできるといいですね！</p><p>アディオス！！</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

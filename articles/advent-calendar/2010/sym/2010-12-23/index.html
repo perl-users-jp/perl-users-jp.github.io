@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="yoshiori">
+        <title>Python SyntaxError Programming を解析してみた - Articles Advent Calendar 2010 Sym</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Python SyntaxError Programming を解析してみた</h1>
+
+        <p>こんにちはこんにちは!!<br />
+<a href="http://twitter.com/yoshiori">id:Yoshiori</a>です．<br />
+sym - JPerl Advent Calendar 2010 ……濃すぎですよね＞＜<br />
+「記号プログラミングを考え出したりする人達は凄すぎ＞＜ ついていけない＞＜」<br />
+みたいに考えちゃってる人はいませんか？ 僕は考えちゃってました＞＜ でも，それはもったいないです!!!<br />
+そんな僕みたいな一般人でも，書かれた記号プログラミングを解析するという楽しみがある事に気が付きました．<br />
+なので今日はそんな「記号プログラミングを解析する」のを実際にどうやるのかを書いてみたいと思います．<br />
+題材は <a href="http://twitter.com/takesako">id:TAKESAKO</a> の <a href="http://developer.cybozu.co.jp/takesako/2010/05/python-syntaxer.html">「Python SyntaxError Programming」</a>です．<br />
+良かったら読みながら手元で iPython などで実際に同じように実行していただくとさらに楽しめるかと思います．</p>
+
+<div class="section">
+    <h4>早速読んでみる</h4>
+    
+    <pre class="code lang-python">#!/usr/bin/python
+_=-~-~(()&gt;[]);_,__=_*_,_**_-~-~_;___=&#39;%&#39;+`SyntaxError`[_];exec&#39;&#39;+___*(__+~-~_)%(_*_^-~__,_*_-~__,~__*__/~_,~-~_*~_,_-__^~-~_*_,-~-~__,~-_*_,_/_^~_*~_,_-~-~_*_,_-~-~_*_,_|~-~_*~_,_+__+__/_,__,~_&amp;_*_,__+_|_*_,_-__^~-~_*_,__^~-_*_,_|~-~_*~_,~-~_*~_,-~__,-~-~__)</pre>
+<p>これで，<br />
+「Hello, Python!」<br />
+と表示されます．凄すぎてどうなってるのか全然わかりません＞＜<br />
+で，頑張って解析してみました．</p>
+
+</div>
+<div class="section">
+    <h4>まずは，文ごとに分ける</h4>
+    <p>; で一行にされているので，まずは改行して見やすくしてみます．</p>
+
+    <pre class="code lang-python">_=-~-~(()&gt;[]);
+_,__=_*_,_**_-~-~_;
+___=&#39;%&#39;+`SyntaxError`[_];
+exec&#39;&#39;+___*(__+~-~_)%(_*_^-~__,_*_-~__,~__*__/~_,~-~_*~_,_-__^~-~_*_,-~-~__,~-_*_,_/_^~_*~_,_-~-~_*_,_-~-~_*_,_|~-~_*~_,_+__+__/_,__,~_&amp;_*_,__+_|_*_,_-__^~-~_*_,__^~-_*_,_|~-~_*~_,~-~_*~_,-~__,-~-~__)</pre>
+<p>まったく見やすくならないですね!! やりましたね!!</p>
+
+</div>
+<div class="section">
+    <h4>まずは1行目を解析してみる</h4>
+    
+    <pre class="code lang-python">_=-~-~(()&gt;[]);</pre>
+<p>まず，_ に代入をしているのはわかります．なので右辺を解析してみます．</p>
+
+    <pre class="code lang-python">-~-~(()&gt;[]);</pre>
+<p>まずは，- も ~ も演算子なので確固のついている () > [] が先に処理されます．で，空のタプルと空のリストを比較しています．<br />
+iPython で実行してみると</p>
+
+    <pre class="code lang-python">&gt;&gt;&gt; () &gt; []
+True</pre>
+<p>となります．<br />
+ちなみに</p>
+
+    <pre class="code lang-python">&gt;&gt;&gt; () &lt; []
+False
+&gt;&gt;&gt; () == []
+False
+&gt;&gt;&gt; () is []
+False
+&gt;&gt;&gt; () in []
+False</pre>
+<p>という結果になります．これは Python の決め事で，昔の Guido は何でも比較出来るのが正しいと考えてたみたいです．(Python3.0 では比較出来ないみたいです．)<br />
+で，話しを戻すと</p>
+
+    <pre class="code lang-python">-~-~True;</pre>
+<p>になっているわけですね．<br />
+~ 記号でビット反転されています．ビット反転が良くわからなかったのですが，<a href="http://ja.wikipedia.org/wiki/2%E3%81%AE%E8%A3%9C%E6%95%B0">ここ</a>を <a href="http://twitter.com//nishio">id:nishiohirokazu</a> に教えてもらってわかりました!!<br />
+で，True の数値表現は 1 なので</p>
+
+    <pre class="code lang-python">&gt;&gt;&gt; int(True)
+1
+&gt;&gt;&gt; ~1
+-2
+&gt;&gt;&gt; --2
+2
+&gt;&gt;&gt; ~2
+-3
+&gt;&gt;&gt; --3
+3</pre>
+<p>と，言う事で _ に 3 を代入している事がわかりました．</p>
+
+</div>
+<div class="section">
+    <h4>2行目を解析してみる</h4>
+    <p>こうなってくると，2行目が見えてきました．</p>
+
+    <pre class="code lang-python">_,__=_*_,_**_-~-~_;</pre>
+<p>また代入をしているのですが，「,」 が両辺にあるので多項代入だとわかります．右辺をまずはさきほど求めた 3 でおきかえてみます．</p>
+
+    <pre class="code lang-python">_,__=3*3,3**3-~-~3;</pre>
+<p>になります．</p>
+
+    <pre class="code lang-python">_,__=3*3,3**3-~-~3;</pre>
+<p>計算すると</p>
+
+    <pre class="code lang-python">_,__=9,32;</pre>
+<p>になります．<br />
+これで，この時点でそれぞれ変数に<br />
+_ = 9<br />
+__ = 32<br />
+が，入っている事がわかります．</p>
+
+</div>
+<div class="section">
+    <h4>3行目を解析してみる</h4>
+    
+    <pre class="code lang-python">___=&#39;%&#39;+`SyntaxError`[_];</pre>
+<p>まずは代入なので右辺を見ていきます．判明している _ に 9 を入れてみます．</p>
+
+    <pre class="code lang-python">___=&#39;%&#39;+`SyntaxError`[9];</pre>
+<p>バッククートは括れば評価結果を取得できるので SyntaxError を評価すると(これも Python3.0 では repr 関数に置きかわりました)</p>
+
+    <pre class="code lang-python">&gt;&gt;&gt; `SyntaxError`
+&#34;&lt;type &#39;exceptions.SyntaxError&#39;&gt;&#34;</pre>
+<p>と，文字列を取得できます．</p>
+
+    <pre class="code lang-python">___=&#39;%&#39;+&#34;&lt;type &#39;exceptions.SyntaxError&#39;&gt;&#34;[9];</pre>
+<p>で，その文字列の配列の9要素目なので「c」が取得できます．</p>
+
+    <pre class="code lang-python">___=&#39;%&#39;+&#39;c&#39;;</pre>
+
+    <pre class="code lang-python">___=&#39;%c&#39;;</pre>
+<p>結果として<br />
+___ = '%c'<br />
+が入っている事になります．</p>
+
+</div>
+<div class="section">
+    <h4>4行目を解析してみる</h4>
+    
+    <pre class="code lang-python">exec&#39;&#39;+___*(__+~-~_)%(_*_^-~__,_*_-~__,~__*__/~_,~-~_*~_,_-__^~-~_*_,-~-~__,~-_*_,_/_^~_*~_,_-~-~_*_,_-~-~_*_,_|~-~_*~_,_+__+__/_,__,~_&amp;_*_,__+_|_*_,_-__^~-~_*_,__^~-_*_,_|~-~_*~_,~-~_*~_,-~__,-~-~__)</pre>
+<p>ここまでで，<br />
+_ = 9<br />
+__ = 32<br />
+___ = '%c'<br />
+が判明しているので，すべて置き換えてみます．</p>
+
+    <pre class="code lang-python">exec&#39;&#39;+%c*(32+~-~9)%(9*9^-~32,9*9-~32,~32*32/~9,~-~9*~9,9-32^~-~9*9,-~-~32,~-9*9,9/9^~9*~9,9-~-~9*9,9-~-~9*9,9|~-~9*~9,9+32+32/9,32,~9&amp;9*9,32+9|9*9,9-32^~-~9*9,32^~-9*9,9|~-~9*~9,~-~9*~9,-~32,-~-~32)</pre>
+<p>あとは計算してみると……</p>
+
+    <pre class="code lang-python">exec&#39;&#39;+&#39;%c&#39;*(21)%(112,114,105,110,116,34,72,101,108,108,111,44,32,80,121,116,104,111,110,33,34)</pre>
+<p>となります．</p>
+
+    <pre class="code lang-python">exec&#39;&#39;+&#39;%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c&#39;%(112,114,105,110,116,34,72,101,108,108,111,44,32,80,121,116,104,111,110,33,34)</pre>
+<p>と，文字コードから文字列を作りだしていて……</p>
+
+    <pre class="code lang-python">exec&#39;&#39;+&#39;print&#34;Hello, Python!&#34;&#39;</pre>
+<p>となっていて<br />
+「Hello, Python!」<br />
+と表示されます．<br />
+以上，解析結果としては，<a href="http://twitter.com/takesako">id:TAKESAKO</a> が変態すぐるという事がわかりましたね＞＜<br />
+みなさんも是非「記号プログラミングを解析する」という楽しみ方もしてみてください!!<br />
+そして解析出来たら僕に教えてください＞＜</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

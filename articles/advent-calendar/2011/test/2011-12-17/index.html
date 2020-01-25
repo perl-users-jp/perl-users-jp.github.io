@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="ikasam_a">
+        <title>ちょっと他言語に行ったら例えば RSpec にハマった人のために - Articles Advent Calendar 2011 Test</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>ちょっと他言語に行ったら例えば RSpec にハマった人のために</h1>
+
+        
+<div class="section">
+    <h4>はじめに</h4>
+    <p>こんにちは。ikasam_a です。</p><p>ちょっと3年ほど Ruby でプロダクトコード書いてて RSpec に体がすっかり慣れたのが私です。今日は、そんな人が例えば 「Perl でテストを書くときにも、同じような書き方とかしたい！」みたいな中毒が出る場合に、どういうアプローチを取れるかという話をします。</p>
+
+</div>
+<div class="section">
+    <h4>Perl で宣言的テスト</h4>
+    <p>RSpec といえば DSL によって宣言的に仕様を書くようにテストが書ける、というのがウリなわけですが、Perl で宣言的にテストを書くにはどういう手段があるか、ちょっと調べてみました。</p>
+
+<div class="section">
+    <h5><a href="https://metacpan.org/module/Test::More::Behaviours">Test::More::Behaviours</a></h5>
+    <p>こんな感じに書けますが、Test::More に subtest がある今となっては不要ですね。</p>
+
+    <pre class="code lang-perl">test &#39;Foo cleation&#39; =&gt; sub {
+    ok Foo-&gt;new;
+};</pre>
+
+</div>
+<div class="section">
+    <h5><a href="https://metacpan.org/module/Test::Behaviour::Spec">Test::Behaviour::Spec</a></h5>
+    <p>describe, it でのコメントを記憶しておき spec で読んでアサーションのメッセージにするわけですが、Test::More::note で十分です。</p>
+
+    <pre class="code lang-perl">describe &#39;Foo&#39;;
+it &#39;should create an instance&#39;;
+ok Foo-&gt;new, spec;</pre>
+
+</div>
+<div class="section">
+    <h5><a href="https://metacpan.org/module/Test::More::Behaviour">Test::More::Behaviour</a></h5>
+    <p>SYNOPSIS を見ると RSpec-1.x の完コピに見えますが、そもそもモジュールがちゃんとパッケージングされておらず、use するだけで die するという奇跡な感じ。</p>
+
+</div>
+<div class="section">
+    <h5><a href="https://metacpan.org/module/Test::Declare">Test::Declare</a></h5>
+    <p>個人的には init と cleanup があるのでほぼ RSpec-1.x 互換で結構好きですが、作者が<del>キモいアイコン</del>Test::More に subtest が出来たんでもう更新しないよ、と言っていたので残念です。</p>
+
+    <pre class="code lang-perl">describe &#39;Foo&#39; =&gt; run {
+    init { ... };
+    test &#39;should create an instance&#39; =&gt; run {
+        ok Foo-&gt;new;
+    };
+    cleanup { ... };
+};</pre>
+
+</div>
+<div class="section">
+    <h5><a href="https://metacpan.org/module/Test::Spec">Test::Spec</a></h5>
+    <p>RSpec-1.x の完コピで、rspec-mocks に相当する独自のモック機構まで持つというフルスペックぶりを発揮。さすがに 2.x には追随してないけど Test::More を使わない本気っぷりで、重厚かもしれないけど一番よさげ。</p>
+
+    <pre class="code lang-perl">describe &#39;Foo&#39; =&gt; sub {
+    it &#39;should create an instance&#39; =&gt; sub {
+        ok Foo-&gt;new;
+    };
+};</pre>
+
+</div>
+</div>
+<div class="section">
+    <h4>カジュアルに気分だけ味わう</h4>
+    <p>ここまで各種モジュールを簡単に紹介してきましたが、describe とか context とか it とか書きたいだけの感じであれば、こんな方法でカジュアルに使えます。</p>
+
+    <pre class="code lang-perl">use Test::More;
+
+BEGIN {
+    *describe = *context = *it = \&amp;Test::More::subtest;
+}
+
+describe &#39;Foo&#39; =&gt; sub {
+    it &#39;should create an instance&#39; =&gt; sub {
+        ok Foo-&gt;new;
+    };
+};
+
+done_testing;</pre>
+<p>ポイントは BEGIN で全部 Test::More::subtest にエイリアシングしちゃうとこ？でも気分的にはこれで十分なケースが多そうですね！</p>
+
+</div>
+<div class="section">
+    <h4>おわりに</h4>
+    <p>Perl で宣言的テストを書くために、既存の同様なモジュールを紹介しました。また、クイックハックで宣言的に DSL を埋め込む方法も紹介しました。</p><p>宣言的テストもいいですけど、あまりにも DSL が全面に出てくるのは、ほどほどにしたほうがいいかもしれませんね！</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

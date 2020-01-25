@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="c6r">
+        <title>テストだってテストが必要です - Articles Advent Calendar 2011 Test</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>テストだってテストが必要です</h1>
+
+        <p>@ikasam_aさんにTest::Classの話でもとお誘いを受けて安請け合いしたのはいいものの、まじめな話はモダンPerlの連載にそこそこまとまっているので、今日はどうしてTest::Classのようなモジュールを使うのかという話をしてみます。</p>
+
+<div class="section">
+    <h4>テストをモジュールの中に移す</h4>
+    <p>Test::Classやその仲間たちは、うまく使えばとても便利なのですが、テストの数が少ないうちは手間ばかりかかるので、なかなか使う機会に恵まれないかもしれません。テストをモジュールの中に移すといわれてもピンとこない方のために、まずは簡単な例をあげておきましょう。</p><p>今年のカレンダーでも何度か出てきているように、Perlのテストはふつう.tファイルにべた書きします。</p>
+
+    <pre class="code lang-perl">#!perl
+use strict;
+use warnings;
+use Test::More;
+
+pass &#34;simplest test&#34;;
+
+done_testing;</pre>
+<p>テストをモジュールの中に移す、というのは、これを起動用の.tファイルと、</p>
+
+    <pre class="code lang-perl">#!perl
+use strict;
+use warnings;
+use Test::Class;
+use MyTest;
+
+MyTest-&gt;runtests;</pre>
+<p>実際のテストをおさめるモジュールに分けるということです（ここではTest::Classを継承したりアトリビュートがついたりしていますが、これらは本質とは無関係です）。</p>
+
+    <pre class="code lang-perl">package MyTest;
+use strict;
+use warnings;
+use base &#39;Test::Class&#39;;
+use Test::More;
+
+sub first_test :Test {
+  my $self = shift;
+
+  pass &#34;simplest test&#34;;
+}
+
+1;</pre>
+<p>このように、数が少なく内容もシンプルなテストの場合は手間が増えるデメリットばかり目立ってしまうのですが、このような書き方をしておくと、</p>
+
+<ul>
+<li>テストにかかる合計時間が減る（かもしれない）</li>
+<li>テストの一部を使い回しやすくなる（かもしれない）</li>
+<li>ほかの便利なツールの恩恵を受けやすくなる</li>
+</ul><p>といったメリットがあります。以下、具体的に見ていきましょう。</p>
+
+</div>
+<div class="section">
+    <h4>テストにかかる合計時間が減る</h4>
+    <p>たとえばデータベースを使うテストが大量にある場合、まさか本番用のデータベースをそのまま使うわけにもいきませんから、テスト用のデータベースを用意するわけですが、このとき、それぞれの.tファイルでデータベースの設定を行うと、テストファイルが増えれば増えるほどデータベースの初期化や後始末に時間をとられるようになります。とりわけTest::mysqldのように準備に時間がかかるツールを使う場合、テストファイルが変わるたびにMySQLの作成と廃棄を行っていては時間がかかってしかたありません。</p><p>Test::Classのようにテストをモジュール形式にしておくと、テストに使うモジュールの数は増えても、それをロードする.tファイルの数はさほど増やさずにすみます。そのため、データベースの作成などは起動用の.tファイルや、Test::Classのstartupフェーズに追い出してしまい、テストモジュールの中ではテーブルの作成や削除だけ繰り返すようにすると、待ち時間を短縮できるようになります。</p>
+
+    <pre class="code lang-perl">#!perl
+use strict;
+use warnings;
+use Test::Class::Load &#39;t/lib&#39;; # t/lib以下のテストを全部読み込む
+use MyTestDB;
+
+# ここはモジュール中にテストがいくつあっても
+# 一度しか実行されません
+MyTestDB-&gt;startup;
+
+Test::Class-&gt;runtests;
+
+MyTestDB-&gt;shutdown;</pre>
+<p>同じ理由で、Mooseなど立ち上がりの遅いモジュールを利用したアプリケーションも、重いモジュールを毎回ロードしなくてよくなる分だけテストの高速化が期待できます。</p>
+
+</div>
+<div class="section">
+    <h4>テストの一部を使い回しやすくなる</h4>
+    <p>テストがモジュールにまとまっているということは、ファイルを読み込んだだけではテストが実行されない、ということでもあります。もちろんテストをモジュールにしてしまわない場合でもt/lib/Utils.pmのようなテスト専用のヘルパーモジュールを用意して共通の処理をまとめることはふつうに行われていることとおもいますが、テストをモジュールの中にまとめてしまうことで、テストの本体は親クラスに押し込み、子クラスではテストに利用する値のみ変える、ということが簡単にできるようになります。ここでは時間の都合でごく簡単な例のみ載せていますが、実際には与えるデータと受け取るデータをそれぞれ配列なりハッシュなりに渡しておいて親クラスで定義したテストの中でループを回し、得られた値を順に比較していくような使い方をするのがよいでしょう。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+package MyTestBase;
+use base qw/Class::Data::Inheritable Test::Class/;
+use Test::More;
+
+__PACKAGE__-&gt;mk_classdata(&#39;fixture&#39;);
+
+sub is_even: Test {
+  my $self = shift;
+  my $fix = $self-&gt;fixture;
+  if (!defined $fix) {
+    SKIP: { skip &#34;fixture is not defined&#34;, 1; fail; }
+    return;
+  }
+  my $mod = $fix % 2;
+  ok !$mod, &#34;$fix is even&#34;;
+}
+
+package MyTestA;
+use base &#39;MyTestBase&#39;;
+
+__PACKAGE__-&gt;fixture(4);
+
+package MyTestB;
+use base &#39;MyTestBase&#39;;
+
+__PACKAGE__-&gt;fixture(2);</pre>
+
+</div>
+<div class="section">
+    <h4>ほかの便利なテストツールの恩恵を受けやすくなる</h4>
+    <p>個人的にはこれがTest::Classのようなツールを使う一番の理由なのですが、テスト用のモジュールは、ほかの便利なツールでテストできます。</p><p>たとえば、大量に用意したテストを実行する前に、つまらない構文エラーがないか確認したいとしましょう。もちろん.tファイルの場合でもperlの-cオプションを使えば構文チェックくらいできるわけですが、Test::UseAllModulesなどを使えば、テスト用のモジュールもひっくるめてロードに失敗するモジュールがないか確認できます。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+use Test::UseAllModules qw(lib t/lib);
+
+all_uses_ok();</pre>
+<p>あるいは、納品用にテストのドキュメントも必要だということになるかもしれません。Test::Pod::Coverageを使えば、どこでどんなテストをしたのか、説明を書くための圧力になってくれることでしょう。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+use lib &#34;t/lib&#34;;
+use Test::More;
+use Test::Pod::Coverage;
+
+pod_coverage_ok($_) for all_modules(&#34;t/lib&#34;);
+
+done_testing;</pre>
+<p>仕様はわかっているのでテスト項目は列挙できるけれど、実際のテストはまだ書けないような場合は、テストモジュールのPODにテスト名だけ列挙してもらい、あとでそのテストが実装されたか確認する、なんてこともできるはずです。</p>
+
+</div>
+<div class="section">
+    <h4>テストだってテストが必要なんです</h4>
+    <p>何千行もあるモノリシックなCGIスクリプトがダメなら、何千行もあるテストスクリプトだって同じくらいダメなはずですし、テストがないアプリがダメなら、あるいはオブジェクト指向になっていないアプリがダメなら、そのようなテストだってダメなはずです。</p><p>ほんとにこのテストがあっているのかわからない、なんてことになってきたら、ぜひTest::Classのようなツールを使ってテストをモジュールに追い出してみてください。ごちゃごちゃしていたテストがすっきりするかもしれませんよ。</p><p>明日はzentoooさんです。お楽しみに。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

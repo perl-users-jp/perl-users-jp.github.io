@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>Acme::AKB48 - Articles Advent Calendar 2010 Acme</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Acme::AKB48</h1>
+
+        <p>最近大画面テレビを買ったのですが来ている電波がデジタル化されていませんでした。<br />
+こんばんは。hidekです。</p><p>というわけで、今回は国民的スーパーアイドルグループAKB48を堪能できるモジュールを紹介させてもらいます。</p><p>リポジトリは<a href="https://github.com/hidek/Acme-AKB48">&#x3053;&#x3061;&#x3089;</a>です。</p><p>AKB48については最近の活躍で皆さんよくご存じだと思うので多くは説明しませんが、現在チームA, チームK, チームBの各16人の正規メンバーと24人の研究生からなるアイドルグループです。</p><p>個性的なキャラが多いので比較的覚えやすいのですが、テレビを全く見ない貴兄や、2次元しか興味がない貴兄にとっては、ひょっとしたら覚えられないことがあるかもしれません。そんなことになったら学校や職場で会話に入れず肩身の狭い思いをすることになるでしょう。</p><p>そんなときのために是非このモジュールを活用してください。</p><p>このモジュールは前回でも紹介された<a href="http://search.cpan.org/dist/Acme-MorningMusume/">Acme::MorningMusume</a>にインターフェースを極力合わせてあります。</p><p>例えば</p>
+
+    <pre class="code lang-perl">my $akb = Acme::AKB48-&gt;new;
+my @all = $akb-&gt;members;</pre>
+<p>とすると卒業生を含めた全メンバーを取得できます。</p><p>Acme::MorningMusume同様</p>
+
+    <pre class="code lang-perl">my @active = $akb-&gt;members(&#39;active&#39;);</pre>
+<p>とすれば現在のメンバーを取得できます。</p><p>また、チームA所属の現在のメンバーを取得したければ</p>
+
+    <pre class="code lang-perl">my @team_a = $akb-&gt;select(team =&gt; &#39;A&#39;, @active);</pre>
+<p>とすればリストで取得できます。</p><p>AKB48は比較的人数の多いグループなので「あれ？よねちゃんってチームなんだっけ？」とど忘れすることがあるかもしれません。</p>
+
+    <pre class="code lang-perl">my @member = $akb-&gt;select(nick =&gt; &#39;よねちゃん&#39;);
+warn $member[0]-&gt;team;</pre>
+<p>とすれば、「ああ、そういえばチームKだった。」と思い出せるわけです。</p><p>また、「麻里子様を推してるのに誕生日を忘れてしまった！死んでしまいたい！」ということが長い人生においてあることもあるでしょう。大丈夫です。</p>
+
+    <pre class="code lang-perl">my @member = $akb-&gt;select(name_ja =&gt; &#39;篠田麻里子&#39;);
+warn $member[0]-&gt;birthday;</pre>
+<p>未だ開発中のモジュールで卒業済みの研究生のメンバーがなかったり、スクレイプ先の関係上ニックネームに納得がいかないところがあったりとデータ的にも足りないですが、趣味と実益を兼ねて徐々に充実させていきたいと思います。</p><p>今後はネームスペースをAKB48直下にメンバーのクラスを持ってこないでAKB48::Memberの下に押し込んだことからわかるようにAKB48::Discographyの下にディスコグラフィを用意しようと思っています。これにより、「ポニーテールとシュシュの時の選抜メンバーは誰だっけ？」という検索ができるようになると思います。選抜メンバーについては説明するまでもないですね。</p><p>また、推しメンを指定しておいて推しメンの情報をすばやく取得する機能なども考えています。推しメンについては説明するまでもないですね。なお、推しメンは変えるものではなく増やすものです。(by さしこ) </p><p>姉妹グループのSKE48、お姉さんグループのSDN48、来年元旦デビューするNMB48なども同じような仕組みで作れるとおもいますのでAcmeデビューをまだしていない貴兄は是非書いてみてはいかがでしょうか？</p><p>僕がうれしょんします。</p><p>明日は、hide_o_55さんです。</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

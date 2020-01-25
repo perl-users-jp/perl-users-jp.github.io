@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>PODのコード部分をかっこよくHTMLでみたいよねー - Articles Advent Calendar 2010 Casual</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>PODのコード部分をかっこよくHTMLでみたいよねー</h1>
+
+        <p>全裸で有名なPerlハッカーsugyanの、上司に「ゆーすけくん、最近全然仕事してないね。ウケる！」って言われてるyusukebeです。今日はPerlソースコード内のPODドキュメントをHTMLで出力して、奇麗にみたいなーと思っていた時に考えたモジュールの組み合わせについて紹介します。</p>
+
+<div class="section">
+    <h4>やりたいこと</h4>
+    
+<ul>
+<li>Perlのソースコード内のPODをHTML化</li>
+<li>さらにPOD内で書かれてるPerlコード(というかインデントされたブロック)をハイライトシンタックスしたい</li>
+<li>JS使ったら負け</li>
+</ul>
+</div>
+<div class="section">
+    <h4>PODをHTML化</h4>
+    <p>PODを整形化してHTML化するモジュールはたくさんあります。今回僕が使うのは、Pod::Simple::XHTMLというモジュールです。XHTMLを出力してくれるので後々POD内のPerlコードの部分を指定しやすいです。</p>
+
+    <pre class="code lang-perl">use Pod::Simple::XHTML;
+
+my $source = &#39;...Perl code including POD...&#39;;
+my $parser = Pod::Simple::XHTML-&gt;new();
+my $pod;
+$parser-&gt;output_string( \$pod );
+$parser-&gt;html_header(&#39;&#39;);
+$parser-&gt;html_footer(&#39;&#39;);
+$parser-&gt;html_h_level(1);
+$parser-&gt;parse_string_document($source);</pre>
+<p>$sourceにPerlソースコードが入っている前提だと、上記のようなコードで$podに出力されたXHTMLが代入されます。ただ、これだけだとPODでかかれたコード部分はただ単純なpreタグでくくられた状態になります。</p>
+
+</div>
+<div class="section">
+    <h4>preタグをハイライトシンタックスする</h4>
+    <p>preタグでくくられた文字列を取得して、その部分をハイライトシンタックスしていく方針でいきます。HTMLのパースにはHTML::TreeBuilder::XPathを使いました。XPathでpreを指定します。</p><p>ハイライトシンタックスにはText::VimColorを使いました。このモジュールはハイライトすべき文字列にクラス属性付きのspanタグを付けて、CSSで色づけするという物です。今回はそのspanのタグ付けをとりあえずこのモジュールでやってもらっています。</p>
+
+    <pre class="code lang-perl">my $tree = HTML::TreeBuilder::XPath-&gt;new;
+$tree-&gt;parse($pod);
+
+for my $code ( $tree-&gt;findnodes(&#39;//pre&#39;) ) {
+    my $code_html = $code-&gt;as_HTML;
+    my $syntax    = Text::VimColor-&gt;new(
+        string   =&gt; $code-&gt;as_text,
+        filetype =&gt; &#39;perl&#39;,
+    );
+    my $hilight_code = $syntax-&gt;html;
+    $pod =~ s/\Q$code_html\E/&lt;pre&gt;$hilight_code&lt;\/pre&gt;/m;
+}</pre>
+<p>このように、元のPod::Simple::XHTMLで出力されたHTMLのpre部分をText::VimColorで「置換」しています。Text::VimColorかわいいです。まぁ普段はemacsでcperl-mode使ってるんですけどね！</p>
+
+</div>
+<div class="section">
+    <h4>CSS付きでHTMLを書き出す</h4>
+    <p>あとは、Text::VimColorのソースコードタグ付けに合わせてCSSを揃えてHTMLを出力するだけです。</p>
+
+    <pre class="code lang-perl">my $output = &lt;&lt;EOH;
+&lt;html&gt;&lt;head&gt;
+&lt;style type=&#34;text/css&#34;&gt;
+pre, pre code { font-family: &#34;Monaco&#34;, monospace; }
+pre { border: 1px solid #ccc; background-color: #eee;
+border: 1px solid #888; padding: 1em; overflow:auto;}
+.synComment { color: #0000FF }
+.synConstant { color: #FF00FF }
+.synIdentifier { color: #008B8B }
+.synStatement { color: #A52A2A ; font-weight: bold }
+.synPreProc { color: #A020F0 }
+.synType { color: #2E8B57 ; font-weight: bold }
+.synSpecial { color: #6A5ACD }
+.synUnderlined { color: #000000 ; text-decoration: underline }
+.synError { color: #FFFFFF ; background: #FF0000 none }
+.synTodo { color: #0000FF ; background: #FFFF00 none }
+&lt;/style&gt;
+&lt;/head&gt;&lt;body&gt;
+$pod
+&lt;/body&gt;&lt;/html&gt;
+EOH
+print $output;</pre>
+<p>この例では標準出力にHTMLを出力しています。ファイルに書き出して、ブラウザで確認すれば、POD内のインデントされている部分が色づけされていることがわかると思います。</p>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>これを応用すれば、cssとかHTMLをもっと奇麗すれば自分なりのかっこいいPODビューアーができるし、Plackやフレームワークなどを使ってWebアプリにするのもいいかもしれませんね！明日は冒頭でも紹介した全裸のsugyanさんです！</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>データをどのようにキャッシュするか #14 - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">データをどのようにキャッシュするか #14 - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">データをどのようにキャッシュするか #14<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/14.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/14.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>こんにちわ！nekokakです！</p>
+<p>十四日目はDBIx::Skinnyでどのようにデータをキャッシュし、</p>
+<p>キャッシュしたデータをどう扱うかについてです。</p>
+
+<p>アプリケーションの負荷軽減策の一つとしてデータをmemcachedにキャッシュしてしまい、</p>
+<p>DBアクセスをすくなくすることで、レスポンスを早くする手法はみなさん良く使われていると思います。</p>
+
+
+<p>DBIx::SkinnyではSkinny自体の機能として、データを透過キャッシュするなどの便利機能は存在していません。</p>
+<p>そこで、いろいろ工夫擦る必要があります。</p>
+
+<p>なぜ、DBIx::Skinnyにデータの透過キャッシュする便利機能がないんだと思う人もいるかも知れません。</p>
+<p>しかしDBIx::Skinnyの思想としてはDBIへのシンプルなwrapperなので、それ以上のことがしたければ、</p>
+<p>DBIx::Skinny自体をラップしてくくださいと言う方針です。</p>
+
+<p>また、データのキャッシュについても、DBIx::Skinny側でキャッシュ方法を明確に決めてしまわず、</p>
+<p>ユーザの必要なケースに応じてキャッシュしてもらった方が効率が良いと考えたからです。</p>
+
+<p>では、早速データのキャッシュ方法についてみていきましょう。</p>
+
+
+<pre>
+# キャッシュしたいユーザ情報を取得
+my $user = $db-&gt;single('user', {name =&gt; 'nekokak'});
+my $row = $user-&gt;get_columns; # get_columnsメソッドでデータをhashref化
+my $cache = Cache::Memcached::Fast-&gt;new(....); # memcachedに接続
+$cache-&gt;set('nekokak' =&gt; $row); # データをmemcachedにset
+</pre>
+
+<p>これだけです。</p>
+<p>これでnekokakというキーでuserデータがmemcachedにキャッシュされました。</p>
+<p>簡単ですよね。</p>
+
+<p>次に、memcachedにキャッシュしたデータをどのように扱うかです。</p>
+
+
+<pre>
+my $cache = Cache::Memcached::Fast-&gt;new(....); # memcachedに接続
+my $row = $cache-&gt;get('nekokak'); # memcachedからデータを取得
+# memcachedから取得したデータをDBIx::SkinnyのRowオブジェクトにもどす
+my $user = $db-&gt;data2itr('user', [$row])-&gt;first;
+</pre>
+
+<p>memcachedに入っているデータをDBIx::SkinnyのRowにもどしてしまえば、</p>
+<p>あとはそのデータがDBから取得したものなのか、DBから取得したものなのかを気にする必要は全くありません。</p>
+
+<p>簡単ですね。</p>
+
+<p>明日は、今回でてきたdata2itrメソッドについて掘り下げていこうかと思います。</p>
+
+<p>have a nice skinny days!:)</p>
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/dbix-skinny/14.html">Mon, 14 Dec 2009 00:52:02 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+

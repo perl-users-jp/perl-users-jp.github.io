@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>#02 schemaの定義方法 - Articles Advent Calendar 2011 Teng</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>#02 schemaの定義方法</h1>
+
+        <p>Tengを使うにはまずSchemaの定義を行う必要があります。<br />
+なお、今回はProj::DBというnamespaceで統一して記述していきます。<br />
+コードは特記しない限りSQLiteを前提としています。</p><p>以下のようなテーブルがあるとし、</p>
+
+    <pre class="code">create table user (
+    id integer,
+    name text,
+    primary key ( id )
+);
+create table status (
+    id integer,
+    user_id integer,
+    body text,
+    primary key ( id )
+);</pre>
+<p>コレに対応するTengのSchemaは以下の様に書きます。</p>
+
+    <pre class="code">package Proj::DB::Schema;
+use strict;
+use warnings;
+use Teng::Schema::Declare;
+
+table {
+    name &#39;user&#39;;
+    pk   &#39;id&#39;;
+    columns qw/id name/;
+};
+
+table {
+    name &#39;status&#39;;
+    pk   &#39;id&#39;;
+    columns qw/id user_id body/;
+};
+
+1;</pre>
+<p>table毎にtableブロックを作成し、table名、pk、columnsなどを設定します。<br />
+Teng::Schema::Declareの実装はなかなかhackishなので、興味のある人は見てみるといいと思います。</p><p>Schemaクラスを作成したら次にTengを継承したクラスを作成します。</p>
+
+    <pre class="code">package Proj::DB;
+use parent &#39;Teng&#39;;
+1;</pre>
+<p>通常はTengを継承するだけでOKです。</p><p>Tengでは利用者が独自に拡張するコード置き場としてTeng::Plugin::というnamespaceがありますが<br />
+Plugin化するほどでなく、プロジェクト固有のロジック定義を行いたい場合は、<br />
+このTengを継承したProj::DBにmethod定義をおこなえばよいです。</p><br />
+<p>ただし、複数のプロジェクトで共通して利用できそうなロジックの場合はTeng::Pluginのnamespaceに置き、<br />
+読みこむようにするとよいでしょう。<br />
+Pluginの詳細については後々紹介します。</p><br />
+<p>これでTengを使ってdb操作する準備は完了です。<br />
+明日以降はこれをベースに話をすすめます。</p><p>なお定義したProj::DBは以下のようにしてインスタンス化します。</p>
+
+    <pre class="code">use strict;
+use warnings;
+use Proj::DB;
+ 
+my $teng = Proj::DB-&gt;new(+{connect_info =&gt; [&#39;dbi:SQLite:./sample.db&#39;,&#39;&#39;,&#39;&#39;]});</pre>
+<p>以降は特別言及しないかぎり上記インスタンスの生成部分は省略します。</p><p>明日はINSERTに関する処理方法を紹介したいと思います。</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

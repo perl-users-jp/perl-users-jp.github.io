@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="fujiwara">
+        <title>DBIx::Class で FORCE INDEX する方法 - Articles Advent Calendar 2011 Dbix</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>DBIx::Class で FORCE INDEX する方法</h1>
+
+        <p>カジュアル！(挨拶)……もとい、DBIx track でしたね。こんにちは、<a href="http://twitter.com/fujiwara">fujiwara</a> です。</p>
+
+<div class="section">
+    <h3>DBIC って…</h3>
+    <p>最近なにかと dis られることの多い <a href="http://search.cpan.org/perldoc?DBIx%3A%3AClass">DBIx::Class</a> (DBIC) ですね。</p><p>曰く「重い」「複雑すぎる」「コードが読めない」……まあそれはそうかもしれませんが、数年前の DBIC 全盛期に作られて今まで生き残っているシステムを、そう簡単に他の ORM や生 DBI に置き換えられるものでもありません。</p><p>自分の管理しているとあるシステムは DBIC + MySQL で動いていますが、最初はデータも多くなく、DBIC が生成する SQL で何ら問題はなかったのです。</p><p>が、データが増えて行くにつれて、 MySQL が適切な index を使用してくれないとパフォーマンス的に厳しい、FORCE INDEX 句を付けたい！という状況に出くわしました。そこで試行錯誤して見つけた、FORCE INDEX を指定する方法をご紹介します。</p>
+
+</div>
+<div class="section">
+    <h3>どうやって?</h3>
+    <p>たとえば以下のように、foo というテーブルに foo_idx というインデックスがあり、それを FORCE INDEX したい場合。</p>
+
+    <pre class="code lang-sql">CREATE TABLE `foo` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `hoge` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `foo_idx` (`hoge`)
+);</pre>
+<p>search メソッドの attributes で from を指定し、「空文字列の key に対して FROM 句を value にした hashref」を渡します。いやはや、BK のニオイがプンプンしますね。</p>
+
+    <pre class="code lang-perl">my $schema = MySchema-&gt;connect(...);
+my $rs = $schema-&gt;resultset(&#34;Foo&#34;);
+
+@foo = $rs-&gt;search(
+    { hoge =&gt; $hoge },
+    {
+        from =&gt; [
+            { &#34;&#34; =&gt; &#34;foo me FORCE INDEX(`foo_idx`)&#34; }
+        ],
+    }
+)-&gt;all;</pre>
+<p>これで、以下のような SQL が発行されます。</p>
+
+    <pre class="code lang-sql">SELECT me.id, me.hoge
+  FROM foo me FORCE INDEX(`foo_idx`)
+  WHERE ( hoge = ? )</pre>
+<p>やった！</p>
+
+</div>
+<div class="section">
+    <h3>ご利用は計画的に</h3>
+    <p>先ほど <a href="http://search.cpan.org/~arodland/DBIx-Class-0.08196/lib/DBIx/Class/ResultSet.pm#ATTRIBUTES">DBIx::Class::ResultSet &#x306E;&#x30C9;&#x30AD;&#x30E5;&#x30E1;&#x30F3;&#x30C8;</a>を読んだところ、attributes に from、というのはどこにも書いてありません。自分もどうやってこれを見つけ出したのか、すっかり忘れてしまいました。</p><p>手元で確認した限りでは VERSION 0.08124, 0.08196 ではこの通り動くようですが、将来動かなくなったりしても文句は言えなさそうです。</p><p>使用時はくれぐれもご注意くださいませ。</p><p>明日は ktat さんです！</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

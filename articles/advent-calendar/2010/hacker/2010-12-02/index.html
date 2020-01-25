@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>Jonkで作るおれおれJobQueueフレームワーク - Articles Advent Calendar 2010 Hacker</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Jonkで作るおれおれJobQueueフレームワーク</h1>
+
+        <p>こんにちわこんにちわ！YAPC::Asia 2010でベストスピーカー賞（次点）を頂いた <a href="http://nekokak.org/">nekokak</a> です。<br />
+今回は拙作 <a href="http://search.cpan.org/dist/Jonk/">Jonk</a> でオレオレJobQueueフレームワークを作るお話をします。</p>
+
+<div class="section">
+    <h3>はじめに</h3>
+    <p>なぜJonkをつくったのかについては、<a href="http://blog.nekokak.org/show?guid=zuFdE9X13xGrBpcz1pTnqQ">JobQueueManager&#x306B;&#x3064;&#x3044;&#x3066;</a>を<br />
+ご覧頂ければと思います。<br />
+簡単に言うと、やりたい事って案件によりけりだから、自分でその案件にあったJobQueueフレームワークつくれたほうがいいよね！<br />
+です。</p>
+
+</div>
+<div class="section">
+    <h3>install</h3>
+    
+    <pre class="code">$ cpanm Jonk</pre>
+<p>だけです。依存モジュールはTry::Tinyというモジュール一個だけなので、<br />
+全く問題無く入るでしょう。<br />
+依存モジュールが殆ど無いのがJonkの売りの一つです。<br />
+JobQueueを管理するためだけに、よくわからないORMがインストールされてしまったり<br />
+よく分からないモジュールがインストールされるのってやじゃないですか:)</p><p>Jonkが依存しているTry::TinyはPlackでも利用されている由緒正しきモジュールなのでご安心下さい。</p>
+
+</div>
+<div class="section">
+    <h3>setup</h3>
+    <p>JonkはJobの管理でRDBMSを利用します。<br />
+対応しているRDBMSはMySQL/PostgreSQL/SQLiteの３種類です。</p><p>Jonk.pmのPOD中のSCHEMAセクションに各RDBMS毎のschemaがあるので、それをつかってDBを作ってください。<br />
+database名などはご自由に。</p><p>以上でJonkを使う準備が整いましたので、さっそオレオレJobQueueフレームワークを作りましょう。</p>
+
+</div>
+<div class="section">
+    <h3>簡単クローラーを作る</h3>
+    <p>よくある単純なクローラーを作ってみます。<br />
+超単純なので実際に作る場合は色々考えて作ってください。</p>
+
+</div>
+<div class="section">
+    <h3>fetchしてくるurlをenqueueする</h3>
+    <p>まずfetchしてくるURLを登録するクライアントを作成します。</p>
+
+    <pre class="code lang-perl">$ cat ./client.pl
+#! perl
+use strict;
+use warnings;
+use DBI;
+use Jonk::Client;
+
+my $url = shift or die &#39;$0 &lt;url&gt;&#39;;
+my $dbh = DBI-&gt;connect(&#39;dbi:SQLite:./sample.db&#39;,&#39;&#39;,&#39;&#39;);
+my $client = Jonk::Client-&gt;new($dbh);
+$client-&gt;enqueue(&#39;MyFetcher&#39;, $url);</pre>
+<p>クライアントスクリプトとしてはこんな感じで</p>
+
+    <pre class="code">$ perl ./client.pl http://example.com/</pre>
+<p>とするだけで、<a href="http://example.com/">http://example.com/</a><br />
+をクロール対象とするJobをenqueueすることができます。</p>
+
+</div>
+<div class="section">
+    <h3>worker起動スクリプトを作成する</h3>
+    <p>workerのモデルとしては、forkモデルで複数プロセスでfetchしてくる感じです。<br />
+forkでのプロセス管理でParallel::Preforkを利用します。</p>
+
+    <pre class="code lang-perl">$ cat ./worker.pl
+use strict;
+use warnings;
+use Parallel::Prefork;
+use DBI;
+use Jonk::Worker;
+use MyFetcher;
+
+my $pm = Parallel::Prefork-&gt;new({
+    max_workers       =&gt; 10,
+    trap_signals      =&gt; {
+        TERM =&gt; &#39;TERM&#39;,
+        HUP  =&gt; &#39;TERM&#39;,
+    },
+});
+
+while ($pm-&gt;signal_received ne &#39;TERM&#39;) {
+    $pm-&gt;start and next;
+
+    my $dbh = DBI-&gt;connect(&#39;dbi:SQLite:./sample.db&#39;,&#39;&#39;,&#39;&#39;);
+    my $jonk = Jonk::Worker-&gt;new($dbh =&gt; {functions =&gt; [qw/MyFetcher/]});
+
+    while (1) {
+        if (my $job = $jonk-&gt;dequeue) {
+            MyFetcher-&gt;work($job);
+        } else {
+            sleep(3); # wait for 3 sec.
+        }
+    }
+
+    $pm-&gt;finish;
+}
+
+$pm-&gt;wait_all_children();</pre>
+<p>worker起動スクリプトとしてはこんな感じです。<br />
+これで１０子プロセスが生成され、１０人のworkerが随時Jonkからjobを取り出し<br />
+MyFetcherにJobの情報を渡して処理させます。</p><p>MyFetcherはこんなかんじでしょうか</p>
+
+    <pre class="code lang-perl">package MyFetcher;
+use strict;
+use warnings;
+use LWP::UserAgent;
+
+sub work {
+    my ($class, $job) = @_;
+    my $ua = LWP::UserAgent-&gt;new;
+    my $res = $ua-&gt;get($job-&gt;{arg});
+
+    print $$;
+    if ($res-&gt;is_success) {
+        print $res-&gt;decoded_content;  # or whatever
+    } else {
+        print $res-&gt;status_line;
+    }
+}
+
+1;</pre>
+
+</div>
+<div class="section">
+    <h3>簡単でしょ？</h3>
+    <p>今回は超簡単なサンプルスクリプトでご説明しました。<br />
+サンプルコードも<br />
+<a href="https://github.com/perl-users-jp/perl-advent-calendar/tree/master/2010/hacker/jonk_sample/">https://github.com/perl-users-jp/perl-advent-calendar/tree/master/2010/hacker/jonk_sample/</a><br />
+に置いておきましたのでどうぞ。</p><p>このようにJonkのをつかえばオレオレJobQueueフレームワークを作成することは簡単です。<br />
+これで既存のJobQueueエンジンに無理やり合わせて変なコードを書かないでよくなり、<br />
+案件に応じて柔軟なフレームワークを作成してみましょう！</p><br />
+<p>明日はkazeburoさんのターンです！</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

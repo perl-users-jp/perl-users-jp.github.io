@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>perldoc を使いこなす</title>
+    <link rel="stylesheet" href="/articles/advent-calendar/adventcal.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="/articles/advent-calendar/prettify.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+    <script type="text/javascript" src="/articles/advent-calendar/adventcal.js"></script>
+</head>
+<body>
+
+<h1>perldoc を使いこなす</h1>
+
+<div class="section">
+<p>国内滞在説が根強い miyagawa です。アメリカ合衆国国内という意味であれば、いつもそうなんですが。</p>
+
+<p>今回は意外と知られていないと思われる perldoc コマンドの使い方を紹介します。perldoc は Perl モジュールに含まれる POD ドキュメントを整形して man 表示するツールで、perldoc モジュール名のようにして実行します。</p>
+
+<pre><code>% perldoc Web::Scraper
+</code></pre>
+
+<p><code>-l</code> オプションをつけるとそのモジュールのあるパス、<code>-m</code> オプションで POD の代わりにソースコードそのものを表示することができます。</p>
+
+<pre><code>% perldoc -l Web::Scraper
+/Library/Perl/5.8.6/Web/Scraper.pm
+# .pm ファイルを vi で開く
+% vi `perldoc -l Web::Scraper`
+# .pm ファイルを PAGER で開く
+% perldoc -m Web::Scraper
+</code></pre>
+
+<p>エラーにファイル名と行数が書いてあってその部分を見たい、なんてときには Emacs や Vim などにパイプで渡して開くと便利ですね。</p>
+
+<p><code>-f</code> オプションは Perl の組み込み関数のドキュメントを表示します。</p>
+
+<pre><code>% perldoc -f index
+       index STR,SUBSTR,POSITION
+       index STR,SUBSTR
+               The index function searches for one string within another, but
+               without the wildcard-like behavior of a full regular-expression
+               pattern match.  It returns the position of the first occurrence
+               of SUBSTR in STR at or after POSITION.  If POSITION is omitted,
+               starts searching from the beginning of the string.  The return
+               value is based at 0 (or whatever you've set the $[ variable
+               to--but don't do that).  If the substring is not found, returns
+               one less than the base, ordinarily "-1".
+</code></pre>
+
+<p>よく <a href="/articles/advent-calendar/2008/06.html"><code>-X</code> ファイルテスト演算子</a> の対応を忘れてしまって困りますが、そういうときは <code>perldoc -f -X</code> とすると一覧がでてきます。</p>
+
+<p>そうそう、ターミナルのロケールに UTF-8 を設定している場合、<a href="http://use.perl.org/~jbisbee/journal/36868">perldoc と nroff では、コードに含まれるシングルクォートやダブルクォートが UTF-8 の全角文字に変換されてしまい、ペーストしても動かない</a> という問題があります。ちょっとバッドノウハウ気味ですが、perldoc に <code>-t</code> オプションをつけていつもテキスト表示するか、一時的に <var>LANG</var> 環境変数を無効化することで対応しています。</p>
+
+<pre><code>% alias perldoc
+env LANG=C perldoc
+</code></pre>
+
+<p>次は sekimura さん。</p>
+
+</div>
+</body>
+
+</html>

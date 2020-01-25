@@ -1,0 +1,98 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+    <head profile="http://purl.org/net/ns/metaprof">
+        <!-- Document Metadata -->
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta http-equiv="Content-Language" content="ja" />
+        <meta http-equiv="Content-Style-Type" content="text/css" />
+        <meta http-equiv="Content-Script-Type" content="text/javascript" />
+        <meta http-equiv="imagetoolbar" content="no" />
+
+        <!-- Atom news feed -->
+
+        <link rel="alternate" type="application/rss+xml" title="RSS feed" href="http://coderepos.org/share/log/websites/perl-users.jp?limit=100&amp;mode=stop_on_copy&amp;format=rss" />
+        <link rel="stylesheet" type="text/css" href="/css/perl-users.jp.css" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+        <link rel="icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+
+        <title>変数 - モダンなPerl入門</title>
+
+        <script src="http://www.google-analytics.com/urchin.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            _uacct = "UA-4463402-1";
+            urchinTracker();
+        </script>
+        <!-- script src="/js/codepress/codepress.js" type="text/javascript"></script -->
+    </head>
+    <body>
+        <div id="head-navigation"><a href="/">Perl-users.jp</a></div>
+<!-- content start -->
+<h1>Perlの変数</h1>
+
+<h3>Sigil</h3>
+
+<p>Perlでは「<strong>sigil</strong>」という文字で変数の種類を指定します。Sigilには4種類あり、
+それぞれの "<code>$</code>", "<code>@</code>", "<code>%</code>", "<code>*</code>"を使用して区別します。</p>
+<pre><code><span class="synIdentifier">$scalar</span>
+<span class="synIdentifier">@list</span>
+<span class="synIdentifier">%hash</span>
+*<span class="synStatement">glob</span>
+</code></pre>
+<p>なお同名の変数が存在しても、sigilが違えば別の変数と認識されます。</p>
+<pre id="Sigil"><code><span class="synComment"># 以下は全て別の変数として認識されます</span>
+<span class="synStatement">my</span> <span class="synIdentifier">$x</span>;
+<span class="synStatement">my</span> <span class="synIdentifier">@x</span>;
+<span class="synStatement">my</span> <span class="synIdentifier">%x</span>;
+</code></pre>
+<h3>スカラー（文字列・数値）</h3>
+
+<p>Perlには文字列と数値を区別して保存する方法はありません。全てスカラーという種類の変数に値を格納します。</p>
+<pre id="Scalar"><code><span class="synStatement">my</span> <span class="synIdentifier">$x</span> = <span class="synConstant">&quot;this is a text&quot;</span>;
+<span class="synStatement">my</span> <span class="synIdentifier">$y</span> = <span class="synConstant">1234</span>;
+</code></pre>
+<h3>配列</h3>
+
+<p>複数のスカラーを一つの変数に順番に格納する場合に配列を使います。</p>
+<pre id="Array"><code><span class="synStatement">my</span> <span class="synIdentifier">@x</span> = (<span class="synConstant">1</span>, <span class="synConstant">2</span>, <span class="synConstant">3</span>, <span class="synConstant">4</span>);
+<span class="synStatement">my</span> <span class="synIdentifier">@y</span> = (<span class="synConstant">&quot;this&quot;</span>, <span class="synConstant">&quot;is&quot;</span>, <span class="synConstant">&quot;a&quot;</span>, <span class="synConstant">&quot;list&quot;</span>);
+<span class="synStatement">my</span> <span class="synIdentifier">@z</span> = (<span class="synConstant">100</span>, <span class="synConstant">&quot;mixed&quot;</span>, <span class="synConstant">200</span>, <span class="synConstant">&quot;list&quot;</span>);
+
+<span class="synStatement">my</span> <span class="synIdentifier">$x</span> = <span class="synConstant">100</span>;
+<span class="synStatement">my</span> <span class="synIdentifier">$y</span> = <span class="synConstant">200</span>;
+<span class="synStatement">my</span> <span class="synIdentifier">$z</span> = <span class="synConstant">3000</span>;
+<span class="synStatement">my</span> <span class="synIdentifier">@xyz</span> = (<span class="synIdentifier">$x</span>, <span class="synIdentifier">$y</span>, <span class="synIdentifier">$z</span>);
+</code></pre>
+<p>配列のn番目の要素にアクセスするにはnを添え字として使用します。
+添え字は 1ではなく、0から開始します。</p>
+<pre id="AddChar"><code><span class="synStatement">my</span> <span class="synIdentifier">@x</span> = (<span class="synConstant">&quot;one&quot;</span>, <span class="synConstant">&quot;two&quot;</span>, <span class="synConstant">&quot;three&quot;</span>);
+<span class="synStatement">print</span> <span class="synIdentifier">$x</span>[ <span class="synConstant">0</span> ], <span class="synConstant">&quot;</span><span class="synSpecial">\n</span><span class="synConstant">&quot;</span>; <span class="synComment"># &quot;one&quot;</span>
+<span class="synStatement">print</span> <span class="synIdentifier">$x</span>[ <span class="synConstant">1</span> ], <span class="synConstant">&quot;</span><span class="synSpecial">\n</span><span class="synConstant">&quot;</span>; <span class="synComment"># &quot;two&quot;</span>
+<span class="synStatement">print</span> <span class="synIdentifier">$x</span>[ <span class="synConstant">2</span> ], <span class="synConstant">&quot;</span><span class="synSpecial">\n</span><span class="synConstant">&quot;</span>; <span class="synComment"># &quot;three&quot;</span>
+</code></pre>
+<p>配列のsigilが「<code>@</code>」から「<code>$</code>」に変化するのがわかりにくいかもしれませんが、これはどのような変数にアクセスしているのか考えるとわかりやすいかもしれません。</p>
+
+<p>配列として全体に対して操作する場合は「<code>@</code>」を使用します。</p>
+<pre id="ArrayOperation"><code><span class="synStatement">join</span>(<span class="synConstant">&quot; | &quot;</span>, <span class="synIdentifier">@list</span>);
+</code></pre>
+<p>配列の要素一個一個はスカラーですので、要素一個一個にアクセスする場合は「<code>$</code>」を使用します。</p>
+<pre id="ScalarAccess"><code><span class="synStatement">print</span> <span class="synIdentifier">$list</span>[ <span class="synConstant">0</span> ];
+</code></pre>
+<h3>ハッシュ</h3>
+
+<p>ハッシュは任意の文字列から任意のスカラーをマッピングします。</p>
+<pre id="Hash"><code><span class="synStatement">my</span> <span class="synIdentifier">%x</span> = (
+    <span class="synConstant">&quot;key1&quot;</span> =&gt; <span class="synConstant">&quot;value1&quot;</span>
+);
+</code></pre>
+<p>XXX - 時間がなかった。後で</p>
+
+<h3>リファレンス</h3>
+
+<p>XXX - 時間がなかった。後で</p>
+
+<!-- content end -->
+        <hr />
+        <p><a href="/modern_introduction_perl/">目次へ</a></p>
+        <p>Last modified: $Date$</p>
+    </body>
+</html>

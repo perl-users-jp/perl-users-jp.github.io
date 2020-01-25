@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>餃　　　　　（Acme::Chef） - Articles Advent Calendar 2011 Acme</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>餃　　　　　（Acme::Chef）</h1>
+
+        <p>さあ、このページをご覧の貴方！　本日のAcmeな記事を書いてみませんか！？<br />
+<a href="http://atnd.org/events/22670">いらっしゃい！</a></p><p>↑って書いてたんです。なぜかって？　昔某掲示板あたりで穴埋めに流行りませんでした？</p><p>面食らってこの記事をクリックした人に向けてPRのつもりだったんですけどね。だけど結局泣きながら自分で書いてますよ！　しょうがないから、これからの5日間、なんか関連のありそうなモジュールの紹介します。あ、これ書いてるのはmakamakaです。</p><p>ちなみに餃子関連でこの記事を一番最後に書いてます。「餃」に関連するモジュールなんて知らないよ！</p><br />
+<p>食べ物ってことで<a href="http://search.cpan.org/dist/Acme-Chef">Acme::Chef</a>でいいですか？　プログラミング言語<a href="http://www.dangermouse.net/esoteric/chef.html">Chef</a>を実行します。</p>
+
+    <pre class="code">use 5.014;
+use Acme::Chef;
+
+my $compiled = Acme::Chef-&gt;compile(join(&#39;&#39;,&lt;DATA&gt;));
+say $compiled-&gt;execute();
+
+
+__DATA__
+Hello World Souffle.
+
+This recipe prints the immortal words &#34;Hello world!&#34;, in a basically
+brute force way. It also makes a lot of food for one person.
+
+Ingredients.
+72 g haricot beans
+101 eggs
+108 g lard
+111 cups oil
+32 zucchinis
+119 ml water
+114 g red salmon
+100 g dijon mustard
+33 potatoes
+
+Method.
+Put potatoes into the mixing bowl. Put dijon mustard into the mixing bowl.
+Put lard into the mixing bowl. Put red salmon into the mixing bowl. Put oil
+into the mixing bowl. Put water into the mixing bowl. Put zucchinis into the
+mixing bowl. Put oil into the mixing bowl. Put lard into the mixing bowl. Put
+lard into the mixing bowl. Put eggs into the mixing bowl. Put haricot beans
+into the mixing bowl. Liquify contents of the mixing bowl. Pour contents of
+the mixing bowl into the baking dish.
+
+Serves 1.</pre>
+<p>実行すると</p><p></p>
+
+    <pre class="code">Hello world!</pre>
+<p>はい。以上です。</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

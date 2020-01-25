@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>インデックスに記事のタイトルを出してみる - Articles Advent Calendar 2010 Meta_adcal</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>インデックスに記事のタイトルを出してみる</h1>
+
+        <p>こんにちは。Acme関連でしか登場しないと思われているんじゃないかと危惧している<a href="http://twitter.com/maka2_donzoko">makamka</a>です。すいません嘘です。危惧していません。</p><p>ほんの一部ですが私もカレンダーアプリのコードをいじりましたので、そのことについて記事を書きます。</p><p>最初、各トラックのインデックスには記事へのリンクとして日付しか出ていませんでした。これだとちょっと寂しいので、記事のタイトルを出してみました。</p><p>インデックス部分を処理するコードは下記のようになっていました。</p>
+
+    <pre class="code lang-perl">my $t = Time::Piece-&gt;strptime( &#34;$p-&gt;{year}/12/01&#34;, &#39;%Y/%m/%d&#39; );
+my @entries;
+while ( $t-&gt;mday &lt;= 25 ) {
+    push @entries,
+      {
+        date   =&gt; Time::Piece-&gt;new($t),
+        exists =&gt; ( -e $root-&gt;file( $t-&gt;ymd . &#39;.txt&#39; ) )
+          &amp;&amp; ( localtime-&gt;year &gt; $p-&gt;{year}
+            || $t-&gt;yday &lt;= localtime-&gt;yday ) ? 1 : 0,
+      };
+    $t += ONE_DAY;
+}
+$vars-&gt;{entries} = \@entries;</pre>
+<p><br />
+記事がある場合にはファイルを読み込んで1行目のタイトルを取り出します。</p>
+
+    <pre class="code lang-perl">my $t = Time::Piece-&gt;strptime( &#34;$p-&gt;{year}/12/01&#34;, &#39;%Y/%m/%d&#39; );
+my @entries;
+while ( $t-&gt;mday &lt;= 25 ) {
+    my $title;
+    my $exists = ( -e $root-&gt;file( $t-&gt;ymd . &#39;.txt&#39; ) )
+          &amp;&amp; ( localtime-&gt;year &gt; $p-&gt;{year}
+            || $t-&gt;yday &lt;= localtime-&gt;yday ) ? 1 : 0;
+
+    if ( $exists ) {
+        my $fh    = $root-&gt;file( $t-&gt;ymd . &#39;.txt&#39; )-&gt;open;
+        $title = &lt;$fh&gt;; chomp($title);
+    }
+
+    push @entries,
+      {
+        date   =&gt; Time::Piece-&gt;new($t),
+        exists =&gt; $exists,,
+        title  =&gt; $title,
+      };
+    $t += ONE_DAY;
+}
+$vars-&gt;{entries} = \@entries;</pre>
+<p>これでテンプレートの方で</p>
+
+    <pre class="code lang-perl">[% entry.title %]</pre>
+<p>とやれば各記事のタイトルが出るようになりました。賑やかになりましたね！</p><p>ただ、これだとインデックスページを開くたびに毎回全部の記事を読みにいってしまいますので、キャッシュさせます。</p><p></p>
+
+    <pre class="code lang-perl">my $t = Time::Piece-&gt;strptime( &#34;$p-&gt;{year}/12/01&#34;, &#39;%Y/%m/%d&#39; );
+my $cache = Cache::MemoryCache-&gt;new( { namespace =&gt; $p-&gt;{ name } } );
+my @entries;
+while ( $t-&gt;mday &lt;= 25 ) {
+    my $title;
+    my $exists = ( -e $root-&gt;file( $t-&gt;ymd . &#39;.txt&#39; ) )
+          &amp;&amp; ( localtime-&gt;year &gt; $p-&gt;{year}
+            || $t-&gt;yday &lt;= localtime-&gt;yday ) ? 1 : 0;
+
+    if ( $exists ) {
+        my ( $cached_mtime, $cached_title ) = split/\t/, ( $cache-&gt;get( $t-&gt;mday ) || &#34;0\t&#34; );
+        my $mtime = $root-&gt;file( $t-&gt;ymd . &#39;.txt&#39; )-&gt;stat-&gt;mtime;
+        if ( not $cached_title or $mtime &gt; $cached_mtime ) {
+            my $fh    = $root-&gt;file( $t-&gt;ymd . &#39;.txt&#39; )-&gt;open;
+            $title = &lt;$fh&gt;; chomp($title);
+            $cache-&gt;set( $t-&gt;mday =&gt; &#34;$mtime\t$title&#34;, &#39;never&#39; );
+        }
+        else {
+            $title = $cached_title;
+        }
+    }
+
+    push @entries,
+      {
+        date   =&gt; Time::Piece-&gt;new($t),
+        exists =&gt; $exists,,
+        title  =&gt; $title,
+      };
+    $t += ONE_DAY;
+}
+$vars-&gt;{entries} = \@entries;</pre>
+<p>これで一度読み込んだタイトルはキャッシュされ、記事ファイルの更新時間が変更された時だけ、タイトルが更新されるようになりました。<br />
+なお、上記のコードのファイルの更新時間を取得する部分、私は</p>
+
+    <pre class="code lang-perl">$root-&gt;file( $t-&gt;ymd . &#39;.txt&#39; )-&gt;stat-&gt;[9];</pre>
+<p>と野暮ったい書き方をしていたのですが、後でgfxさんに</p>
+
+    <pre class="code lang-perl">$root-&gt;file( $t-&gt;ymd . &#39;.txt&#39; )-&gt;stat-&gt;mtime;</pre>
+<p>と、モダンなものに書き直してもらっています。</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

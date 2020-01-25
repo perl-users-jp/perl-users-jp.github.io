@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="hisaichi5518">
+        <title>業務終了後、git logとDist::Makerでさっさと帰る話。 - Articles Advent Calendar 2011 Casual</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>業務終了後、git logとDist::Makerでさっさと帰る話。</h1>
+
+        <p>こにゃにゃちはー。<a href="http://twitter.com/hisaichi5518">@hisaichi5518</a>です。</p><p>今、バイトしてる会社では日報を送らなければなりません。<br />
+本日の業務とか本日の雑感とかを送るアイツです。こういうのって結構めんどいですね。<br />
+というわけで、日報を軽く自動化しましょう！</p><p>なんかしらコードを書いたらコミットすると思います。コミットのログ=行った業務のログですね！！！！！！！<br />
+つまりgit logで全部解決するわけです。会社でsvnを使ってる場合でも、git-svn使えば解決です。</p>
+
+    <pre class="code lang-sh">$ git log --since=yesterday --author=hisaichi5518 --pretty=format:&#34;- %s&#34;</pre>
+<p>こんなの毎回打つのだるいので、.bashrcにaliasを書きます。</p>
+
+    <pre class="code">alias nippou_=&#39;git log --since=yesterday --author=hisada --pretty=format:&#34;- %s&#34;&#39;</pre>
+<p>.git/があるところでnippou_を行うと良い感じに表示されるようになりました。</p>
+
+    <pre class="code lang-sh">$ nippou_
+- hogehogeメソッドを追加 refs #11111
+- piyopiyoメソッドを追加 refs #9999
+...</pre>
+<p>これをコピペするようにすればいいですね。</p><p>今いる会社の場合、日報を送るにはメールを使います。件名とか宛先とか日付とか色々指定しなければならなくてだるいです。<br />
+そこで全部コピペで済ませるようにします。ミスが怖いのでメール送信まではやりません。<br />
+まず日報のひな形を作成します。タイトル通りDist::Makerを使います！cpanmしといてください。<br />
+# 実際のものは多少違います。</p>
+
+    <pre class="code lang-perl">package Dist::Maker::Template::Nippou;
+use Mouse;
+use MouseX::StrictConstructor;
+use utf8;
+
+extends &#39;Dist::Maker::Base&#39;;
+with    &#39;Dist::Maker::Template&#39;;
+
+sub distribution {
+    return &lt;&lt;&#39;DIST&#39;;
+&lt;: my $t = localtime() :&gt;
+@@ &lt;: $t.strftime(&#34;%Y-%m-%d&#34;) :&gt;.txt
+TO:
+hoge@example.com
+
+CC:
+fuga@example.com,piyo@example.com,hisaichi5518@example.com
+
+件名:
+【日報】hisaichi5518_&lt;: $t.year :&gt;/&lt;: $t.mon :&gt;/&lt;: $t.mday :&gt;
+
+お疲れさまです。hisaichi5518です。
+&lt;: $t.year :&gt;年&lt;: $t.mon :&gt;月&lt;: $t.mday :&gt;日の業務内容を報告いたします。
+=======================================
+[本日行った業務]
+
+=======================================
+[次回の業務スケジュール]
+
+=======================================
+[本日の雑感]
+
+=======================================
+以上です。よろしくお願いします。
+
+@@ EXTRA_FILES
+: # hook spaces to add files
+: block extra_files -&gt; { }
+DIST
+}
+
+no Mouse;
+__PACKAGE__-&gt;meta-&gt;make_immutable();
+__END__</pre>
+<p>簡単ですね！これも毎回dimなんとかって打つのだるいので、nippouコマンドを作ります。<br />
+.bashrcに書きます。</p>
+
+    <pre class="code lang-sh">function nippou() {
+    cd $HOME/nippou
+    TIME=`date +%Y-%m-%d`
+    dim new $TIME.txt Nippou
+}</pre>
+<p>nippou/ディレクトリを作って実行します！</p>
+
+    <pre class="code lang-sh">mkdir $HOME/nippou
+$ nippou
+&gt;&gt; Command::new: running with 2011-12-09.txt Nippou in nippou
+&gt;&gt; Command::new: create 2011-12-09.txt from 2011-12-09.txt
+&gt;&gt; Command::new: finished.
+$ ls
+2011-12-09.txt</pre>
+<p>ほい！Nippouテンプレートからファイルが作成されました。作業ディレクトリでnippou_を実行して表示されたものをコピー、nippouを実行して、必要な部分を追記して、メールで送ればおｋ！便利！<br />
+ついでにnippou_を使うようになると、コミットメッセージを綺麗に書こうと思えるので、結構幸せになれると思います。oopsとか無くなりますね。ハッピー！</p><p>次は、hirobanexさんです！！！！！！！！！！！！！！！！</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

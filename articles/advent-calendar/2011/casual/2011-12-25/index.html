@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="risou <risou.f@gmail.com>">
+        <title>B::Xref で Perl のソースコードを読む - Articles Advent Calendar 2011 Casual</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>B::Xref で Perl のソースコードを読む</h1>
+
+        <p>こんにちは。 <a href="http://twitter.com/#!/risou">risou</a> です。<br />
+とうとう最終日。<br />
+今回は Perl のソースコードを読む時の補助に使える B::Xref についてちょっと書きます。</p>
+
+<div class="section">
+    <h4>B::Xref とは</h4>
+    <p>Perl のソースコードにたいして、クロスリファレンスレポートを出力してくれるモジュールです。</p>
+
+</div>
+<div class="section">
+    <h4>使い方</h4>
+    <p>使い方はとっても簡単。</p>
+
+    <pre class="code lang-sh">perl -MO=Xref ***.pl</pre>
+<p>これで対象の Perl のソースコードを解析した結果を出力してくれます。<br />
+出力結果は以下のような感じになります(適当に加工しています)。</p>
+
+    <pre class="code">File /opt/local/lib/perl5/site_perl/5.12.3/JSON.pm
+  Subroutine (definitions)
+    Package JSON
+      &amp;from_json        s123
+      &amp;import           s112
+      &amp;jsonToObj        s124
+      &amp;objToJson        s133
+      &amp;to_json          s132
+  Subroutine (main)
+    Package (lexical)
+      $backend          i56, 58, 58, 397, 397, 397, 397, 397
+      @PPOnlyMethods    i37
+      @Properties       i30
+      @PublicMethods    i24
+  Subroutine JSON::from_json
+    Package (lexical)
+      $json             i162, 167, 171
+      $method           167, 167
+      $opt              i165, 166
+      %$opt             166, 167
+      %%$opt            167
+    Package (method)
+      -&gt;$method         &amp;167
+    Package main
+      @_                164, 171
+  Subroutine JSON::to_json
+    Package (lexical)
+      $json             i145, 150, 154
+      $method           150, 150
+      $opt              i148, 149
+      %$opt             149, 150
+      %%$opt            150
+    Package (method)
+      -&gt;$method         &amp;150
+    Package main
+      @_                139, 147, 154</pre>
+<p>数字は行番号ですが、前に's'がついているものは関数定義、'&'がついていうものは関数呼び出しです。また前に'i'がついているものは変数が定義されている行を示します。</p><p>これらの情報を得ることで、イケてない複雑なソースを読むときなどに役に立ちます。</p>
+
+</div>
+<div class="section">
+    <h4>-r オプション</h4>
+    <p>より本格的に使いたい場合は、 -r オプションをつけましょう。</p>
+
+    <pre class="code lang-sh">perl -MO=Xref,-r ***.pl</pre>
+<p>このオプションをつけることで出力形式が変わります。<br />
+ファイルパス、パッケージ名、関数名、行番号、定義／使用している変数名などを機械的に処理しやすく出力してくれます。</p>
+
+    <pre class="code">/opt/local/lib/perl5/site_perl/5.12.3/JSON.pm JSON::to_json   139 main            @ _                used
+/opt/local/lib/perl5/site_perl/5.12.3/JSON.pm JSON::to_json   145 (lexical)       $ json             intro
+/opt/local/lib/perl5/site_perl/5.12.3/JSON.pm JSON::to_json   147 main            @ _                used
+/opt/local/lib/perl5/site_perl/5.12.3/JSON.pm JSON::to_json   148 (lexical)       $ opt              intro
+/opt/local/lib/perl5/site_perl/5.12.3/JSON.pm JSON::to_json   149 (lexical)       $ opt              used
+/opt/local/lib/perl5/site_perl/5.12.3/JSON.pm JSON::to_json   149 (lexical)      %$ opt              used
+/opt/local/lib/perl5/site_perl/5.12.3/JSON.pm JSON::to_json   150 (lexical)       $ json             used
+/opt/local/lib/perl5/site_perl/5.12.3/JSON.pm JSON::to_json   150 (lexical)      %$ opt              used
+/opt/local/lib/perl5/site_perl/5.12.3/JSON.pm JSON::to_json   150 (lexical)     %%$ opt              used
+/opt/local/lib/perl5/site_perl/5.12.3/JSON.pm JSON::to_json   150 (lexical)       $ method           used
+/opt/local/lib/perl5/site_perl/5.12.3/JSON.pm JSON::to_json   150 (lexical)       $ method           used
+/opt/local/lib/perl5/site_perl/5.12.3/JSON.pm JSON::to_json   150 (method)      -&gt;$ method           subused
+/opt/local/lib/perl5/site_perl/5.12.3/JSON.pm JSON::to_json   154 (lexical)       $ json             used
+/opt/local/lib/perl5/site_perl/5.12.3/JSON.pm JSON::to_json   154 main            @ _                used</pre>
+<p>このオプションをつけた出力結果を解析するプログラムを書くことで、欲しい情報を欲しい形で手に入れることができます。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

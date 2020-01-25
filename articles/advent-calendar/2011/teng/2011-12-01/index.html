@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>#01 Teng is simple and lightweight ORM - Articles Advent Calendar 2011 Teng</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>#01 Teng is simple and lightweight ORM</h1>
+
+        <p>こんにちは！<br />
+今年はボクが作ってるTengというPerlのORMについて<br />
+２５日かけて紹介してみたいとおもてるんだ。</p><br />
+<p>師走ってことで仕事もあっていろいろあって忙しいから完走できるかどうか不安なんだけど<br />
+みんなに是非つかってもらいたいから頑張るんだ。</p><br />
+<p>この記事執筆時点のTengの最新バージョンは0.14_03のdev releaseとなっています。<br />
+２５日間でTengのバージョンがupされるかもしれませんがその場合は注意書きをいれますのでご注意ください。</p><br />
+<p>Tengのリポジトリは<a href="https://github.com/nekokak/p5-TengこちらですのでCPANにupされる前に試したい！">https://github.com/nekokak/p5-TengこちらですのでCPANにupされる前に試したい！</a><br />
+Tengにpatches and testsを叩きつけたい！という場合はforkしてpull requestしてくだされば<br />
+よきにmergeしますよ。</p><br />
+<p>Tengはなるべく依存モジュールが増えないようには気をつけていますが無駄な再発明をしないために<br />
+一部CPANモジュールに依存していますが、installに躓くようなモジュールはないはずですので、<br />
+サクっとinstallできるはずです。</p><br />
+<p>バックエンドのデータベースはなるべく誰でも利用できるようにSQLiteを用いてサンプルコードを展開していこうと思います。</p><br />
+<p>基本的なTengの使い方をこれから紹介していくわけですが、<br />
+わからないよドラえもんといったような場合は<br />
+nekokak at gmail.comにメールを送ってもらうか<br />
+#dbix-skinny@irc.perl.orgにjoinして話しかけてもらえればと思います。</p><br />
+<p>本編に入る前に今日はざっくり思想的な部分をかいてみます。</p><p>皆さん普段の開発ではORMつかってますか？ナマDBIですか？それともDBIx::Simpleとかちょっとしたラッパーですか？</p><p>最近はお会いする人によくDBIx::Skinnyを使ってます！って言ってもらい開発者としてとても嬉しいです。<br />
+自分的にもDBIx::Skinnyは良い塩梅でつかえてて<br />
+ナマのSQLインタフェースとクエリビルダーを使う場合のインタフェースを共通化できなかなかいいなと思っているわけです。</p><br />
+<p>ORMをdisってる人の意見でよく、どんなSQLを発行してるかわからんというのがあると思います。<br />
+でもそれってクエリビルダー+DBIの場合を考えると結局どんなクエリが生成されるか分からないわけです。<br />
+なのでORMをdisるポイントとしては微妙にずれるわけですね。<br />
+正確にはクエリビルダdisなわけです。</p><p>プロジェクトや人によっては１メソッドに１SQLだけを書き、ちょっとでもSQLが違う場合はメソッドをわけるそうな。<br />
+まぁそれを否定するつもりはないですが私はno thankyou'`,､('∀`) '`,､ちうことで使えるところではクエリビルダーもりもる使えばいいと思ってます。<br />
+いやわかるよ、ちょっとでも検索条件ちがえば別の挙動をするもんだし、orderがascかdescで取得情報が全然かわってくるので分けたいand分けるというのも。でも、私はno than(ry</p><p>それはいいとして、SQLをメソッド単位で細かくメソッドに分けた開発をする場合でもTengなら全く問題ないですね。<br />
+Tengにはsearch_by_sqlというナマSQLを受け付けるインタフェースがあるのでこのような状況でも問題なく利用することが可能なのです。</p><br />
+<p>Tengは<br />
+insert, update, deleteはよくあるORM風に簡単なメソッド呼び出しでクエリを自動生成してくれて実行<br />
+selectは単純なクエリに関しては簡単なメソッド呼び出し一発でクエリ生成して実行<br />
+複雑なselectは自分でもりもりSQL書いてsearch_by_sqlもしくはsearch_namedメソッドを利用して実行することができます。</p><br />
+<p>Tengはおそらくあなたが今まで使ってきたORMと比べると貧弱にかんじるかもしれません。<br />
+Teng自身がschemaのmigrationをしてくれませんし、強力なリレーション設定のサポートもありません。<br />
+しかしTengは簡単なことを簡単に難しことも簡単に取り扱う柔軟性の高いORMだと思います。</p><br />
+<p>Tengがみなさんの開発の一助に慣れれば良いなと心から願います。</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

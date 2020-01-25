@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="syohex">
+        <title>Acme::Jiro - ラーメン二郎ジェネレータ in Perl - Articles Advent Calendar 2011 Acme</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Acme::Jiro - ラーメン二郎ジェネレータ in Perl</h1>
+
+        <p>こんにちわ. けいおんの映画を未だ見れていない <a href="http://twitter.com/#!/syohex">syohex</a>です. 今週の出張が終わったらぜひ映画館に行きたいですね.</p>
+
+<div class="section">
+    <h4>はじめに</h4>
+    <p><a href="https://github.com/syohex/p5-Acme-Jiro">Acme::Jiro</a>は <a href="http://www.cl.ecei.tohoku.ac.jp/~yuki.h/jiro/"></a>の Perl版です. <a href="http://ja.wikipedia.org/wiki/%E3%83%A9%E3%83%BC%E3%83%A1%E3%83%B3%E4%BA%8C%E9%83%8E">&#x30E9;&#x30FC;&#x30E1;&#x30F3;&#x4E8C;&#x90CE;</a>というお店はメニューを頼むときに呪文を唱えないといけないそうです. もたもたしていると怒られるとかなんとかって話も出ているんで, しっかり準備していきたいですよね.</p><p></p>
+
+</div>
+<div class="section">
+    <h4>使い方</h4>
+    <p>各パラメータをコンストラクタに与えるだけです. コンストラクタのキーは '麺', '固さ', '野菜', '背脂', 'タレ', 'にんにく'です.</p>
+
+    <pre class="code lang-perl">#!perl
+use strict;
+use warnings;
+
+use utf8;
+use Acme::Jiro;
+
+binmode STDOUT, &#34;:utf8&#34;;
+
+my $jiro = Acme::Jiro-&gt;new(
+    &#39;野菜&#39;     =&gt; &#39;極めて多め&#39;,
+    &#39;背脂&#39;     =&gt; &#39;普通&#39;,
+    &#39;タレ&#39;     =&gt; &#39;多め&#39;,
+    &#39;にんにく&#39; =&gt; &#39;多め&#39;,
+);
+
+print $jiro-&gt;magic, &#34;\n&#34;; # カラメニンニクマシチョモランマ</pre>
+<p>私を含めそもそもどのパラメータにどんな値をいいかわからないので, そういう方のために promptメソッドがあります. こうすると各パラメータについて選択肢が表示されます.</p>
+
+    <pre class="code lang-perl">#!perl
+use strict;
+use warnings;
+
+use Acme::Jiro;
+
+binmode STDOUT, &#34;:utf8&#34;;
+
+my $jiro = Acme::Jiro-&gt;new();
+$jiro-&gt;prompt;
+print $jiro-&gt;magic, &#34;\n&#34;;</pre>
+<p><br />
+以下のようなプログラムを書いて, 呪文をみんなで当て合いっこするのも楽しいかもしれません.</p>
+
+    <pre class="code lang-perl">#!perl
+use strict;
+use warnings;
+
+use utf8;
+use Acme::Jiro;
+use List::Util qw(shuffle);
+
+binmode STDOUT, &#34;:utf8&#34;;
+
+my @params = qw/麺 固さ 野菜 背脂 タレ にんにく/;
+for my $i (1..100) {
+    my %parameter;
+    for my $key (@params) {
+        my @volumes = Acme::Jiro-&gt;get_valid_param($key);
+        $parameter{$key} = (shuffle @volumes)[0];
+    }
+
+    print &#34; $_:$parameter{$_}&#34; for @params;
+    print &#34;\n&#34;;
+    sleep 2;
+
+    my $jiro = Acme::Jiro-&gt;new(%parameter);
+    print &#34; ==&gt; &#34;, $jiro-&gt;magic, &#34;\n\n&#34;;
+}</pre>
+
+</div>
+<div class="section">
+    <h4>おわりに</h4>
+    <p>Acme::Jiroというモジュールを紹介しました. こういうのを書いているととても「ラーメン食いてぇ」ってなってきますね.</p><p>さぁ, 明日は誰が書いてくれるんでしょうか ?</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

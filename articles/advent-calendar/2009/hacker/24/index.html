@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Win32::APIでPerlの中に直接機械語を書いてるときのデバッグ - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Win32::APIでPerlの中に直接機械語を書いてるときのデバッグ - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Win32::APIでPerlの中に直接機械語を書いてるときのデバッグ<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/hacker/24.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/hacker/24.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>はせがわようすけです。こんにちは。今日みたいな日だとリア充揃いのPerl geeksは人手不足なようで、ほとんどPerlを使ったことのない私まで駆り出されましたよ。</p>
+</div>
+<div class="section">
+<h3>まえおき</h3>
+
+<p>というわけで、Perlで機械語を埋め込む技を応用すると、ActivePerl で stdcall な通常のDLL関数だけでなく、MSVCRT.DLL に含まれる sprintf のような可変長引数の cdecl な呼び出し規約の関数も利用できます。</p>
+
+<pre>
+#!/c/perl/bin/perl
+use strict;
+use warnings;
+use Win32::API;
+
+#include <windows.h>
+my $EnumWindows = Win32::API-&gt;new( "user32", "EnumWindows", "NN", "N" );
+my $GetProcAddress = Win32::API-&gt;new( "kernel32", "GetProcAddress", "NP", "N" );
+my $LoadLibrary = Win32::API-&gt;new( "kernel32", "LoadLibraryA", "P", "N" );
+my $FreeLibrary = Win32::API-&gt;new( "kernel32", "FreeLibrary", "N" );
+
+sub my_sprintf{
+    if( @_ &lt; 1 ){
+        die "argument error";
+    }
+
+    my $hDll = $LoadLibrary-&gt;Call( "msvcrt" );
+    my $sprintf = pack( 'L', $GetProcAddress-&gt;Call( $hDll, "sprintf" ) );   # sprintf is cdecl
+    my $buf = "\0" x 1024;
+    my $x86 ="";
+    my $i = @_;
+
+    while( $i-- ){
+        $x86 .= "\x68" . $_[ $i ];      # push args
+    }
+    $x86 .= "\x68" . pack( 'P', $buf ); # push $buf
+    my $n = ( @_ + 1 ) * 4;
+    $x86 .= ""
+.       "\xb8" . $sprintf               # mov eax, func
+.       "\xff\xd0"                      # call eax
+.       "\x81\xC4"                      # add esp, @_ * 4
+.       pack( 'L', $n )
+.       "\x33\xc0"                      # xor eax, eax
+.       "\xc2\x08\x00"                  # ret
+;
+
+    $EnumWindows-&gt;Call( unpack( 'L', pack( 'P', $x86 ) ), 0 );
+    $FreeLibrary-&gt;Call( $hDll );
+    $buf =~s/\0.*$//;
+    return $buf;
+}
+
+my $s = my_sprintf( pack( 'P', "%s, %s" ), pack( 'P', "Hello" ), pack( 'P', "World" ) );
+print $s;
+
+</pre>
+
+<p>実行結果</p>
+<pre>
+C:\&gt;xmax.pl
+Hello, World
+</pre>
+
+<p>このように、用意しておいたバイト配列を<a href="http://msdn.microsoft.com/en-us/library/ms633497%28VS.85%29.aspx">EnumWindows</a> APIのコールバック関数として渡してやることで、任意の機械語を簡単に実行させることができます。</p>
+<p>ただ、熟練したバイナリアンでなければ機械語を一発で動かすことは難しく、たいていの場合は途中でプログラムが強制終了させられてしまいます。</p>
+
+<p>そこで、もう少し効率的にデバッグする方法を紹介します。</p>
+</div>
+<div class="section">
+<h3>printf デバッグ</h3>
+<p>まず、もっとも簡単な方法として、みんな大好きな printf デバッグで機械語を確認することにしましょう。</p>
+
+<pre>
+    $x86 .= ""
+.       "\xb8" . $sprintf               # mov eax, func
+.       "\xff\xd0"                      # call eax
+.       "\x81\xC4"                      # add esp, @_ * 4
+.       pack( 'L', $n )
+.       "\x33\xc0"                      # xor eax, eax
+.       "\xc2\x08\x00"                  # ret
+;
+    print unpack( 'H2' x length( $x86 ), $x86 );
+    print "\n";
+</pre>
+
+<p>実行結果</p>
+<pre>
+C:\&gt;xmax.pl
+68d4764d0268b4764d026894764d02685c8b4c02b831bd9676ffd081c41000000033c0c20800
+Hello,World
+</pre>
+
+<p>ごらんのとおり、実行される機械語が画面に表示されますので、どこで機械語の指定を間違えたのか一目瞭然になります。</p>
+<p>超画期的です。</p>
+</div>
+<div class="section">
+<h3>デバッガでアタッチ</h3>
+<p>printfによる目視デバッグでもあまり困らないのですが、あまりやりすぎると</p>
+<p><a href="http://d.hatena.ne.jp/hyoshiok/20090322#p1">よしおかさんに怒られちゃう</a>ので、きちんとデバッガを使うようにしましょう。使うデバッガ環境はもちろん Visual Studio です。</p>
+
+<p>Visual Studioは、「C:\Windows\System32\vsjitdebugger.exe -p プロセスID 」とすることで、任意のプロセスをデバッガにアタッチすることができますので、Perlのなかから自身のプロセスIDを指定してこれを呼び出すことで、うまくデバッガにアタッチできそうです。</p>
+<p>指定してこれを呼び出すことで、うまくデバッガにアタッチできそうです。</p>
+<p>ただし、Perlのsystem関数を使ってそのままvsjitdebugger.exeを呼び出したのでは、デバッガ終了までperl側の処理がブロックされてしまい、デバッガが立ち上がっても継続してデバッグすることができません。</p>
+<p>そこで、start コマンド経由で vsjitdebugger.exe を呼び出すことにします。</p>
+
+<pre>
+system("start", "vsjitdebugger.exe", "-p", "$$" );
+</pre>
+
+<p>こうすることで、startコマンドは vsjitdebugger.exe を起動すると速やかに終了し、Perl側では system は制御を戻すので、デバッガと並行してコードの実行を進めることができます。</p>
+
+<p>ただし、このままではデバッガが起動しデバッグ対象プロセス(ActivePerl)にアタッチしてデバッグの準備ができるのを待つことなく、Perl側はどんどんコードの実行を進めてしまいますので、今度はデバッガの準備ができるまでPerl側のコードの実行を停止させる必要があります。</p>
+<p>これには、Windows APIの<a href="http://msdn.microsoft.com/en-us/library/ms680345%28VS.85%29.aspx">IsDebuggerPresent</a>関数を使います。</p>
+
+<pre>
+while( $IsDebuggerPresent-&gt;Call() == 0 ){
+    sleep( 1 );
+};
+</pre>
+
+<p>これで、デバッガがきちんとアタッチしていない間は有意なコードの実行を停止させることができます。</p>
+
+
+<p>つぎに、x86バイナリコードにブレークポイントを置くわけですが、これは単純に int 3 を実行することでデバッガにブレークを通知できます。</p>
+
+<pre>
+my $x86 = "\xCC.....";
+</pre>
+
+<p>CPUがこの0xCCという機械語を実行すると、デバッガ側にはブレークポイントとして通知され、以降のコードを自由にデバッガ上で動かすことができます。</p>
+
+<p>というわけで、さきの Hello, World の機械語部分をデバッガ上で実行するよう書き換えたコードを以下に示します。</p>
+
+<pre>
+#!/c/perl/bin/perl
+use strict;
+use warnings;
+use Win32::API;
+
+#include <windows.h>
+my $EnumWindows = Win32::API-&gt;new( "user32", "EnumWindows", "NN", "N" );
+my $GetProcAddress = Win32::API-&gt;new( "kernel32", "GetProcAddress", "NP", "N" );
+my $LoadLibrary = Win32::API-&gt;new( "kernel32", "LoadLibraryA", "P", "N" );
+my $FreeLibrary = Win32::API-&gt;new( "kernel32", "FreeLibrary", "N" );
+my $IsDebuggerPresent = Win32::API-&gt;new( "kernel32", "IsDebuggerPresent", "", "N" );
+
+sub my_sprintf{
+    if( @_ &lt; 1 ){
+        die "argument error";
+    }
+
+    my $hDll = $LoadLibrary-&gt;Call( "msvcrt" );
+    my $sprintf = pack( 'L', $GetProcAddress-&gt;Call( $hDll, "sprintf" ) );   # sprintf is cdecl
+    my $buf = "\0" x 1024;
+    my $x86 ="";
+    my $i = @_;
+
+    $x86 = "\xCC";                      # int 3
+
+    while( $i-- ){
+        $x86 .= "\x68" . $_[ $i ];      # push args
+    }
+    $x86 .= "\x68" . pack( 'P', $buf ); # push $buf
+    my $n = ( @_ + 1 ) * 4;
+    $x86 .= ""
+.       "\xb8" . $sprintf               # mov eax, func
+.       "\xff\xd0"                      # call eax
+.       "\x81\xC4"                      # add esp, @_ * 4
+.       pack( 'L', $n )
+.       "\x33\xc0"                      # xor eax, eax
+.       "\xc2\x08\x00"                  # ret
+;
+
+    $EnumWindows-&gt;Call( unpack( 'L', pack( 'P', $x86 ) ), 0 );
+    $FreeLibrary-&gt;Call( $hDll );
+    $buf =~s/\0.*$//;
+    return $buf;
+}
+
+system("start", "vsjitdebugger.exe", "-p", "$$" );
+while( $IsDebuggerPresent-&gt;Call() == 0 ){
+    sleep( 1 );
+};
+
+my $s = my_sprintf( pack( 'P', "%s,%s" ), pack( 'P', "Hello" ), pack( 'P', "World" ) );
+print $s;
+</pre>
+</div>
+<div class="section">
+<h3>まとめ</h3>
+<ul>
+<li>Perlに機械語埋め込むときでもデバッガ使ったほうが怒られないで済むよ！</li>
+<li>WindowsならVisual Studio最強ですよ!</li>
+<li>int 3は0xCC。バッドノウハウ万歳!</li>
+</ul>
+
+<p>明日の最後のエントリーは・・・Yappoさんが締めくくってくれる予定？どんなネタか今から楽しみです！</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/hacker/24.html">Thu, 24 Dec 2009 10:13:01 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

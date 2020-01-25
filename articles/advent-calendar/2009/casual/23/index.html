@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Mojolicious Plackup! - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Mojolicious Plackup! - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Mojolicious Plackup!<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/casual/23.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/casual/23.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>Hi, perl-users.</p>
+
+<p>The past few days, Although I couldn't decide what to write day 23, fortunately, <a href="http://twitter.com/kraih/status/6722965569">sri</a> added native PSGI support to Mojolicious at 12/16/2009.  I decided to write this article of this feature.</p>
+
+
+<p>So, this year, the most interesting thing in YAPC::Asia 2009 is PSGI/Plack from Miyagawa-san. PSGI is Perl Web Server Gateway Interface Specfication, and Plack is PSGI reference implementation and utilities(I think you know it). For details, go to <a href="http://plcackperl.org/">plackperl.org</a> and Googling around it if you want.</p>
+
+
+<p>First of all, You install Mojo and Plack. I think it would be better to use local::lib. As for local::lib, Please refer to <a href="/articles/advent-calendar/2009/casual/02.html">day 2</a> by otsune-san. Mojo installation is very easy. Doesn't have any dependency other than Perl 5.8.1. </p>
+
+<p>A word of caution: Do not use Mojo(0.999914) on CPAN in this article. You should install Mojo(0.999915) from <a href="http://github.com/kraih/mojo">github</a>. Only github includes PSGI feature. Not includes it on CPAN now. Sorry, I don't expalin installation process in detail here.</p>
+
+
+<p>Once those installs are done, generate a mojolicious application. Mojo has a helper script that creates all the working files that you need get started in the directory.</p>
+<pre>
+$ ./extlib/bin/mojolicious generate app Centipede
+</pre>
+<pre>
+$ ls -al
+drwxr-xr-x  8 kaz kaz 4096 2009-12-20 22:02 centipede/ # Mojo Application
+drwxr-xr-x  5 kaz kaz 4096 2009-12-20 21:45 extlib/    # libraries
+</pre>
+
+
+<p>Once you have generated your application, prepare for the ".psgi". Interestingly, Mojo has a ".psgi" generator.</p>
+<pre>
+$ mv centipede/script/
+$ ./centipede generate psgi
+</pre>
+<p>centipede.psgi</p>
+<pre>
+use FindBin;
+
+use lib "$FindBin::Bin/lib";
+use lib "$FindBin::Bin/../lib";
+
+use Mojo::Server::PSGI;
+
+my $psgi = Mojo::Server::PSGI-&gt;new(app_class =&gt; 'Centipede');
+my $app  = sub { $psgi-&gt;run(@_) };
+</pre>
+
+
+<p>Let's plackup!</p>
+<pre>
+$ perl -I./centipede/lib ./extlib/bin/plackup -app ./centipede/centipede.psgi
+</pre>
+<p>Now we have our standalone server running on port 5000 so browsing:<br/> <a href="http://localhost:5000/">http://localhost:5000</a><br/> And will see a welcome message from Mojolicious.</p>
+
+
+<p>Specifically, I think Mojo::Server::PSGI is NOT server, enables Mojo applications to adapt PSGI protocole like CGI::PSGI.</p>
+<pre>
+
+ .----------------.
+ |   Mojolicious  |
+ '----------------'
+         |
+    .---------.
+    |   Mojo  |
+    '---------'
+         |
+.----------------------.
+|  Mojo::Server::PSGI  |
+'----------------------'
+         |
+    .---------.
+    |  Plack  |
+    '---------'
+         |
+    .----------.
+    |  Server  |
+    '----------'
+
+</pre>
+
+
+<p>Mojo already supports most server environment. Although I think PSGI might not be direct benefit immediately,  It is going to get a fast server and useful middlewares near future. I'm looking forward to it.</p>
+
+
+<p>My English Sux. FIXME.</p>
+<p>Next day 24 is aomushi510-san. Don't miss it!</p>
+
+<p>#mojoの人にも読んでもらえらたらなーと思い英語が得意なわけでもないのに英語で書いてみました。英語読みたくない方や間違いだらけで恥ずかしくて読んでいられないというかたはブログに日本語で書くつもりなのでそちらをどうぞ:)</p>
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/casual/23.html">Wed, 23 Dec 2009 14:57:01 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

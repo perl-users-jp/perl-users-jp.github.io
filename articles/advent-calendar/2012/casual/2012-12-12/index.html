@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="hatak <id.hatak@gmail.com>">
+        <title>Resque で学ぶジョブキューイング - Articles Advent Calendar 2012 Casual</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Resque で学ぶジョブキューイング</h1>
+
+        <p>こんにちは。hatak (<a href="http://twitter.com/hisashi">@hisashi</a>) です。</p><p>Perl でジョブキューというと <a href="http://search.cpan.org/perldoc?TheSchwartz">TheSchwartz</a> や <a href="http://search.cpan.org/perldoc?Qudo">Qudo</a> などの名前が挙がるかと思いますが、今回はバックエンドに <a href="http://redis.io/">Redis</a> を利用したジョブキュー "<a href="http://search.cpan.org/perldoc?Resque">Resque</a>" を紹介します。<br />
+Resque はバックグラウンドジョブを処理するためのライブラリで、Github を始め大規模なサイトでも利用されています。もともとは <a href="https://github.com/defunkt/resque">Ruby&#x30E9;&#x30A4;&#x30D6;&#x30E9;&#x30EA;</a>ですが、<a href="https://github.com/defunkt/resque/wiki/Alternate-Implementations">Ruby &#x4EE5;&#x5916;&#x306E;&#x69D8;&#x3005;&#x306A;&#x8A00;&#x8A9E;&#x3067;&#x3082;&#x5B9F;&#x88C5;&#x3055;&#x308C;&#x3066;&#x3044;&#x307E;&#x3059;</a>。今回紹介するのはその Perl 実装のモジュールです。</p>
+
+<div class="section">
+    <h3>試してみる</h3>
+    <p>クライアントで入力した文字列をワーカーが表示するだけのシンプルなプログラムを作ってみます。<br />
+まずは Redis を利用できるようにしておく必要があります。今回はローカルの Redis を利用しますが、異なるホストで動作している場合は適宜ホスト名やポート番号を変更してください。</p>
+
+<div class="section">
+    <h5>client.pl</h5>
+    
+    <pre class="code lang-perl">#!/usr/bin/env perl
+use strict;
+use warnings;
+
+use Resque;
+use Log::Minimal;
+
+my $resque = Resque-&gt;new(redis =&gt; &#39;127.0.0.1:6379&#39;);
+
+print &#39;input text: &#39;;
+while (my $text = &lt;STDIN&gt;){
+    chomp $text;
+    if ($text) {    # if defined
+        $resque-&gt;push(&#39;echo&#39; =&gt; {
+                class =&gt; &#39;My::Echo&#39;,
+                args =&gt; [ $text ],
+            });
+        infof(&#39;enqueue: %s&#39;, $text);
+    }
+    print &#39;input text: &#39;;
+}</pre>
+
+</div>
+<div class="section">
+    <h5>worker.pl</h5>
+    
+    <pre class="code lang-perl">#!/usr/bin/env perl
+use strict;
+use warnings;
+
+use Resque;
+use Log::Minimal;
+
+my $worker = Resque-&gt;new(redis =&gt; &#39;127.0.0.1:6379&#39;)-&gt;worker;
+$worker-&gt;add_queue(&#39;echo&#39;);
+infof(&#39;### start worker&#39;);
+$worker-&gt;work;
+infof(&#39;### stop worker&#39;);</pre>
+<p>また、ワーカーから実行する処理をモジュールとして作成しておきます。実行時には perform メソッドが呼び出されるので、ここに処理を記述します。</p>
+
+</div>
+<div class="section">
+    <h5>lib/MyTask/Echo.pm</h5>
+    
+    <pre class="code lang-perl">package MyTask::Echo;
+use strict;
+use v5.10;
+
+use Log::Minimal;
+
+sub perform {
+    my $job = shift;
+    infof(&#39;dequeue: %s&#39;, ddf($job-&gt;args));
+    say $job-&gt;args-&gt;[0];
+}
+
+1;</pre>
+<p>今回のサンプルで利用している依存モジュールもインストールしておきます。</p>
+
+<ul>
+<li><a href="http://search.cpan.org/perldoc?Resque">Resque</a></li>
+<li><a href="http://search.cpan.org/perldoc?Log%3A%3AMinimal">Log::Minimal</a></li>
+</ul><p>さて、実行してみましょう。</p><p>ターミナルを複数用意し、一方で worker.pl を実行します。</p>
+
+<pre>$ ./worker.pl
+2012-12-12T12:12:02 [INFO] ### start worker at ./worker.pl line 10
+</pre><p>そして、もう一方では client.pl を実行し、何かテキストを入力します。</p>
+
+<pre>$ ./client.pl
+input text: hello
+2012-12-12T12:12:07 [INFO] enqueue: hello at ./client.pl line 18
+</pre><p>すると、入力したテキストが worker.pl を実行していたターミナルに表示されます。</p>
+
+<pre>$ ./worker.pl
+2012-12-12T12:12:02 [INFO] ### start worker at ./worker.pl line 10
+2012-12-12T12:12:12 [INFO] dequeue: ['hello'] at /Users/hatak/work/jq/lib/MyTask/Echo.pm line 9
+hello
+</pre><p>worker.pl を複数立ち上げた場合、クライアントから送信したテキストはいずれかのワーカープロセスで処理され表示されます。もちろん、複数のクライアントでも動作します。簡単ですね。</p>
+
+</div>
+</div>
+<div class="section">
+    <h3>仕組みを見てみる</h3>
+    <p>Resque を利用したジョブキューの処理構成を図に示します。</p>
+
+    <pre class="code lang-aa">+----------+  Resque   +-------+  Resque   +----------+
+| client 1 | --------&gt; |       | &lt;-------- | worker 1 |
++----------+           |       |           +----------+
+                       | Redis |
++----------+  Resque   |       |  Resque   +----------+
+| client 2 | --------&gt; |       | &lt;-------- | worker 2 |
++----------+           +-------+           +----------+</pre>
+<p>クライアントからジョブが Redis のキューに格納されます。これを、それぞれのワーカープロセスが読み取り、ジョブを処理をする形です。<br />
+サンプルコードには時刻が分かるようにログ出力を入れましたが、クライアントからのジョブが実行されるまで数秒遅延することがわかります。</p>
+
+    <pre class="code lang-perl">$resque-&gt;push(&#39;echo&#39; =&gt; {
+        class =&gt; &#39;MyTask::Echo&#39;,
+        args =&gt; [ $text ],
+    });</pre>
+<p>今回の例では、"echo" という名前のキューに、実行するクラス名 "MyTask::Echo" が引数と共にキューイングされます。<br />
+ワーカーは指定されたキューをチェックし、ジョブが入っていれば取り出して指定されたクラスを require し、perform メソッドを実行します。<br />
+複数のワーカープロセスが存在している状態でも、Redis のアトミック操作を利用しているため二重には処理されません。</p><p>Redis の中身をのぞいてみましょう。<br />
+redis-cli でのぞいてみると、次のようなキーがあることがわかります。</p>
+
+<pre>127.0.0.1:6379> keys "resque:*"
+ 1) "resque:worker:sakura.local:25712:echo:started"
+ 2) "resque:worker:sakura.local:25888:echo:started"
+ 3) "resque:stat:processed:sakura.local:25888:echo"
+ 4) "resque:queues"
+ 5) "resque:failed"
+ 6) "resque:queue:echo"
+ 7) "resque:stat:failed"
+ 8) "resque:stat:processed:sakura.local:25712:echo"
+ 9) "resque:stat:processed"
+10) "resque:workers"
+11) "resque:stat:failed:sakura.local:25888:echo"
+</pre><p>格納されている Resque に関連するデータは全てテキストデータです。キュー本体も JSON でシリアライズされたジョブが リスト型で格納されているだけですので、簡単にチェックすることができます。</p>
+
+<div class="section">
+    <h5>共通</h5>
+    <p><dl><br />
+<dt>resque:queues</dt><dd>[set型] キューのリスト</dd><br />
+<dt>resque:workers</dt><dd>[set型] ワーカープロセスのリスト</dd><br />
+<dt>resque:failed</dt><dd>[list型] 失敗したジョブの結果 (JSON) のリスト</dd><br />
+<dt>resque:stat:processed</dt><dd>[string型] 取り出した (dequeue) ジョブの総数</dd><br />
+<dt>resque:stat:failed</dt><dd>[string型] 処理に失敗したジョブの総数</dd><br />
+</dl></p>
+
+</div>
+<div class="section">
+    <h5>キュー</h5>
+    <p><dl><br />
+<dt>resque:queue:<キュー名></dt><dd>[list型] ジョブ (JSON) のリストが格納されているキュー本体、</dd><br />
+</dl></p>
+
+</div>
+<div class="section">
+    <h5>ワーカープロセス</h5>
+    <p><dl><br />
+<dt>resque:worker:<ホスト名>:<ポート番号>:<キュー名>:started</dt><dd>[string型] ワーカープロセスの開始時刻</dd><br />
+<dt>resque:stat:processed:<ホスト名>:<ポート番号>:<キュー名></dt><dd>[string型] ワーカーが取り出した (dequeue) ジョブの数</dd><br />
+<dt>resque:stat:failed:<ホスト名>:<ポート番号>:<キュー名></dt><dd>[string型] ワーカーが処理に失敗したジョブの数</dd><br />
+</dl></p><p>ワーカーは "resque:queue:<キュー名>" からジョブを取り出し、処理します。processed のカウントは取り出した時点で処理の成否にかかわらずインクリメントされます。<br />
+処理が失敗した場合は "resque:failed" のリストに JSON シリアライズされて追加され、failed のカウントがインクリメントされます。</p><p>これらのデータは、キューやワーカーの状態によってキーの存在自体が変化します。<br />
+例えば、ワーカーごとのキーはワーカープロセスを終了すると削除されるので、ワーカーを止めたりして動きを見てみると面白いです。</p>
+
+</div>
+</div>
+<div class="section">
+    <h3>まとめ</h3>
+    <p>Redis を利用したジョブキュー "Resque" を紹介しました。バックエンドに採用されている Redis のデータも簡単に見られるので、ジョブキューの動きを学ぶこともできます。<br />
+ちなみに、<a href="https://gist.github.com/225398">&#x30B7;&#x30F3;&#x30D7;&#x30EB;&#x306B;&#x5B9F;&#x88C5;&#x3055;&#x308C;&#x305F;&#x4F8B;</a>もあります。基本的な動きはこちらでも同じです。</p><p>ジョブキューもデータストアも、特性をうまく活かして使い分けたいと思いました。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

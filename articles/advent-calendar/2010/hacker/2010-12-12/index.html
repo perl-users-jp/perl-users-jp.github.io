@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>Sub::Argsによる高速簡易バリデーション - Articles Advent Calendar 2010 Hacker</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Sub::Argsによる高速簡易バリデーション</h1>
+
+        <p>再登場の<a href="http://twitter.com/#!/nekokak" target="_blank">nekokak</a>です。</p><p>みなさん、method引数のチェックってやってますか！<br />
+引数のバリデーションをやりたければCPANに色々転がっています。</p><p>一番有名なのは<a href="http://search.cpan.org/dist/Params-Validate/" target="_blank">Params::Validate</a>ですね。<br />
+<a href="http://search.cpan.org/dist/Params-Validate/" target="_blank">Params::Validate</a>を使えば<br />
+引数の有無だけでなく型チェックまで行えたりさらにdefaultの値を設定したり色々便利な昨日が満載てんこ盛りです。</p><p>ただ遅い！遅すぎます！日が暮れます！</p><p>どういう単位でmethodの引数チェックを行うかは人それぞれプロジェクトそれぞれだと思いますが、<br />
+固くプログラムを書いておりmethodの引数チェックをカッチりやっている場合、<br />
+loopでそのメソッドを呼び出しまくるとその分<a href="http://search.cpan.org/dist/Params-Validate/" target="_blank">Params::Validate</a>がよばれるので<br />
+パフォーマンス的によろしくありません。</p><p>とても残念な感じです。</p><p>そこで日本のPerlHacker達が立ち上がりました！</p><p><a href="http://search.cpan.org/dist/Smart-Args/" target="_blank">Smart::Args</a><br />
+<a href="http://search.cpan.org/dist/Data-Validator/" target="_blank">Data::Validator</a></p><p>これらのモジュールは遅すぎる<a href="http://search.cpan.org/dist/Params-Validate/" target="_blank">Params::Validate</a>の代替えとして<br />
+検討するとよいでしょう。</p><br />
+<p><a href="http://search.cpan.org/dist/Smart-Args/" target="_blank">Smart::Args</a><br />
+<a href="http://search.cpan.org/dist/Data-Validator/" target="_blank">Data::Validator</a></p><p>はどちらも素晴らしいモジュールなのですが、ふとおもったのが、型チェックってそんなに必要か？<br />
+ということでした。</p><p>その引数がIntかどうかStrかどうかなんて気にしてたらPerlじゃねぇ！と。<br />
+（もちろん型を気にすべきケースはあります。極論言ってます）</p><br />
+<p>そこで作ったのが<br />
+<a href="http://search.cpan.org/dist/Sub-Args/" target="_blank">Sub::Args</a><br />
+です。</p><p><a href="http://search.cpan.org/dist/Sub-Args/" target="_blank">Sub::Args</a>では型チェックなんてPerlではどうでもいいことは一切やりません。(極論です)<br />
+<a href="http://search.cpan.org/dist/Sub-Args/" target="_blank">Sub::Args</a>では<br />
+バリデーション（必須項目｜オプショナル項目のチェック）かけても高速でチェック。<br />
+型の指定はいらない。<br />
+hashrefで渡した引数をhashrefで受け取るようにし、初心者が混乱するようなマジカルな事をしない。</p><p>というのを前提でつくりました。</p><p>こんな感じでつかいます。</p>
+
+    <pre class="code">package Proj::Api::User;
+use Sub::Args;
+
+sub new { bless {}, +shift }
+
+sub lookup {
+    my $self = shift;
+    my $args = args({user_id =&gt; 1, name =&gt; 0}, @_);
+}
+
+package main;
+my $user = Proj::Api::User-&gt;new;
+$user-&gt;lookup({user_id =&gt; 1});</pre>
+<p>argsメソッドで受け取る引数の情報を定義します。</p><br />
+<p>よくmethodの引数にhashrefを渡すことがおおいですが、<br />
+hashのキーにはuse strictは有効じゃないので、<br />
+このようなチェックを行うのはありだとおもっています。<br />
+まぁ、コレでも存在しないキーにアクセスしてしまうbugはなくなりませんが。</p><p>また、methodの冒頭に書くことで、このメソッドが必要としている引数を簡単に読み取ることができ、<br />
+コードの可読性も上がると思っています。</p><br />
+<p>型チェックが要らないけど必須チェックはしたいんだよなーってケースにでもお使い頂ければこれ幸いです。</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

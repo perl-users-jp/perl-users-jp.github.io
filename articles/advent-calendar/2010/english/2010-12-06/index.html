@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>Useful modules for writing tool scripts (opts, Config::Pit and Script::State) - Articles Advent Calendar 2010 English</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Useful modules for writing tool scripts (opts, Config::Pit and Script::State)</h1>
+
+        
+<div class="section">
+    <h3>use opts;</h3>
+    <p><code>opts</code> is a command-line options parser written by Fushihara, Kan.</p><p>Getopt::Long is not bad but opts is very simple and feeling nice.</p>
+
+    <pre class="code lang-perl">use opts;
+
+opts (
+	my $force  =&gt; &#39;Bool&#39;,
+	my $foobar =&gt; { isa =&gt; &#39;Str&#39;, default =&gt; &#39;baz&#39; },
+);
+
+$force;
+$foobar;</pre>
+
+</div>
+<div class="section">
+    <h3>use Config::Pit;</h3>
+    <p><code>Config::Pit</code> is a management module of configurations written by me.</p><p>This module provides get or set global configuration by easy way, mainly for public scripts which access web services with authentication.</p>
+
+    <pre class="code lang-perl">use Config::Pit;
+
+## If the fields are not set, open setting by $EDITOR automatically.
+my $config = pit_get(&#34;example.com&#34;, require =&gt; {
+	&#34;username&#34; =&gt; &#34;your username on example&#34;,
+	&#34;password&#34; =&gt; &#34;your password on example&#34;
+});
+
+## And you can use $config-&gt;{username}, $config-&gt;{password}
+my $client = Example::API-&gt;new(
+	username =&gt; $config-&gt;{username},
+	password =&gt; $config-&gt;{password}
+);</pre>
+<p>The first parameter of <code>pit_get</code> is typically the domain of a web service, so configuration is set once and can be re-used by other scripts.</p>
+
+</div>
+<div class="section">
+    <h3>use Script::State;</h3>
+    <p><code>Script::State</code> is a useful hack for saving script states written by Motemen.</p>
+
+    <pre class="code lang-perl">use Script::State;
+
+## Define state variable
+script_state my $last_timestamp = 0;
+
+my $res = $ua-&gt;get(&#39;http://example.com/api/timeline.json?after=&#39; . $last_timestamp);
+if ($res-&gt;is_success) {
+	my $data = decode_json $res;
+	for my $entry (@{ $data-&gt;{entries} }) {
+	}
+
+	## Update state
+	$last_timestamp = $data-&gt;{entries}-&gt;[0]-&gt;{timestamp};
+} else {
+	die $res-&gt;status_line;
+}</pre>
+<p>Script::State saves the state variable before the program exits, and restores it on next time.</p>
+
+</div>
+<div class="section">
+    <h3>Writer</h3>
+    <p>cho45 <a href="http://www.lowreal.net/">www.lowreal.net</a></p>
+
+<ul>
+<li>CPAN <a href="http://search.cpan.org/~satoh/">SATOH</a></li>
+</ul>
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

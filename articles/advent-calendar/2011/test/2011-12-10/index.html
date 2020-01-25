@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="zentooo">
+        <title>Perlテストのリファクタリング的なあれ - Articles Advent Calendar 2011 Test</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Perlテストのリファクタリング的なあれ</h1>
+
+        
+<div class="section">
+    <h4>はじめに</h4>
+    <p>こんにちはこんにちは！最近アレでアレな zentooo です。<br />
+ちょっと前まで自分で書いたテスト用データをDBにほげほげするモジュールの話を書こうかと思っていたのですが、disで有名なあの方に会社で「それはいけてないわ」と言われ、確かに自分でもこれはいけてないわー、という気分になってself-reject!したので今日は予定を変えて全体的にふわっとしたことを書きます。</p><p>※書いてしまってから昨日の記事と内容かぶってる！と気づきましたがそのままで</p><p></p>
+
+</div>
+<div class="section">
+    <h4>testがモリモリ肥大化する</h4>
+    <p>テスト自体はとりあえず書くことは書くんだけど、何も考えずにテストを書いていると、こんな感じになっちゃったー、ってことがよくありますね。僕もよくあります。</p>
+
+    <pre class="code lang-perl">subtest with_case1 =&gt; sub {
+    my $data_for_test = +{
+    };
+    # 上のデータからオブジェクト作ったりDBにinsertしたり色々してる...
+    # ...
+
+    my $result = method_to_be_tested($data_for_test);
+
+    is($result-&gt;{foo}, &#34;foo&#34;);
+    is($result-&gt;{bar}, &#34;bar&#34;);
+    is($result-&gt;{baz}, &#34;baz&#34;);
+};
+
+subtest with_case2 =&gt; sub {
+    # このへんおんなじような事前準備をしてる(コピペ）
+    my $data_for_test = +{
+    };
+    # ...
+    # ...
+
+    my $result = method_to_be_tested($data_for_test);
+
+    # このへんもなんか同じようなチェックをしている(コピペ)
+    is($result-&gt;{foo}, &#34;foo&#34;);
+    is($result-&gt;{bar}, &#34;bar&#34;);
+    is($result-&gt;{baz}, &#34;baz&#34;);
+};
+
+subtest with_case3 =&gt; sub {
+    # 同じくコピペ
+
+    my $result = method_to_be_tested($data_for_test);
+
+    # 同じくコピペ
+};</pre>
+<p>testのための事前準備をするところと、実際にisとかis_deeplyとかで「期待している値が得られたかどうか」をtestしている部分が、やっていることはほぼ同じなんだけど微妙に値とかだけが違う。「なんか冗長だけどテストだから、まあいいか…」という気分になってしまいがちですが、こういうことを続けていると「テストがなんか冗長で読みづらくなる -> テストをメンテする気が低下する -> テストがメンテされなくなる -> 全体のコード品質が下がる」という恐怖のネガティブスパイラルに突入してしまうので、何とかしたいところです。</p><br />
+<p></p>
+
+</div>
+<div class="section">
+    <h4>あるあるその１（同じコード内で共通処理にまとめる）</h4>
+    <p>こういう場合、まず最初に同じコード単位(つまり.tファイル内で）共通処理をまとめてしまうことが考えられますね。あるあるですね。<br />
+test用のヘルパー関数を定義します。</p>
+
+    <pre class="code lang-per"># helper functions
+
+sub prepare_data {
+    my $params = shift;
+    # 事前準備
+}
+
+sub check_result {
+    my ($actual, $expect) = @_;
+    # 実際のテストの内容を共通化したもの
+}
+
+# ここから実際のtest
+
+subtest with_case1 =&gt; sub {
+    my $data_for_test = prepare_data( +{ ... } );
+    my $result = method_to_be_tested($data_for_test);
+    check_result($result, +{ ... });
+};
+
+# 残りのsubtestも同じような感じに書ける</pre>
+<p>この時点である程度見た目がきれいになって、「各subtestでは一体何をtestをしたいのか」が一目で分かる感じになっていればとりあえずそれでよかったりもします。</p><br />
+<p></p>
+
+</div>
+<div class="section">
+    <h4>あるあるその２（コードをまたいで共通化する）</h4>
+    <p>さっき書いたようなヘルパー関数を、他のテストコードでも使いたい！という場合は普通にあると思います。<br />
+小規模なプロジェクトの場合、t/以下にUtils.pmとかを作っちゃって、各.tの中で</p>
+
+    <pre class="code lang-perl">    use t::Utils;
+
+    my $data = t::Utils-&gt;foo;
+    # 中略
+    t::Utils-&gt;check($result, $expect);</pre>
+<p>みたいにしてしまうのもアリかもしれません。(好みの問題ですが、t::Utilsからexportしてもいいです）</p><p>でも、普通にテストコードおよびヘルパー関数が増えてくるとt::Utilに全部をぶっ込むという方式では立ち行かなくなるので、t/lib 以下にそのプロジェクト専用のテストライブラリ群を作ってしまうのが一般的だと思います。</p>
+
+    <pre class="code">t/lib/Test/MyProj/Mock.pm
+t/lib/Test/MyProj/APIMock.pm
+t/lib/Test/MyProj/Logic/*.pm
+t/lib/Test/MyProj/Controller/*.pm</pre>
+<p>こういうファイル群をダーっと作っていって、各.tファイルでは</p>
+
+    <pre class="code lang-perl">    use lib &#39;./t/lib&#39;;
+    use Test::MyProj::Mock;
+    use Test::MyProj::APIMock;
+
+    my $mock = Test::MyProj::Mock-&gt;new;
+
+    Test::MyProj::APIMock-&gt;with_mock_api(sub {
+        my $port = shift;
+        # 外部APIを使うクライアントのtest.
+        # with_mock_apiの中身はTest::TCPだったりTest::Fake::HTTPDだったり
+    });</pre>
+<p>という風に使っていくと。こうしておけば、名前空間をよごすことなく自分のプロジェクト専用のテストライブラリを構築できてらくちんですね。</p><p>余談ですが、最近僕がコードをよんでいたTengだと</p>
+
+<ul>
+<li>t/Utils.pmにはDBのセットアップなどユーティリティ関数的なものを置き、ついでにuse lib './t/lib'しておく</li>
+<li>t/lib 以下にはnewするようなものを置く</li>
+</ul><p>という使い分けになっていて、各.tファイルでは必ず初めに t/Utils.pmをuseするので、いちいち.tファイルごとに use lib './t/lib' しなくていい、という構成になっていたりします。他の人の書いたt/以下を眺めてみると、testの書き方の参考になりますね。</p><p></p>
+
+</div>
+<div class="section">
+    <h4>おわりに</h4>
+    <p>今回は、Perlのtest codeをリファクタリング/共通化する際の一般的なやり方を紹介しました。<br />
+「testは書くようになったんだけど、どうしてもテストコードが汚くなってしまう…」「Perlでテストファイルをまたぐ共通コードはどういう風に書くのがふつうなの！？」という方へのヒントになれば幸いです。</p><p>明日はdannさんです。お楽しみに！</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

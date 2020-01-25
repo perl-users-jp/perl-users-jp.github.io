@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="keroyonn <keroyonn@gmail.com>">
+        <title>WebService::Async でウェブサービスの非同期アクセスを簡単に! あるいは私は如何にしてMacBookProを手に入れたか？ - Articles Advent Calendar 2010 Hacker</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>WebService::Async でウェブサービスの非同期アクセスを簡単に! あるいは私は如何にしてMacBookProを手に入れたか？</h1>
+
+        <p>今年は<a href="http://hokkaido.pm.org/">Hokkaido.pm</a>からはるばる YAPC::Asia に出張してきた<a href="http://twitter.com/keroyonn_">keroyonn</a>です。</p><p>嫁に<a href="http://yapcasia2010.ficia.com/">YAPC</a>の写真を見せて「ほらみんなMacでしょー」と言ったら、不憫に思ったのかMacBookProを買ってくれました。</p><p>ひとりだけ違うメーカーのランドセルをしょった可哀想な子供を連想したらしいです。</p><p>すばらしいですなっ! YAPC は!</p><p></p>
+
+<div class="section">
+    <h3>WebService::Async とは</h3>
+    <p>さて今回ご紹介する、WebService::Async というモジュールは、yusukebe さんの WebService::Simple の非同期版です。</p><p>WebService::Simple はカジュアルにウェブサービスにアクセスできる素晴しいモジュールだなぁと思っていたのですが、非同期処理ができないため同時に複数のリクエストを投げるのがちょっと面倒でした。</p><p>これを簡単に書けたらいいなーと思って作ってみました。</p><p>(これのどこが Hacker ぽいのかって？ いや、ほら、あの、非同期なところとか？えーとあとは、ほら、非同期なところとか…)</p><br />
+<p>特徴はこんな感じです。</p>
+
+<ul>
+<li>非同期リクエストをシンプルに</li>
+<li>レスポンスをパース(XML、JSONとか)</li>
+<li>リクエスト結果をキャッシュ</li>
+<li>失敗時したら自動リトライ</li>
+<li>細かなログ出力</li>
+<li>いろいろ柔軟</li>
+</ul><p><br />
+参考資料はここら辺にあります。<a href="http://search.cpan.org/perldoc?WebService::Async">CPAN</a>(実例が11個出てます)、<a href="http://www.slideshare.net/keroyonn/with-tatsumaki-5465396">YAPC::Asiaスライド</a>(46、47枚目)、YAPC::Asia のビデオ<a href="http://www.youtube.com/user/yapcasia#p/u/94/AcvE-0xR9Bk">Part1</a>、<a href="http://www.youtube.com/user/yapcasia#p/u/93/4Agr3Ng1mK0">Part2</a>(Part2の「05:05」あたりからです。時間がなくてほとんど説明してませんけど)</p><p></p>
+
+</div>
+<div class="section">
+    <h3>シンプルな使い方</h3>
+    <p>色々な使い方があるのですが、1アクセスごとの完了コールバックを使う場合はこんな感じです。</p><p>ここでは、Google の翻訳APIを利用しています。</p>
+
+<div class="section">
+    <h4>サンプルコード</h4>
+    
+    <pre class="code lang-perl">
+use WebService::Async;
+use WebService::Async::Parser::JSON;
+my $wa = WebService::Async-&gt;new(
+    base_url =&gt; &#39;http://ajax.googleapis.com/ajax/services/language/translate&#39;,
+    param    =&gt; { v =&gt; &#39;1.0&#39;, langpair =&gt; &#39;en|it&#39; },
+    response_parser =&gt; WebService::Async::Parser::JSON-&gt;new,
+    on_done         =&gt; sub {
+        my ( $service, $id, $res, $req ) = @_;
+        print $req-&gt;param-&gt;{&#39;q&#39;} . &#34; =&gt; &#34;;
+        print &#34;$res-&gt;{responseData}-&gt;{translatedText}\n&#34;;
+    },
+);
+$wa-&gt;add_get( q =&gt; &#39;apple&#39; );
+$wa-&gt;add_get( q =&gt; &#39;orange&#39; );
+$wa-&gt;add_get( q =&gt; &#39;banana&#39;, langpair =&gt; &#39;en|fr&#39; );
+$wa-&gt;send_request;    # sending three requests in parallel.</pre>
+
+</div>
+<div class="section">
+    <h4>実行結果</h4>
+    
+    <pre class="code">orange =&gt; arancione       ※英語→イタリア語
+banana =&gt; la banane       ※英語→フランス語
+apple =&gt; mela             ※英語→イタリア語</pre>
+
+</div>
+<div class="section">
+    <h4>手順</h4>
+    
+<ol>
+<li>new する時に「URL」と「パラメータ」と「アクセス完了時のコールバック」を書いてやる。</li>
+<li>add_get メソッドで追加のパラメータを渡してリクエストを追加する。</li>
+<li>send_request メソッドで実際にリクエストを投げる。</li>
+</ol><p>という感じで、デフォルトでは AnyEvent とかを意識せずに書くことができます。</p><p>100個とか同時に投げたりした場合には、ドメインごとに4並列とかでキューを捌いてくれます。</p><br />
+<p>※ new 時に、auto_block => 0 を指定することで send_request 時にブロックしないようにすることもできます。</p><p>※ on_done に加えて、on_complete を使うと、全てのアクセスが完了した場合のコールバックを書くことができます。</p><p>※ on_done の引数の $id は、個々のリクエストを識別するためのキーとなっています。id は自分で指定することも自動で生成されたものを使うことも、使わずにクエリのパラメータをキー代わりにしのぐこともできます。</p><p>※ その他色々な書き方はPODを参照ください</p><p></p>
+
+</div>
+</div>
+<div class="section">
+    <h3>キャッシング & ロギング</h3>
+    <p>以下のように、Cache::Memcached、Log::Dispatch を利用してキャッシングとログ出力をすることができます。</p>
+
+<div class="section">
+    <h4>サンプルコード</h4>
+    
+    <pre class="code lang-perl">
+use Cache::Memcached;
+use WebService::Async;
+use WebService::Async::Parser::JSON;
+use WebService::Async::ResponseCache;
+
+use FindBin qw($Bin);
+use Log::Dispatch::Config;
+use Log::Dispatch::Configurator::YAML;
+my $configure =
+  Log::Dispatch::Configurator::YAML-&gt;new(&#34;${Bin}/log_config.yaml&#34;);
+Log::Dispatch::Config-&gt;configure($configure);
+my $logger = Log::Dispatch::Config-&gt;instance;
+
+my $wa = WebService::Async-&gt;new(
+    base_url =&gt; &#39;http://ajax.googleapis.com/ajax/services/language/translate&#39;,
+    param    =&gt; {
+        v        =&gt; &#39;1.0&#39;,
+        langpair =&gt; &#39;en|fr&#39;,
+    },
+    auto_block      =&gt; 1,
+    response_parser =&gt; WebService::Async::Parser::JSON-&gt;new,
+    logger          =&gt; $logger,
+);
+$wa-&gt;response_cache(
+    WebService::Async::ResponseCache-&gt;new(
+        cache =&gt; Cache::Memcached-&gt;new( { servers =&gt; [&#39;localhost:11211&#39;] } )
+    )
+);
+$wa-&gt;add_get(
+    id    =&gt; 1,
+    lang  =&gt; &#39;en&#39;,
+    param =&gt; { q =&gt; &#39;apple&#39; }
+);
+$wa-&gt;add_get(
+    id    =&gt; 2,
+    lang  =&gt; &#39;en&#39;,
+    param =&gt; { q =&gt; &#39;banana&#39; }
+);
+my $result = $wa-&gt;send_request()</pre>
+
+</div>
+<div class="section">
+    <h4>実行結果 一回目: キャッシュにセットされる</h4>
+    
+    <pre class="code">[Wed Sep 29 10:23:25 2010] [info] Does not hit any caches: http://ajax.googleapis.com/ajax/services/language/translate?q=banana&amp;v=1.0&amp;langpair=en%7Cfr at /opt/perl/lib/site_perl/5.10.0/WebService/Async.pm line 111
+[Wed Sep 29 10:23:25 2010] [info] Does not hit any caches: http://ajax.googleapis.com/ajax/services/language/translate?q=apple&amp;v=1.0&amp;langpair=en%7Cfr at /opt/perl/lib/site_perl/5.10.0/WebService/Async.pm line 111
+[Wed Sep 29 10:23:25 2010] [debug] Cache set at: http://ajax.googleapis.com/ajax/services/language/translate?q=apple&amp;v=1.0&amp;langpair=en%7Cfr at /opt/perl/lib/site_perl/5.10.0/WebService/Async.pm line 111
+[Wed Sep 29 10:23:27 2010] [debug] Cache set at: http://ajax.googleapis.com/ajax/services/language/translate?q=banana&amp;v=1.0&amp;langpair=en%7Cfr at /opt/perl/lib/site_perl/5.10.0/WebService/Async.pm line 111</pre>
+
+</div>
+<div class="section">
+    <h4>実行結果 二回目： キャッシュ結果が使われる</h4>
+    
+    <pre class="code">[Wed Sep 29 10:12:52 2010] [info] Cache hit: http://ajax.googleapis.com/ajax/services/language/translate?q=banana&amp;v=1.0&amp;langpair=en%7Cfr?q=banana&amp;v=1.0&amp;langpair=en%7Cfr at /opt/perl/lib/site_perl/5.10.0/WebService/Async.pm line 111
+[Wed Sep 29 10:12:52 2010] [info] Cache hit: http://ajax.googleapis.com/ajax/services/language/translate?q=apple&amp;v=1.0&amp;langpair=en%7Cfr?q=apple&amp;v=1.0&amp;langpair=en%7Cfr at /opt/perl/lib/site_perl/5.10.0/WebService/Async.pm line 111</pre>
+
+</div>
+</div>
+<div class="section">
+    <h3>おわりに</h3>
+    <p>Any::Moose じゃなくて、Moose を使っているとか、依存モジュールがそれなりにあるとか、Smart::Args の新しいバージョンだと警告が出るとか色々つっこみどころはあると思いますが、私は普段便利に使っているので是非!</p><p>速度とかレン鯖でも動くというようなポータビリティを求める方には適さないと思いますが、とりあえず簡単ですし、WebService::Simple の既存コードを非同期にしたい場合にもいいかもしれません。</p><p>ちなみに私は Tatsumaki の HTTPClient のかわりに良く利用しています。</p><br />
+<p>つぎは、YAPC::Asia で立ち見すらできず、会場の外に人があふれだすほどの超絶的な人気ぶりを誇った kazuho さんのターンです。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

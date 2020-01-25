@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Test::Declareで気持ちよくテストする - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Test::Declareで気持ちよくテストする - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Test::Declareで気持ちよくテストする<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/hacker/03.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/hacker/03.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>こんにちわ！</p>
+<p><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a>も同時進行中のnekokakです！</p>
+
+<p>３日目は私が作ったTest::Declareを紹介したいと思います。</p>
+</div>
+<div class="section">
+<h3> みんなテストをどうかいてる？</h3>
+
+<p>みなさんはテストをどのように書いてますか？</p>
+<p>Test::Moreですかね？</p>
+<p>Test::Baseですかね？</p>
+<p>Test::Classですかね？</p>
+
+<p>perlには色々なtest用のフレームワークが存在していますが、皆さんはそれで満足していますか？</p>
+<p>皆さんが書いたテストコードはメンテナンスしやすいですか？</p>
+</div>
+<div class="section">
+<h3> Test::Declare</h3>
+
+<p>私も先ほど例にあげたモジュールを使ってテストを書いてきましたがどれもしっくりきませんでした。</p>
+<p>そこで作ったのがTest::Declareです。</p>
+
+<p>Test::Declareには，以下の特徴があります。</p>
+
+<ul>
+<li> テストコードをDSL風に（宣言的に）書く事を重点に置いている</li>
+<li> それによりテストコード自体の見やすさを向上させることができる</li>
+<li> 宣言的にテストを書く事により，一体なにを目的としたテストなのかがわかりやすくなる</li>
+<li> Test::More，Test::Deep，Test::Exception，Test::Warn，Test::Outputなど良く使う関数をまとめてexportしている</li>
+<li> いちいちtestのplan数をかぞえなくてもblocksという関数をつかえば自動でテスト数を数えてくれる
+<ul>
+<li> 最近だとdone_testingがあるからいらないですが</li>
+</ul>
+</li>
+</ul>
+
+<p>でしょうか。</p>
+
+<p>では実際に使ってみましょう。</p>
+
+<pre>
+use strict;
+use warnings;
+use Test::Declare;
+use MyAPP;
+
+plan tests =&gt; blocks;
+
+describe 'MyAPP test' =&gt; run {
+    my $obj;
+    init { $obj = MyAPP-&gt;new }
+    test 'foo isa MyAPP::Foo' =&gt; run {
+        isa_ok foo, 'MyAPP::Foo';
+    };
+    cleanup { $obj = undef };
+};
+</pre>
+
+<p>Test::Declareがexportする関数の説明をします</p>
+
+<ul>
+<li> blocks
+<ul>
+<li> 実行されるテストコード内に存在するテストメソッドの数をかぞえてる</li>
+</ul>
+</li>
+<li> describe
+<ul>
+<li> テストの大枠を設定</li>
+<li> とくになにをするでもなく見た目を整える為だけにある</li>
+</ul>
+</li>
+<li> init
+<ul>
+<li> 名前の通り前処理を行う</li>
+<li> databaseをsetupしたり</li>
+</ul>
+</li>
+<li> test
+<ul>
+<li> テスト実行フェーズ</li>
+</ul>
+</li>
+<li> cleanup
+<ul>
+<li> 後処理</li>
+<li> databaseをdropしたり</li>
+</ul>
+</li>
+</ul>
+
+<p>Test::Declreではこのような大枠を提供しているので、それに合わせて</p>
+<p>テストコードを書くだけです。</p>
+
+<p>Test::Declareをつかえばテストを宣言的に書く事ができるので、</p>
+<p>このtestブロックではなんのテストをしているのかが宣言でき、</p>
+<p>より見通しがよくなります。</p>
+
+<p>私が作るほとんどのモジュールではこのTest::Declareをつかって開発しています。</p>
+</div>
+<div class="section">
+<h3> まとめ</h3>
+
+<p>今回は Test::Declare について、解説しました。</p>
+
+<p>このモジュールは自分が気持ちよくテストをかけて、</p>
+<p>さらにメンテナンスしやすくなるように考えて作ったモジュールです。</p>
+
+<p>Test::Declareをつかってあなたがテストを書きやすくなったりメンテナンスしやすくなるとうれしいです。</p>
+
+<p>というわけで今回はここまで。明日は新婚の id:typester さんです。</p>
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/hacker/03.html">Thu, 03 Dec 2009 05:15:15 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

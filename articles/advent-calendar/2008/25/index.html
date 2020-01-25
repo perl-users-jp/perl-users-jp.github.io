@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>バイナリファイルを解析する</title>
+    <link rel="stylesheet" href="/articles/advent-calendar/adventcal.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="/articles/advent-calendar/prettify.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+    <script type="text/javascript" src="/articles/advent-calendar/adventcal.js"></script>
+</head>
+<body>
+<h1>バイナリファイルを解析する</h1>
+<p>Perlといえばテキスト処理や正規表現が得意で、バイナリを扱うような話についてはあまり聞かない印象があります。Perlが持つ関数<code>pack</code>/<code>unpack</code>等でもバイナリ処理は可能ですが、今回は<a href="http://search.cpan.org/dist/Data-ParseBinary/">Data::ParseBinary</a>を使ってバイナリファイルを気軽に解析してみましょう。</p>
+<h2>基本</h2>
+<h3>ファイルからストリームを作る</h3>
+<p>解析したいファイルをData::ParseBinaryで扱えるストリームに変換します。</p>
+<pre class="lang-perl"><code>use Data::ParseBinary;
+my $stream = CreateStreamReader(File =&gt; $file_handle);
+</code></pre>
+<h3>解析したい構造を定義する</h3>
+<p>Struct関数で解析したい構造を定義します。Struct以下には基本データ型やコンテナ型、ビット/バイトパディング型、制御構文型等を使用できます。各型に指定したラベルが解析結果として得られるハッシュのキーとなります。</p>
+<pre class="lang-perl"><code>my $your_data_structure = Struct('YOUR_DATA_STRUCTURE',
+    UBInt8('length'),
+    Array(sub { $_-&gt;ctx-&gt;{length}}, UBInt8('data')),
+);
+</code></pre>
+<h3>定義した構造を元にストリームを解析する</h3>
+<p>解析したい構造に対してストリームを渡して解析を開始します。解析結果はハッシュとして返されます。</p>
+<pre class="lang-perl"><code>my $data = $your_data_structure-&gt;parse($stream);
+#  結果例
+#  $data = {
+#      'YOUT_DATA_STRUCTURE' =&gt; {
+#          'length' =&gt; 10,
+#          'data' =&gt; [
+#                     1,
+#                     2,
+#                     ...,
+#                    ],
+#          },
+#  }
+</code></pre>
+
+<h2>例:FLVファイルを解析する</h2>
+<p>例として、Flashで扱う映像ファイルフォーマットであるFLVファイルを途中まで解析してみます。<a href="http://www.adobe.com/devnet/flv/pdf/video_file_format_spec_v9.pdf">こちらの仕様書(PDF)</a>を見ながらStruct中を眺めるとやってることがわかると思います。</p>
+<p>長くなりそうなので途中から詳細はn byteデータチャンクとして扱い、その先を具体的に解析しないようにしています。興味を持たれたらコメントアウト部分を修正して続きを解析してみてください。</p>
+<pre class="lang-perl"><code>#!/usr/bin/env perl
+use strict;
+use warnings;
+
+package FLV::Parser;
+use Data::ParseBinary;
+
+sub parse {
+    my($self, $file) = @_;
+
+    my $s =
+    Struct('FLV',
+        header(),
+        body(),
+    );
+    open my $fh, '&lt;', $file;
+    binmode $fh;
+    my $stream = CreateStreamReader(File =&gt; $fh);
+    my $data = $s-&gt;parse($stream);
+    close $fh;
+    $data;
+}
+
+sub UBInt24 {
+    my($name) = @_;
+    Struct($name,
+        UBInt8('_b1'),
+        UBInt8('_b2'),
+        UBInt8('_b3'),
+        Value('value', sub { $_-&gt;ctx-&gt;{_b1} &lt;&lt; 16 | $_-&gt;ctx-&gt;{_b2} &lt;&lt; 8 | $_-&gt;ctx-&gt;{_b3} }),
+    );
+}
+
+sub header {
+    # 9 byte
+    Struct('Header',
+        Const(String('Signature', 3), 'FLV'),
+        UBInt8('Version'),
+        BitStruct('TypeFlags',
+            Padding(5),
+            Flag('Audio'),
+            Padding(1),
+            Flag('Video'),
+        ),
+        UBInt32('DataOffset')
+    );
+}
+
+sub body {
+    Struct('Body',
+        UBInt32('PreviousTagSize0'),
+        GreedyRange(Struct('tags',
+            flvtag(),
+            UBInt32('PreviousTagSizeN'),
+        )),
+    );
+}
+
+sub flvtag {
+    Struct('FLVTAG',
+        UBInt8('TagType'),
+        UBInt24('DataSize'),
+        UBInt24('Timestamp'),
+        UBInt8('TimestampExtended'),
+        UBInt24('StreamID'),
+        Switch("Data", sub {$_-&gt;ctx-&gt;{TagType}}, {
+            8 =&gt; Struct('AUDIODATA',
+                BitStruct('info',
+                    BitField('SoundFormat', 4),
+                    BitField('SoundRate', 2),
+                    BitField('SoundSize', 1),
+                    BitField('SoundType', 1),
+                ),
+                Array(sub{$_-&gt;ctx(1)-&gt;{DataSize}-&gt;{value} - 1}, UBInt8('SoundData')),
+            ),
+            9 =&gt; Struct('VIDEODATA',
+                BitStruct('info',
+                    BitField('FrameType', 4),
+                    BitField('CodecID', 4),
+                ),
+                Array(sub{$_-&gt;ctx(1)-&gt;{DataSize}-&gt;{value} - 1}, UBInt8('VideoData'))
+            ),
+
+#            8 =&gt; audiodata(),
+#            9 =&gt; videodata(),
+#            10 =&gt; scriptdataobject(),
+        },
+        default =&gt; Array(sub{$_-&gt;ctx(0)-&gt;{DataSize}-&gt;{value}}, UBInt8('VideoData'))
+        )
+    );
+}
+
+
+=head2 commentout
+
+sub audiodata {
+    Struct('AUDIODATA',
+        BitStruct('info',
+            BitField('SoundFormat', 4),
+            BitField('SoundRate', 2),
+            BitField('SoundSize', 1),
+            BitField('SoundType', 1),
+        ),
+        Switch('SoundData', sub {$_-&gt;ctx-&gt;{info}-&gt;{SoundFormat}}, {
+            10 =&gt; aacaudiodata(),
+        })
+    );
+}
+sub aacaudiodata {
+    Struct(
+        UBInt8('AACPacketType'),
+        UBInt8('Data', n)
+    );
+}
+sub videodata {
+    Struct('VIDEODATA',
+    );
+}
+sub scriptdataobject {
+    Struct('SCRIPTDATAOBJECT',
+    );
+}
+
+=cut
+
+package main;
+use Data::Dumper;
+
+my $data = FLV::Parser-&gt;parse('foo.flv');
+print Dumper $data;
+</code></pre>
+<p>C言語でバイナリ解析する場合に比べると、細かい構造体単位でstruct定義を分ける必要がなく、複雑な構造であっても見た目に理解しやすいのがいいところです。制御構文のように使える関数もあるので、「bit 31から28の値が0001なら構造A、0010なら構造Bとして次のN Byteを解析する」というような処理も書きやすいです。</p>
+<p>処理速度は速くないのでリアルタイムで処理するような用途には向きませんが、バイナリエディタで入れ子になったデータ構造のオフセットを確認しながら手動で値を確認するよりわかりやすいでしょう。また仕様書から複雑なデータフォーマットを学ぶ時にも理解の助けとなると思います。</p>
+<p><a href="./">Back</a></p>
+</body>
+</html>

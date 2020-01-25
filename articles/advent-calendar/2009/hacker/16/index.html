@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Have Your Own Perl! - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Have Your Own Perl! - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Have Your Own Perl!<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/hacker/16.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/hacker/16.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>こんにちは、<a href="http://blog.livedoor.jp/dankogai/">dankogai</a>です。<a href="http://search.cpan.org/dist/Encode/">Encode.pm</a>のメンテナーとかしています。なのでEncodeのことでも書こうかと思ったのですが、すでに<a href="/articles/advent-calendar/2009/casual/10.html">Encodeでラクラク日本語処理</a>をxaicronに書かれちゃいました。</p>
+
+<p>それじゃ何書く?と思ったら、残ってましたよ。最も大事なものが。</p>
+</div>
+<div class="section">
+<h3> Perlハッカーに最も必要なもの</h3>
+
+<p>ここでなぞなぞです。Perlハッカーにとって最も必要なのは何でしょうか?</p>
+
+<p>Perlそのもの、ですよね。</p>
+
+<p>そうなんです。どんなすばらしいPerlモジュールも、Perl本体がなければ動きません。Perlはモジュールがなくてもなんとか動きますが、その逆は真ではないのです。</p>
+</div>
+<div class="section">
+<h3> 自分専用Perlを持つべき理由</h3>
+
+<p>あまりに当たり前のこの事実ですが、その一方、およそ Windows を除けばPerlは主要OSにははじめから組み込まれているのでそのことになかなか気がつきません。Perlがそこにあること、それは非Perlプログラマーにとってさえ空気がそこにあるがごとき前提条件となっています。 </p>
+
+<p>だから、Perlがそこにあることを前提にしてPerlハックにいそしみたいところですが、ちょっと待って下さい。Perlはあなた自身でビルドできますし、Perlを本格的に使いたかったらそうするべきなのです。理由は以下のとおりです。</p>
+
+<h4> あなたのOSがPerlを必要としている</h4>
+
+<p>なぜ主要OSにはPerlが付属しているのか。OSが必要としているからです。ということは、もしOS付属のPerlに何かあった場合、OSの挙動がおかしくなる可能性があるということです。実際、<a href="http://search.cpan.org/dist/libwww-perl">LWP</a>をインストールするとMac OS Xの/usr/bin/headがHEADコマンドに置き換えられてしまうということもかつてありました。</p>
+
+<p>OS付属のPerlとは独立したPerlを持てば、こうした可能性はほとんどゼロになります。</p>
+
+<h4> バンドル版Perlは最新とは限らない</h4>
+
+<p>OSのリリーススケジュールとPerlのリリーススケジュールは異なります。ですから最新のOSが、最新のPerlをバンドルしているとは限りません。例えば Mac OS X v10.6 = Snow Leopard が発売されたのは今年の9月ですが、付属しているのは Perl 5.10.0 で、最新版のPerl 5.10.1とはバージョンにずれがあります。</p>
+
+<p>FreeBSDに至ってはさらに保守的で、OSの最小構成にはPerlを載せていない上に、Ports/Packageがデフォルトでインストールするのは Perl 5.8.9 です。</p>
+
+<p>最新のPerlを使いたかったら、やはり自分でビルドするしかないのです。</p>
+
+<h4> スーパーユーザー権限がない</h4>
+
+<p>レンタルサーバーなどでPerlを利用する際には、上の条件に加えてさらにこの条件が加わります。最新のPerlどころかモジュールをインストールするにも支障をきたすのです。</p>
+
+<p><a href="http://search.cpan.org/dist/local-lib/">local::lib</a>などを使ってこの制限を乗り越える方法は確かにありますが、実は自分用のPerlをホームディレクトリにインストールしてそれを使う方が簡単だったりもします。</p>
+</div>
+<div class="section">
+<h3> DIYの実際</h3>
+
+<p>というわけであなたは自分のPerlを持つことに決めたのですが、一体どうしたらよいのでしょう。</p>
+
+<p>大まかな流れでいくと、以下のとおりとなります。</p>
+
+<pre>
+% curl -O http://www.cpan.org/src/perl-5.10.1.tar.bz2
+% tar jxvf perl-5.10.1.tar.bz2
+% cd perl-5.10.1
+% sh Configure -des
+% make
+% sudo make install
+</pre>
+
+<p>最初の curl -O は Mac OS X の場合ですが、ここは fetch なり wget なり各OSの流儀にあわせてください。なんならWebブラウザーでダウンロードしても構いません。</p>
+
+<p>これで自分用のPerlは出来ることは出来るのですが、自分用であっても「おしきせ」のPerlしか出来ません。自分用というからには Configure の指定をもっと細かくする必要があります。</p>
+</div>
+<div class="section">
+<h3> Configure の実際</h3>
+
+<p>何のオプションも付けないで Configure した場合、Perlのデフォルトがそのまま使われますが、OSベンダーでさえそんなことはしていません。実際に各OSにバンドルされているPerlが、どのように Configure されているのかを確認してみることにしましょう。ちなみに確認するためには</p>
+
+<pre>
+/path/to/perl -MConfigure -le 'print $Config{config_args}'
+</pre>
+
+<p>とします。</p>
+
+<h4> Mac OS X v10.6.2</h4>
+<p>v5.10.0</p>
+<pre>
+-ds -e -Dprefix=/usr -Dccflags=-g  -pipe  -Dldflags= -Dman3ext=3pm -Duseithreads -Duseshrplib -Dinc_version_list=none -Dcc=gcc-4.2
+</pre>
+<h4> Ubuntu 9.10</h4>
+<p>v5.10.0</p>
+<pre>
+-Dusethreads -Duselargefiles -Dccflags=-DDEBIAN -Dcccdlflags=-fPIC -Darchname=i486-linux-gnu -Dprefix=/usr -Dprivlib=/usr/share/perl/5.10 -Darchlib=/usr/lib/perl/5.10 -Dvendorprefix=/usr -Dvendorlib=/usr/share/perl5 -Dvendorarch=/usr/lib/perl5 -Dsiteprefix=/usr/local -Dsitelib=/usr/local/share/perl/5.10.0 -Dsitearch=/usr/local/lib/perl/5.10.0 -Dman1dir=/usr/share/man/man1 -Dman3dir=/usr/share/man/man3 -Dsiteman1dir=/usr/local/man/man1 -Dsiteman3dir=/usr/local/man/man3 -Dman1ext=1 -Dman3ext=3perl -Dpager=/usr/bin/sensible-pager -Uafs -Ud_csh -Ud_ualarm -Uusesfio -Uusenm -DDEBUGGING=-g -Doptimize=-O2 -Duseshrplib -Dlibperl=libperl.so.5.10.0 -Dd_dosuid -des
+</pre>
+<h4> FreeBSD 8-STABLE</h4>
+<p>v5.8.9</p>
+<pre>
+-sde -Dprefix=/usr/local -Darchlib=/usr/local/lib/perl5/5.8.9/mach -Dprivlib=/usr/local/lib/perl5/5.8.9 -Dman3dir=/usr/local/lib/perl5/5.8.9/perl/man/man3 -Dman1dir=/usr/local/man/man1 -Dsitearch=/usr/local/lib/perl5/site_perl/5.8.9/mach -Dsitelib=/usr/local/lib/perl5/site_perl/5.8.9 -Dscriptdir=/usr/local/bin -Dsiteman3dir=/usr/local/lib/perl5/5.8.9/man/man3 -Dsiteman1dir=/usr/local/man/man1 -Ui_malloc -Ui_iconv -Uinstallusrbinperl -Dcc=cc -Duseshrplib -Dinc_version_list=none -Dccflags=-DAPPLLIB_EXP="/usr/local/lib/perl5/5.8.9/BSDPAN" -Doptimize=-O2 -pipe -fno-strict-aliasing -Ud_dosuid -Ui_gdbm -Dusethreads=n -Dusemymalloc=y -Duse64bitint
+</pre>
+
+<p>なんか目のつぶれそうなほど長いオプションをいずれも付けていますが、自分用のPerlを作るときにはこれほど長いものは必要ありません。ちなみに私が Mac OS X で日常的に使っている Perl は、以下のように Configure してあります。</p>
+
+<pre>
+% sh Configure \
+　-DDEBUGGING \
+　-Doptimize='-g -pipe -Os' \
+　-Dusethreads \
+　-Dusemultiplicity \
+　-Duse64bitall \
+　-Dprefix=/usr/local \
+　-des
+</pre>
+
+<p>それでは、一つ一つ解説していきましょう。</p>
+
+<table>
+<tr>
+<td>-DDEBUGGING</td>
+<td>Perl自体のデバッグ機能を有効に</td>
+</tr>
+<tr>
+<td>-Doptimize='-g -pipe -Os'</td>
+<td>最適化オプション。-DDEBUGGINGを指定する際には必ず-gを含めます</td>
+</tr>
+<tr>
+<td>-Dusethreads</td>
+<td>スレッドサポートを有効に</td>
+</tr>
+<tr>
+<td>-Dusemultiplicity</td>
+<td>組み込み(mod_perlなど)のサポートを有効に</td>
+</tr>
+<tr>
+<td>-Duse64bitall</td>
+<td>64bitフルサポートを有効に</td>
+</tr>
+<tr>
+<td>-Dprefix=/usr/local</td>
+<td>Perlのインストール先を/usr/localに</td>
+</tr>
+<tr>
+<td>-des</td>
+<td>すぐにmakeできるよう準備を整えるおまじない。ほぼどんな場合でも指定しておきます</td>
+</tr>
+</table>
+
+<p>これで"My Perl Ultimate Edition"がビルドできます。</p>
+
+<h4> -Dprefix</h4>
+
+<p>この中でも、おそらく最重要なのは -Dprefix オプションなので、少し解説しておきます。例えばここに/usrを指定した場合、</p>
+
+<table>
+<tr>
+<td>実行ファイル</td>
+<td>/usr/bin/perl</td>
+</tr>
+<tr>
+<td>ライブラリ</td>
+<td>/usr/lib/perl5/5.10.1</td>
+</tr>
+<tr>
+<td>マニュアル</td>
+<td>/usr/share/man</td>
+</tr>
+</table>
+
+<p>といった具合にインストールされるわけですが、これを$HOMEにすれば、自分のホームディレクトリ直下にPerlをインストールすることが出来るので、スーパーユーザー権限が不要になるというわけです。もちろんその場合、OS付属のPerlより your perl が優先されるよう、$HOME/binを$PATHに加えるのは言うまでもありません。</p>
+</div>
+<div class="section">
+<h3> くわしくは</h3>
+
+<p>INSTALL および README.os を参照してください。ここでosは各OSの名前。例えば Mac OS X なら README.macosx です。</p>
+
+<p>で、明日は...誰が書くんだろ?</p>
+
+<p>Dan the Contributing Perl Monger</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/hacker/16.html">Tue, 15 Dec 2009 17:15:00 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="tomi-ru">
+        <title>Encode::UTF8Mac makes you happy while handling file names on MacOSX. - Articles Advent Calendar 2010 English</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Encode::UTF8Mac makes you happy while handling file names on MacOSX.</h1>
+
+        <p>This entry describes <a href="http://search.cpan.org/perldoc?Encode::UTF8Mac">Encode::UTF8Mac</a>.</p><p><h3>Summary</h3></p><p>Use <a href="http://search.cpan.org/perldoc?Encode::UTF8Mac">Encode::UTF8Mac</a> to handle file names on MacOSX.</p>
+
+    <pre class="code lang-perl">use Encode;
+use Encode::UTF8Mac; # provides &#39;utf-8-mac&#39;
+
+my $filename = Encode::encode(&#39;utf-8-mac&#39;, &#39;&lt;filename from MacOS&gt;&#39;));</pre>
+<p><br />
+<h3>Mac OSX and utf-8</h3></p><p>On Mac OSX, utf-8 encoding is used in filesystem. This is good news than Microsoft Codepage in Win32 world.</p>
+
+    <pre class="code lang-perl">use autodie;
+use utf8;
+use Encode;
+
+system(touch =&gt; Encode::encode(&#39;utf-8&#39;, &#39;問題ない.txt&#39;));</pre>
+<p>But we keep in mind that "utf-8 on Mac OSX" is based on NFD normalized unicode.</p><br />
+<p><h3>What is the NFD?</h3></p><p>In Unicode, some characters have multiple representations.</p><p>for example:</p>
+
+<ul>
+<li><span style="font-size:large;">é</span>
+<ul>
+<li>"\x{00E9}" - single Unicode, <a href="http://www.fileformat.info/info/unicode/char/00e9/index.htm">LATIN SMALL LETTER E WITH ACUTE</a>.</li>
+<li>"\x{0065}\x{0301}" - one character by two Unicode, <a href="http://www.fileformat.info/info/unicode/char/0065/index.htm">LATIN SMALL LETTER E</a> and <a href="http://www.fileformat.info/info/unicode/char/0301/index.htm">COMBINING ACUTE ACCENT</a></li>
+</ul></li>
+<li><span style="font-size:large;">だ</span>
+<ul>
+<li>"\x{3060}" - single Unicode, <a href="http://www.fileformat.info/info/unicode/char/3060/index.htm">HIRAGANA LETTER DA</a>.</li>
+<li>"\x{305F}\x{3099}" - one character by two Unicode, <a href="http://www.fileformat.info/info/unicode/char/305F/index.htm">HIRAGANA LETTER TA</a> and <a href="http://www.fileformat.info/info/unicode/char/3099/index.htm">COMBINING KATAKANA-HIRAGANA VOICED SOUND MARK</a></li>
+</ul></li>
+</ul><p><span style="font-weight:bold;">Simply put</span>, NFD(Normalization Form Canonical Decomposition) is normalization name "single Unicode" style to "one character by two Unicode" style.</p><p>and NFC(Normalization Form Canonical Composition) makes reverse.</p><br />
+<p><h3>Mac OSX filesystem use utf-8 based on NFD-ed unicode</h3></p><p>We usually are using NFC style. but OSX uses NFD style.</p><p>When passing a string to the file system, is transparently converted to the NFD style.</p>
+
+    <pre class="code lang-perl">use autodie;
+use utf8;
+use Encode;
+
+system(touch =&gt; Encode::encode(&#39;utf-8&#39;, &#39;pokémon.txt&#39;));
+system(touch =&gt; Encode::encode(&#39;utf-8&#39;, &#39;だん.txt&#39;));</pre>
+<p>This above code passes utf-8 bytes(NFC style) to filesystem, but OSX will NFD normalize automatically.</p><p>That's all right.</p><p>But You have to be careful when you <span style="font-weight:bold;">receive</span> from the file system.</p>
+
+    <pre class="code lang-perl">use Encode;
+my @files = map { Encode::decode(&#39;utf-8&#39;, $_) } glob(&#39;*.txt&#39;);
+
+use Data::Dumper;
+warn Dumper \@file;
+
+# $VAR1 = [
+#           &#34;\x{305f}\x{3099}\x{3093}.txt&#34;,
+#           &#34;poke\x{301}mon.txt&#34;
+#         ];</pre>
+<p>Woot, NFD style! I want NFC style text X(</p><p>Don't panic. We can use <a href="http://search.cpan.org/perldoc?Unicode::Normalize">Unicode::Normalize</a>.</p>
+
+    <pre class="code lang-perl">use Encode;
+use Unicode::Normalize;
+my @files = map { NFC( Encode::decode(&#39;utf-8&#39;, $_) ) } glob(&#39;*.txt&#39;);
+
+use Data::Dumper;
+warn Dumper \@file;
+
+# $VAR1 = [
+#           &#34;\x{3060}\x{3093}.txt&#34;,
+#           &#34;pok\x{e9}mon.txt&#34;
+#         ];</pre>
+<p><br />
+<h3>Is it enough?</h3></p><p>Unfortunately, No.</p><p>OSX not follow the exact NFD specification(for compatibility with old Mac system). Some characters are not normalized.</p><p><a href="http://developer.apple.com/library/mac/#qa/qa2001/qa1173.html">http://developer.apple.com/library/mac/#qa/qa2001/qa1173.html</a></p><p>for example</p>
+
+<ul>
+<li><span style="font-size:large;">福</span>
+<ul>
+<li>"\x{FA1B}" - <a href="http://www.fileformat.info/info/unicode/char/fa1b/index.htm">CJK COMPATIBILITY IDEOGRAPH-FA1B</a>.</li>
+<li>NFD() normalize to <span style="font-size:large;">福</span>( "\x{798F}" ) / same meaning, but simple Kanji.</li>
+<li>Mac <span style="font-weight:bold;">does not normalizei</span>. = we can use "福" as filename on MacOS.</li>
+</ul></li>
+</ul><p>Most of these special character are special rare Kanji. So, unless you use Asian characters, the problem will not happen. But even if you are in Asia, may be included in the itunes music directory.</p><p>If you simply use Unicode::Normalize::NFD(), you may get the file name you do not expect.</p>
+
+    <pre class="code lang-perl">use autodie;
+system(touch =&gt; Encode::encode(&#39;utf-8&#39;, &#39;七福神.txt&#39;));
+
+use Encode;
+use Unicode::Normalize;
+my @files = map { NFC( Encode::decode(&#39;utf-8&#39;, $_) ) } glob(&#39;*.txt&#39;);
+
+warn @file; # =&gt; &#34;七福神.txt&#34;,  not 七福神.txt</pre>
+<p><br />
+<h3>How to handle mac specific normalized utf-8?</h3></p><p>use <a href="http://search.cpan.org/perldoc?Encode::UTF8Mac">Encode::UTF8Mac</a>. It provides a "utf-8-mac" encoding. It will convert automatically, except special characters.</p>
+
+    <pre class="code lang-perl">my @files = map { Encode::decode(&#39;utf-8-mac&#39;, $_) }  glob(&#39;*.txt&#39;);
+
+warn @file; # =&gt; &#34;七福神.txt&#34;</pre>
+<p><br />
+<h3>One more thing</h3></p><p>I hope that the <a href="http://search.cpan.org/perldoc?Encode::Locale">Encode::Locale</a> that will support this.</p><p>when it happens, just use encoding "locale" to handle file name. on Mac or Windows or Linux.</p><br />
+<p> -- <a href="http://e8y.net/">Naoki Tomita (tomi-ru)</a></p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

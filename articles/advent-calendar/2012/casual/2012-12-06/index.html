@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="akiym">
+        <title>CPANなにこれモジュール集 - Articles Advent Calendar 2012 Casual</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>CPANなにこれモジュール集</h1>
+
+        <p>みなさんこんにちは。<a href="http://twitter.com/akiym">akiym</a>です。<br />
+2012年に初めてリリースされたモジュールの中で思わず「なにこれ」と言ってしまうモジュールを独自の判断で選定しました。残念ながらこの記事はあなたの役に立たないものとなっています。</p>
+
+<div class="section">
+    <h4>thanks - そのモジュール、お断りします（ ﾟωﾟ )</h4>
+    <p><a href="https://metacpan.org/module/thanks">https://metacpan.org/module/thanks</a></p><p>ありがとうの感謝の気持ちを伝えるモジュールかと思いきや、 no thanks するために生まれたモジュール。<br />
+以下のコードのように同じスクリプト内で宣言されたパッケージをuseすると Can't locate Foo.pm in @INC と怒られますね。<br />
+これを可能にするのがthanksです。ちゃんとuseできるようになり、->importも呼ばれるようになっています。</p>
+
+    <pre class="code lang-perl">package Foo;
+# no thanks;
+
+sub new { ... }
+
+package main;
+use Foo;</pre>
+<p>このモジュールの作者はTOBYINK。ひときわ目立つモジュールをリリースし続けています。ぜひともチェックしておきたいですね。</p><p><a href="https://metacpan.org/author/TOBYINK">https://metacpan.org/author/TOBYINK</a></p>
+
+</div>
+<div class="section">
+    <h4>Keyword::Simple - オレオレキーワード</h4>
+    <p><a href="https://metacpan.org/module/Keyword::Simple">https://metacpan.org/module/Keyword::Simple</a></p><p>自分で新しいキーワードを追加することができるようになります。<br />
+以下のコードはifと同じ機能を持つoopsキーワードを追加します。</p>
+
+    <pre class="code lang-perl">BEGIN {
+    use Keyword::Simple;
+    Keyword::Simple::define &#39;oops&#39; =&gt; sub {
+        my ($ref) = @_;
+        substr($$ref, 0, 0) = &#39;if&#39;;
+    };
+}
+
+oops (1) {
+    ...
+}</pre>
+
+</div>
+<div class="section">
+    <h4>Perl::RunEND - __END__</h4>
+    <p><a href="https://metacpan.org/module/Perl::RunEND">https://metacpan.org/module/Perl::RunEND</a></p><p>付属のperl-run-endコマンドで__END__以降のコードが実行されるようになります。</p>
+
+</div>
+<div class="section">
+    <h4>JSONY - JSONにYAMLをちょこっと加えまして</h4>
+    <p><a href="https://metacpan.org/module/JSONY">https://metacpan.org/module/JSONY</a></p><p>JSONをYAMLっぽく書けるようにしたもので、Pegexで実装されています。</p>
+
+    <pre class="code">plugin Server {
+  host example.com
+  port 8080
+}
+dsn &#34;dbi:SQLite:filename=my.db&#34;
+allow hosts [ jules sherlock kitty ]</pre>
+<p>JSONに変換するとこんな感じ。</p>
+
+    <pre class="code">[
+  &#34;plugin&#34;, &#34;Server&#34;, {
+    &#34;host&#34;: &#34;example.com&#34;,
+    &#34;port&#34;: 8080
+  },
+  &#34;dsn&#34;, &#34;dbi:SQLite:filename=my.db&#34;,
+  &#34;allow&#34;, &#34;hosts&#34;, [ &#34;jules&#34;, &#34;sherlock&#34;, &#34;kitty&#34; ]
+]</pre>
+<p>DJSONというものもあります。JSONYをちょっとシンプルにした感じです。</p><p><a href="https://metacpan.org/module/DJSON">https://metacpan.org/module/DJSON</a></p>
+
+</div>
+<div class="section">
+    <h4>コラム Mooseの大群</h4>
+    <p>ある人はMooseの重さに耐え切れなくなってMouseを作り、またある人はMouseよりも軽いものを求めてMooを作りました。<br />
+その光景を見た人(特にINGY)は悪ノリを始め、Mo、Mを作ったそうな。そしてついにMousse、Moosまで登場する始末。</p>
+
+<div class="section">
+    <h5>見分け方一覧表</h5>
+    
+<table>
+    <tr>
+    <th>モジュール</th>
+    <th>解説</th>
+    </tr>
+    <tr>
+    <td>Moose</td>
+    <td>重い。依存モジュールが多く、モジュールのロードに時間がかかる。元祖。</td>
+    </tr>
+    <tr>
+    <td>Mouse</td>
+    <td>軽い。Mooseとほぼ互換性がある。</td>
+    </tr>
+    <tr>
+    <td>Moo</td>
+    <td>海外では割と好まれているようで、現在Mooに依存しているCPANモジュールは170近くある。</td>
+    </tr>
+    <tr>
+    <td>Mo</td>
+    <td>MooからRoleを削って、よりシンプルに。</td>
+    </tr>
+    <tr>
+    <td>M</td>
+    <td>非常に高速。しかし、何も機能がないためすべて自分で実装する必要がある。</td>
+    </tr>
+    <tr>
+    <td>Mousse</td>
+    <td>チョコレートムースのように見えて、中身はMouseそのもの。Module::Installのプラグインとなっており、依存なしにMouseの機能を使うことができるようになる。</td>
+    </tr>
+    <tr>
+    <td>Moos</td>
+    <td>モジュールに依存せず、ある程度のMooseの機能を実装したもの。perl -Moos すると…</td>
+    </tr>
+</table><p><br />
+いかがでしたか？本当はもっと解説するつもりでしたが、時間が足りませんでした :)<br />
+明日は mattn さんです。お楽しみに。</p>
+
+</div>
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

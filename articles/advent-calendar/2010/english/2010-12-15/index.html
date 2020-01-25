@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>Sub::SingletonBuilder - a tiny module to create singletons - Articles Advent Calendar 2010 English</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Sub::SingletonBuilder - a tiny module to create singletons</h1>
+
+        <p>There are times when you want to make a certain object a singleton.  It is not at all difficult to write a function that creates a singleton object (the example below wraps a DBI handle using the singleton pattern), however the code is not self-explanatory enough so in general you would need to add comments, write tests, and so on.</p>
+
+    <pre class="code lang-perl">*dbh = sub {
+    my $dbh;
+    sub {
+        unless ($dbh) {
+            $dbh = DBI-&gt;connect(...)
+                or die $DBI::errstr;
+        }
+        $dbh;
+    }
+}-&gt;();</pre>
+<p>That's when the tiny module <a href="http://search.cpan.org/dist/Sub-SingletonBuilder/">Sub::SingletonBuilder</a> comes in.  As can be seen in the following code snippet the meaning of the code becomes clear and concise.</p>
+
+    <pre class="code lang-perl">use Sub::SingletonBuilder;
+
+*dbh = build_singleton(sub {
+    DBI-&gt;connect(...)
+        or die $DBI::errstr;
+});</pre>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

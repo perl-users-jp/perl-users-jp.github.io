@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="bayashi">
+        <title>GD::Chord::Piano - ピアノのコード表を画像出力する - Articles Advent Calendar 2011 Hacker</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>GD::Chord::Piano - ピアノのコード表を画像出力する</h1>
+
+        
+<div class="section">
+    <h4>前置き</h4>
+    <p>こんにちは。<a href="http://twitter.com/bayashi">bayashi</a> です。みなさん、意識は高まっていますか？ 僕は上々です。今回は拙作の <a href="https://metacpan.org/release/GD-Chord-Piano">GD-Chord-Piano</a> というモジュールを紹介いたします。</p><p></p>
+
+</div>
+<div class="section">
+    <h4>何をするモジュール？</h4>
+    <p>GD::Chord::Piano は、名前の通り、ピアノのコード表を画像出力するモジュールです。</p><p></p>
+
+</div>
+<div class="section">
+    <h4>play it</h4>
+    <p>おもむろに以下のコードを実行してみます。</p>
+
+    <pre class="code lang-perl">use GD::Chord::Piano;
+
+my $im = GD::Chord::Piano-&gt;new;
+open my $fh, &#34;&gt;&#34;, &#34;c.png&#34; or die $!;
+print $fh $im-&gt;chord(&#39;C&#39;)-&gt;png;
+close $fh;</pre>
+<p>次のような画像が吐き出されてしまいます。</p><p><img src="https://github.com/perl-users-jp/perl-advent-calendar/raw/master/2011/hacker/2011-12-16/c.png" alt="piano:C" /></p><p>赤い印のついたところを押さえれば、C が弾けますね！ ド、ミ、ソ！！</p><p>generate メソッドを使えば、おれおれコードを描画することもできてしまいます。これはびっくり。</p>
+
+    <pre class="code lang-perl">my $im = GD::Chord::Piano-&gt;new;
+
+$im-&gt;generate(&#39;Bb/A&#39;, qw/9 14 17 22/)-&gt;png;</pre>
+<p><img src="https://github.com/perl-users-jp/perl-advent-calendar/raw/master/2011/hacker/2011-12-16/b-_on_a.png" alt="piano:Bb/A" /></p><p>簡単ですね！</p><p></p>
+
+</div>
+<div class="section">
+    <h4>テキストもあるよ</h4>
+    <p>画像出力じゃなくて、ターミナルにテキストで出したいんですけど！！！</p><p>そんな要望もよくありますね！！！</p><p>そんなときは、兄弟モジュールの <a href="https://metacpan.org/module/Text::Chord::Piano" title="Text::Chord::Piano">Text::Chord::Piano</a> を使えばOK</p>
+
+    <pre class="code lang-perl">use Text::Chord::Piano;
+
+my $p = Text::Chord::Piano-&gt;new;
+
+print $p-&gt;chord(&#39;C&#39;);</pre>
+<p>以下のようなコード表が出力されます。</p>
+
+    <pre class="code">
+|  | | | |  |  | | | | | |  |  | | | |  |  | | | | | |  |
+|  | | | |  |  | | | | | |  |  | | | |  |  | | | | | |  |
+|  | | | |  |  | | | | | |  |  | | | |  |  | | | | | |  |
+|  |_| |_|  |  |_| |_| |_|  |  |_| |_|  |  |_| |_| |_|  |
+|   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+| * |   | * |   | * |   |   |   |   |   |   |   |   |   |
+|___|___|___|___|___|___|___|___|___|___|___|___|___|___|
+C
+</pre>
+<p>これはとっても便利ですね！</p><p>開発中にピアノの和音が思い出せないとき、即座に確認することができますね！ 捗りそう！</p><p>なお、わたくしはピアノを一切弾くことができません。</p><p></p>
+
+</div>
+<div class="section">
+    <h4>inspired from</h4>
+    <p>さて、GD::Chord::Piano というモジュールには、実は元ネタがありまして、nipotan さんの <a href="https://metacpan.org/module/GD::Tab::Guitar" title="GD::Tab::Guitar">GD::Tab::Guitar</a> をベースにしています。</p><p>ギターかっこいい！おれもなんか書きたい！そんな感じでピアノを書きました。</p><p>そして、GD::Tab::Guitar の元ネタも実はあるそうで、<a href="https://metacpan.org/module/GD::Tab::Ukulele" title="GD::Tab::Ukulele">GD::Tab::Ukulele</a> がそれです。これは はてな さんのウクレレ記法で有名ですね！！</p><p>次は、リズム譜あたりに誰か挑戦してみませんか？！</p><p></p>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>というわけで、今回は <a href="https://metacpan.org/release/GD-Chord-Piano">GD-Chord-Piano</a> をご紹介させていただきました。</p><p>No Music, No Hack!</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

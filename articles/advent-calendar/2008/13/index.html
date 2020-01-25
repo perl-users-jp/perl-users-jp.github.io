@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Win32::GuiTest で Windows の GUI アプリをハックしよう</title>
+        <style type="text/css">
+            pre { background: #ccc; font-family: monospace; font-size: 0.8em; line-height: 1.5; padding: 1em }
+            .step { counter-reset: step }
+            .step > div > h3::before { content: counter(step) ". "; counter-increment: step }
+        </style>
+        <link rel="stylesheet" href="/articles/advent-calendar/adventcal.css" type="text/css" media="screen">
+        <link rel="stylesheet" href="/articles/advent-calendar/prettify.css" type="text/css" media="screen">
+        <script type="text/javascript" src="http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+        <script type="text/javascript" src="/articles/advent-calendar/adventcal.js"></script>
+    </head>
+    <body>
+        <h1>Win32::GuiTest で Windows の GUI アプリをハックしよう</h1>
+        <p>
+            どうも<a href="http://d.hatena.ne.jp/amachang/">あまちゃん</a>です。
+            突然ですが、
+            Win32::GuiTest というモジュールを使うと Windows の GUI アプリを楽しくハックする事ができます。
+        </p>
+        <p>
+            使う側は特にめんどうくさいことをしなくても
+            （時には別プロセスに入り込んで）様々な情報を取得してきたり設定してきたりしてくれます。
+        </p>
+        <div>
+            <h2>インストール</h2>
+            <p>
+                <a href="http://strawberryperl.com/">Strawberry Perl</a> を使っているなら普通に
+            </p>
+<pre><code>C:\&gt; cpan -i Win32::GuiTest
+</code></pre>
+            <p>
+                でインストールできます。
+                <a href="http://www.activestate.com/Products/activeperl/index.mhtml">ActivePerl</a> を使っている場合は、<a href="http://sourceforge.net/projects/winguitest">PPM があります</a>。
+            </p>
+        </div>
+        <div class="step">
+            <h2>ケーススタディ</h2>
+            <p>
+                ソースはコピペすれば動くと思いますよっと。UTF-8 で書いてます。
+            </p>
+            <div id="toc"></div>
+            <div>
+                <h3>基本的な書き方</h3>
+<pre class="lang-perl"><code>use strict;
+use warnings;
+use utf8;
+# ↑ Perl ハッカーに DIS られなくなるおまじない
+
+# Win32::GuiTest を使うおまじない
+use Win32::GuiTest qw(:ALL);
+
+# 日本語を使えるようにするおまじない
+UnicodeSemantics(1);
+
+# ここで Win32::GuiTest を使う
+</code></pre>
+            </div>
+            <div>
+                <h3>マウスを動かす</h3>
+<pre class="lang-perl"><code>use strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+
+# 小数点もいけちゃう sleep 関数
+use Time::HiRes qw(sleep);
+
+UnicodeSemantics(1);
+
+for (my $i = 0; $i &lt; 500; $i++) {
+
+    # 10 ms 待つ
+    sleep(0.01);
+
+    # マウスを動かす
+    MouseMoveAbsPix(cos($i / 10) * 400 + 400, sin($i / 10) * 400 + 400);
+}
+</code></pre>
+            </div>
+            <div>
+                <h3>デスクトップ領域を取得する</h3>
+<pre class="lang-perl"><code>use strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+use Time::HiRes qw(sleep);
+
+UnicodeSemantics(1);
+
+# デスクトップウィンドウの取得
+my $desktop_win = GetDesktopWindow();
+
+# デスクトップウィンドウの矩形の取得
+my ($left, $top, $right, $bottom) = GetWindowRect($desktop_win);
+
+# (left, top は 0 だよねーっと）一応確認
+die "Oops!" if $left != 0 || $top != 0;
+
+for (my $i = 0; $i &lt; 500; $i++) {
+    sleep(0.01);
+
+    # デスクトップ全体をマウスが回る（この爽快感！）
+    MouseMoveAbsPix(
+        cos($i / 10) * $right / 2 + $right / 2,
+        sin($i / 10) * $bottom / 2  + $bottom / 2
+    );
+}
+</code></pre>
+            </div>
+            <div>
+                <h3>全ウィンドウの列挙</h3>
+<pre class="lang-perl"><code>use strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+use Time::HiRes qw(sleep);
+
+UnicodeSemantics(1);
+
+# デスクトップウィンドウの取得（全部の親）
+my $desktop_win = GetDesktopWindow();
+
+# （デスクトップウィンドウにはお父さんウィンドウいないよね＞＜？）一応確認
+die "Oops!" if GetParent($desktop_win) != 0;
+
+# デスクトップウィンドウの全子孫を走査
+for my $child (GetChildWindows($desktop_win)) {
+
+    # ここで各ウィンドウ（$child）にあんなことやこんなことをする
+}
+</code></pre>
+            </div>
+            <div>
+                <h3>ウィンドウの情報を取得</h3>
+<pre class="lang-perl"><code>use strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+
+# cmd.exe のエンコーディングが CP932 なので
+use Encode;
+my $cp932 = find_encoding('cp932');
+
+UnicodeSemantics(1);
+
+my $desktop_win = GetDesktopWindow();
+die "Oops!" if GetParent($desktop_win) != 0;
+
+for my $child (GetChildWindows($desktop_win)) {
+
+    # ウィンドウの深さ
+    my $window_depth   = GetChildDepth($desktop_win, $child);
+
+    # ウィンドウのクラス名（種類）
+    my $class_name     = GetClassName($child);
+
+    # ウィンドウの名前
+    my $window_text    = GetWindowText($child);
+
+    # 表示
+    print $cp932-&gt;encode('--' x $window_depth . $window_text . '(' . $class_name . ")\n");
+}
+</code></pre>
+                <a href="http://f.hatena.ne.jp/amachang/20081211163602"><img src="http://img.f.hatena.ne.jp/images/fotolife/a/amachang/20081211/20081211163602.jpg" alt="20081211163602"></a>
+            </div>
+            <div>
+                <h3>ウィンドウ名からウィンドウを取得</h3>
+<pre class="lang-perl"><code>use strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+use Encode;
+my $cp932 = find_encoding('cp932');
+
+UnicodeSemantics(1);
+
+# Windows のスタートメニューのスタートボタンのウィンドウ
+my ($win, @wins) = FindWindowLike(0, '^スタート$');
+
+# 一個だけだよね＞＜？一応確認
+die 'Oops!' if @wins;
+
+# 情報の表示
+print $cp932-&gt;encode(GetWindowText($win) . '(' . GetClassName($win) . ")\n");
+</code></pre>
+                <a href="http://f.hatena.ne.jp/amachang/20081211164830"><img src="http://img.f.hatena.ne.jp/images/fotolife/a/amachang/20081211/20081211164830.jpg" alt="20081211164830"></a>
+            </div>
+            <div>
+                <h3>Button をクリックさせる</h3>
+<pre class="lang-perl"><code>use strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+
+UnicodeSemantics(1);
+
+my ($win, @wins) = FindWindowLike(0, '^スタート$');
+die 'Oops!' if @wins;
+
+# ボタンの座標を取得
+my ($x, $y) = GetWindowRect($win);
+
+# マウスをボタン上に移動
+MouseMoveAbsPix($x + 1, $y + 1);
+
+# クリック！
+SendLButtonDown();
+SendLButtonUp();
+
+# FindWindowLike から SendLButton*() までを一発でやってくれる
+# MouseClick という関数もありますが、今回は使いません
+</code></pre>
+                <a href="http://f.hatena.ne.jp/amachang/20081211170226"><img src="http://img.f.hatena.ne.jp/images/fotolife/a/amachang/20081211/20081211170226.jpg" alt="20081211170226"></a>
+            </div>
+            <div>
+                <h3>メニューの取得</h3>
+<pre class="lang-perl"><code>use strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+use Time::HiRes qw(sleep);
+
+# 無名関数の再帰呼び出し用
+use Devel::Caller qw(caller_cv);
+
+UnicodeSemantics(1);
+
+# メモ帳の起動
+system('start notepad');
+
+# メモ帳の起動を待つ
+sleep(0.5);
+
+# メモ帳のウィンドウを取得
+my ($notepad) = FindWindowLike(0, 'メモ帳$');
+
+# メモ帳を最前に持ってくる
+SetForegroundWindow($notepad);
+
+# メニューツリーを再帰的に走査
+(sub {
+    my ($menu, $depth) = @_;
+
+    # メニューアイテムの数を取得
+    my $count = GetMenuItemCount($menu);
+
+    # メニューアイテムを走査
+    for (my $i = 0; $i &lt; $count; $i ++) {
+
+        # メニューアイテムの情報を取得
+        my $info = { GetMenuItemInfo($menu, $i) };
+
+        # 表示
+        print '--' x $depth . $info-&gt;{text} . "\n" if $info-&gt;{type} eq 'string';
+
+        # サブメニューを表示（再帰）
+        caller_cv(0)-&gt;(GetSubMenu($menu, $i), $depth + 1);
+    }
+
+})-&gt;(GetMenu($notepad), 0); # メモ帳のメインメニューを渡す
+</code></pre>
+                <a href="http://f.hatena.ne.jp/amachang/20081211184621"><img src="http://img.f.hatena.ne.jp/images/fotolife/a/amachang/20081211/20081211184621.jpg" alt="20081211184621"></a>
+            </div>
+            <div>
+                <h3>メニューの選択</h3>
+<pre class="lang-perl"><code>use strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+use Time::HiRes qw(sleep);
+
+UnicodeSemantics(1);
+
+system('start notepad');
+sleep(0.5);
+my ($notepad) = FindWindowLike(0, 'メモ帳$');
+SetForegroundWindow($notepad);
+
+# 0 番目のメニューアイテムからサブメニューを取得して、
+# サブメニューから 1 番目のメニューアイテムの ID を取得してくる
+# （メモ帳では、「ファイル」→「開く」メニュー
+my $id = GetMenuItemID(GetSubMenu(GetMenu($notepad), 0), 1);
+
+# WM_COMMAND メッセージでメモ帳に、メニューが選択されたと教えてあげる
+PostMessage($notepad, Win32::GuiTest::WM_COMMAND, $id, 0);
+
+# MenuSelect っていうのもあるのですが、
+# 日本語を CP932 で指定しなければならず、
+# しかも、フルの名前を指定しないといけないので、めんどうです。
+# 今回は使いません＞＜
+</code></pre>
+                <a href="http://f.hatena.ne.jp/amachang/20081211190920"><img src="http://img.f.hatena.ne.jp/images/fotolife/a/amachang/20081211/20081211190920.jpg" alt="20081211190920"></a>
+            </div>
+            <div>
+                <h3>エディットボックスへ文字を入力する(1)</h3>
+<pre class="lang-perl"><code>use strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+use Time::HiRes qw(sleep);
+use Encode;
+my $cp932 = find_encoding('cp932');
+
+UnicodeSemantics(1);
+
+system('start notepad');
+sleep(0.5);
+my ($notepad) = FindWindowLike(0, 'メモ帳$');
+SetForegroundWindow($notepad);
+
+# エディットボックスを取得
+my ($edit) = FindWindowLike($notepad, undef, '^Edit$');
+
+# WMSetText を使って、エディットボックスの値を直接設定
+WMSetText($edit, $cp932-&gt;encode('ほげほげ'));
+</code></pre>
+                <a href="http://f.hatena.ne.jp/amachang/20081211190921"><img src="http://img.f.hatena.ne.jp/images/fotolife/a/amachang/20081211/20081211190921.jpg" alt="20081211190921"></a>
+            </div>
+            <div>
+                <h3>エディットボックスへ文字を入力する(2)（キーボード入力をエミュレート）</h3>
+<pre class="lang-perl"><code>use strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+use Time::HiRes qw(sleep);
+
+UnicodeSemantics(1);
+
+system('start notepad');
+sleep(0.5);
+my ($notepad) = FindWindowLike(0, 'メモ帳$');
+SetForegroundWindow($notepad);
+
+# エディットボックスを取得
+my ($edit) = FindWindowLike($notepad, undef, '^Edit$');
+
+# フォーカスを合わせる
+SetFocus($edit);
+
+# キーボード入力をエミュレート
+SendKeys('hoge{ENTER}hoge{ENTER}fuga{ENTER}piyo');
+</code></pre>
+                <a href="http://f.hatena.ne.jp/amachang/20081211190922"><img src="http://img.f.hatena.ne.jp/images/fotolife/a/amachang/20081211/20081211190922.jpg" alt="20081211190922"></a>
+            </div>
+            <div>
+                <h3>エディットボックスの文字を取得する</h3>
+<pre class="lang-perl"><code>use strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+use Time::HiRes qw(sleep);
+use Encode;
+my $cp932 = find_encoding('cp932');
+
+UnicodeSemantics(1);
+
+system('start notepad');
+sleep(0.5);
+my ($notepad) = FindWindowLike(0, 'メモ帳$');
+SetForegroundWindow($notepad);
+my ($edit) = FindWindowLike($notepad, undef, '^Edit$');
+WMSetText($edit, $cp932-&gt;encode('ほげほげ'));
+
+# エディットボックスのデータを取得
+# （CP932 で帰ってくるので、そのまま print してるけど、プログラム中で扱う時は decode すべき）
+print WMGetText($edit) . "\n";
+</code></pre>
+                <a href="http://f.hatena.ne.jp/amachang/20081211190923"><img src="http://img.f.hatena.ne.jp/images/fotolife/a/amachang/20081211/20081211190923.jpg" alt="20081211190923"></a>
+            </div>
+            <div>
+                <h3>ツリービューを選択する</h3>
+<pre class="lang-perl"><code>use strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+use Time::HiRes qw(sleep);
+use Encode;
+my $cp932 = find_encoding('cp932');
+
+UnicodeSemantics(1);
+
+# レジストリエディタを起動
+system('start regedit');
+
+# 待つ
+sleep(0.5);
+
+# ウィンドウを取得
+my ($regedit) = FindWindowLike(0, undef, '^RegEdit_RegEdit$');
+
+# 最前面に持ってくる
+SetForegroundWindow($regedit);
+
+# 左のツリービューを取得
+my ($tree) = FindWindowLike($regedit, undef, '^SysTreeView32$');
+
+# ツリービューを選択する
+# この場合は、 Firefox のレジストリキーを読みに行きます
+SelTreeViewItemPath($tree, $cp932-&gt;encode('マイ コンピュータ|HKEY_LOCAL_MACHINE|SOFTWARE|Mozilla|Firefox'));
+
+# この関数は、エクスプローラーでも威力を発揮します。
+</code></pre>
+                <a href="http://f.hatena.ne.jp/amachang/20081212005253"><img src="http://img.f.hatena.ne.jp/images/fotolife/a/amachang/20081212/20081212005253.jpg" alt="20081212005253"></a>
+            </div>
+            <div>
+                <h3>リストビューのアイテムをダブルクリックする</h3>
+<pre class="lang-perl"><code>use strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+use Time::HiRes qw(sleep);
+use Encode;
+my $cp932 = find_encoding('cp932');
+
+UnicodeSemantics(1);
+
+# レジストリエディタを起動
+system('start regedit');
+
+# 待つ
+sleep(0.5);
+
+# ウィンドウを取得
+my ($regedit) = FindWindowLike(0, undef, '^RegEdit_RegEdit$');
+
+# 最前面に持ってくる
+SetForegroundWindow($regedit);
+
+# 左のツリービューを取得
+my ($tree) = FindWindowLike($regedit, undef, '^SysTreeView32$');
+
+# ツリービューを選択する
+SelTreeViewItemPath($tree, $cp932-&gt;encode('マイ コンピュータ|HKEY_CLASSES_ROOT|CompressFolder'));
+
+# 右のリストビューを取得
+my ($list) = FindWindowLike($regedit, undef, '^SysListView32$');
+
+my ($x, $y, $posbuf);
+
+# $list を持っているプロセス（regedit のプロセス）
+# のメモリ空間を 8 バイト確保
+$posbuf = AllocateVirtualBuffer($list, 8);
+
+# メモリ確保出来たら
+if ($posbuf) {
+
+    # エラーのときもちゃんとレスキューされるように
+    eval {
+
+        # $list に 0x1010 (LVM_GETITEMPOSITION) というメッッセージを送る
+        # 結果を返して欲しい共有メモリのポインタを渡す
+        # 第三引数の 1 は「（0 から数えて）1 番目のリストアイテム」という意味
+        SendMessage($list, 0x1010, 1, $posbuf-&gt;{ptr});
+
+        # 共有メモリから、結果を読み出す
+        # $x, $y にはリストアイテムの位置を取得
+        ($x, $y) = unpack('L2', ReadFromVirtualBuffer($posbuf, 8));
+
+    };
+
+    # 共有メモリを解放
+    FreeVirtualBuffer($posbuf);
+
+    # もし、 eval 中にエラーがあれば
+    die $@ if $@;
+}
+
+# リストビューの位置を取る
+my ($px, $py) = GetWindowRect($list);
+
+# マウスを移動
+MouseMoveAbsPix($px + $x + 4, $py + $y + 4);
+
+# ダブルクリック！
+SendLButtonDown();
+SendLButtonUp();
+SendLButtonDown();
+SendLButtonUp();
+
+# 実装のほうで SetWindowsHookEx を使ってる部分が動かないことがある（原因不明）ので
+# この例のように、
+# 自分で共有メモリ（AllocateVirtualBuffer）を使って生のメッセージでやるというパターンは結構あります。
+</code></pre>
+                <a href="http://f.hatena.ne.jp/amachang/20081212020713"><img src="http://img.f.hatena.ne.jp/images/fotolife/a/amachang/20081212/20081212020713.jpg" alt="20081212020713"></a>
+            </div>
+            <div>
+                <h3>ツールバーをクリックする</h3>
+<pre class="lang-perl"><code>use strict;
+use warnings;
+use utf8;
+
+use Win32::GuiTest qw(:ALL);
+use Time::HiRes qw(sleep);
+use Encode;
+my $cp932 = find_encoding('cp932');
+
+UnicodeSemantics(1);
+
+# エクスプローラーの起動
+system('start explorer');
+
+# 待つ
+sleep(0.5);
+
+# ウィンドウを取得
+my ($exp) = FindWindowLike(0, undef, '^ExploreWClass$');
+
+# 最前面に持ってくる
+SetForegroundWindow($exp);
+
+# 一番最初のツールバーを取得
+# （ツールバーはたいていいくつかある）
+my ($toolbar) = FindWindowLike($exp, undef, '^ToolbarWindow32$');
+
+my ($x, $y, $rectbuf);
+
+# $toolbar を持っているプロセス（エクスプローラーのプロセス）
+# のメモリ空間を 16 バイト確保
+$rectbuf = AllocateVirtualBuffer($toolbar, 16);
+
+# メモリ確保出来たら
+if ($rectbuf) {
+
+    # エラーのときもちゃんとレスキューされるように
+    eval {
+
+        # $toolbar に 0x4ld (TB_GETITEMRECT) というメッッセージを送る
+        # 結果を返して欲しい共有メモリのポインタを渡す
+        # 第三引数の 7 は
+        # 「（0 から数えて）7 番目のツールバーアイテム（セパレータや hide されているアイテムも含む）」という意味
+        SendMessage($toolbar, 0x41d, 7, $rectbuf-&gt;{ptr});
+
+        # 共有メモリから、結果を読み出す
+        # $x, $y にはリストアイテムの位置を取得
+        ($x, $y) = unpack('L4', ReadFromVirtualBuffer($rectbuf, 16));
+
+    };
+
+    # 共有メモリを解放
+    FreeVirtualBuffer($rectbuf);
+
+    # もし、 eval 中にエラーがあれば
+    die $@ if $@;
+}
+
+# ツールバーの位置を取る
+my ($px, $py) = GetWindowRect($toolbar);
+
+# マウスを移動
+MouseMoveAbsPix($px + $x + 4, $py + $y + 4);
+
+# クリック！
+SendLButtonDown();
+SendLButtonUp();
+</code></pre>
+            </div>
+            <a href="http://f.hatena.ne.jp/amachang/20081212023736"><img src="http://img.f.hatena.ne.jp/images/fotolife/a/amachang/20081212/20081212023736.jpg" alt="20081212023736"></a>
+        </div>
+        <div>
+            <h2>まとめ</h2>
+            <p>
+                このように、めんどくさい Windows の GUI での作業を Perl を使ってある程度自動化しておくことが出来ます。
+            </p>
+            <p>
+                また、これらを <strong>CGI 化して GreaseMonkey とかで呼び出すと非常に便利</strong>です＞＜<strong>でも、大変危険ですので絶対に真似しないように</strong>してください＞＜
+            </p>
+            <p>
+                というわけで、次は <a href="http://d.hatena.ne.jp/TAKESAKO/">id:TAKESAKO</a> さんお願いします。
+            </p>
+        </div>
+        <script type="text/javascript">
+            var elm = document.getElementById('toc');
+            elm.innerHTML = '<h3>もくじ</h3>';
+            var ul = document.createElement('ul');
+            elm.appendChild(ul);
+            var articles = document.getElementsByTagName('h3');
+            for (var i = 0, l = articles.length; i < l; i ++) {
+                var article = articles[i];
+                article.id = 'article-' + i;
+                var li = document.createElement('li');
+                li.innerHTML = '<a href="#article-' + i + '">' + article.innerHTML + '</a>';
+                ul.appendChild(li);
+            }
+        </script>
+    </body>
+</html>

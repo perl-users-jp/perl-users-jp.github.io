@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="neko_gata_s(shinpei) <info@nekogata.com>">
+        <title>Acme::Text::Glitchでテキストをぐちゃぐちゃにしよう - Articles Advent Calendar 2011 Acme</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Acme::Text::Glitchでテキストをぐちゃぐちゃにしよう</h1>
+
+        
+<div class="section">
+    <h3>Acme::Text::Glitchでテキストをぐちゃぐちゃにしよう</h3>
+    <p>初日に続き、新潟Perl人のneko_gata_s(shinpei)です。猫型さんとかしんぺいさんとかぺーちゃんとかいろんな呼ばれ方をしてるので好きに呼んでください。今日は拙作のAcme::Text::Glitchというモジュールの紹介をさせていただきます。CPANにはあがっておらず、GitHubに置いてあるのでインストールは</p>
+
+    <pre class="code">$ cpanm https://github.com/Shinpeim/p5-Acme-Text-Glitch/tarball/master</pre>
+<p>からどうぞ。</p>
+
+<div class="section">
+    <h4>何をするモジュールなのか/どう使うのか</h4>
+    <p>その名のとおり、テキストをグリッチします。つまり、たとえば"Glitch"という文字列をAcme::Text::Glitchに掛けると、̦̩̲ͩ́͘G̬̤̱̈́͜l̠̺͑͟ỉ͓͚̹̓͊͟͞t̛͇̙̩̟̐ͪͣchとなります。</p><p>なんだがぐちゃぐちゃになりましたね。使い方は以下のような感じです。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+use Acme::Text::Glitch;
+use Encode;
+
+my $tg = Acme::Text::Glitch-&gt;new;
+my $glitched_string = $tg-&gt;glitch(&#39;glitch me&#39;);
+print encode(&#39;utf8&#39;,$glitched_string);</pre>
+<p>newでAcme::Text::Glitchのインスタンスを得て、glitchメソッドを呼ぶだけです。簡単ですね。コンストラクタにglitch_levelというパラメータを渡すと、グリッチ度合いを指定することができます。</p>
+
+    <pre class="code lang-perl">Acme::Text::Glitch-&gt;new(glitch_level =&gt; 4);</pre>
+<p>glitch_levelは、インスタンス化したあとにも設定できます。</p>
+
+    <pre class="code lang-perl">my $tg = Acme::Text::Glitch-&gt;new;
+my $glitched_string = $tg-&gt;glitch_level(4);</pre>
+
+</div>
+<div class="section">
+    <h4>仕組み</h4>
+    <p>さて、それでは、このようなぐちゃぐちゃの文字列が出来上がる仕組みを見てみましょう。</p><p>Unicodeでは、0300 - 036Fに「ダイアクリティカルマーク」と呼ばれる記号が定義されています。これらは、そもそもはラテン文字等に発音を明示するために付ける「発音記号」で、普通の文字に「合成」し、「文字を修飾」することを主目的として定義されています。つまり、これらのダイアクリティカルマークをランダムに適宜挿入すると、プレーンな文字列をぐちゃぐちゃに装飾することができるわけです。</p><p>そもそもは発音記号なので、グリッチに使うのは間違えた使い方と言えるのですが、そこはAcmeなのでまあ、勘弁してください。</p>
+
+</div>
+<div class="section">
+    <h4>Unicode合成文字について</h4>
+    <p>実は、Unicodeにおいて合成できる文字はダイアクリティカルマークだけではありません。たとえば日本語の濁点。Unicodeでは、おなじ「が」を表現するのに、「が」(304C)と、「か」(304B)+「濁点」(3099)を利用できます。</p>
+
+    <pre class="code">$ perl -e &#39;warn &#34;\x{304c}&#34;&#39;
+が at -e line 1.</pre>
+
+    <pre class="code">$ perl -e &#39;warn &#34;\x{304b}\x{3099}&#34;&#39;
+が at -e line 1.</pre>
+<p>このようなことがUnicodeで可能な以上、「見え方は一緒でも、バイト表現は別」というおそろしい話が生まれてきます。このあたりのややこしい話は、「Unicode 正規化」などでググると良質な記事がたくさん見つかると思いますので、Text::Acme::Glitchに興味を持っていただけたら、ついでにUnicodeのやっかいなお話についても興味を持っていただき、そのあたりを調べ始めるきっかけになってくれたらなあ、と思います。</p><p>明日は誰かな？ Ș̩̜ͭê̘͕e ̞̈́̿Y̒ő̕u͂̕!</p>
+
+</div>
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

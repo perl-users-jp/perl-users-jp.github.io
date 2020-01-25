@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>Hello Acme World! - Articles Advent Calendar 2010 Acme</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Hello Acme World!</h1>
+
+        <p>(firstly written in Japanese, later in English)</p><p>皆さんこんにちは。<br />
+「Perlと言えばAcme。Acmeと言えばPerl」と100人中3人ぐらいは思っているんじゃないかと淡い期待を抱いて悶々とした日々を過ごしている<a href="http://www.donzoko.net/cgi-bin/tdiary/">makamaka</a>です。</p><p>このアドベントカレンダーではAcmeに関することを取り上げます。</p><p>初日の今日はAcmeモジュールの紹介というよりは、「私のAcmeの楽しみ方」について語りたいと思います。モジュール紹介を期待した方、ごめんなさい＞＜　　<a href="http://p.booklog.jp/book/6127">本日のAcme</a>とか<a href="http://www.donzoko.net/gakuya/">Acme大全</a>で割と満たされているというか、あまり新しいネタがないんです（涙）</p><p>でも明日以降、素敵なAcmeモジュールもたくさん紹介されますよ！　CPANに上がっていないモジュールも登場しますよ！　私も別の日の記事で昔つくりかけたモジュールの紹介をしますよ！（←投げやり）</p><br />
+<br />
+<br />
+<p>さて、Acmeというと、冗談モジュールとしてその「機能」にばかり目が向きがちです。サンプルコードを試して結果を眺めて楽しむ、というところで終わってしまっていませんか？　もったいないです！</p><br />
+<br />
+<br />
+<p><h2>Lesson1 ドキュメントやバージョンに着目する</h2></p><p>例えば<a href="http://search.cpan.org/dist/Acme-Pr0n/">Acme::Pr0n</a>について見てみましょう。pr0nってporn（ポルノ）の隠語ですね。このモジュールは他のモジュールの中身を露わにしようというものなんです。</p>
+
+    <pre class="code lang-perl">use strict;
+use MyFunnyModule;
+use Acme::Pr0n qw( MyFunnyModule );
+
+hello(); # ←MyFunnyModuleの関数が晒された！</pre>
+<p>で、晒されるモジュールのバージョンが0.18未満だと「若すぎる！」って警告が出るんです（バージョンが無い場合はセーフ）。これだけでも、まあ冗談モジュールらしいのですが、このドキュメントのTODOには</p>
+
+<blockquote >
+    <p>Tell your mother what you're doing.<br />
+（君のやってることお母さんに言いつけちゃうよ）</p>
+
+    
+</blockquote><p>って、むしろコレが書きたかったんじゃないかという感じなんです（あとSEE ALSOの所にa psychiatrist（精神科医）とあったり）。　ああ、そうそう、Acme::Pr0n自体はバージョンが0.04です。ませてますね！</p><p>他にも、<a href="http://search.cpan.org/dist/Acme-Lingua-NIGERIAN/">Acme::Lingua::NIGERIAN</a>はコードをスパムメールで有名な「<a href="http://ja.wikipedia.org/wiki/%E3%83%8A%E3%82%A4%E3%82%B8%E3%82%A7%E3%83%AA%E3%82%A2%E3%81%AE%E6%89%8B%E7%B4%99">ナイジェリアの手紙</a>」風に変えてくれますが、そのCOPYRIGHT AND LICENSEには「じゃんじゃんメールしてくれ」って書いてあったりと、ドキュメントも含めて楽しめます（Acme::Lingua::NIGERIANのライセンスについては<a href="http://googlewhacks.blogspot.com/2007/07/yapcna3the-acme-namespace-20-minutes.html">Mint's logさんの記事</a>で知りました）。</p><p>というわけで、このお正月はAcmeなモジュールのドキュメントやバージョンもじっくり眺めてみては如何でしょうか。</p><br />
+<br />
+<br />
+<p><h2>Lesson2 コード内で使われてる名前に着目する</h2></p><p>さて、何しろAcmeのことですから、内部だけで使用されているサブルーチンの名前なども面白いものがあったりします。例えば<a href="http://search.cpan.org/dist/Acme-Phlegethoth/">Acme::Phlegethoth</a>。下記はドキュメントのSYNOPSISからの引用です。</p>
+
+    <pre class="code lang-perl">use Acme::Phlegethoth;
+print &#34;goodbye, world!\n&#34;;</pre>
+<p>すると</p>
+
+    <pre class="code lang-perl">use Acme&#39;Phlegethoth;
+ia ia!  mnahN&#39; NAflHriI R&#39;LuHnyTh BUgoR SLl&#39;HAog gOf&#39;NN Hai ron
+gOf&#39;nn Nnn&#39;aIog FHTagN LlLL YHlIRgHOG GoF&#39;Nn naCh&#39;!  nNNvuLgtlAGlN
+thROD!  PhLeGetH StelL&#39;BsNaoth sll&#39;Ha!  aH NAfL&#39;AIyAR H&#39;EbUMna
+HliRGHog eHYeOG nnnSgn&#39;WAhL fm&#39;laTgh ah ILYaA h&#39;zHRO iLYaa
+H&#39;gnaIihNYtH EBumnA s&#39;Uhnor [Text ends abruptly.]</pre>
+<p>とまあ、宇宙的恐怖に苛まれるコードに変換してくれる<a href="http://search.cpan.org/dist/Acme-Bleach/">Acme::Bleach</a>系モジュールなのですが、このモジュールのコードを覗いてみると、</p>
+
+    <pre class="code lang-perl">sub roll_sanity_check { &amp;see }</pre>
+<p>という具合になっています。これは「<a href="http://ja.wikipedia.org/wiki/%E3%82%AF%E3%83%88%E3%82%A5%E3%83%AB%E3%83%95%E3%81%AE%E5%91%BC%E3%81%B3%E5%A3%B0">クトゥルフの呼び声</a>」というTRPGで有名なSANチェック（恐ろしいモノに遭遇した時にサイコロを振って正気度をチェックする）を表してます。この手のゲームが好きな人はニヤリとなるわけです（クトゥルゥーを知らない方、ごめんんさい）。変数名の方も</p>
+
+    <pre class="code lang-perl">my $hear_me   = &#34;ia ia! &#34;;</pre>
+<p>になってたり。</p><p>もちろん、Acmeモジュールにはこういった表には出てこない面白い関数名や変数名がまだまだたくさんあります！</p><p>このお正月は自分だけのお気に入りの名前を探してみては如何でしょうか。</p><br />
+<br />
+<br />
+<p><h2>Lesson3 モジュールの返り値に着目する</h2></p><p>賢明な視聴者の皆様の中には、Lesson2から導き出される結論として、モジュールの返り値も何かあるんじゃないの？　と感づかれた方もいらっしゃるのではないでしょうか？</p><p>そうなんです！　モジュールファイルの最後の行に通常書かれている</p>
+
+    <pre class="code lang-perl">1;</pre>
+<p>は、真値なら何でもいいわけですから、当然、Acme的なモノがあるはずです！</p><p>でもどんな値があったか覚えていないんです！　今これを書いてるのが1日の夜の2時で調べる気力もないんです！</p><p>どうしよう！？<br />
+・<br />
+・<br />
+・</p>
+
+<blockquote >
+    <p>「AcmeのことはAcmeに聞け」</p>
+
+    
+</blockquote><p><br />
+古代ローマの有名な言葉ですね。</p><br />
+<p><a href="http://search.cpan.org/dist/Acme-ReturnValue/">Acme::ReturnValue</a>。これです。</p><br />
+<br />
+<p></p>
+
+    <pre class="code lang-perl">use 5.010;
+use Acme::ReturnValue;
+my $arv = Acme::ReturnValue-&gt;new;
+
+$arv-&gt;in_dir( $dir );
+
+for ( @{ $arv-&gt;interesting } ) {
+    say $_-&gt;{package} . &#39; returns &#39; . $_-&gt;{value};
+}
+
+# $arv-&gt;boring で面白くない値を返すモジュールもわかる
+</pre>
+<p><br />
+'1'以外の値が返るモジュールを調べてくれます！　めでたしめでたし！</p><br />
+<p>ん？　で、実際にどういう値があったのかって？<br />
+はい！　こちらをご覧下さい！　→<a href="http://returnvalues.useperl.at/values.html">Acme::ReturnValue findings</a></p><br />
+<p>Acme以外の方がいっぱいあるけど気にしないで！</p><br />
+<p>さあ、このお正月は面白いReurnValueを暗記してカルタにしてはどうでしょうか！！！１</p><br />
+<p>というわけで、駆け足で「Acmeの楽しみ方」をご紹介しましたが、如何でしたでしょうか。来年の貴方のAcmeライフが素敵なものになるよう心からお祈りしています！</p><br />
+<br />
+<br />
+<p>最後に私的な宣伝になりますが、<a href="http://www.comiket.co.jp/">冬コミ</a>は12月31日（金）に東Ｒ57a 「どんぞこ楽屋」で出展します。ちょっと新刊出せそうにないですが、コピー誌か何かだけでも用意できればと考えています。その他配布物は『Acme大全2010』とデコシールになるかと。</p><br />
+<br />
+<br />
+<p>明日はYAPC Asia 2010の忍者こと、真面目なモジュール紹介で疲れたtomi-ruさんが登場です！</p><br />
+<br />
+<br />
+<p> * ----------------------------------------------------<br />
+ * English version<br />
+ * ----------------------------------------------------</p><p>Hello everyone. I'm <a href="http://twitter.com/maka2_donzoko">makamaka</a>, an ordinary perl user like you.<br />
+I love Acme and you love Acme. Yes, we love Acme.<br />
+Ok, this is the Japan Perl advent calendar for Acme. It's show time!</p><p>Today, the first day, I'm going to describe how we enjoy and love love love Acmes.</p><br />
+<p><h2>Lesson1 Check Acme documents and versions</h2></p><p>For example, let's see <a href="http://search.cpan.org/dist/Acme-Pr0n/">Acme::Pr0n</a>.<br />
+pr0n is a leet word. This module exposes other modules contents.</p>
+
+    <pre class="code lang-perl">use strict;
+use MyFunnyModule;
+use Acme::Pr0n qw( MyFunnyModule );
+
+hello(); # ←MyFunnyModule&#39;s function!</pre>
+<p>When the version of an exposed module is less than 0.18, it warns "Too young" (if no version, all right).<br />
+That's a just joke module, ok, ok. But the TODO in the document says</p>
+
+<blockquote >
+    <p>Tell your mother what you're doing.</p>
+
+    
+</blockquote><p>Oh, the author only want to write it!? I feel so. (Well, SEE ALSO also includes 'a psychiatris'.)<br />
+Ah, I forgot to say... Acme::Pr0n version is 0.04. Oh terrible!</p><br />
+<p>Other module, <a href="http://search.cpan.org/dist/Acme-Lingua-NIGERIAN/">Acme::Lingua::NIGERIAN</a> converts your script a famouse SPAM mail, NIGERIAN LETTER-like.  COPYRIGHT AND LICENSE in the module says</p>
+
+<blockquote >
+    <p>THIS MODULE MAY BE MASS-EMAILED UNDER THE SAME TERMS AS PERL ITSELF.</p>
+
+    
+</blockquote><p>Yes happy happy. (I owe this knowledge to <a href="http://googlewhacks.blogspot.com/2007/07/yapcna3the-acme-namespace-20-minutes.html">Mint's log</a>.)</p><p>Well, in this winter vacation, would you like to see Acme documents or versions?</p><br />
+<br />
+<br />
+<p><h2>Lesson2 Check the names using in code</h2></p><p>Because Acmes are so interesting that they hold interesting subroutin names and variables.<br />
+<a href="http://search.cpan.org/dist/Acme-Phlegethoth/">Acme::Phlegethoth</a> for example (Below codes are from SYNOPSIS.)</p>
+
+    <pre class="code lang-perl">use Acme::Phlegethoth;
+print &#34;goodbye, world!\n&#34;;</pre>
+<p>then</p>
+
+    <pre class="code lang-perl">use Acme&#39;Phlegethoth;
+ia ia!  mnahN&#39; NAflHriI R&#39;LuHnyTh BUgoR SLl&#39;HAog gOf&#39;NN Hai ron
+gOf&#39;nn Nnn&#39;aIog FHTagN LlLL YHlIRgHOG GoF&#39;Nn naCh&#39;!  nNNvuLgtlAGlN
+thROD!  PhLeGetH StelL&#39;BsNaoth sll&#39;Ha!  aH NAfL&#39;AIyAR H&#39;EbUMna
+HliRGHog eHYeOG nnnSgn&#39;WAhL fm&#39;laTgh ah ILYaA h&#39;zHRO iLYaa
+H&#39;gnaIihNYtH EBumnA s&#39;Uhnor [Text ends abruptly.]</pre>
+<p>What a cosmic horror code!! Help me! ... yes it's an <a href="http://search.cpan.org/dist/Acme-Bleach/">Acme::Bleach</a> like module.</p><p>Look into the module code...</p>
+
+    <pre class="code lang-perl">sub roll_sanity_check { &amp;see }</pre>
+<p>Ok, this is the "roll sanity check" in RPG game "Call of Cthulhu". <br />
+And a variable is</p>
+
+    <pre class="code lang-perl">my $hear_me   = &#34;ia ia! &#34;;</pre>
+<p>There are of cause a lot of nice name inner functions and variables!</p><p>Well, in this winter vacation, would you like to seek your own favorite names?</p><br />
+<br />
+<br />
+<p><h2>Lesson3 Check a return value from a module</h2></p><p>Now, we arrive at one conclusion by Lesson2.<br />
+Ummm....perhaps, return values are interesting too?</p><p>Yes! the return value</p>
+
+    <pre class="code lang-perl">1;</pre>
+<p>written in last script line is anyting good if it is true value.<br />
+So Acme values exist!</p><p>However I don't remember them... and I'm so sleepy!</p><p>What do I do?<br />
+.</p>
+
+<blockquote >
+    <p>Ask unto Acme the things which are Acme</p>
+
+    
+</blockquote><p>.<br />
+A famous word in ancient Rome.</p><br />
+<p><a href="http://search.cpan.org/dist/Acme-ReturnValue/">Acme::ReturnValue</a>. That's it.</p><br />
+<br />
+<p></p>
+
+    <pre class="code lang-perl">use 5.010;
+use Acme::ReturnValue;
+my $arv = Acme::ReturnValue-&gt;new;
+
+$arv-&gt;in_dir( $dir );
+
+for ( @{ $arv-&gt;interesting } ) {
+    say $_-&gt;{package} . &#39; returns &#39; . $_-&gt;{value};
+}</pre>
+<p><br />
+This module looks up return values other than '1'. Very happy!</p><p>Um? What value?<br />
+Ok, see to <a href="http://returnvalues.useperl.at/values.html">Acme::ReturnValue findings</a>.</p><p>Most modules are other than Acme, but don't mind!</p><p>Well, in this winter vacation, would you like to remember funny return values and to make cards?</p><p>Now, you and I are Acme friend. I wish you A happy Acme year!</p><p>Thanks.</p><br />
+<br />
+<br />
+<p>Private information: I join <a href="http://www.comiket.co.jp/">Comic Market</a>, 31th Dec.<br />
+My booth : Donzoko Gakuya in East R 57a. I will write a info in <a href="http://www.donzoko.net/gakuya/">my Dojin site</a>.</p><p>The tomorrow writter is YAPC Asia 2010 Ninja tomi-ru!!</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

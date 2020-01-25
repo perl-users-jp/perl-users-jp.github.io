@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Proxy経由でLWP::UserAgentを使う - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Proxy経由でLWP::UserAgentを使う - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Proxy経由でLWP::UserAgentを使う<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/casual/17.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/casual/17.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>こんにちは！好きな寿司ネタは甘エビのkamipoです。</p>
+<p>今日はProxy経由でLWP::UserAgentを使う方法を紹介したいと思います。</p>
+
+<p>クローラやWeb APIなどを扱うモジュールの内部で必ずと言っていいほど使われているHTTPクライアントのLWP::UserAgentですが、世の中には色々な事情でHTTPリクエストするのにProxyを経由しなければいけない環境の人がいるんじゃないかと思います。</p>
+
+<p>まず、LWPとCrypt::SSLeayの最新版をCPANからインストールしておきましょう。</p>
+
+<pre>
+% cpan LWP Crypt::SSLeay
+</pre>
+
+<p>LWP::UserAgentでProxyを指定するには以下のようにします。</p>
+
+<pre>
+#!/usr/bin/perl
+use strict;
+use warnings;
+use LWP::UserAgent;
+
+my $http_proxy = "http://forward_proxy:8080/";
+
+my $ua = LWP::UserAgent-&gt;new;
+
+# proxyメソッドを使う場合
+$ua-&gt;proxy([qw(http https)], $http_proxy);
+
+# 環境変数から読み込む場合
+$ENV{HTTP_PROXY}  = $http_proxy;
+$ENV{HTTPS_PROXY} = $http_proxy;
+
+$ua-&gt;env_proxy;
+
+my $res = $ua-&gt;get(shift);
+
+print $res-&gt;dump;
+</pre>
+
+<p>一見するとこれでOKのように見えますが、この方法だとHTTPSのリクエストが失敗するようです。コマンドラインから以下のように実行してみましょう。</p>
+
+<pre>
+% perl proxy_sample1.pl http://http_host/
+% perl proxy_sample1.pl https://https_host/
+</pre>
+
+<p>どうでしょう？HTTPSの場合だとステータスラインが</p>
+<pre>
+HTTP/1.0 501 Not Implemented
+</pre>
+<p>と返ってきたのではないでしょうか。</p>
+
+<p>正解はCrypt::SSLeayのPODに書いてありました。</p>
+
+<ul>
+<li> <a href="http://search.cpan.org/dist/Crypt-SSLeay/SSLeay.pm#LWP::UserAgent_proxy_support">Crypt::SSLeay - search.cpan.org</a></li>
+</ul>
+
+<p>どうやらapacheのmod_proxy以外でのHTTPSリクエストのProxyは、LWP::UserAgent側でのハンドリングはせず、環境変数にセットしてCrypt::SSLeay側でProxyのハンドリングをしなければいけません。</p>
+
+<p>つまり、HTTPもHTTPSも両方ちゃんと扱うには以下のようにする必要があります。</p>
+
+<pre>
+#!/usr/bin/perl
+use strict;
+use warnings;
+use LWP::UserAgent;
+
+# Crypt::SSLeayでは最後に"/"が付いてるとダメ
+my $http_proxy = "http://forward_proxy:8080";
+
+my $ua = LWP::UserAgent-&gt;new;
+
+# proxyメソッドを使う(HTTPの場合)
+$ua-&gt;proxy([qw(http)], $http_proxy);
+
+# 環境変数から読み込む(HTTPSの場合)
+$ENV{HTTPS_PROXY} = $http_proxy;
+
+$ua-&gt;env_proxy;
+
+my $res = $ua-&gt;get(shift);
+
+print $res-&gt;dump;
+</pre>
+
+<p>もう一度コマンドラインから実行してみましょう。</p>
+
+<pre>
+% perl proxy_sample2.pl http://http_host/
+% perl proxy_sample2.pl https://https_host/
+</pre>
+
+<p>今度はちゃんといけましたね！</p>
+
+</div>
+<div class="section">
+<h3> なぜLWP::UserAgentではHTTPSをProxyできないのか</h3>
+
+<p>なんとかProxyすることはできましたが、そもそも同じProxyを経由するのに同じ指定の仕方ができない理由は何か。LWPではだめなのか。</p>
+<p>この挙動の原因はLWP::UserAgent::send_requestメソッドの以下のコードにありました。</p>
+
+<pre>
+sub send_request
+{
+    my($self, $request, $arg, $size) = @_;
+    my($method, $url) = ($request-&gt;method, $request-&gt;uri);
+    my $scheme = $url-&gt;scheme;
+
+    local($SIG{__DIE__});  # protect against user defined die handlers
+
+    $self-&gt;progress("begin", $request);
+
+    my $response = $self-&gt;run_handlers("request_send", $request);
+
+    unless ($response) {
+        my $protocol;
+
+        {
+            # Honor object-specific restrictions by forcing protocol objects
+            #  into class LWP::Protocol::nogo.
+            my $x;
+            if($x = $self-&gt;protocols_allowed) {
+                if (grep lc($_) eq $scheme, @$x) {
+                }
+                else {
+                    require LWP::Protocol::nogo;
+                    $protocol = LWP::Protocol::nogo-&gt;new;
+                }
+            }
+            elsif ($x = $self-&gt;protocols_forbidden) {
+                if(grep lc($_) eq $scheme, @$x) {
+                    require LWP::Protocol::nogo;
+                    $protocol = LWP::Protocol::nogo-&gt;new;
+                }
+            }
+            # else fall thru and create the protocol object normally
+        }
+
+        # Locate protocol to use
+        my $proxy = $request-&gt;{proxy};
+        if ($proxy) {
+            $scheme = $proxy-&gt;scheme;
+        }
+
+        unless ($protocol) {
+            $protocol = eval { LWP::Protocol::create($scheme, $self) };
+            if ($@) {
+                ... snip ...
+</pre>
+
+<ul>
+<li> HTTPSリクエストでProxyなし
+<ul>
+<li> $protocolがLWP::Protocol::httpsのインスタンスになる</li>
+</ul>
+</li>
+<li> HTTPSリクエストでProxyあり(Proxyの$schemeがHTTP)
+<ul>
+<li> $protocolがLWP::Protocol::httpのインスタンスになる</li>
+</ul>
+</li>
+</ul>
+
+<p>つまり、HTTPSリクエストでProxyありのときでも$protocolがLWP::Protocol::httpsのインスタンスになるようにすれば、HTTPリクエストもHTTPSリクエストも扱えそうですね！</p>
+
+<p>そこで以下のコードを書いてみました。モジュール名はいい名前が思いつかなかったので適当です。</p>
+
+<pre>
+package LWP::UserAgent::ProxyConnect;
+
+use strict;
+use warnings;
+our $VERSION = '0.01';
+
+use LWP::UserAgent ();
+
+{
+    my $impclass = LWP::Protocol::implementor('http');
+
+    my $orig = $impclass-&gt;can('request');
+
+    my $proxy_method = sub {
+        my ($self, $request, $proxy, $arg, $size, $timeout) = @_;
+
+        # $request-&gt;url-&gt;schemeが'https'で$proxyがあるとき
+        if ($request-&gt;url-&gt;scheme eq 'https' and $proxy) {
+            # Crypt::SSLeayのために環境変数をセットして
+            local $ENV{HTTPS_PROXY} = $proxy-&gt;host_port;
+
+            no warnings 'uninitialized';
+            my ($username, $password) = split /:/, $proxy-&gt;userinfo;
+            local $ENV{HTTPS_PROXY_USERNAME} = $username;
+            local $ENV{HTTPS_PROXY_PASSWORD} = $password;
+            use warnings 'uninitialized';
+
+            # $selfをLWP::Protocol::httpsのインスタンスにして
+            bless $self, LWP::Protocol::implementor('https');
+
+            # $proxyをなしにして元の処理に戻る
+            $orig-&gt;($self, $request, undef, $arg, $size, $timeout);
+        }
+        else {
+            goto $orig;
+        }
+    };
+
+    no strict 'refs';
+    no warnings 'redefine';
+    *{"${impclass}::request"} = $proxy_method;
+}
+
+1;
+</pre>
+
+<p>LWP::UserAgentと同じように使えます。</p>
+
+<pre>
+#!/usr/bin/perl
+use strict;
+use warnings;
+use LWP::UserAgent::ProxyConnect;
+
+my $ua = LWP::UserAgent-&gt;new;
+
+# 環境変数にセットしていればこれだけで両方ともOK
+$ua-&gt;env_proxy;
+
+my $res = $ua-&gt;get(shift);
+
+print $res-&gt;dump;
+</pre>
+
+<p>これでリクエストがHTTPかHTTPSかを気にせずProxyを指定できるようになりました！やったね！</p>
+
+<h4> 参考</h4>
+<ul>
+<li> <a href="http://d.hatena.ne.jp/ragtarou/20070302">Perlから、https(SSL)のコンテンツをProxy経由で取得する - ragutarouの日記</a></li>
+<li> <a href="http://d.hatena.ne.jp/ikasam_a/20060413/1144910596">LWP::UserAgent::env_proxy - masakiのはてなダイアリー</a></li>
+</ul>
+
+
+<p>さてさて、JPerl Advent Calendar 2009もいよいよ後半に突入ですね。</p>
+<p>明日はvkgtaroさんです！わくてか！</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/casual/17.html">Wed, 16 Dec 2009 23:00:00 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

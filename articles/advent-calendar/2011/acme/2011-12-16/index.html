@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="k12u">
+        <title>Acme::NumericalArgumenttttttttttttttttttttt - Articles Advent Calendar 2011 Acme</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Acme::NumericalArgumenttttttttttttttttttttt</h1>
+
+        <p>はい、<a href="http://twitter.com/k12u">kawamoto</a>です</p><p>CPANにモジュールをupしたことはありませんが、ちょっとモジュール作ってみました。<br />
+<a href="https://github.com/k12u/p5-acme-numericalarugment">Acme::NumericalArgument</a>です。</p><p>使い方は<a href="https://github.com/k12u/p5-acme-numericalarugment/blob/master/t/01-base.t">test</a>に書いてあるまんまです。</p>
+
+    <pre class="code">package MyPackage;
+
+use parent &#39;Acme::NumericalArgument&#39;;
+sub hello {
+    my ($self, $count, $arg) = @_;
+    return(&#34;Hello&#34; x $count . $arg);
+}
+
+package main;
+
+use strict;
+use warnings;
+use Test::More;
+use Test::Exception;
+
+is(MyPackage-&gt;new-&gt;helloooooooooooooooooo(&#34; World&#34;), (&#34;Hello&#34; x 18).&#34; World&#34;);
+note(MyPackage-&gt;new-&gt;helloooooooooooooooooo(&#34; World&#34;));
+dies_ok { MyPackage-&gt;new-&gt;noooo };
+
+done_testing;</pre>
+<p>Acme::NumericalArgument のサブクラスMyPackageで</p>
+
+    <pre class="code">MyPackage-&gt;new-&gt;helloooooooooooooooooo(&#34; World&#34;)</pre>
+<p>などとメソッドを呼び出すと、</p>
+
+    <pre class="code">sub hello {
+    my ($self, $count, $arg) = @_;
+    return(&#34;Hello&#34; x $count . $arg);
+    # HelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHello World
+}</pre>
+<p>といった具合にメソッド名の "o" の数 (18) が第1引数として渡されます。</p><p>実用性はもちろんありませんが、退屈な作業の時でも</p>
+
+    <pre class="code">shutdownnnnnnnnnnnn</pre>
+<p>こんなコマンドでサーバがたくさんshutdownしたりするとまあまあ気持いいと思います。</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="kan">
+        <title>Smart::Options - もっと手軽にコマンドライン引数解析 - Articles Advent Calendar 2012 Hacker</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Smart::Options - もっと手軽にコマンドライン引数解析</h1>
+
+        
+<div class="section">
+    <h4>前説</h4>
+    <p>おはようございます。最近<a href="http://www.amazon.co.jp/gp/product/B00A830FM2/ref=as_li_ss_tl?ie=UTF8&camp=247&creative=7399&creativeASIN=B00A830FM2&linkCode=as2&tag=mikilabo-22">&#x5358;&#x8457;</a>が出来たkanです。何故か毎年のようにadvent calendarの参加者に寿司を奢っていますが、そろそろ限界です(財布が)。perl advent calenderでは参加者と共に寿司スポンサーを募集しています。</p>
+
+</div>
+<div class="section">
+    <h4>モジュール紹介</h4>
+    <p>今日は、拙作の<a href="https://metacpan.org/module/Smart&#x3a;&#x3a;Options">Smart::Options</a>というモジュールを紹介します。リリースされたのが今年の後半になってからで日の浅いモジュールですが、自分が過去に作った<a href="https://metacpan.org/module/opts">opts</a>というCPANモジュールや、<a href="https://github.com/substack/node-optimist">optimist</a>というnode.jsのライブラリの知見を生かして作られています。コンセプトは「直感的にざっくり使えて、使おうと思えば細かい設定も可能」という感じです。</p>
+
+</div>
+<div class="section">
+    <h4>使い方</h4>
+    
+    <pre class="code lang-perl">use Smart::Options;
+ 
+my $argv = Smart::Options-&gt;new-&gt;parse;
+ 
+if ($argv-&gt;{rif} - 5 * $argv-&gt;{xup} &gt; 7.138) {
+    say &#39;Buy more fiffiwobbles&#39;;
+}
+else {
+   say &#39;Sell the xupptumblers&#39;;
+}
+ 
+# $ ./example.pl --rif=55 --xup=9.52
+# Buy more fiffiwobbles
+#
+# $ ./example.pl --rif 12 --xup 8.1
+# Sell the xupptumblers</pre>
+<p>Smart::Optionsモジュールのインスタンスを作って、parseメソッドを実行すると、@ARGVに入っているコマンドライン引数(例では --rif=55 --xup=9.52 など)を解釈してハッシュリファレンスの形で返してくれます。parseメソッドの引数を省略すると@ARGVの中身が使われますが、配列をparseに渡してやれば、その配列の中身を解析してくれます。</p><p>また、Smart::Optionsをuseすると自動的にargvという関数がエクスポートされます。この関数は「Smart::Options->new->parse」を実行するので、上の1行目は以下のように書き換え可能です。</p>
+
+    <pre class="code lang-perl">my $argv = argv;
+
+# もしくは
+
+if (argv-&gt;{rif} - 5 * argv-&gt;{xup} &gt; 7.138) {</pre>
+<p>このように単純に使う場合は非常にシンプルです。もちろん、色々な制約をつけたり初期値を設定したりも出来ます。</p>
+
+    <pre class="code lang-perl">my $opt = Smart::Options-&gt;new;
+$opt-&gt;alias(f =&gt; &#39;file&#39;);
+$opt-&gt;default(&#39;file&#39; =&gt; &#39;/etc/passwd&#39;);
+
+$opt-&gt;parse; # =&gt; { file =&gt; &#39;xxxxxx&#39; }</pre>
+<p>上の例では、fというコマンドライン引数をfileという別名でアクセスできるようにしつつ、初期値として"/etc/passwd"という値を指定しています。aliasやdefaultといった設定用のメソッドはSmart::Optionsのインスタンス自体を返すので</p>
+
+    <pre class="code lang-perl">my $opt = Smart::Options-&gt;new
+            -&gt;boolean(&#39;e&#39;)
+            -&gt;alias(f =&gt; &#39;file&#39;)
+            -&gt;default(&#39;file&#39; =&gt; &#39;/etc/passwd&#39;);</pre>
+<p>のように、チェインして一続きに書くことも出来ます。</p><p>最近リリースした0.02からは、サブコマンドとDSLに対応しました。</p><p>サブコマンドはgitコマンドのように「スクリプト <サブコマンド> [オプション]」のように引数を指定してスクリプトを動かせるようにするものです。</p>
+
+    <pre class="code lang-perl">my $opt = Smart::Options-&gt;new()
+            -&gt;subcmd(add =&gt; Smart::Options-&gt;new())
+            -&gt;subcmd(minus =&gt; Smart::Options-&gt;new());
+
+$argv = $opt-&gt;parse;</pre>
+<p>上のようにすると、 $argv->{command} に入力されたサブコマンドが入り、実際のオプションは $argv->{cmd_option}にハッシュリファレンスとして入ります。サブコマンドは複数の機能を持つスクリプトを作る際に非常に便利ですので、是非使ってみて下さい。</p><p>DSLは、拙作のoptsのように、コマンドライン引数をメソッドの引数のように書くことが出来る機能です。Smart::Optionsでは<a href="https://metacpan.org/module/Smart&#x3a;&#x3a;Options&#x3a;&#x3a;Declare">Smart::Options::Declare</a>というモジュールで、optsとほぼ同等の記述が出来るようになりました。このモジュールを使うと、冒頭の例は以下のように書き換えられます。</p>
+
+    <pre class="code lang-perl">use Smart::Options::Declare;
+
+opts my $rif, my $xup;
+
+if ($rif - 5 * $xup &gt; 7.138) {
+    say &#39;Buy more fiffiwobbles&#39;;
+}
+else {
+   say &#39;Sell the xupptumblers&#39;;
+}</pre>
+<p>変数の名前がそのままコマンドライン引数の名前になっています。現在はoptsにあったコマンドライン引数の型チェックのような機能は対応できていないのですが、次のバージョンで対応する予定です。<br />
+ </p>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>Smart::Optionsについて紹介しました。perlのコマンドラインオプションパーサというとGetOpt::Longが定番ではありますが、使い方が難解だったり罠も多く、xaicronさんのGetOpt::Compat::WithCmdや、拙作のoptsなど、いくつかモジュールが登場しています。次のリリースでoptsの機能は全てSmart::Optionsに取り込めそうなので、今後はこちらのモジュールを重点的に開発していこうと思っています。</p><p>明日の担当は、<a href="http://twitter.com/__gfx__">gfx</a>さんです。お楽しみに。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

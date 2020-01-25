@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>データをどのようにキャッシュするか - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">データをどのようにキャッシュするか - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">データをどのようにキャッシュするか<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/data-model/23.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/data-model/23.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>こんにちわ！ Yappo です！</p>
+<p>2十3日目は Data::Model でどのようにデータをキャッシュし、</p>
+<p>キャッシュしたデータをどう扱うかについてです。</p>
+
+<p>アプリケーションの負荷軽減策の一つとしてデータを memcached にキャッシュしてしまい、</p>
+<p>DB アクセスをすくなくすることで、レスポンスを早くする手法はみなさん良く使われていると思います。</p>
+
+
+<p>Data::Model では Driver の機能として、データを透過キャッシュするなどの便利機能が存在しています。</p>
+<p>そこで、いろいろ工夫擦る必要は特にありません。 Driver::Cache を使うと透過的キャッシュが利用できます。</p>
+<p>このあたりの仕組は Data::ObjectDriver から拝借してます。</p>
+
+<p>ただし Data::Model::Driver::Cache の戦略は全てのキャッシュを透過的に行ってしまうので、アプリケーションによっては無駄にキャッシュしすぎてしまうとかありえます。</p>
+<p>ユーザの必要なケースに応じてキャッシュしてもらった方が効率が良いケースももちろんあるでしょうし Driver::Cache を使って楽をしたいときもあるでしょう。</p>
+<p>幸い Data::Model では、特定のテーブルの Driver だけ変更する事ができるので一番重くて効果的なテーブルだけ memcached で透過的にキャッシュするという戦略も取れるのです。</p>
+
+<p>では、早速データのキャッシュ方法についてみていきましょう。</p>
+
+<pre>
+# base driver を設定
+my $driver = Data::Model::Driver::Memory-&gt;new;
+base_driver $driver;
+
+# user テーブルだけ透過キャッシュを指定
+my $cache  = Data::Model::Driver::Cache::HASH-&gt;new(
+    fallback =&gt; $driver,
+);
+install_model user =&gt; schema {
+    driver $cache;
+};
+</pre>
+
+<p>これだけです。</p>
+<p>これで user というテーブルだけ透過的に on memory な HASH driver にキャッシュされるようになります。</p>
+<p>あとはそのデータが DB から取得したものなのか、 DB から取得したものなのかを気にする必要は全くありません。</p>
+
+<p>fallback というオプションは、 get したときに cache がなかったときに利用される Driver です。</p>
+<p>きちんと Data::Model の Driver の規格にあったものなら何でも使えます。</p>
+<p>Data::Model::Driver::Cache::HASH の fallback に Data::Model::Driver::Cache::HASH を指定するアホな事もできるし、 Data::Model::Driver::Memcached も使えます。</p>
+<p>まぁ KVS ストレージを透過的に memcached でキャッシュするなんて無意味すぎるので誰もやらないけど。</p>
+
+<p>もちろん Driver::Cache を base_driver として指定してもいいです。それは自己責任で。</p>
+
+<p>上記の例は単純な Perl の HASH にキャッシュするだけの Driver でしたが memcached にキャッシュする時は Driver::Cache::Memcached を使います。</p>
+
+<pre>
+   my $driver = Data::Model::Driver::Memory-&gt;new;
+   my $cache_driver = Data::Model::Driver::Cache::Memcached-&gt;new(
+        fallback  =&gt; $driver,
+        memcached =&gt; Cache::Memcached::Fast-&gt;new({ servers =&gt; [ { address =&gt; "localhost:11211" }, ], }),
+    );
+</pre>
+
+<p>memcached オプションに任意の Cache::Memcached オブジェクトを入れるだけです。</p>
+
+<p>簡単ですね。</p>
+
+<p>明日は、自作 Driver について掘り下げていこうかと思います。</p>
+
+<p>have a nice data-model days!:)</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/data-model/23.html">Thu, 24 Dec 2009 09:48:01 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+

@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>ファイルのすべてを飲み込む方法</title>
+    <link rel="stylesheet" href="/articles/advent-calendar/adventcal.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="/articles/advent-calendar/prettify.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+    <script type="text/javascript" src="/articles/advent-calendar/adventcal.js"></script>
+</head>
+<body>
+
+<h1>ファイルのすべてを飲み込む方法</h1>
+
+<div class="section">
+
+<p>原稿を落としたら，すしをおごりにアメリカに行かないといけないとの噂にgkbrしている<a href="http://d.hatena.ne.jp/hakobe932">id:hakobe932</a>です．
+932は草津の932です．こんにちは．
+</p>
+
+<p>ファイルの中身をすべて読み込む処理というのは，非常によくある処理です．<abbr title="There is more than one way to do it">TIMTOWTDI</abbr>が信条のPerlでは，ファイルの中身をすべて読み込む方法もたくさんあります．ここでは，どんな方法があるのか見てみましょう．
+</p>
+
+<h2>行単位で読み込む</h2>
+
+<p>もっともシンプルなのは行入力演算子(<code>&lt;&gt;</code>)を使って行毎にデータを読み込み，それを連結する方法です．</p>
+
+<pre class="lang-perl"><code>open my $fh, '&lt;', './inputfile'
+    or die &quot;failed to open: $!&quot;;
+my $content = '';
+while (my $line = &lt;$fh&gt;) {
+    $content .= $line;
+}
+print $content;
+</code></pre>
+
+<p>もう少し工夫して後置<code>while</code>を使うと1行で書くことができます．</p>
+
+<pre class="lang-perl"><code>open my $fh, '&lt;', './inputfile'
+    or die &quot;failed to open: $!&quot;;
+my $content = '';
+$content .= $_ while &lt;$fh&gt;;
+print $content;
+</code></pre>
+
+<p>行入力演算子はリストコンテキストで評価すると，すべての行のリストが返ってくるので，次のように書くこともできます．
+</p>
+
+<pre class="lang-perl"><code>open my $fh, '&lt;', './inputfile'
+    or die &quot;failed to open: $!&quot;;
+my $content = join '', &lt;$fh&gt;;
+print $content;
+</code></pre>
+
+<h2>$/を利用して読み込む</h2>
+
+<p>行入力演算子でファイルの内容をすべて読み込むのは，シンプルで比較的わかりやすいですが，行を一度保存するのでメモリを食いがちです．もう少し効率の良い方法として<var>$/</var>変数を使うやりかたがあります．</p>
+
+<p>グローバル変数<var>$/</var>をローカル化すると行入力演算子でファイルの内容をすべて読み込むことができます．
+</p>
+
+<pre class="lang-perl"><code>open my $fh, '&lt;', './inputfile'
+    or die &quot;failed to open: $!&quot;;
+my $content = '';
+{
+    local $/;
+    $content = &lt;$fh&gt;;
+}
+print $content;
+</code></pre>
+
+<p>これでは少しかっこわるいのですが，<code>do</code>ブロックを使えばもう少しきれいです．</p>
+
+<pre class="lang-perl"><code>open my $fh, '&lt;', './inputfile'
+    or die &quot;failed to open: $!&quot;;
+my $content = do { local $/; &lt;$fh&gt; };
+print $content;
+</code></pre>
+
+<p>これでコードもずいぶんスッキリしました．しかし，おまじない的なコードで，ぱっとみたときに何をやっているのかわかりにくいですね．
+</p>
+
+<h2>ファイルのすべてを飲み込む</h2>
+
+<p> そこで，ファイルのすべてを飲み込むために<a href="http://search.cpan.org/perldoc?Perl6::Slurp">Perl6::Slurp</a>を使いましょう．Perl6::Slurpは名前の通りファイルの内容をすべて飲み込みます．
+</p>
+
+<pre class="lang-perl"><code>use Perl6::Slurp;
+my $content = slurp './inputfile';
+print $content;
+</code></pre>
+
+<p>Perl6::Slurpでexportされる<code>slurp</code>関数を使えば，おまじない的な部分がなくなって，とってもシンプルでわかりやすいコードが書けます．しかも，ファイルハンドルを<code>open</code>する手間もへって良いとこづくしですね! 似たようなモジュールに<a href="http://search.cpan.org/perldoc?File::Slurp">File::Slurp</a>があります．</p>
+
+<p>他に<a href="http://search.cpan.org/perldoc?Path::Class">Path::Class</a>を使うという手もあります．
+</p>
+
+<pre class="lang-perl"><code>use Path::Class;
+my $inputfile = file('./inputfile');
+my $content = $inputfile-&gt;slurp;
+print $content;
+</code></pre>
+
+<p>Path::Classは<code>slurp</code>するのに使う以外にも，ファイル操作に関する便利なメソッドがたくさん用意されています．モダンなPerlコードでは定番の
+のファイル操作のモジュールですね．</p>
+
+<p>slurp系のメソッドや関数は，リストコンテキストで評価されると行のリストを返すので注意が必要です．以下のようなはまり方をすると非常にやっかいです．</p>
+
+<pre class="lang-perl"><code>use Perl6::Slurp;
+my $obj = { data =&gt; slurp './inputfile' }; # このslurpはリストコンテキストで実行される!
+</code></pre>
+
+<p>このように，すでにあるモジュールを使うとすっきり簡潔にコードが書けます．モジュールの充実しているPerlの醍醐味かもデスネ．</p>
+
+<h2>おまけ: readシステムコールで直接読み込む</h2>
+
+<p><code>sysread</code>関数をつかえば<code>read</code>システムコールを発行して指定サイズ文だけファイルからデータを読み込めます．<code>-s</code> 演算子をファイルハンドルに対して使えばファイルサイズが取れるので，以下のようにすればファイルの内容をすべて読み込むことができます．
+</p>
+
+<pre class="lang-perl"><code>open my $fh, '&lt;', './inputfile'
+    or die &quot;failed to open: $!&quot;;
+my $content;
+sysread $fh, $content, -s $fh;
+print $content;
+</code></pre>
+
+<p>事前にサイズを指定してシステムコールを発行するので，非常に高速なはずです．ただし，生のシステムコールを叩くのでいろいろな例外事項の対処を自分でしないといけないため，あまりおすすめできません！
+</p>
+
+<h2>まとめ</h2>
+
+<p>というわけで，いろいろな方法でファイルの中身をすべて読み込んで見ました．多くの選択肢があってなかなかPerlらしい感じですね．わかりやすさや，覚えやすさ，書いているプログラムの性質などに合わせて，良さそうなのを選べば良いと思います．個人的には，Perl6::Slurpや<var>$/</var>を使った方法をよく使います．これからは，Path::Classを使うのがオシャレかもしれませんね．</p>
+<p>もし，このほかにもファイルを飲み込む方法があればぜひ教えてクダサイ．</p>
+
+<p>現在つぎにお願いする人をさがしてます…<ins datetime="2008-12-19">＞ Yuichi Tateno に</ins></p>
+
+
+</div>
+
+</body>
+
+</html>

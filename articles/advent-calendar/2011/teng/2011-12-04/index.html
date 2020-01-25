@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>#04 single - Articles Advent Calendar 2011 Teng</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>#04 single</h1>
+
+        <p>今日はTengをつかったデータの取得方法を紹介します。</p>
+
+<div class="section">
+    <h3>single</h3>
+    <p>Tengのsingleメソッドを利用すると、PRIMARY KEYだったりUNIQUE KEYを使って簡単に１レコード取得することができます。<br />
+返却値はRowオブジェクトとなります。</p>
+
+    <pre class="code">my $row = $teng-&gt;single(&#39;user&#39;, +{id =&gt; 1});</pre>
+<p>簡単ですね。<br />
+実際に発行されるSQLは</p>
+
+    <pre class="code">SELECT * FROM user WHERE id = 1 LIMIT 1;</pre>
+<p>となります。</p><p>たとえば複数columnをPRIMARY KEYにしている場合、</p>
+
+    <pre class="code">my $row = $teng-&gt;single(&#39;user&#39;, +{id =&gt; 1, name =&gt; &#39;nekokak&#39;});</pre>
+<p>として、複数の条件を指定することができます。</p>
+
+    <pre class="code">SELECT * FROM user WHERE id = 1 AND name = &#39;nekokak&#39; LIMIT 1;</pre>
+<p>便宜上PRIMARY KEYだったりUNIQUE KEYと言いましたが本当は何でもOKです。<br />
+ただsingleメソッドの使い方としてはPRIMARY KEYだったりUNIQUE KEYを指定して使うものですので、<br />
+そういうものだと思ってもらうほうが良いでしょう。</p><p>singleメソッドではdefaultでは対象となるtableのcolumnを全て取得しますが、特定のcolumnだけ取得したい場合は<br />
+optionで指定することも可能です。</p>
+
+    <pre class="code">my $row = $teng-&gt;single(&#39;user&#39;, +{id =&gt; 1}, +{columns =&gt; [qw/id/]});</pre>
+<p>optionでcolumnsを指定すると、指定したカラムだけ取得することができます。</p>
+
+    <pre class="code">SELECT id FROM user WHERE id = 1 LIMIT 1;</pre>
+<p>明日はinsertメソッドやsingleメソッドで取得できるRowオブジェクトについて説明してみようとおもいます。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

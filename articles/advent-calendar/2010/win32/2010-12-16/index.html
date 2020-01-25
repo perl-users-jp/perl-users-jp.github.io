@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>スライドの下準備にWin32::PowerPointを使う - Articles Advent Calendar 2010 Win32</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>スライドの下準備にWin32::PowerPointを使う</h1>
+
+        <p>16日目の今日は頭がPな覆面ライターがPなネタをお送りします。Pで始まるWin32ネタといえばPPMが定番ですが、今日はOLEの紹介もかねてWin32::PowerPointを使ってみましょう。MS Officeもバージョンや設定によって微妙に挙動が異なる部分がありますが、ひとまずこんな感じのコードを書くと「foo」と書いてあるスライド1枚のプレゼンテーションが保存されます。簡単ですね。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+use Win32::PowerPoint;
+
+my $pp = Win32::PowerPoint-&gt;new;
+$pp-&gt;new_presentation;
+$pp-&gt;new_slide;
+$pp-&gt;add_text(&#39;foo&#39;);
+$pp-&gt;save_presentation(&#39;foo.ppt&#39;);
+$pp-&gt;close_presentation;</pre>
+<p>Win32::PowerPointにはスライドの下準備をするのに最低限必要なメソッドしか用意されていませんが、裏ではWin32::OLEを使っていますので、OLE経由で可能なことであれば何でもできます。</p><p>簡単なところでは「$pp->application->Version」などとすればPowerPointのバージョンが取れますし、ドキュメントにも書いてあるように、</p>
+
+    <pre class="code lang-perl">$pp-&gt;slide-&gt;Shapes(1)-&gt;TextFrame-&gt;TextRange
+   -&gt;Characters(2, 1)-&gt;Font-&gt;{Bold} = $pp-&gt;c-&gt;True;</pre>
+<p>と書けば、いま編集対象となっているスライドの最初のテキストの2文字目がボールドになります。詳しいことはお使いのPowerPointのヘルプを見るか、PowerPoint上で適当な操作をマクロに記録して、その内容とつきあわせてみてください。たいていの操作はそのままPerl風に書き直すだけで動作しますが、場合によってはWin32::OLEに用意されているInvokeメソッドやSetPropertyメソッドを使った方がわかりやすい場合もあるかもしれません。</p>
+
+    <pre class="code lang-perl">$pp-&gt;slide-&gt;Invoke(&#39;Shapes&#39;, 1)
+          -&gt;Invoke(&#39;TextFrame&#39;)
+          -&gt;Invoke(&#39;TextRange&#39;)
+          -&gt;Invoke(&#39;Characters&#39;, 2, 1)
+          -&gt;Invoke(&#39;Font&#39;)
+          -&gt;SetProperty(&#39;Bold&#39;, $pp-&gt;c-&gt;True);</pre>
+<p>また、Win32::PowerPointではおまけとして基本的な定数は$pp->c->...でアクセスできるようになっています。この手の情報は、MSDNのほか、Visual Basic Editorの表示メニューから呼び出せるオブジェクトブラウザを利用すると簡単に調べられます―というのは窓使いのみなさんなら先刻ご存じでしょう。</p><p>もちろんWin32::OLEで操作できるのはPowerPointだけではありません。WordでもExcelでも、あるいはInternetExplorerでも、とっかかりさえわかってしまえば、あとは同じような方法で操作できます。</p><p>大量のExcelファイル、大量のWordファイルに対してちょっとした定型処理をしたいときなど、Visual Basic Editorを立ち上げて標準モジュールやクラスモジュールにごりごり処理を書くのも悪くはないですが、OLEの使い方をマスターしておくと読み込みたいファイルの選択や途中のテキスト処理などはPerlで済ませて、必要な部分だけOLE経由でVisual Basic的な処理を行う、といったことが簡単にできるようになります。これを機会にみなさんもぜひVisual Basicの世界にうわ何をする(ry</p><p>はい、お見苦しいところをお見せしました。このように、Win32::OLEを使えばPerlでも簡単にVisual Basicもどきが使えます。Visual Basicをご存じのみなさんはこの機会にぜひPerlも覚えてみてください！</p><p>次はどなたになるのかな？</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

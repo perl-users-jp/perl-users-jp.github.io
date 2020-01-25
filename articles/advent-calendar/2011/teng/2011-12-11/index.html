@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>#11 inflate / deflate - Articles Advent Calendar 2011 Teng</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>#11 inflate / deflate</h1>
+
+        <p>今日はinflate / deflateというものについて説明します。</p><p>まず、inflate / deflateというのはとっかかりが悪く、<br />
+概念としてわかりにくい用語だってよく言われますし、<br />
+昔自分も理解するまでわかりにくかったので、さっくり解りやすいように説明します。</p>
+
+<div class="section">
+    <h3>inflate</h3>
+    <p>inflateで辞書を引くと<br />
+<a href="http://ejje.weblio.jp/content/inflate">http://ejje.weblio.jp/content/inflate</a><br />
+とあるように、あるものをふくらませる、膨張させるという意味があります。<br />
+経済で言うインフレですね。</p><p>ですのでTengなどのORMでinflateというと、<br />
+columnの単純なデータをオブジェクトという構造体にふくらませる<br />
+というイメージを持つと良いかと思います。</p><p></p>
+
+</div>
+<div class="section">
+    <h3>deflate</h3>
+    <p>deflateを辞書で引くと<br />
+<a href="http://ejje.weblio.jp/content/deflate">http://ejje.weblio.jp/content/deflate</a><br />
+とあるように、ふくらんだものをすぼませるといった意味があります。<br />
+これも経済でいうデフレでインフレとは逆の意味でつかわれますね。</p><p>なのでdeflateはオブジェクトという構造体を単純な文字列のようなものに変換することを言います。</p>
+
+</div>
+<div class="section">
+    <h3>Tengでのinflate / deflate</h3>
+    <p>Tengではinflate / deflateの定義をschemaに書きます。</p><p>今回のinflate / deflateの例を持ち出すのにいまのschemaではものたりないのでuserテーブルにcreated_atとupdated_atというカラムを追加したいと思います。<br />
+追加した後のtable定義、schema定義はまずこうなります。</p>
+
+    <pre class="code">package Proj::DB::Schema;
+use strict;
+use warnings;
+use Teng::Schema::Declare;
+
+table {
+    name &#39;user&#39;;
+    pk   &#39;id&#39;;
+    columns qw/id name created_on updated_on/;
+};
+
+1;
+__END__
+create table user (
+    id integer,
+    name text,
+    created_at text,
+    updated_at text,
+    primary key ( id )
+);</pre>
+<p>これでTeng経由でcreated_on / updated_onというカラムの操作ができるようになりました。</p>
+
+    <pre class="code">$teng-&gt;insert(&#39;user&#39;,
+    +{
+        id         =&gt; 1,
+        name       =&gt; &#39;nekokak&#39;,
+        created_at =&gt; &#39;2011-12-11 12:34:56&#39;,
+        updated_at =&gt; &#39;2011-12-11 12:34:56&#39;,
+    }
+);</pre>
+<p>このようにinsertします。</p><p>しかしプログラム中で日付データを扱うときはDateTimeだったりTime::Pieceだったりをつうことがおおいのではないでしょうか？<br />
+またdbに日付データを格納する際もiso形式だったりunixtimestampだったりと形式も様々でしょう。</p><p>そんなときにinflate / deflateの設定をschemaにもたせることで、<br />
+データの変換を簡単におこなってくれるようになります。</p><p>今回はDateTimeを一例として使います。</p><p>inflate / deflateはschemaに定義を行います</p>
+
+    <pre class="code">package Proj::DB::Schema;
+use strict;
+use warnings;
+use Teng::Schema::Declare;
+use DateTime;
+
+table {
+    name &#39;user&#39;;
+    pk   &#39;id&#39;;
+    columns qw/id name created_on updated_on/;
+    # inflate / deflateの定義は正規表現でcolumnを指定できるので
+    # .+_atにマッチするカラムに以下のinflate / deflateが適用される
+    # dbから取得したunixtimeをDateTimeオブジェクトにinflateする
+    inflate qr/.+_at/ =&gt; sub {
+        my ($col_value) = @_;
+        DateTime-&gt;from_epoch($col_value);
+    };
+    # プログラムから渡されたDateTimeオブジェクトをunixtimeにdeflateする
+    deflate qr/.+_at/ =&gt; sub {
+        my ($col_value) = @_;
+        $col_value-&gt;epoch;
+    };
+};
+
+1;</pre>
+<p>このように定義を行うと</p>
+
+    <pre class="code">use DateTime;
+my $dt = DateTime-&gt;now();
+$teng-&gt;insert(&#39;user&#39;,
+     +{
+        id         =&gt; 1,
+        name       =&gt; &#39;nekokak&#39;,
+        created_at =&gt; $dt,
+        updated_at =&gt; $dt,
+    }
+);</pre>
+<p>このように書くことができ、また、</p>
+
+    <pre class="code">my $row = $teng-&gt;single(&#39;user&#39;);
+$row-&gt;created_at; # DateTime オブジェクト
+$row-&gt;updated_at; # DateTime オブジェクト</pre>
+<p>このようにRowオブジェクト経由でカラムに対応するメソッドを呼び出すとinflateが実行され<br />
+DateTimeのオブジェクトが取得できます。<br />
+またDateTimeのオブジェクトではなく、カラムのデータそのものを取得したい場合は</p>
+
+    <pre class="code">$row-&gt;get_column(&#39;created_at&#39;);</pre>
+<p>とするとdbから取得したunixtimeがそのまま取得できます。</p><p>プログラム中では日付データってDateTimeとかのオブジェクトで扱うともろもろ便利だったりしますよね。<br />
+もちろんTime::Pieceでもいいんですけど。</p><p>さらに日付データではなく、jsonなデータとかでももちろんOK</p><p>このようにデータを プログラム層 <-> RDBMS の間で良い感じにデータ変換してくれるのが</p><p>inflate / deflateでした。</p><p>明日はschema loaderについて説明します</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

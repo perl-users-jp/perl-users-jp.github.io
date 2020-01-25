@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>全てのコードにテストを(標準入力乗っ取り編)</title>
+    <link rel="stylesheet" href="/articles/advent-calendar/adventcal.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="/articles/advent-calendar/prettify.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+    <script type="text/javascript" src="/articles/advent-calendar/adventcal.js"></script>
+</head>
+<body>
+<h1>全てのコードにテストを(標準入力乗っ取り編)</h1>
+
+<p>
+  テストコード書くのってピタゴラ装置作るみたいで楽しいですよね。
+  というわけであらゆるコードにはテストコードを用意してあげたい！
+  けどそういうときちょっとめんどくさいのが、昔ながらのCGIスクリプトやメールフィルタなどのフィルタスクリプト、要はSTDINからデータが入ってくる前提のコードです。
+  make testやproveからテストする前提だと標準入力に何も渡さないし…、
+  というわけでこんなかんじでテストを書いてみます。
+</p>
+
+<pre>
+<code>
+{
+    local *STDIN;
+    open STDIN, '<', 't/data1.txt';
+    my $rv = SomeFilter->run;
+    ok $rv;
+}
+
+{
+    local *STDIN;
+    open STDIN, '<', 't/data2.txt';
+    my $rv = SomeFilter->run;
+    ok $rv;
+}
+</code>
+</pre>
+
+<p>
+  各ブロックのlocal文により、各スタック内ではSTDINが上書きされるため、
+  STDINを受け取る前提のコードに好きなファイルを好きなだけ渡すことができます。
+  あくまでも各ブロックの中だけ上書きしているので
+</p>
+
+<pre>
+<code>
+{
+    local *STDIN;
+    open STDIN, '<', 't/data1.txt';
+    my $rv = SomeFilter->run;
+    ok $rv;
+}
+
+{
+    my $rv = SomeFilter->run;
+    ok $rv;
+}
+</code>
+</pre>
+
+<p>
+  とかすると、最後のブロックでは標準入力を待つのが分かります。
+</p>
+
+<pre>
+<code>
+{   
+    local *STDIN = *DATA;
+    SomeFilter->run;
+}
+
+__DATA__
+blah blah blah
+</code>
+</pre>
+
+<p>
+  こんな書き方も出来ます。さて、次のバトンは nekokak さんに渡します。
+</p>
+
+</body>
+</html>

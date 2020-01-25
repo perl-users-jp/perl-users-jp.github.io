@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Don&#39;t use DBIx::Class::UTF8Columns - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Don&#39;t use DBIx::Class::UTF8Columns - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Don&#39;t use DBIx::Class::UTF8Columns<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/hacker/04.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/hacker/04.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <p>自分のつくったもジュールを紹介するハッカートラックということで、僕は <a href="http://search.cpan.org/dist/DBIx-Class/">DBIx::Class</a> に同封されている <code>DBIx::Class::UTF8Columns</code> について書きます。</p>
+
+<p>まず最初に、<strong>このモジュールをつかわないでください</strong>。
+DBIx::Class::UTF8Columns は DBIx::Class のコアモジュールになってから、utf8 を扱う場合はこのモジュールを使うといいよという記述をいろいろなところで目にします。しかしこのモジュールがしていることを理解せずに使用すると予期せぬ不具合に悩まされるかもしれません。今日はこのモジュールを使わない方が良い理由と、その代替案を示します。</p>
+
+<p>このモジュールは DBIC から取り出したデータの utf8 フラグを立て、逆にデータベースにデータを入れるときにはフラグを落とすという、モダンな Perl スクリプトの流儀を自動で行ってくれるモジュールです。</p>
+
+<p>しかしこれが行われるのは <code>get_column</code>、<code>set_column</code> のときのみです。</p>
+
+<p>DBIx::Class::Row のほとんどのファンクションはこのどちらかのメソッドを最終的には読んでいる物ばかりなので問題にはなりません。しかし ResultSet ではどうでしょう。</p>
+
+<pre><code>$rs-&gt;search({ name =&gt; '村瀬' })
+</code></pre>
+
+<p>と言った場合、これは UTF8Columns の扱う範疇を超えてしまいます。
+UTF8Columns はこの場合なにもしません。したがって DBD の実装によっては何らかの不具合がおきたり、うまく検索できなかったりするでしょう。</p>
+
+<p>UTF8Columns は Result クラスのためのものであり、ResultSet クラスでは動作しません。</p>
+
+<p>どうするのがいいのでしょう。代替案としては二つあります。</p>
+
+<ol>
+<li>ResultSet メソッドには <code>(encode|decode)_utf8</code> して使う</li>
+<li>DBD が提供している utf8 関係の機能を使用する。</li>
+</ol>
+
+<p>前者は従来どおり、自前でutf8周りの処理をすると言う物です。</p>
+
+<p>後者は DBD::SQLite、 DBD::mysql、DBD::Pg、などが提供する utf8 用の機能を使用します。
+これらを使用すると DBD 側でデータ取得時には utf8 フラグをたててくれ、入れるときにはフラグを落としてくれます。こちらを使用すると Result でも ResultSet でも問題なく使用できるためいちばんスムーズな回答となります。</p>
+
+<p>具体的なオプションとしては</p>
+
+<p>DBD::SQLite:</p>
+
+<pre><code>sqlite_unicode =&gt; 1
+unicode =&gt; 1 # DBD::SQLite 1.26 以前
+</code></pre>
+
+<p>DBD::mysql:</p>
+
+<pre><code>mysql_enable_utf8 =&gt; 1
+</code></pre>
+
+<p>DBD::Pg:</p>
+
+<pre><code>pg_enable_utf8  =&gt; 1
+</code></pre>
+
+<p>などがあります。</p>
+
+<p>これを DBIx::Class などから使用する場合は</p>
+
+<pre><code>my $schema = MySchema-&gt;connect(
+    'dbi:mysql:database', 'username', 'password',
+    {
+        mysql_enable_utf8 =&gt; 1,
+        on_connect_do     =&gt; ['SET NAMES utf8'],
+    },
+);
+</code></pre>
+
+<p>みたいな感じでやればOKです。</p>
+
+<p>とはいえ、MySQL の場合 <code>mysql_enable_utf8</code> は</p>
+
+<blockquote>
+  <p>This option is experimental and may change in future versions.</p>
+</blockquote>
+
+<p>なので、その辺を理解して使用ください。</p>
+
+<p>UTF8Columns はそれがやっていることを理解して使わないと予期せぬバグを生むかもしれないということと、二つの代替案を提案してみました。個人的には最後の方法がいちばんおすすめです。参考になれば幸いです。</p>
+
+<p>明日は kazuho さんです！</p>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/hacker/04.html">Fri, 04 Dec 2009 04:44:17 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

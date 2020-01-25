@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>#07 Teng::Iterator - Articles Advent Calendar 2011 Teng</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>#07 Teng::Iterator</h1>
+
+        <p>今日はデータ取得時に利用することになるTeng::Iteratorを紹介します。</p><p>single以外のsearch系のメソッドを利用すると基本的にはTeng::Iteratorのオブジェクトが返されます。</p><p>TengのIteratorオブジェクトnext / all / suppress_object_creationというメソッドのみ提供されます。</p>
+
+<div class="section">
+    <h3>next</h3>
+    <p>nextメソッドをつかうことで取得したrow情報をイテレーションしながら取得することができます。</p>
+
+    <pre class="code">while (my $row = $itr-&gt;next) {
+    $row-&gt;id;
+}</pre>
+
+</div>
+<div class="section">
+    <h3>all</h3>
+    <p>allメソッドを使うとrow情報をまとめて取得することができます</p>
+
+    <pre class="code">my @rows = $itr-&gt;all;</pre>
+
+</div>
+<div class="section">
+    <h3>suppress_object_creation</h3>
+    <p>TengではRowオブジェクトを必要としない場合、もしくはRowオブジェクトの生成コストをカットして、<br />
+単なるhasrefを取得したい場合にsuppress_object_creationメソッドに真の値をセットすることで<br />
+Rowオブジェクトの生成をストップすることができます。</p>
+
+    <pre class="code">$itr-&gt;suppress_object_creation(1);
+while (my $row = $itr-&gt;next) {
+    $row-&gt;{id}; # ただのhashrefでありRowオブジェクトのメソッドはcallできない
+}</pre>
+<p>大量のデータを取り扱うbatch処理などでRowオブジェクトの生成を必要としない場合などに利用すると<br />
+効率的に処理することができるようになるでしょう。</p><p>またsuppress_object_creationはこのようにIterator単位で設定することも可能ですが、<br />
+Tengにも同じメソッドがあり、そちらで設定するとデフォルトでRowオブジェクトを生成しないモードに<br />
+変えることも出来ます。</p>
+
+    <pre class="code">my $teng = Teng-&gt;new(suppress_object_creation =&gt; 1, ....);
+# もしくは
+$teng-&gt;suppress_object_creation(1);
+my $itr = $teng-&gt;search_by_sql(&#39;SELECT * FROM user&#39;);
+while (my $row = $itr-&gt;next) {
+    $row-&gt;{id}; # ただのhashrefでありRowオブジェクトのメソッドはcallできない
+}</pre>
+<p><br />
+明日はsearchメソッドの使い方を紹介しようと思います。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

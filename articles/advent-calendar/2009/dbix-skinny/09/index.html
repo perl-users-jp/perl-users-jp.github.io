@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>色々なデータの更新方法2 #09 - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">色々なデータの更新方法2 #09 - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">色々なデータの更新方法2 #09<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/09.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/09.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>こんにちわ！wiiマリオが楽しすぎて仕方ないnekokakです！</p>
+<p>九日目はDBIx::Skinnyでのデータ更新メソッドの説明の続きです。</p>
+
+<p>DBIx::Skinnyではselect文以外にupdate文やdelete文についても生で書く事が出来ます。</p>
+</div>
+<div class="section">
+<h3> updte_by_sql</h3>
+
+<p>update_by_sqlを使えばupdateクエリの生SQLを書く事が出来ます。</p>
+
+<pre>
+my $update_count = $db-&gt;update_by_sql(q{UPDATE user SET name = ?}, ['nekokak']));
+</pre>
+
+<p>update_by_sqlメソッドの返却値としては何件のレコードが更新されたかの件数がかえってきます。</p>
+<p>複雑なクエリでupdateをかけたい場合にご利用ください。</p>
+</div>
+<div class="section">
+<h3> delete_by_sql</h3>
+
+<p>delete_by_sqlを使えばdeleteクエリの生SQLを書く事ができます。</p>
+
+<pre>
+my $delete_count = $db-&gt;delete_by_sql(q{DELETE FROM user WHERE id &lt; ?},[10]);
+</pre>
+
+<p>delete_by_sqlメソッドの返却値としては何件のレコードが削除されたのかの件数がかえってきます。</p>
+<p>複雑なクエリでdeleteをかけたい場合にご利用下さい。</p>
+</div>
+<div class="section">
+<h3> find_or_new</h3>
+
+<p>更新用のメソッドというわけではありませんが、DBIx::Skinnyにはfind_or_newメソッドがあります。</p>
+
+<pre>
+my $row = $db-&gt;find_or_new('user',{name =&gt; 'nekokak'});
+</pre>
+
+<p>find_or_newメソッドの</p>
+<p>第一引数に対象となるテーブル</p>
+<p>第二引数に検索条件を指定します。</p>
+
+<p>内部では第二引数に指定された検索条件を元に１レコードdbからfetchします。</p>
+<p>dbからデータが取得出来た場合は取得したデータのrowオブジェクトをかえします。</p>
+<p>dbからデータが取得できない場合は検索条件をもとにしたrowオブジェクトを生成します。</p>
+<p>find_or_createメソッドではdbからデータが取得できない場合は無条件でdbにレコードを作成しにいきますが、</p>
+<p>find_or_newメソッドではdbにレコードを作成しません。</p>
+<p>find_or_newメソッドをつかってレコードを作成したい場合は、</p>
+
+<pre>
+my $row = $db-&gt;find_or_new('user',{name =&gt; 'nekokak'});
+$row-&gt;insert;
+</pre>
+
+<p>の用にrowオブジェクトからinsertメソッドを呼び出すとこの時点でDBにレコードを作成します。</p>
+
+<p>本日はここまで。</p>
+
+<p>明日はDBIx::Skinnyでのトランザクションの使い方を説明したいと思います。</p>
+
+<p>have a nice skinny days!:)</p>
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/dbix-skinny/09.html">Wed, 09 Dec 2009 00:58:01 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+

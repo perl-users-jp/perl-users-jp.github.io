@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>酔っぱらった勢いでコードを書く際に大切なこと</title>
+    <link rel="stylesheet" href="/articles/advent-calendar/adventcal.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="/articles/advent-calendar/prettify.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+    <script type="text/javascript" src="/articles/advent-calendar/adventcal.js"></script>
+</head>
+<body>
+
+<h1>酔っぱらった勢いでコードを書く際に大切なこと</h1>
+
+<div class="section">
+<p>プライベートでコードを書く時は、たいていビールを飲みながらってな毎日のkentaro a.k.a. <a href="http://d.hatena.ne.jp/antipop/">id:antipop</a>です。こんにちは。</p>
+
+<p>そんなわけで、ただでさえtypoが多いのに加えて、酔いにより手元はボロボロ。調子良く書いていても、つまらないtypoをいちいち修正してまわっていると、せっかくの気分のいい酔いも覚めてしまうというものです。そこで、コードを書く時には酒を飲まない、という以外の対策を考えてみました。</p>
+
+<h2>とにかく全部ぶっつぶす</h2>
+
+<p>ひとはどうしたところで間違いを犯すものです。酔っぱらっていても酔っぱらってなくても、それは同じ。ならば、あり得る名前をあらかじめ定義してはどうか、と考えました。</p>
+
+<p>たとえば以下のようなクラスを定義したとします。</p>
+
+<pre class="lang-perl"><code>package Hoge::Fuga::Piyo;
+use strict;
+use warnings;
+
+# ... (snip) ...
+
+1;
+</code></pre>
+
+<p>このクラスを使う際に、上記したように手元不如意の状態に陥っていると、ついつい以下のように書いたりして、怒られたりします。</p>
+
+<pre class="lang-perl"><code>my $obj = Hgeo::Ufag::Poyi-&gt;new;
+</code></pre>
+
+<p>こんなことではいつtypoをしてしまうか心配で、あっという間に酔いも覚めてしまうでしょう。</p>
+
+<p>この大変に深刻な問題避けるにはどうしたらいいか。そうです。Hoge::Fuga::Piyoという正しいパッケージ名から得られる、あり得る組合せのクラスをあらかじめ定義してまわれば、たとえ上記のようなコードを書いてしまったとしても、つつがなく、期待通りにスクリプトは動作し、酔い心地を邪魔されることもありません。</p>
+
+<p>というわけで、なんらかの方法でもってHoge::Fuga::Piyoの順列組合せを生成して、その名前を元にパッケージを定義してみようと思い立ちました。さて、どのぐらいの組合せがあるのでしょうか。ここでは、</p>
+
+<ul>
+  <li>パッケージ名に含まれるアルファベットの大文字小文字を考慮しない。</li>
+  <li>組合せは::で分割された文字列どうしで行われる、という条件を置く。</li>
+  <li>::で分割された各パートに含まれる文字を全て使う。つまり各パートの文字数は変わらない。</li>
+</ul>
+
+<p>すると、組合せの数はHoge::Fuga::Piyoの場合、<code>4! * 4! * 4! = 1,000</code>通りになります。もしパッケージ名がSome::Complicated::Nameのようなものだった場合、<code>4! * 11! * 4! = 6,600</code>通りなんてな大きな数字になってしまいます。これではダメです……。</p>
+
+<h2>もう少し賢く</h2>
+
+<p>さすがに、あり得るものを全部網羅しようなんて無茶でした。それに上記の条件だと組み合わせに過ぎないので、typoにありがちな隣のキーを押してしまったというような状況を救うことができません。もっと人間の現実にやりがちな間違いに適切に対応した、賢い仕組みが必要です。</p>
+
+<p>そこでCPANを漁ってみると、<a href="http://search.cpan.org/dist/Acme-Tpyo/">Acme::Tpyo</a>なんてな、その名前からしてひとを食ったようなモジュールが見つかります。ちなみにTpyoは僕がtypoしたのではなく、モジュール名自体がtypoを表現しています。</p>
+
+<p>これはどんなモジュールかというと、ある文字列を渡すと、わざとtypoした文章を生成して返してくれるというものです。しかも、ただ単にtypoした文字列を返すだけではなく、typingしているひとの性格や能力、その時の状態をエミュレートしてtypoしてくれるというインテリジェントなtypoマシーンなのです。たとえば、typistがキーをどれだけミスタイプしがちか、指の太さ、キータッチの強さ、カフェインや、はたまたアルコールの摂取状況なんてことまで考慮してくれます。まさに、今回の問題を解決するに際して、まさにぴったりの機能を提供してくれるものであるといえます。</p>
+
+<h2>typo safeな環境を作る</h2>
+
+<p>そこで、上述のAcme::Tpyoを用いて、typoに強い環境を作ってみましょう。その際、基本的には「全方位作戦」の方針を踏襲しますが、無制限に候補を羅列してもしかたがないし、また、Acme::Tpyoのインテリジェントなtypo生成能力により現実的にあり得る間違いをかなりしぼれると思わるので、適当な数だけ候補を生成するようにして、大体において役立ちそうというラインで満足するようにしておきましょう。</p>
+
+<p>ここでは<a href="http://svn.coderepos.org/share/lang/perl/Acme-Class-TypoSafe/trunk/">Acme::Class::TypoSafe</a>というモジュールを作成してみました。実装の詳細を検討する前に、まずは使い方を見ておきましょう。このモジュールのテストコードを以下に示します。</p>
+
+<pre class="lang-perl"><code>use strict;
+use warnings;
+use Test::More qw(no_plan);
+use UNIVERSAL::require;
+
+package Some::Complicated::Name;
+use Acme::Class::TypoSafe;
+
+sub new { bless {}, shift }
+sub difficult_to_type_correctly {}
+
+package main;
+
+my %packages = Acme::Class::TypoSafe-&gt;typo_packages;
+for my $package (keys %packages) {
+    my $obj = $package-&gt;new;
+    isa_ok $obj, $package;
+    isa_ok $obj, 'Some::Complicated::Name';
+    can_ok $obj, ('new', 'difficult_to_type_correctly', @{$packages{$package}});
+}
+</code></pre>
+
+<p>ここでは、Some::Complicated::Nameというクラスを定義して、それを使ってコードを書いていこうとしています。Acme::Class::TypoSafeの使い方は上記の通り簡単で、単に<code>use</code>するだけです。その結果、デフォルトでは100通りのtypoしたらこうなるだろうなというパッケージ名を生成して、それをAcme::Class::TypoSafeを<code>use</code>したモジュールの子クラスとして定義します。</p>
+
+<pre class="lang-perl"><code> package Some::Complicated::Name;
+use Acme::Class::TypoSafe;
+
+# ... (snip) ...
+
+package main;
+my $foo = Sone::Conplicared::Name-&gt;new;
+my $bar = Sien::Cmopcalired::Nane-&gt;new;
+</code></pre>
+
+<p>酔っぱらって手元不如意のままこんなコードを書いても、もう安心です。ちょっとしたtypoぐらい気にかけなくても、各種パラメタの調整具合や、確率的な事情にもよりますが、けっこう拾ってくれるようです。</p>
+
+<h2>さらにtypoしてみる</h2>
+
+<p>ここまでは、パッケージ名についてtypoした場合のことしか考慮していませんでした。typoにおいて更に深刻なのは、パッケージ名よりも書く機会の多いメソッド名でしょう。そこで、Acme::Class::TypoSafeを、メソッド名についても<code>use</code>元パッケージのメソッド一覧からそれぞれのtypo文字列を生成してエイリアスメソッドを定義するということにしました。</p>
+
+<p>……といいたいところなのですが、この記事を書いている時点では、以下のように実装してみたものの、<code>use</code>元のメソッド一覧を取得することができず、そのためメソッド名についてはいまも安心できない状況が続いています。</p>
+
+<pre class="lang-perl"><code>package Acme::Class::TypoSafe;
+use strict;
+use warnings;
+use Acme::Tpyo;
+use Class::Inspector;
+
+our $VERSION       = '0.01';
+our %TYPO_PACKAGES = ();
+
+sub import {
+    my ($class, %args) = @_;
+    my $package = caller;
+    my $keyset  = delete $args{keyset};
+    my $tpyist  = delete $args{tpyist};
+    my $count   = delete $args{count} || 100;
+    my $tpyo    = Acme::Tpyo-&gt;new($keyset, $tpyist);
+
+    my $i = 0;
+    while ($i &lt; $count)  {
+        my $typo_package = join '::', map {
+            my $part = $_;
+            my $typo = $tpyo-&gt;misspell($part);
+            ucfirst(lc($typo));
+        } split '::', $package;
+
+        next if $package eq $typo_package           ||
+                $typo_package =~ /[^[:alnum:]_\:]/;
+
+        # define typo packages
+        eval &lt;&lt;"EOS";
+package $typo_package;
+use base qw($package);
+EOS
+        $TYPO_PACKAGES{$typo_package} = [];
+
+        # define typo functions for typo packages
+        for my $function (@{Class::Inspector-&gt;functions($package)}) {
+            warn $function;
+            for (1 .. $count) {
+                my $typo_function = $tpyo-&gt;misspell($function);
+                warn $typo_function;
+                next if $function eq $typo_function        ||
+                        $typo_function =~ /[^[:alnum:]_]/;
+                {
+                    no strict 'refs';
+                    *{$typo_package  . '::' . $typo_function}
+                        = *{$package . '::' . $function};
+                }
+                push @{$TYPO_PACKAGES{$typo_package}}, $typo_function;
+            }
+        }
+
+        $i++;
+    }
+}
+
+sub typo_packages {
+    %TYPO_PACKAGES;
+}
+
+1;
+</code></pre>
+
+<p>このAcme::Class::TypoSafeは<a href="http://svn.coderepos.org/share/lang/perl/Acme-Class-TypoSafe/trunk/">CodeReposに置いてあります</a>ので、typoに惑わされることのない安心・快適な泥酔コーディングを目指すPerlハッカーのみなさんに、改善をお願いしたいところであります。</p>
+
+<p>というわけで、次は<a href="http://d.hatena.ne.jp/hakobe932/">はこべさん</a>、お願いします。</p>
+
+</div>
+</body>
+
+</html>

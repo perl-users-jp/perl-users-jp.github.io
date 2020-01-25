@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="nqounet">
+        <title>Data::Section::Simpleで__DATA__をカジュアルに使おう！ - Articles Advent Calendar 2011 Casual</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Data::Section::Simpleで__DATA__をカジュアルに使おう！</h1>
+
+        <p>初めまして、<a href="https://twitter.com/nqounet">@nqounet</a>です。<br />
+2011年はYAPC::ASIAデビュー（参加という意味で）したので、アドベントカレンダーもデビューしたいと思います。</p><p>そんな新人の私でもカジュアルに使えそうな Data::Section::Simple を紹介します。</p>
+
+<div class="section">
+    <h4>__DATA__</h4>
+    <p>「ヒアドキュメント」って知ってますよね？</p>
+
+    <pre class="code lang-perl">my $html = &lt;&lt;&#34;EOM&#34;;
+&lt;html&gt;
+&lt;head&gt;&lt;title&gt;タイトル&lt;/title&gt;&lt;/head&gt;
+&lt;body&gt;ボディ&lt;/body&gt;
+&lt;/html&gt;
+EOM</pre>
+<p>こんなヤツです。<br />
+古いCGIファイルを見るとよくありますよね？</p><p>でも、ヒアドキュメントを使っているコードが見難いと思ったことはありませんか？<br />
+思いますよね。<br />
+そんな時には「__DATA__」を使うと簡単にコードが見やすくなります。</p>
+
+    <pre class="code lang-perl">#!/usr/local/bin/perl
+use utf8;
+use 5.008001;
+use strict;
+use warnings;
+use CGI::Simple;
+use Encode;
+
+my $q = CGI::Simple-&gt;new;
+my $html = do { local $/; &lt;DATA&gt; };
+
+print $q-&gt;header(
+  -type    =&gt; &#39;text/html&#39;,
+  -charset =&gt; &#39;utf8&#39;,
+);
+print encode_utf8( $html );
+
+__DATA__
+&lt;html&gt;
+&lt;head&gt;&lt;title&gt;タイトル&lt;/title&gt;&lt;/head&gt;
+&lt;body&gt;ボディ&lt;/body&gt;
+&lt;/html&gt;</pre>
+<p>カジュアルにPerlを使うときの基本は、スクリプトはutf8で書いて、ファイルの2行目くらいに「use utf8;」を書いておきましょう。<br />
+もちろんですが、「use strict;」や「use warnings;」も忘れずに。<br />
+出力する時は「encode_utf8」が必要ですよ。</p><p>ヒアドキュメントを沢山使っている場合はどうするか、ですって？<br />
+ご安心ください。<br />
+そんな時に便利なモジュールが「Data::Section::Simple」です。</p>
+
+</div>
+<div class="section">
+    <h4>Data::Section::Simple</h4>
+    <p>Data::Section::Simple を使うと、ヒアドキュメントを沢山使っている場合でも「__DATA__」を使ってコードを見やすく出来ます。</p>
+
+    <pre class="code lang-perl">#!/usr/local/bin/perl
+use utf8;
+use 5.008001;
+use strict;
+use warnings;
+use CGI::Simple;
+use Data::Section::Simple qw(get_data_section);
+use Encode;
+
+my $q = CGI::Simple-&gt;new;
+my $header = get_data_section(&#39;header.html&#39;);
+my $body   = &#39;ボディ&#39;;
+my $footer = get_data_section(&#39;footer.html&#39;);
+my $html = join &#34;&#34;, $header, $body, $footer;
+
+print $q-&gt;header(
+  -type    =&gt; &#39;text/html&#39;,
+  -charset =&gt; &#39;utf8&#39;,
+);
+print encode_utf8( $html );
+
+__DATA__
+@@ header.html
+&lt;html&gt;
+&lt;head&gt;&lt;title&gt;タイトル&lt;/title&gt;&lt;/head&gt;
+&lt;body&gt;
+
+@@ footer.html
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+<p>いやー、便利ですよね〜。</p><p>え？<br />
+ヒアドキュメントの中に変数を使っているから動かせない、ですって？<br />
+ご安心ください。<br />
+そんな時はカジュアルに<a href="http://search.cpan.org">CPAN</a>を使って探しましょう。</p>
+
+</div>
+<div class="section">
+    <h4>Text::MicroTemplate::DataSection</h4>
+    <p>Text::MicroTemplate::DataSection を使うと、さらにカジュアルに「__DATA__」を使える感じです。<br />
+このモジュールは、テンプレート機能（Text::MicroTemplate）とData::Section::Simpleを組み合わせて、簡単に使えるようにしたモジュールです。</p>
+
+    <pre class="code lang-perl">#!/usr/local/bin/perl
+use utf8;
+use 5.008001;
+use strict;
+use warnings;
+use CGI::Simple;
+use Text::MicroTemplate::DataSection qw(render_mt);
+use Encode;
+
+my $q = CGI::Simple-&gt;new;
+my $html = render_mt(&#39;index.mt&#39;, {
+  title =&gt; &#39;タイトル&#39;,
+  body  =&gt; &#39;ボディ&#39;,
+});
+
+print $q-&gt;header(
+  -type    =&gt; &#39;text/html&#39;,
+  -charset =&gt; &#39;utf8&#39;,
+);
+print encode_utf8( $html );
+
+__DATA__
+@@ index.mt
+&lt;html&gt;
+&lt;head&gt;&lt;title&gt;&lt;?= $_[0]-&gt;{title} ?&gt;&lt;/title&gt;&lt;/head&gt;
+&lt;body&gt;&lt;?= $_[0]-&gt;{body} ?&gt;&lt;/body&gt;
+&lt;/html&gt;</pre>
+<p>いやー、簡単ですよね〜。</p><p>は？<br />
+使うモジュールがたくさんあって面倒、ですって？<br />
+ご安心ください。<br />
+そんな時こそカジュアルに<a href="http://search.cpan.org">CPAN</a>を使って探しましょう。</p>
+
+</div>
+<div class="section">
+    <h4>ウェブ・アプリケーション・フレームワーク</h4>
+    <p>本格的なウェブ・アプリケーション・フレームワークでなくても、例えばMojolicious::Liteのような小さなフレームワークを使うと、useするモジュールの数が劇的に減って、かつ「__DATA__」も一層カジュアルに使えます。</p>
+
+    <pre class="code lang-perl">#!/usr/local/bin/perl
+use utf8;
+use Mojolicious::Lite;
+
+get &#39;/&#39; =&gt; sub {
+  $_[0]-&gt;render(
+    template =&gt; &#39;index&#39;,
+    title    =&gt; &#39;タイトル&#39;,
+    body     =&gt; &#39;ボディ&#39;,
+  );
+};
+
+app-&gt;start;
+
+__DATA__
+@@ index.html.ep
+&lt;html&gt;
+&lt;head&gt;&lt;title&gt;&lt;%= $title %&gt;&lt;/title&gt;&lt;/head&gt;
+&lt;body&gt;&lt;%= $body %&gt;&lt;/body&gt;
+&lt;/html&gt;</pre>
+<p>いやー、シンプルですね〜。</p><p>気がつけば、ものすごくカジュアルにPerlが使えるようになりました。<br />
+カジュアルですが、流行りのフレームワークは自動的にstrictな環境になりますので、見た目以上にフォーマルですよ。<br />
+こんな感じで、どんどんカジュアルにPerlを使いましょう。<br />
+次は、risouさんです。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

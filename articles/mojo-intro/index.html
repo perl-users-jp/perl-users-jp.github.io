@@ -1,0 +1,226 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+    <head profile="http://purl.org/net/ns/metaprof">
+        <!-- Document Metadata -->
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta http-equiv="Content-Language" content="ja" />
+        <meta http-equiv="Content-Style-Type" content="text/css" />
+        <meta http-equiv="Content-Script-Type" content="text/javascript" />
+        <meta http-equiv="imagetoolbar" content="no" />
+
+        <!-- Atom news feed -->
+
+        <link rel="alternate" type="application/rss+xml" title="RSS feed" href="http://coderepos.org/share/log/websites/perl-users.jp?limit=100&amp;mode=stop_on_copy&amp;format=rss" />
+        <link rel="stylesheet" type="text/css" href="/css/perl-users.jp.css" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+        <link rel="icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+
+        <title>Mojolicious 入門 - モダンなPerl入門</title>
+
+        <script src="http://www.google-analytics.com/urchin.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            _uacct = "UA-4463402-1";
+            urchinTracker();
+        </script>
+        <!-- script src="/js/codepress/codepress.js" type="text/javascript"></script -->
+    </head>
+    <body>
+        <div id="head-navigation"><a href="/">Perl-users.jp</a></div>
+<!-- content start -->
+<div class="section">
+<p>LL温泉2008用の資料です。</p>
+
+<p>最近でたばかりのフレームワークである Mojolicious をつかってみましょう。</p>
+</div>
+<div class="section">
+<h3>Mojolicious?</h3>
+
+<p>オールインワンなウェブアプリケーションフレームワークです。依存がほとんどないです</p>
+</div>
+<div class="section">
+<h3>インストール</h3>
+
+<p>すごいかんたんです。</p>
+
+<pre>
+    # Mojo をダウンロード
+    % wget http://mojolicious.org/Mojo-latest.tar.gz
+
+    # 解凍
+    % tar xzvf Mojo-latest.tar.gz
+    % cd Mojo
+
+    # Makefile 生成
+    % perl Makefile.PL
+
+    # make する
+    % make
+
+    # テストスィーツをうごかしてみる
+    % make test
+
+    # インストール
+    % sudo make install
+
+    # うまくいったか確認
+    % mojolicious daemon
+    Server available at http://127.0.0.1:3000.
+</pre>
+
+<p>アクセスしたら、こんな画面がでます</p>
+
+<p><img src="<a href="http://gyazo.com/ef11a052ae49b35fd69825287f3ae26f.png">http://gyazo.com/ef11a052ae49b35fd69825287f3ae26f.png</a> " /></p>
+</div>
+<div class="section">
+<h3>つかってみる</h3>
+
+<pre>
+    # スケルトン生成
+    % mojolicious generate app BBS
+      [mkdir] /private/tmp/bbs/bin
+      [write] /private/tmp/bbs/bin/bbs
+      [chmod] bbs/bin/bbs 744
+      [mkdir] /private/tmp/bbs/lib
+      [write] /private/tmp/bbs/lib/BBS.pm               # ディスパッチャ
+      [mkdir] /private/tmp/bbs/lib/BBS
+      [write] /private/tmp/bbs/lib/BBS/Example.pm       # controller
+      [exist] /private/tmp/bbs/lib/BBS
+      [write] /private/tmp/bbs/lib/BBS/Context.pm       # コンテキストクラス
+      [mkdir] /private/tmp/bbs/t
+      [write] /private/tmp/bbs/t/basic.t
+      [mkdir] /private/tmp/bbs/public
+      [write] /private/tmp/bbs/public/404.html
+      [exist] /private/tmp/bbs/public
+      [write] /private/tmp/bbs/public/index.html
+      [mkdir] /private/tmp/bbs/templates/example
+      [write] /private/tmp/bbs/templates/example/welcome.phtml
+    # はしらせてみる
+    % cd bbs
+    % perl bin/bbs daemon
+    Server available at http://127.0.0.1:3000.
+</pre>
+
+<p><img src="<a href="http://gyazo.com/90a6a75811d3fbbb5294e48ea32d655e.png">http://gyazo.com/90a6a75811d3fbbb5294e48ea32d655e.png</a>" /></p>
+</div>
+<div class="section">
+<h3>イジッテミル</h3>
+
+<p>templates/example/welcome.html の中身をみてみる</p>
+
+<p>embedded perl っぽい記法なので、初心者でも安心です。</p>
+
+<pre>
+    % my $c = shift;
+    <!doctype html>
+        <head><title>Welcome to the Mojolicious Web Framework!</title></head>
+        <body>
+            <h2>Welcome to the Mojolicious Web Framework!</h2>
+            This page was generated from the template
+            "templates/example/welcome.phtml",
+            <a href="<%= $c->url_for %>">
+                click here
+            </a> 
+            to reload the page or
+            <a href="/index.html">
+                here
+            </a>
+            to move forward to a static page.
+        </body>
+    </html>
+</pre>
+
+<p>このファイルを下記のようにかきかえてしまう</p>
+
+<pre>
+    % my $c = shift
+    <!doctype html>
+    <head><title>Mojolicious 掲示板</title></head>
+    <body>
+        <h1>Mojolicious 掲示板</h1>
+        <form method="post" action="<%= $c->url_for %>">
+            <input type="text" name="body">
+            <input type="submit" value="送信">
+        </form>
+
+        <ul>
+    % for my $entry (@{$c->stash->{rows}}) {
+            <li><%= $entry->[0] %> <%= $entry->[1] %></li>
+    % }
+        </ul>
+    </body>
+    </html>
+</pre>
+
+<p>コントローラをかく。</p>
+
+<p>DBI をつかうので</p>
+<pre>
+    sudo -H cpan DBI DBD::SQLite
+</pre>
+<p>しておきます</p>
+
+<pre>
+    package BBS::Example;
+    use strict;
+    use warnings;
+    
+    use base 'Mojolicious::Controller';
+    use DBI;
+    
+    sub welcome {
+        my ($self, $c) = @_;
+        my $path = '/tmp/bbs.sqlite';
+    
+        # データベースハンドラをひらく
+        my $dbh = DBI->connect("dbi:SQLite:dbname=${path}", '', '') or die $DBI::errstr;
+        # schema を定義する
+        $dbh->do(q{CREATE TABLE IF NOT EXISTS entries (id INTEGER PRIMARY KEY, body VARCHAR(255))}) or die $dbh->errstr;
+    
+        if ($c->tx->req->method eq 'POST') {
+            # POST のときは投稿。
+
+            # クエリをとりだす
+            my $body = $c->tx->req->params->param('body') || '';
+
+            # INSERT する
+            if ($body) {
+                my $sth = $dbh->prepare('INSERT INTO entries (body) VALUES (?)') or die $dbh->errstr;
+                $sth->execute($body) or die $dbh->errstr;
+            }
+    
+            # リダイレクトする
+            my $res = $c->tx->res;
+            $res->code(302);
+            $res->headers->header('Location' => $c->tx->req->url); # 本当は URL をとりだすコードのかきかたがあるとおもうのだけど、うまくうごかない
+        } else {
+            # GET のときは掲示板表示
+            my $sth = $dbh->prepare('SELECT id, body FROM entries ORDER BY id DESC LIMIT 30') or die $dbh->errstr;
+            $sth->execute() or die $dbh->errstr; # 実行
+            my $rows = $sth->fetchall_arrayref(); # 取得
+            $c->stash->{rows} = $rows; # テンプレートエンジンにわたす
+            $c->render(); # テンプレートエンジンで描画
+        }
+    }
+    
+    1;
+</pre>
+
+<p>httpd を起動します。</p>
+
+<pre>
+    % perl bin/bbs daemon
+</pre>
+
+<p>下記のような画面がでれば完成です。</p>
+
+<p><img src="<a href="http://gyazo.com/98d676ee8a78ba85e474a9e91bfaee1e.png">http://gyazo.com/98d676ee8a78ba85e474a9e91bfaee1e.png</a>" /></p>
+
+</div>
+
+
+<!-- content end -->
+        <hr />
+        <p><a href="/modern_introduction_perl/">目次へ</a></p>
+        <p>Last modified: $Date: 2008-10-26T05:38:56.231052Z $</p>
+    </body>
+</html>

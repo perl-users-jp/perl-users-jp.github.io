@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="hirose31">
+        <title>アレしたあとにコレしたい！ - Articles Advent Calendar 2010 Hacker</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>アレしたあとにコレしたい！</h1>
+
+        <p>こんにちは。罪悪感でちょっとムネがチクチクする<a href="http://twitter.com/hirose31">hirose31</a>です。</p>
+
+<div class="section">
+    <h3>アレしたあとにコレする</h3>
+    <p>「ファイルが変更されたらXXXしたい」ということは日常よくあるんじゃないかと思います。例えば:</p>
+
+<ul>
+<li>スクリプトファイルを編集していて、保存したらすぐに実行して試したい</li>
+<li>HTML, CSS, JavaScript ファイルを編集していて、保存したらすぐにブラウザをリロードして確認したい</li>
+<li>秘蔵のアレコレを保管しているディレクトリにだれかcdやlsしてきたら、自動的に当該ディレクトリをrm -frしたい。</li>
+</ul><p>などなど。</p><p>今までは、Linux の Inotify という機能を Perl から使うためのモジュール<a href="http://search.cpan.org/dist/Linux-Inotify2/" title="Linux-Inotify2">Linux-Inotify2</a>を使ったスクリプトを書いて使っていたのですが、とりあえずぼへらっと書いたものだったので、</p>
+
+<ul>
+<li>監視スクリプト起動後に、新規追加されたファイルが監視対象にならない</li>
+<li>Linux でしか動かない</li>
+</ul><p>というイケてない点がありました。</p><p>というわけで、今回書き直したのがこれです:</p>
+
+<ul>
+<li><a href="https://github.com/hirose31/observe-file">https://github.com/hirose31/observe-file</a></li>
+</ul><p><a href="http://search.cpan.org/dist/Filesys-Notify-Simple/" title="Filesys-Notify-Simple">Filesys-Notify-Simple</a>を使っているので、LinuxだけでなくMac OS Xなどでも動くと思います。</p>
+
+</div>
+<div class="section">
+    <h3>observe-file</h3>
+    <p>機能的には、ファイルもしくはディレクトリを監視対象に指定でき、ファイルが追加、変更、削除されたら、これも予め指定しておいた任意のコマンドラインを実行する、といったスクリプトです。</p><p>使用例をいくつか紹介します。</p>
+
+<div class="section">
+    <h4>スクリプトを保存したら実行する</h4>
+    <p>例えば「foo.pl」というスクリプトを今書いていて、保存したら試しに動かしてみたいのですぐ実行したい、といった場合にはこのようにします。</p>
+
+    <pre class="code">observe-file -c ./foo.pl ./foo.pl</pre>
+<p>実行時にオプションを指定したり、もうちょっと複雑なコマンドラインを実行したい場合は、-cの値をクォートで囲えばOKです。</p>
+
+    <pre class="code">observe-file -c &#39;perl -wc foo.pl &amp;&amp; ./foo.pl -v -c test.conf&#39; ./foo.pl</pre>
+<p>ちなみに、最初の例のように監視対象がひとつのファイルでそれが実行するコマンドと同一の場合はこのようにも指定できます。</p>
+
+    <pre class="code">observe-file -x ./foo.pl</pre>
+
+</div>
+<div class="section">
+    <h4>コンテンツファイルに変更があったらブラウザをリロードする</h4>
+    <p>Firefoxに<a href="https://github.com/bard/mozrepl/wiki" title="MozRepl">MozRepl</a>をインストールすると、ブラウザ外から(許可すれば別ホストからでも)JavaScriptでブラウザを操作できるようになります。</p><p>このMozReplを使えば、こんなスクリプトを用意しておくことで、</p>
+
+    <pre class="code">#!/bin/sh
+# ~/bin/reload-firefox
+
+[ $# -eq 1 -o $# -eq 2 ] || { echo &#39;usage: reload-firefox HOST [PORT]&#39;; exit 1; }
+host=$1
+port=${2:-4242}
+
+echo &#34;reload: $host:$port&#34;
+cat &lt;&lt;EOF | nc $host $port
+content.location.reload(true)
+repl.quit()
+EOF
+echo</pre>
+<p>ブラウザをリロードすることができます。</p>
+
+<ul>
+<li>ホストcoupeで動いているFirefoxのカレントタブをリロードする例</li>
+</ul>
+    <pre class="code">$ reload-firefox coupe</pre>
+<p>さてこのreload-firefoxとobserve-fileを組み合わせれば、webappのコードやHTML、CSS、JavaScriptのファイルに変更があったら自動でブラウザをリロードすることもできます。</p>
+
+<ul>
+<li>ディレクトリapp/の下のスクリプトファイルや、static/下にあるHTMLやCSS、tmpl/下にあるテンプレートに変更があったら、ホストcoupeのFirefoxをリロードする例</li>
+</ul>
+    <pre class="code">observe-file -c &#39;reload-firefox coupe&#39; app/ static/ tmpl/</pre>
+
+</div>
+</div>
+<div class="section">
+    <h3>注意点</h3>
+    <p>MacでMac::FSEventsが使える場合に、配下に大量のファイル/ディレクトリがあるディレクトリを監視対象として指定した場合や、監視対象としてファイルを指定したときにその親ディレクトリ配下の大量のファイル/ディレクトリがあると、場合によってはまともに使えないほどに動作に時間がかかる可能性があります。</p><p>例えば、ホームディレクトリ直下の t.pl を自動実行しようと</p>
+
+    <pre class="code">$ observe-file -x ~/t.pl</pre>
+<p>とした場合に、ホームディレクトリ配下に多くのファイルなどがある(と思います)ようなケースです。このような場合は、新しくサブディレクトリを作ってその下に監視対象のファイルやディレクトリを置いて、observe-fileを使うようにしてください。</p><p>ちなみにこれは、MacのFSEventがディレクトリ単位でしか監視対象にできないという仕様に起因するものです。ですので、LinuxでInotifyの場合は、Inotifyはファイル単位でも監視できるので全く問題ないです。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

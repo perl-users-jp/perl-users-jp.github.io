@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="neko_gata_s(shinpei) <info@nekogata.com>">
+        <title>Acmeモジュール入門 - Articles Advent Calendar 2011 Acme</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Acmeモジュール入門</h1>
+
+        
+<div class="section">
+    <h3>Acmeモジュール入門</h3>
+    <p>ついに今年もAdvent Calendarが始まりましたね！Acmeトラックの初日を担当させていただくneko_gata_sです。最近は新潟県に住んでいます。新潟はとてもごはんがおいしいので、機会があれば是非食べにきてくださいね！</p><p>さて、今日は初日なので、特定のモジュールの紹介の前に、Acmeとはなんぞや、というお話から始めてみたいと思います。</p>
+
+<div class="section">
+    <h4>Acmeとは何ぞや</h4>
+    <p>Acmeとはそもそも「絶頂」を意味する英単語ですが、Perlの世界ではジョークモジュールの名前空間を意味します。Perlの有用なモジュールがたくさん登録されているCPANの中に、ジョークモジュールがなんの手綱もなしに野放しになっていたらまずいよね、という観点から、ジョークモジュールはAcmeという名前空間におさめよう、ということになりました。それ以来CPANのAcme名前空間には楽しいジョークモジュールがたくさんアップされ、時にはその変態的な実装でPerlHackerを驚嘆させ、時にはそのあまりにくだらない内容でPerlHackerを脱力させているのです。では、Acme名前空間は無用の長物なのか？　と問われれば、ぼくたちは力強くNO!と叫ばなければなりません。Acme名前空間には、実用性こそ薄いものの、凄腕PerlHackersのHackが詰まっています。例えば、私が最初に知ったAcmeモジュール「Acme::Bleach」を例にとってみましょう。</p>
+
+</div>
+<div class="section">
+    <h4>Acme::Bleach</h4>
+    <p>これがどのようなモジュールかと言うと、例えば以下のようなコードをbleach.plとして保存して</p>
+
+    <pre class="code lang-perl">use strict;
+use Acme::Bleach;
+
+print &#34;Perl Advent Calendar 2011&#34;;</pre>
+<p>実行すると、なにも出力されません。？？？。しかし、実行したあとのbleach.plをのぞいてみると…</p>
+
+    <pre class="code lang-perl">use strict;
+use Acme::Bleach;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+<p>コードが何もなくなっている！　怖い！　なにこれ！</p><p>さらに、この状態でさらにもう一度bleach.plを実行してみると、今度は正常に（？）"Perl Advent Calendar 2011"が出力されます。これは、Acme::Bleachの内部で、スクリプト自身を一定のアルゴリズムで書き換えるという黒魔術を利用して実現しています。</p>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>このように、ある種のAcmeモジュールの中には「技術力の無駄遣い」が詰まっていて、Acme空間は「いかに面白い技術を使ってくだらないことをするか」の競技場となっている面もあります。Acme空間にあがっている「技術力の無駄遣い」をおもしろがるもよし、自ら技術力の無駄遣いでAcme空間に参戦するもよし、どちらにしても、決して「単なる無駄」ではないSomethingがそこにはあるのです。</p><p>私が見る限り、PerlHackerの多くは、このAcmeという文化を愛しているように思いますし、Acmeモジュールという形になっていなくとも、YAPC Asia 2011でも多くの「Acme的な発表」があったのは記憶に新しいところだと思います。</p><p>私はこういう、ともすればふざけてると見られてしまうかもしれないけれどその芯には技術への愛があるというPerlHackerたちのアティチュードが大好きですし、こういうHackerたちが多く集まっているところもPerlコミュニティの大きな魅力だと考えています。</p><p>というわけで、初日は私の考えるAcmeの魅力を語ってみました。明日、あさってはちょっと私用で私はAdvent Calendar書けないのですが、明日はどんな話題でしょうか、楽しみですね！</p>
+
+</div>
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

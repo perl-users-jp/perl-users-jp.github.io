@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Module::Requires で依存モジュールをきっちりチェック - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Module::Requires で依存モジュールをきっちりチェック - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Module::Requires で依存モジュールをきっちりチェック<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/hacker/25.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/hacker/25.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>今月の advent calendar だけで通算27日分もの記事を書いている Yappo ですみなさんお元気ですか?</p>
+
+<p>なんだか hacker track が人手不足なので今日ネタを書くために昨日思いついたモジュールを CPAN にアップロードした上で二度目の参戦をします。</p>
+
+<p><a href="http://github.com/yappo/p5-Module-Requires">http://github.com/yappo/p5-Module-Requires</a></p>
+</div>
+<div class="section">
+<h3> まえおき</h3>
+
+<p>みなさんがコードを書く上で依存モジュールの管理に悩む。なんてのは誰しもが通る道だと思います。</p>
+
+<p>もうすでに Makefile.PL の中に依存モジュールを書けば、依存モジュールを全部入れてくれるので悩む事は無いと思います。</p>
+
+<p>さらには、テストケースで必要な依存モジュールのチェックなども Test::Requires が登場した事により、気楽にテストする事も出来ます。</p>
+
+<p>だがしかし、プラガブルなモジュールなどが含まれるディストリビューションを作ったときに、このサブモジュールを使う時は、このモジュールも入れてね的に Makefile.PL に以下のような feature 句を入れるかと思います。</p>
+<pre>
+# Plack の Makefile.PL から拝借
+feature 'FastCGI daemon and dispatcher',
+    -default =&gt; 0,
+    'FCGI' =&gt; 0.67,
+    'FCGI::Client' =&gt; 0.02;
+</pre>
+<p>これは、実際のインストールフェーズでは以下のように依存モジュールを入れるか聞かれます。</p>
+<pre>
+[FastCGI daemon and dispatcher]
+- FCGI                            ...missing.
+- FCGI::Client                    ...missing.
+==&gt; Auto-install the 2 optional module(s) from CPAN? [n] 
+</pre>
+<p>ユーザがインストールする時に、ここで提示されたモジュールを入れてくれれば何も問題ないでしょう。</p>
+
+<p>しかしながら、最初は要らないと思っていても後で使う気になった時には当然これら必須モジュールがはいっていないので「Can't Locate ...」などのエラーが出てきます。</p>
+
+<p>不足してる依存モジュールが少数だったら許せるでしょうが、足りないモジュールがいっぱいあると「Can't Locate ...」と言われるたびに install するとかいうめんどくさい事になってしまいます。</p>
+
+<p>簡単に言うと Module::Requires は、この「Can't Locate ...」エラーメッセージを一度に出して依存モジュールで足りてないモジュール群を一度に提示してあげるという事に使えるのです。</p>
+
+<p># もちろん、これを排除するには sub feature 的なモジュールを別ディストリにしちゃうのが一番綺麗でしょう</p>
+</div>
+<div class="section">
+<h3> 簡単な使い方</h3>
+
+<p>使い方はとても簡単です。</p>
+
+<p>例えば Class::Trigger と Class::Accessor に依存してる場合には以下のように書きます。</p>
+<pre>
+use strict;
+use warnings;
+use Module::Requires 'Class::Trigger', 'Class::Accessor';
+use Class::Trigger;
+use Class::Accessor;
+</pre>
+
+<p>もし、両方ともインストールされてないときは下記のようなエラーメッセージを出力します。</p>
+
+<pre>
+Can't load Class::Trigger
+Can't locate Class/Trigger.pm in @INC (@INC contains: ry) at (eval 1) line 2.
+BEGIN failed--compilation aborted at (eval 1) line 2.
+
+Can't load Class::Accessor
+Can't locate Class/Accessor.pm in @INC (@INC contains: ry) at (eval 2) line 2.
+BEGIN failed--compilation aborted at (eval 2) line 2.
+ at lib/Module/Requires.pm line 105
+        Module::Requires::import('Module::Requires', 'Class::Trigger', 'Class::Accessor') called at ./a.pl line 3
+        main::BEGIN() called at lib/Module/Requires.pm line 3
+        eval {...} called at lib/Module/Requires.pm line 3
+BEGIN failed--compilation aborted at ./a.pl line 3.
+</pre>
+
+<p>ちゃんと、両方の「Can't Locate ...」エラーメッセージが同時に出てきます。</p>
+<p>もちろん片方がインストールされてれば、片方だけのエラーメッセージを出すし10個くらいのモジュールをチェックしてて全部入ってなければ全部のエラーを出します。</p>
+</div>
+<div class="section">
+<h3> バージョンの指定</h3>
+
+<p>もちろん通常の use と同じようにバージョンの指定もできます。</p>
+
+<pre>
+use strict;use warnings;
+use Module::Requires
+    'Class::Trigger'  =&gt; 0.99,
+    'Class::Accessor' =&gt; 14.22;
+use Class::Trigger;
+use Class::Accessor;
+</pre>
+
+<p>こう書くと以下のようにバージョンがたりねー！と怒ります。</p>
+
+<pre>
+Class::Trigger version 0.99 required--this is only version 0.13
+Class::Accessor version 14.22 required--this is only version 0.31 at lib/Module/Requires.pm line 105
+        Module::Requires::import('Module::Requires', 'Class::Trigger', 0.99, 'Class::Accessor', 14.22) called at ./a.pl line 4
+        main::BEGIN() called at lib/Module/Requires.pm line 5
+        eval {...} called at lib/Module/Requires.pm line 5
+BEGIN failed--compilation aborted at ./a.pl line 5.
+</pre>
+</div>
+<div class="section">
+<h3> 細かいバージョンの指定</h3>
+
+<p>例えば、とあるモジュールが 0.10 まで出ていて 0.03 以上が入ってたら良いんだけど、 0.09 だけバグがあるので 0.03 以上で 0.09 以外のモジュールに依存したいとか書く必要が出てくる場合があると思います。</p>
+
+<p>記憶が確かなら他の CPAN モジュールでも上記要求を満たすモジュールが入ってれば load するなんてのもありますが、 Module::Requires の機能としても実装してあります。</p>
+
+<pre>
+use strict;
+use warnings;
+use Module::Requires
+    'Foo'  =&gt; [ '&gt;' =&gt; 0.03, '!=' =&gt; 0.09 ],
+    'Bar'  =&gt; [ '&lt;=' =&gt; 0.02, '&gt;=' =&gt; 0.01 ],
+    'Baz'  =&gt; [ '&lt;' =&gt; 0.08 ];
+use Foo;
+</pre>
+
+<p>もしもインストールされている Foo のバージョンがが 0.09 であった場合下記のエラーを吐きます。</p>
+
+<pre>
+Foo version &gt; 0.03 AND != 0.09 required--this is only version 0.09 at /lib/Module/Requires.pm line 105
+        Module::Requires::import('Module::Requires', 'Foo', 'ARRAY(0x81948c)') called at ./a.pl line 4
+        main::BEGIN() called at lib/Module/Requires.pm line 4
+        eval {...} called at lib/Module/Requires.pm line 4
+BEGIN failed--compilation aborted at ./a.pl line 4.
+</pre>
+</div>
+<div class="section">
+<h3> 同時にロードする</h3>
+
+<p>実は上の方法では、 Module::Requires::* 以下の名前空間から各種モジュールを require してるだけなので use Module::Requires してる名前空間から正しく use するには別途 use ModuleName として書かないと正しく use 出来ませんでした。</p>
+
+<p>これでは冗長なケースもあるので -autoload というオプションを付ける事により require チェックと同時に require &amp;&amp; module-&gt;import を行うようになります。</p>
+
+<pre>
+# これは encode_base64 が入ってないのでだめよ
+use strict;
+use warnings;
+use Module::Requires
+    'MIME::Base64';
+print encode_base64('last day');
+</pre>
+
+<pre>
+# 正しく encode_base64 が load されてる
+use strict;
+use warnings;
+use Module::Requires -autoload,
+    'MIME::Base64';
+print encode_base64('last day');
+# use MIME::Base64; と同等
+</pre>
+
+<pre>
+# decode_base64 しか export されてないので動かない
+use strict;
+use warnings;
+use Module::Requires -autoload,
+    'MIME::Base64' =&gt; {
+        import =&gt; ['decode_base64'],
+    };
+print encode_base64('last day');
+# use MIME::Base64 'decode_base64'; と同等
+</pre>
+
+<pre>
+# これは encode_base64 だけを export してるので動く
+use strict;
+use warnings;
+use Module::Requires -autoload,
+    'MIME::Base64' =&gt; {
+        import =&gt; ['encode_base64'],
+    };
+print encode_base64('last day');
+# use MIME::Base64 'encode_base64'; と同等
+</pre>
+
+<p>このようにして、import メソッドに渡す引数を指定します。</p>
+<p>use ModuleName () と同等にするには下記のように書きます。</p>
+
+<pre>
+# decode_base64 しか export されてないので動かない
+use strict;
+use warnings;
+use Module::Requires -autoload,
+    'MIME::Base64' =&gt; {
+        import =&gt; [],
+    };
+print encode_base64('last day');
+# use MIME::Base64 (); と同等
+</pre>
+
+<p>use Module () って空括弧を引数に渡すと import を呼ばなくなる仕様を忘れててすっかりドハマリしてバグ作ってましたが直しました＞＜</p>
+</div>
+<div class="section">
+<h3> autoload しつつ version していする</h3>
+
+<p>これも出来ます。</p>
+
+<pre>
+use Module::Requires -autoload,
+    'MIME::Base64' =&gt; {
+        import  =&gt; [qw/ encode_base64 /],
+        version =&gt; 0.03,
+    };
+# use MIME::Base 0.03 qw( encode_base64 ); と同等
+</pre>
+
+<p>こんな風にシンプルなバージョンの指定から</p>
+
+<pre>
+use Module::Requires -autoload,
+    'MIME::Base64' =&gt; {
+        import  =&gt; [qw/ encode_base64 /],
+        version =&gt; [ '&gt;=' =&gt; 0.03, '!=' =&gt; '0.08' ],
+    };
+</pre>
+
+<p>のような細かいバージョンの制御もできます。</p>
+
+</div>
+<div class="section">
+<h3> まとめ</h3>
+
+<p>Module::Requires を使ってモジュールの依存を細かく定義して、万が一依存モジュールの条件を満たさない場合はユーザが楽できる用にエラーを出すという事を紹介しました。</p>
+
+<p>バグ出しやらなんやらで賞味一時間強で創り上げました。</p>
+
+<p>また、このモジュールの実際の仕様のネタ出しは lestrrat さんと nekokak さんにして頂きましたありがとうございます。</p>
+
+<p>例によって英語ドキュメントが不足気味なので、興味を持たれた方は是非ともドキュメントを充実させてくれると嬉しいです。</p>
+
+
+<p>ということで地味なモジュールで今年の JPerl Advent Calendar を締めくくりましたが、そんなんで良いんじゃないかとおもいます。</p>
+
+<p>ではでは、関係者の皆さんお疲れ様でした。こんどは寿司屋でありましょう！</p>
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/hacker/25.html">Fri, 25 Dec 2009 06:13:01 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="yappo">
+        <title>HTML5 な今だからこその位置情報ハンドリング♡  - Geo::Coordinates::Converter - Articles Advent Calendar 2010 Hacker</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>HTML5 な今だからこその位置情報ハンドリング♡  - Geo::Coordinates::Converter</h1>
+
+        <p>Shibuya.PM #15 の会場からこんにちわ<a href="http://twitter.com/hirose31">yappo</a>です。</p><p>なにを紹介をしようと考えた時に、以外と使いどころがある<a href="http://search.cpan.org/dist/Geo-Coordinates-Converter/">Geo::Coordinates::Converter</a>について書こうとおもいました。</p><p>これが何が良いかというと、緯度経度の測地系( wgs84 とか tokyo )やら、表示フォーマット(degree, dms, geohash)をプラガブルに追加して使えるって事なんです。<a href="http://search.cpan.org/dist/Geo-Coordinates-Converter-iArea/">iArea</a>とかにも対応しております。</p><p>まー作った当時から似たような物は沢山あったのですが、どれも特定の測地系に特化していたり古い時代の Perl みたいなモジュールだったりで使いにくかったりしたので作ったのであります。</p>
+
+<div class="section">
+    <h4>とりあえずつかおう！</h4>
+    <p>まずはインストールです。</p>
+
+    <pre class="code">$ cpanm Geo::Coordinates::Converter</pre>
+<p>で入ります簡単ですね。</p><p>使い方はとっても簡単で</p>
+
+    <pre class="code lang-perl">use common::sense;
+use Geo::Coordinates::Converter;
+
+my $geo = Geo::Coordinates::Converter-&gt;new(
+    lat   =&gt; &#39;35.65580&#39;,
+    lng   =&gt; &#39;139.65580&#39;,
+    datum =&gt; &#39;wgs84&#39;
+);
+my $point = $geo-&gt;convert( tokyo =&gt; &#39;dms&#39; );
+
+say $point-&gt;lat;
+say $point-&gt;lng;</pre>
+<p>のように書くと</p>
+
+    <pre class="code">35.39.09.225
+139.39.32.434</pre>
+<p>と表示されます。ここで肝なのは</p>
+
+    <pre class="code lang-perl">my $point = $geo-&gt;convert( tokyo =&gt; &#39;dms&#39; );</pre>
+<p>で、 new して作った geo オブジェクトを tokyo 測地系に変換しつつ dms フォーマットにしてくれます。<br />
+dgree のままでいいけど tokyo 測地系に変換したいよ！というときは</p>
+
+    <pre class="code lang-perl">my $point = $geo-&gt;convert( &#39;tokyo&#39; );</pre>
+<p>と、書くだけでokです。このケースは例えば Google Maps から取得した緯度経度を使ってライブドア地図を表示したい時に有効です。 Google Maps は wgs84 測地系でライブドアの地図は tokyo 測地系だから、測地系の変換処理が必要になるのでした。</p>
+
+</div>
+<div class="section">
+    <h4>携帯サイトで使ってみたい！</h4>
+    <p>当初から日本の携帯の位置情報を取り扱う事を想定していて、標準で入っているものだけで日本の携帯電話の位置情報を取り扱えるんです。<br />
+まぁ、それはどーでも良いんですが携帯の各キャリアでの位置情報の取り扱いが多様化していて一々キャリア別のコードなんか書いてらんないじゃんすか。<br />
+そこで、日本の携帯Perl業界のドンの clouder さんが<a href="http://blog.clouder.jp/archives/001015.html">HTTP::MobileAgent::Plugin::Locator</a>を書いたので、それを使うとよいですよ！</p>
+
+    <pre class="code lang-perl">use HTTP::MobileAgent;
+use HTTP::MobileAgent::Plugin::Locator;
+
+my $req      = Plack::Request-&gt;new($env);
+my $agent    = HTTP::MobileAgent-&gt;new($req-&gt;header(&#39;USER_AGENT&#39;));
+my $location = $agent-&gt;get_location( $req-&gt;parameters );
+warn &#34;lat is &#34; . $location-&gt;lat;
+warn &#34;lng is &#34; . $location-&gt;lng;</pre>
+<p>こんな感じで書くとキャリアを意識しないで、携帯端末から送られてきた位置情報が取得出来ます！簡単ですね！</p><p>関係無いけど <a href="HTTP::MobileAgent">HTTP::MobileAgent</a> を Plack::Request 経由で使う方法を pod に書いといて欲しいです！</p>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>ということで Geo::Coordinates::Converter を使うと簡単に位置情報を取り扱えるようになります。<br />
+そういえば Geo::Coordinates::Converter::Format::GeoHash とか欲しいんですけど。</p><br />
+<p>shibuya.pmの自分の発表までに間に合って書けた。。。よかった！<br />
+という事であしたは、無謀にも hacker track に挑戦してきた keroyonn さんの番です！お楽しみ！！！</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="mattn.jp@gmail.com (mattn)">
+        <title>RFC822対応しててサーバアプリケーション動かなくなった - Articles Advent Calendar 2010 Meta_adcal</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>RFC822対応しててサーバアプリケーション動かなくなった</h1>
+
+        <p>今朝サーバ落とした <a href="http://mattn.kaoriya.net/">mattn</a> です。<br />
+日付フォーマットがRFC822じゃなかったのでotsuneさんがforkしてpatch書いてくれた。</p><p>デプロイしてサーバで動かしたら、ロケールが効いててRSSのpubdateに日本語の曜日とか時差名が表示された。</p><p>こりゃいかんとばかりに、ロケール依存じゃないRFC822が得られる Date::Format を使うが如く「use Date::Time」を足して commit、そして push した。</p><p>サーバに Date::Time が入ってなくてサーバアプリケーションが立ち上がらなくなった。</p><p>デプロイはそのサーバアプリケーションから実行する方法しか知らなかったので焦った。</p><p>泣きそうになった。</p><p>くじけそうになった。</p><p>ぼく JPerl Advent Calendar なんか参加してないよ？ってシラを切る覚悟もした。</p>
+
+    <pre class="code">
+typester: @mattn_jp Makefile.PL にちゃんと依存書けばいけるらしいよ！
+</pre>
+<p>あなたが神か...</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

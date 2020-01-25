@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="Kensuke Kaneko">
+        <title>Use Perl with UNIX tools - Articles Advent Calendar 2010 English</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Use Perl with UNIX tools</h1>
+
+        <p>Perl is very useful programming language for not only programmers but also system administrators.</p><p>Perl has good compatibility with UNIX philosophy - `Make each program do one thing well'. Experienced system administrators use simple tools by combination. But sometimes these long one-liner looks like too complex.</p><p>For example, see this command line. Note that `^[' is ESC character.</p>
+
+    <pre class="code"># tail -f /var/log/messages | sed -e &#39;s/\(error\)/^[[7m\1^[[m^G/&#39;</pre>
+<p>It works like this: to invert highlighting matching string `error' and send bell.</p><p>But I think there are some problems to write literal escape character.</p>
+
+<ul>
+<li>It's hard to read. I can't remember `ESC[7m' means invertion. This looks like magic (of voodoo).</li>
+<li>It's hard to write. You must write raw ESC character, so you cannot copy and paste this command line.</li>
+</ul><p>I fixed these problem to write simple filter program by Perl. This is <a href="https://gist.github.com/568197">escfilter</a>, simple grep-like tool.</p>
+
+    <pre class="code"># tail -f /var/log/messages | escfilter --reverse error</pre>
+<p>I think this approach is bit better than previous way.</p>
+
+<ul>
+<li>Easy to read. There is no longer escape sequence in command line.</li>
+<li>Easy to write. --help option will inform you how to use it.</li>
+</ul>
+<div class="section">
+    <h4>See Also</h4>
+    <p>escfilter on gist</p>
+
+<ul>
+<li><a href="https://gist.github.com/568197">https://gist.github.com/568197</a></li>
+</ul>
+</div>
+<div class="section">
+    <h4>Special Thanks</h4>
+    <p>Yuuki Namikawa (<a href="http://twitter.com/namikawa">@namikawa</a>) was described how to processing log file with escape sequence by sed.</p>
+
+<ul>
+<li><a href="http://d.hatena.ne.jp/rx7/20100827/p1">http://d.hatena.ne.jp/rx7/20100827/p1</a></li>
+</ul><p>Kato Kazuyoshi (<a href="http://twitter.com/kzys">kzys</a>) was improved escfilter script by using Term::ANSIColor.</p>
+
+<ul>
+<li><a href="https://gist.github.com/571700">https://gist.github.com/571700</a></li>
+</ul>
+</div>
+<div class="section">
+    <h4>Writer</h4>
+    <p>Kensuke Kaneko (<a href="http://twitter.com/kyanny">@kyanny</a>)</p>
+
+<ul>
+<li>CPAN <a href="http://search.cpan.org/~kyanny/">KYANNY</a></li>
+</ul>
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

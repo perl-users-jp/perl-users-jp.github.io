@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>非破壊な s/// のススメ</title>
+    <link rel="stylesheet" href="/articles/advent-calendar/adventcal.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="/articles/advent-calendar/prettify.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+    <script type="text/javascript" src="/articles/advent-calendar/adventcal.js"></script>
+</head>
+<body>
+<h1>非破壊な s/// のススメ</h1>
+<div class="section">
+<p>正規表現の置換でときどき困るのは、元の文字列が変更されてしまうことです。そのため、たとえば文字列を URI escape する際には、以下のように別変数にコピーした上で、正規表現を適用することになります。</p>
+
+<pre class="lang-perl"><code>my $escaped = $search_str;
+$escaped =~ s/([^0-9A-Za-z_.!~*'()-])/'%' . uc(unpack('H2', $1))/eg;
+my $url = "http://example.com/search?q=$escaped";
+</code></pre>
+
+<p>以前、<a href="http://labs.cybozu.co.jp/blog/kazuho/archives/2007/07/perl_ndes_regex.php">この点がめんどくさいなーとブログに書いた</a>ところ、kazeburo さん他に以下のようなテクニックを教えていただきました。</p>
+
+<pre class="lang-perl"><code>use List::MoreUtils qw(apply);
+
+my $url = 'http://example.com/search?q='
+    . apply { s/([^0-9A-Za-z_.!~*'()-])/'%' . uc(unpack('H2', $1))/eg } $search_str;
+</code></pre>
+
+<p>これなら、不要な変数に頭を悩まされずに１ステートメントで書くことができ、意味も明快です。いいですね。</p>
+
+<p>次は id:amachang。</p>
+
+</div>
+</body>
+</html>

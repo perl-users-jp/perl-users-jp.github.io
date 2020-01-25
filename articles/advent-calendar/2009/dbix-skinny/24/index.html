@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>DBIx::Skinny::InflateColumn::DateTimeで勝手にinflate/deflate #24 - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">DBIx::Skinny::InflateColumn::DateTimeで勝手にinflate/deflate #24 - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">DBIx::Skinny::InflateColumn::DateTimeで勝手にinflate/deflate #24<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/24.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/24.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>昨日に続きましてnekoyaがお送りします。</p>
+
+<p>今日もSkinny関連モジュールの紹介です。DBIx::Skinny::InflateColumn::DateTimeという名前だけで何をするかだいたい理解できそうな小物モジュールとなっております。</p>
+
+<p>インストールは、CPANから</p>
+<pre>
+cpan DBIx::Skinny::InflateColumn::DateTime
+</pre>
+<p>するか、<a href="http://github.com/nekoya/p5-dbix-skinny-inflatecolumn-datetime">githubから</a>どうぞ。</p>
+
+<p>これも昨日のSchema::Loaderと同じく、DBIx::Skinny本体のバージョンが古いと動きません。0.05以上にアップデートしておいてください。</p>
+
+<p>利用方法は、Schemaクラスで</p>
+<pre>
+package Your::DB::Schema;
+use DBIx::Skinny::Schema;
+use DBIx::Skinny::InflateColumn::DateTime;
+</pre>
+<p>のように、useするだけです。</p>
+
+<p>useすると、XXXX_at, XXXX_onなカラムが自動的にDateTimeオブジェクトにinflate/deflateされます。</p>
+
+<p>実際にやっていることも、このAdvent Calenderの<a href="/articles/advent-calendar/2009/dbix-skinny/04.html">4日目</a>でnekokakさんが紹介したサンプルとほぼ同等のごくシンプルなモジュールです。</p>
+
+<p>と、これだけで終わると寂しいので、もう一つおまけを紹介します。</p>
+
+<pre>
+package Your::DB::Schema;
+use DBIx::Skinny::Schema;
+use DBIx::Skinny::InflateColumn::DateTime::Auto;
+</pre>
+
+<p>のように、DBI::Skinny::InflateColumn::DateTime::Auto（Inflate::DateTimeに同梱されています）をuseすると、insert/update時に特定のカラムに操作時刻を自動設定してくれます。</p>
+
+<p>設定されるtriggerと対象カラムは以下になります。</p>
+
+<table>
+<tr>
+<td> pre_insert: </td>
+<td> created_at, created_on, updated_at, updated_on</td>
+</tr>
+<tr>
+<td> pre_update: </td>
+<td> updated_at, updated_on</td>
+</tr>
+</table>
+
+<p>こうしたカラムの操作はDBの機能を使ってすることも可能ですが、DBに依存せずにアプリケーション側で処理したい場合は使ってみてください。</p>
+
+<p>この機能は、hidekさんの</p>
+<ul>
+<li><a href="http://blog.hide-k.net/archives/2006/08/dbixclassauto_i.php">DBIx::Classでauto insert/update datetime - hide-k.net#blog</a></li>
+</ul>
+<p>にインスパイアされて盛り込みました。hidek++</p>
+
+<p>実は、<a href="/articles/advent-calendar/2009/dbix-skinny/04.html">4日目</a>に紹介されたcommon_triggerの機能は、このモジュールを作るのに欲しかったので追加したという経緯があります。あなたも周辺モジュールを書いていて「本体にこんな機能が欲しい」と思ったら、パッチを送ったり、IRCやブログで話を投げてみてください。</p>
+
+<p>明日はいよいよ最終日。nakokakさんの大団円エンディングにご期待ください。</p>
+
+<p>have a nice skinny days!:)</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/dbix-skinny/24.html">Thu, 24 Dec 2009 02:45:01 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+

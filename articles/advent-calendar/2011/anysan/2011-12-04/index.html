@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>hellow ikachan! - Articles Advent Calendar 2011 Anysan</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>hellow ikachan!</h1>
+
+        <p>今日は AnySan を利用したプロダクトを紹介するよ！</p><p>このトラックに参加したい人は <a href="http://atnd.org/events/22890">http://atnd.org/events/22890</a> からどしどし頼むぜ！</p><p>皆さんは、日々のお仕事の中で様々なバッチ処理やデプロイツールまたはCIツールを動かすと思います。<br />
+一般的なネット系のエンジニアは仕事のコミュニケーション手段として IRC を用いているというのが有名ですが、これらバッチ処理の処理状況等を普段の生活環境である IRC に流せたら便利だとおもいませんか？<br />
+いや、便利なんです！すごいですよ！</p><p>そこで僕はどんな環境からでも IRC 通知をするための環境として ikachan を作りました。<br />
+IRC への発言を Web API 経由で操作出来るんです。</p><p>Perl とかすら入ってないサーバでも curl などの HTTP が喋れる環境 or echo コマンドと telnet コマンドさえ入っていれば IRC にポストするサーバなんだ。</p><p>もう CPAN にあるから</p>
+
+    <pre class="code">$ cpanm App::Ikachan</pre>
+<p>だけでインストール出来るよ！</p>
+
+<div class="section">
+    <h4>使い方</h4>
+    <p>使い方もとても簡単で</p>
+
+    <pre class="code"> $ ikachan -S irc_server_address -N nickname[ -K irc_server_password][ -P irc_server_port]</pre>
+<p>という形でサーバを立ち上げるだけです。<br />
+デフォルトでは <a href="http://localhost:4979/">http://localhost:4979/</a> に http server が立ち上がります。<br />
+API 仕様などはサーバにブラウザでアクセスした時に表示されます。<br />
+http server の address/port が気に食わなければ</p>
+
+    <pre class="code">$ ikachan -h http_host -p http_port</pre>
+<p>といったオプションも利用可能です。<br />
+チャンネルに入るには</p>
+
+    <pre class="code">$ curl -F channel=\#catalyst-ja http://localhost:4979/join</pre>
+<p>が使えます。<br />
+チャンネルを抜けるには</p>
+
+    <pre class="code">$ curl -F channel=\#catalyst-ja http://localhost:4979/leave</pre>
+<p>が使えます。<br />
+チャンネルにポストするには</p>
+
+    <pre class="code">$ curl -F channel=\#catalyst-ja -F message=こんにちわこんにちわ！ http://localhost:4979/notice</pre>
+<p>が使えます。</p><p>基本的には notice メソッドを叩くだけで勝手にチャンネルに join してくれるから、細かい事気にしなくて大丈夫だよ！</p>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>今日は HTTP to IRC proxy である ikachan の紹介をしました。<br />
+ikachan を使ってこんなに便利になるよ！的なお話は後々紹介したいとおもいます。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

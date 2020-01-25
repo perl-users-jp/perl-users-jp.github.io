@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>PerlでEmEditorマクロを書こう - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">PerlでEmEditorマクロを書こう
+ - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">PerlでEmEditorマクロを書こう
+<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/casual/15.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/casual/15.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>Songmuと申します。皆様初めまして。好きな言語はPerlと中国語だと公言しています。ただ、よく間違えられますが私も両親も日本人です。</p>
+
+<ul>
+<li>ブログ書いてます(<a href="http://www.songmu.jp/riji/">http://www.songmu.jp/riji/</a>)。</li>
+<li>Wiki開発やってます(<a href="http://www.kuaiwiki.com/">http://www.kuaiwiki.com/</a>)。</li>
+</ul>
+
+<p>よろしくお願いします。</p>
+
+<p>さて、今年はやたらVimヴィム言われた年であったように感じます。また、Web開発者のMac移行がより進んだ年であったようにも思いますが、ここで空気を読まずEmEditorの話をします。</p>
+</div>
+<div class="section">
+<h3> EmEditorとは?</h3>
+
+<p>Windows専用のテキストエディタであり、性能的には秀丸に比肩する能力を備えています。ただ、コミュニティの差なのか、秀丸に比べるとイマイチマイナーです。秀丸がWindowsテキストエディタ界におけるPerlだとしたら、EmEditorはRubyのような存在といえるでしょう(?)</p>
+</div>
+<div class="section">
+<h3> EmEditorの特長</h3>
+
+<p>個人的に優れていると思う点をあげてみます。</p>
+
+<ul>
+<li> Perl互換の正規表現での検索(秀丸に存在しない\b等も使える)</li>
+<li> 中国語もGrepで引っ掛けられる</li>
+<li> CSV, TSV表示機能がある(Ver.9以降)</li>
+<li> Perlでマクロが書ける</li>
+</ul>
+
+<p>今回は、Perlマクロに関して取り上げます。JScriptで書かれることが多いみたいなのですが、Perlで書けるという事はCPAN使い放題なので、複雑な事も簡単に実現可能なのです。</p>
+</div>
+<div class="section">
+<h3> マクロで何が出来るのか？</h3>
+
+<p>百聞は一見にしかずということでまずは以下をご覧下さい。</p>
+
+<dl>
+<dt>TwitterTLを表示する</dt>
+<dd><a href="http://songmu.jp/riji/img/emtwit.jpg"><img src="http://songmu.jp/riji/img/emtwit.jpg" alt="http://songmu.jp/riji/img/emtwit.jpg"/></a></dd>
+<dt>選択範囲内の文字列をPerlコードとして実行・出力する</dt>
+<dd><a href="http://songmu.jp/riji/img/emcode.jpg"><img src="http://songmu.jp/riji/img/emcode.jpg" alt="http://songmu.jp/riji/img/emcode.jpg"/></a></dd>
+</dl>
+
+<p>こんな感じのことができます。上記のように、個人的には</p>
+
+<ul>
+<li> 選択範囲のテキストを加工したりどこかに送ったり</li>
+<li> 何らかの出力をアウトプットバー(画面の下半分の箇所)に出す</li>
+</ul>
+
+<p>といったことにマクロを活用しています。</p>
+</div>
+<div class="section">
+<h3> 作成方法</h3>
+
+<p>とりあえず簡単に。</p>
+
+<ul>
+<li>メニューから[マクロ] -&gt; [カスタマイズ] -&gt; [マイマクロ]タブで[新規作成]を押してファイルを作成</li>
+<li>ファイルの拡張子は.pleeにする</li>
+</ul>
+</div>
+<div class="section">
+<h3> 書き出し</h3>
+
+<p>以下の通りです。</p>
+
+<pre>
+#language="PerlScript"
+our $Window;
+ 
+use strict;
+use warnings;
+use utf8;
+</pre>
+
+<p>普通のPerlスクリプトとはshebang行の書き方が異なります。$Windowオブジェクトは既にEmEditorマクロ内で定義されているオブジェクトですが、use strictで書く場合は、ourで宣言しておかないと怒られます。</p>
+
+<p>この$Windowオブジェクトを操作することがEmEditorマクロの肝となります。</p>
+</div>
+<div class="section">
+<h3> $Windowオブジェクトについて</h3>
+
+<p>EmEditorを弄る上で必要な、多種多様なメソッド・プロパティがぶら下がっています。オブジェクトの仕様に関しては、EmEditorのヘルプに詳細に書かれているので、そちらを参照すると良いでしょう。</p>
+
+<p>ちなみに、EmEditorマクロはもともとVBScriptやJScriptで書かれることを想定しているので、Perlでメソッドやプロパティアクセスをしようとすると多少戸惑う部分があります。</p>
+
+<p>Perlマクロの場合、プロパティアクセスもメソッド呼び出しも、メソッド呼び出しとして記述することが出来ますが、プロパティに値をセットするときには、オブジェクトの実体であるハッシュリファレンスの中を覗かないといけません。</p>
+
+<p>また、真理値をセットする場合には、真を1、偽を0としてセットします。</p>
+
+<pre>
+// JScriptの場合
+// アウトプットバーの内容を消す
+Window.OutputBar.Clear();
+// アウトプットバー非表示の場合、表示する
+if ( !Window.OutputBar.visible ){
+    Window.OutputBar.visible = true;
+}
+// アウトプットバーに'hoge'と表示する
+Window.OutputBar.writeln('hoge');
+</pre>
+
+<pre>
+# Perlの場合
+# アウトプットバーの表示を消す
+$Window-&gt;OutputBar-&gt;Clear;
+# アウトプットバー非表示の場合、表示する
+$Window-&gt;OutputBar-&gt;{'visible'} = 1     # ハッシュの中を覗く
+    unless $Window-&gt;OutputBar-&gt;visible; # getterとしては使用可能
+# アウトプットバーに'hoge'と表示する
+$Window-&gt;OutputBar-&gt;writeln('hoge');
+</pre>
+
+<p>多分AUTOLOADを使って、メソッドが存在しない場合は、ハッシュエントリーを見に行くようにしているのでしょう。getterとして使用可能なら、$Window-&gt;OutputBar-&gt;visible(1) とかして、setterとしても使用可能でも良さそうなもんですが、それは出来ないようです。</p>
+
+<p>ちなみに、毎回$Window-&gt;...とか書くのがめんどくさかったりする場合は、オブジェクトにアクセスするメソッドはオブジェクト参照を返すので、以下のように書くことが出来ます。当たり前ですが。</p>
+
+<pre>
+my $out_bar = $Window-&gt;OutputBar; # $out_barにOutputBarオブジェクトが入る
+$out_bar-&gt;Clear;
+...
+</pre>
+</div>
+<div class="section">
+<h3> 選択文字列(selectionオブジェクト)について</h3>
+
+<p>プロパティアクセスの説明とともにOutputBarオブジェクトの説明も済ませてしまったので、次はselectionオブジェクトの説明をします。</p>
+
+<p>selectionオブジェクトには、編集中のテキスト内の選択文字列の情報が入ります。OutputBarがマクロにおける出力部分だとしたら、selectionは入力の部分を担います。</p>
+
+<p>以下のようにして選択文字列を取得することが出来ます。</p>
+
+<pre>
+my $code = Encode::decode(
+    'cp932',
+    $Window-&gt;document-&gt;selection-&gt;Text
+);
+</pre>
+
+<p>cp932でデコードしています。日本語Windowsを使っている場合、selection-&gt;Textには必ずcp932文字列が入ってしまいす。たとえ、UTF-8のファイルを編集中であっても、その選択文字列は自動的にcp932文字列に変換されてselection-&gt;Textに入ってしまうのです。同様に、OutputBarに出力するときもcp932にエンコードしてやらなくてはいけません。</p>
+
+<p>ロケールの問題なのか理由は定かではありませんが、これは非常に困ります。中国語(cp932範囲外の文字)が使えません。</p>
+
+<p>ちなみに、JScriptでマクロを記述する場合には、スクリプトをUTF-8で記述し、BOMをつける事によって、UTF-8をそのまま扱うことが出来ます。つまり、OutputBarに中国語表示が可能です。この点はJScriptの方が優れています。悔しいです。</p>
+
+<pre>
+// JScriptだとUTF-8(BOM付き)で保存すると中国語が表示できる!!!
+Window.OutputBar.writeln('你好');
+</pre>
+
+<p>これに関して解決策をご存じの方は、y.songmu at gmail.comまでお知らせ下さい。非常に困っています。</p>
+</div>
+<div class="section">
+<h3> マクロの実例(実践編)</h3>
+
+<p>気を取り直して、冒頭でも実行例を表示した、選択文字列をPerlコードとして実行するマクロを記載します。</p>
+
+<p>これは簡単な計算をさせたり、正規表現のチェックをしたりとかなり重宝しています。</p>
+
+<p>至極単純な話で、選択範囲をevalすれば良いだけの話なんですが、print, say文での出力をアウトプットバーに出したいため、IO::Captureモジュールを使って、捕捉した標準(エラー)?出力をアウトプットバーに出力しています。</p>
+
+<p>IO::Captureモジュールはprint文が書かれてもその内容をすぐに出力せず、バッファしておくことができる、非常に便利なモジュールです。(一応モジュールの紹介もしておかないと)</p>
+
+<pre>
+#language="PerlScript"
+our $Window;
+use strict;
+use warnings;
+use utf8;
+use Encode;
+ 
+use Win32; # ダイアログ表示の為に使用
+use IO::Capture::Stdout;
+use IO::Capture::Stderr;
+ 
+# 選択範囲のテキストを取得する
+my $code = Encode::decode(
+    'cp932',
+    $Window-&gt;document-&gt;selection-&gt;Text
+);
+# 中身が空だったり、キャンセルされたら実行しない
+exit unless $code;
+# 実際はダイアログ表示させて無いんだけど、
+# Win32モジュールを使う事も多いので合わせて紹介
+exit if Win32::MsgBox('run?', 1) != 1;
+ 
+# 標準(エラー)?出力の捕捉を開始する
+my $capture = IO::Capture::Stdout-&gt;new;
+my $stderr = IO::Capture::Stderr-&gt;new;
+$capture-&gt;start;
+$stderr-&gt;start;
+ 
+# eval実行する
+eval $code;
+ 
+# 捕捉を終了する
+$capture-&gt;stop;
+$stderr-&gt;stop;
+ 
+# 結果を出力する前にアウトプットバーの中身をクリアした後、表示
+$Window-&gt;OutputBar-&gt;Clear;
+$Window-&gt;OutputBar-&gt;{'visible'} = 1;
+
+# 標準エラー出力を表示する
+# readメソッドは捕捉した順番に出力内容をリストで返してくる
+# 表示の際にはcp932でエンコードする
+$Window-&gt;OutputBar-&gt;writeln(
+    join "", map { Encode::encode('cp932', $_) } $stderr-&gt;read
+);
+ 
+$Window-&gt;OutputBar-&gt;writeln('---');
+ 
+# 標準出力を表示する
+$Window-&gt;OutputBar-&gt;writeln(
+    join "", map { Encode::encode('cp932', $_) } $capture-&gt;read
+);
+</pre>
+</div>
+<div class="section">
+<h3> マクロの実行について</h3>
+
+<p>マクロメニューやマクロツールバーからマウスクリックで実行することも出来ますが、よく使うマクロにはショートカットキーを割り当てておくと良いでしょう。私も先程のPerlコード実行マクロには Ctrl+P を割り当てています。</p>
+
+<p>また、メニューを「メニューの変更」から拡張することができます。メニューには Alt+任意のキー でアクセス可能なので、そこからマクロを呼び出したり、階層構造で管理をしたりすることも可能です。Perlの話から逸れるのでここでは多くは書きません。</p>
+</div>
+<div class="section">
+<h3> マクロの使い所</h3>
+
+<p>さて、ここまで読んできた方でEmEditor使いの方はもう、マクロをバリバリ書けるようになっていることでしょう。今後どう言ったマクロを書けば良いか、参考までに私が実際に作ったマクロの例を挙げます。</p>
+
+<ul>
+<li> Twitterに投稿する(と同時にOutputzにも送信する)</li>
+<li> 手元のメモをメールで携帯に送る</li>
+<li> コード(SQL等)を整形する</li>
+</ul>
+
+<p>等々です。外部プログラムとの連携も出来るので、頑張ればiTunesからプレイリストを拾ってきてコンテキストメニューに表示して選択したりなんかもできるようになるみたいです。</p>
+
+<p>皆様も是非、Perlマクロを作ってみて下さい。便利だったら公開してみて下さい。</p>
+</div>
+<div class="section">
+<h3> まとめ</h3>
+
+<p>EmEditorでのPerlマクロ開発について駆け足で説明しました。マクロだけじゃなく、正規表現での一括置換なんかも強力なので、WindowでPerlを書くならEmEditorを是非オススメします。</p>
+
+<p>質問、感想、意見なんかは、y.songmu at gmail.com まで連絡くださると嬉しいです。TwitterID: songmu なのでそちら宛につぶやいてくださっても喜びます。</p>
+
+<p>明日はoverlastさんです。お楽しみに！</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/casual/15.html">Tue, 15 Dec 2009 00:00:00 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

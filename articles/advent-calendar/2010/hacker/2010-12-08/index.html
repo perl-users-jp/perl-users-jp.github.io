@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="hirose31">
+        <title>HTTPサーバフレームワークとしてのPlack活用法と、Plack::Middleware::Pictogram::MobileJpを使ったその事例紹介 - Articles Advent Calendar 2010 Hacker</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>HTTPサーバフレームワークとしてのPlack活用法と、Plack::Middleware::Pictogram::MobileJpを使ったその事例紹介</h1>
+
+        <p>実はお腹回りが入らなくなってスーツを新調した<a href="http://twitter.com/hirose31">hirose31</a>です。</p><p>みなさん、<a href="http://plackperl.org/" title="Plack">Plack</a>使ってますか？ 弊社でも<a href="http://search.cpan.org/dist/Starlet/" title="Starlet">Starlet</a>をNginxのバックエンドに置いてプロダクション環境でモリモリ使っているのですが、ちょっとした検証にもPlackは大変重宝しています。</p><p>具体的には、キャッシュに関連するレスポンスヘッダ(Last-Modified、Expiresなど)の組み合わせと、条件付きGETやブラウザキャッシュの挙動をブラウザごとに調べたときに使いました。あくまで検証用と割りきって特にファイル分割などはせず、psgiファイルにゴリゴリっとベロっとコードを書いてパパパっと検証用のHTTPサーバを作りました。</p><p>このように、限定された目的のHTTPサーバをサササっと実装してペロっと上げるのにもPlackは大変有益です。</p><p>そこで今日は、検証用簡易HTTPサーバとしてのPlack活用法ということで、最近あった事例をひとつ紹介したいと思います。</p>
+
+<div class="section">
+    <h3>モバイルサイトのテンプレートをPCブラウザで確認したい</h3>
+    <p>タイトルママなんですが、</p>
+
+<ul>
+<li>モバイルサイト用のHTMLを、エンジニアじゃない人に編集させたい
+<ul>
+<li>非エンジニア向けにテンプレートタグがないHTMLで管理すると、あとでmergeしてタグを埋め込む作業がクソ面倒くさいのでイヤ</li>
+<li>なので、テンプレートのタグが入っている状態のファイルを編集させたい
+<ul>
+<li>となると、テンプレートを解釈(変数展開、ヘッダ、フッタの差し込み等)するアプリケーションサーバが必要</li>
+</ul></li>
+<li>3キャリア対応の絵文字を使いたい
+<ul>
+<li>Firefoxと<a href="http://firemobilesimulator.org/" title="FireMobileSimulator">FireMobileSimulator</a>で、PCブラウザで絵文字の確認はできる</li>
+<li>が、3キャリ対応するには、User-Agentを見て絵文字のコードポイントを変換する必要がある</li>
+<li>となると、UAを見て動的にコード変換する機構が必要</li>
+</ul></li>
+</ul></li>
+</ul><p>という要件がありました。</p><p>当初、データストアをモックに差し換えたWebアプリをまるまる動かそうかなと思ったのですが、必要なのはテンプレと絵文字の変換程度なのでちょっと牛刀かなぁと思い、psgiにモリっと必要な実装をしてplackupでHTTPサーバを立てることにしました。</p>
+
+<div class="section">
+    <h4>実装編</h4>
+    
+<div class="section">
+    <h5>psgiファイル</h5>
+    <p>psgiファイルはこんな感じです。(※コードはイメージです)</p>
+
+    <pre class="code lang-perl"># -*- mode: cperl; -*-
+
+use utf8;
+use Text::Xslate qw(0.2013);
+use Text::Xslate::Util qw(hash_with_default);
+use Encode;
+use Plack::App::Directory;
+
+my $TMPL_DIR     = &#39;/home/hirose31/work/hidek48/tmpl&#39;;
+my @INCLUDE_DIRS = (); # optional
+my $STATIC_DIR   = &#39;/home/hirose31/work/hidek48/htdocs&#39;;
+
+###
+my %_vars = (
+    user =&gt; {
+        name =&gt; &#34;hidek&#34;,
+        age  =&gt; 20*2,
+    },
+   );
+###
+
+my $vars  = hash_with_default(\%_vars, sub { qq{FILLME ($_[0])} });
+
+my $xslate = Text::Xslate-&gt;new(
+    path        =&gt; [$TMPL_DIR, @INCLUDE_DIRS],
+    cache       =&gt; 0,
+    input_layer =&gt; &#39;:utf8&#39;,
+    syntax      =&gt; &#39;TTerse&#39;,
+    module      =&gt; [ &#39;Text::Xslate::Bridge::TT2Like&#39; ],
+    verbose     =&gt; 2,
+   );
+
+my $app = sub {
+    $env = shift;
+
+    my $path = $env-&gt;{PATH_INFO};
+    $path .= &#39;.tx&#39; if ($path !~ /\.tx$/ &amp;&amp; ! -d &#34;$TMPL_DIR/$path&#34;);
+    my $code = 200;
+
+    if (-d &#34;$TMPL_DIR/$path&#34;) {
+        my $res = Plack::App::Directory-&gt;new({
+            root     =&gt; $TMPL_DIR,
+            encoding =&gt; &#34;shift_jis&#34;,
+        })-&gt;to_app-&gt;($env);
+
+        # mangle body of response if necessary
+        #$res-&gt;[2][0] =~ s{href=&#39;/}{href=&#39;/hidek48/}g;
+        return $res;
+    } else {
+        my $body = $xslate-&gt;render($path, $vars);
+        my $body_encoded = Encode::encode(shift_jis, $body);
+
+        return [$code,
+                [&#39;Content-Type&#39;   =&gt; &#39;application/xhtml+xml; charset=shift_jis&#39;,
+                 &#39;Content-Length&#39; =&gt; length($body_encoded)],
+                [$body_encoded]];
+    }
+};
+
+use Plack::Builder;
+builder {
+    enable &#34;Pictogram::MobileJp&#34;, notation =&gt; &#39;unicode&#39;;
+    enable &#34;Static&#34;,
+        path =&gt; sub { s!^/static/!! || m!(jpe?g|gif|png)$! },
+        root =&gt; $STATIC_DIR;
+    $app;
+}
+
+__END__
+
+plackup -r --port 1970 -a /home/hirose31/work/hidek48/check-tmpl.psgi
+</pre>
+<p>tmpl/top.txはこんな感じで、</p>
+
+    <pre class="code">[% INCLUDE &#39;inc/header.tx&#39; %]
+
+&lt;div style=&#34;text-align:center;&#34;&gt;
+  &lt;img src=&#34;/static/logo.jpg&#34; /&gt;
+&lt;/div&gt;
+
+&lt;p&gt;
+こんにちは[% user.name %]さん！
+&lt;/p&gt;
+
+&lt;p&gt;
+今日のラッキー推しメンは[% oshimen %]でごわす&lt;span style=&#34;color:#FF0000;&#34;&gt;&amp;#xE6ED;&lt;/span&gt;
+&lt;/p&gt;
+
+[% INCLUDE &#39;inc/footer.tx&#39; %]</pre>
+<p>アクセスするとこんなふうに表示されます:</p><p><div style="text-align:center;"><br />
+  <img src="https://github.com/perl-users-jp/perl-advent-calendar/raw/master/2010/hacker/pictogram-mobilejp/display-au.png" alt="hidek48" /><br />
+</div></p>
+
+</div>
+<div class="section">
+    <h5>テンプレートの処理</h5>
+    <p>例ではテンプレートエンジンに今をトキメク<a href="http://search.cpan.org/dist/Text-Xslate/" title="Text::Xslate">Text::Xslate</a>を使っています。</p><p>処理自体は特に奇をてらったところはなく、$appの中で素直にrenderしてShift_JISに変換したものをレスポンスとして返しているだけです。</p><p>ひとつ注目していただきたい点は、テンプレートに埋め込む変数等は、冒頭の%_varsで定義していて(ここは別ファイルにくくり出した方が見通しがよくなると思います)、テンプレ変数の指定洩れ、変数名のtypoをあぶり出すために、</p>
+
+    <pre class="code">my $vars  = hash_with_default(\%_vars, sub { qq{FILLME ($_[0])} });</pre>
+<p>とし、表示例のように、存在しない変数を参照しようとした場合には「FILLME (変数名)」と表示されるようにしているところです。これはText::Xslage 0.2013 以降の機能です。</p>
+
+</div>
+<div class="section">
+    <h5>絵文字の処理</h5>
+    <p>さて、続いて絵文字の処理ですが、拙作のPlack::Middleware::Pictogram::MobileJpを使い、わずか1行書き足すだけで済んでいます。ね、簡単でしょう？</p>
+
+<ul>
+<li><a href="https://github.com/hirose31/Plack-Middleware-Pictogram-MobileJp" title="Plack::Middleware::Pictogram::MobileJp">Plack::Middleware::Pictogram::MobileJp</a></li>
+</ul><p>前掲のtmpl/top.txの通り、絵文字はドコモのユニコード記法で指定していますが、au端末のふりをしている前掲の画面キャプチャでもちゃんと絵文字がいい塩梅に変換されて表示されているのがわかりますね。</p>
+
+</div>
+</div>
+</div>
+<div class="section">
+    <h3>おわりに</h3>
+    <p>以上、自作モジュールの紹介というより、「既存のMiddleware＋足りないところはコード書いて好きに制御可能なHTTPサーバフレームワーク」としてのplackupの紹介でしたがいかがだったでしょうか。みなさん年に三回ぐらいは「俺HTTPサーバ書くわ。あ〜俺マジでHTTPサーバ書くわ〜」と思うことがあると思います。そういったときにこのエントリを思い出していただけると幸いです。</p><p>さて、明日は、同僚でもあり征夷大将軍でもあるYappoさんです。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

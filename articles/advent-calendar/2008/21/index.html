@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+    <head profile="http://purl.org/net/ns/metaprof">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>Config::PitとWeb::ScraperとPlaggerで24時間365日のゲーム監視体制</title>
+        <link rel="stylesheet" href="/articles/advent-calendar/adventcal.css" type="text/css" media="screen" />
+        <link rel="stylesheet" href="/articles/advent-calendar/prettify.css" type="text/css" media="screen" />
+        <script type="text/javascript" src="http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+        <script type="text/javascript" src="/articles/advent-calendar/adventcal.js"></script>
+    </head>
+    <body>
+<div class="hentry">
+    <h1 class="entry-title">Config::PitとWeb::ScraperとPlaggerで24時間365日のゲーム監視体制</h1>
+    <div class="entry-content">
+        <h2>序文</h2>
+        <p>趣味のネットウォッチのために仕方が無く超便利なPerlを覚えようという感じの
+        <span class="vcard">
+            <span class="fn nickname">otsune</span>
+        </span>
+        です。そんなわけでコーディングの深い話はよくわからんので、今回はPerlとCPANを使ってネットウォッチを支援する手法について書きます。
+        </p>
+        <p>ウォッチしたいWebページを機械的に監視できれば、あとはPlaggerなどの便利ツールを使って「メールを出す」「im.kayac.comでメッセンジャーにアラートを出す」「ピザを注文する」など好きな処理をすることが出来ます。</p>
+        <p>RSSフィードやAPIなどがあるWebサイトであれば特に苦労はしないのですが、今回取り上げるOgame.jpはウェブブラウザーゲームなので、フィードなど便利な機能はまったく存在しません。</p>
+        <p>そこでウォッチしたいWebページに対して<a href="http://search.cpan.org/dist/Web-Scraper/">Web::Scraper</a>を使ってYAMLを出力する短いスクリプトを書いてしまいます。</p>
+        <p>メールを出すなどのこまごまとした処理は既存のPlagger等のスクリプトに任せられるので、最小限のコードを書くだけでやりたいことが出来るようになります。</p>
+        <h2>概要</h2>
+        <p>ざっと流れを説明します。まずブラウザーゲームのOgame.jpはユーザー名とパスワードによりログインが必要なサイトなので、WWW::Mechanizeでログインします。</p>
+        <p>そのログイン時にConfig::Pitを使うことでパスワードをスクリプト内に書かないようにします。</p>
+        <p>そして、Web::ScraperでHTMLページから監視したい「敵が攻めてくる警告文」の部分を切り抜きします。</p>
+        <p>最後にYAMLで、Plaggerであつかえるフィードとエントリーの形で出力します。</p>
+        <h2>解説</h2>
+        <p>早速コードを見ながら解説しましょう。（コードは<a href="http://coderepos.org/share/browser/lang/perl/misc/ogame_check.pl">CodeRepos</a>にcommitしてあります）</p>
+        <pre class="lang-perl"><code>#!/usr/bin/perl
+use strict;
+use warnings;
+use URI;
+use WWW::Mechanize;
+use Config::Pit;
+use Web::Scraper;
+use DateTime;
+use YAML;
+</code></pre>
+        <p>この辺は定番という感じで。今回使う主なCPANモジュールは、WWW::Mechanize, Config::Pit, Web::Scraperです。</p>
+        <pre class="lang-perl"><code>my $uni = shift || 'uni4';
+# get password
+#Config::Pit::switch('ogame');
+my $config = pit_get("$uni.ogame.jp", require =&gt; {
+        "username" =&gt; "otsune",
+        "password" =&gt; "your password on ogame.jp"
+    });
+</code></pre>
+        <p>Config::Pitの<code>pit_get</code>を使うことでスクリプトにIDやパスワードをハードコードする必要が無くなります。ぜひ使いましょう。パスワードの設定は<code>ppit set uni4.ogame.jp</code>などと入力して<var>$EDITOR</var>で編集することで<code>~/.pit/</code>以下に保存できます。また<code>perl -MConfig::Pit -e'Config::Pit::set("uni4.ogame.jp", data=&gt;{ username=&gt;"dankogai", password=&gt;"kogaidan" })'</code>というワンライナーでも<code>~/.pit/</code>以下に保存できます。</p>
+        <pre class="lang-perl"><code># login
+my $ogame_login = "http://$uni.ogame.jp/game/reg/login2.php";
+my $uri = URI-&gt;new($ogame_login);
+$uri-&gt;query_form(
+    login =&gt; $config-&gt;{username},
+    pass  =&gt; $config-&gt;{password},
+    v     =&gt; 2,
+);
+
+# access
+my $mech = WWW::Mechanize-&gt;new(cookie_jar =&gt; {});
+my $response = $mech-&gt;get( $uri );
+
+if (!$response-&gt;is_success || $response-&gt;content =~ /errormessage/){
+    warn $mech-&gt;status();
+    return;
+};
+
+$mech-&gt;follow_link(url_regex =&gt; qr{index\.php}i);
+</code></pre>
+        <p>URIモジュールでIDやパスワードのクエリー付きURLを組み立てて、WWW::Mechanizeでブラウザーゲームにログインをします。Ogame.jpはログイン後に<code>&lt;meta http-equiv='refresh' ...&gt;</code>ヘッダーで<code>index.php</code>にリダイレクトしているので、<code>follow_link</code>メソッドでページ移動します。</p>
+        <pre class="lang-perl"><code># scrape
+my $feed = scraper {
+    process 'title', 'title' =&gt; 'TEXT';
+    process 'tr.flight', 'entry[]' =&gt; scraper {
+        process 'span.attack', title =&gt; 'TEXT',
+        process '//a[@class="attack"]/following-sibling::a', body =&gt; '@title';
+        process '//div[starts-with(@id, "bxx")]', date =&gt; sub {
+            my $dt = DateTime-&gt;now(time_zone=&gt;'local');
+            $dt-&gt;add( seconds=&gt;$_-&gt;attr('title') );
+            return $dt-&gt;iso8601();
+        }
+    }
+}-&gt;scrape($mech-&gt;content, $mech-&gt;uri);
+</code></pre>
+        <p>Web::Scraperの<code>scraper</code>メソッドで、取得したWebページ(<code>content</code>)から切り抜きたい箇所をXPathかCSSセレクターで指定して読み込みます。（<code>content</code>を渡してスクレイピングするときは、第二引数に<code>$mech-&gt;uri</code>を渡すと、Web::Scraperが相対URLを自動的に絶対URLにしてくれるのでオススメ）</p>
+        <p>ここでポイントなのが後処理をするPlaggerにあわせて「ひとつのFeedに複数のEntry」という構造で項目名を決めることです。具体的な例では</p>
+        <pre class="lang-html"><code>---
+link: フィードのURL&lt;http://example.com/hoge/&gt;
+title: 'フィードタイトル'
+image: フィードのサムネイル画像URL&lt;http://img.example.com/hoge/logo.png&gt;
+entry:
+  - title: 'エントリー1のタイトル'
+    link: エントリー1のURL&lt;http://example.com/hoge/path/to/entry1-link&gt;
+    date: エントリー1の日付(2008-12-21T01:23:45Z)
+    body: 'エントリー1内容'
+  - title: 'エントリー2のタイトル'
+    link: エントリー2のURL&lt;http://example.com/hoge/path/to/entry2-link&gt;
+    date: エントリー2の日付(2008-12-21T06:54:32Z)
+    body: 'エントリー2内容'
+</code></pre>
+        <p>という感じの構造のYAMLを出力します。（何が使えるかはPlaggerの<code>lib/Plagger/Feed.pm</code>や<code>lib/Plagger/Entry.pm</code>のアクセッサ名を参照すると良いでしょう）。</p>
+        <p>Web::Scraperの<code>process</code>では、ダブルクォートを使うときにXPath属性選択省略記号の<code>@</code>などを<code>\</code>でエスケープする必要があります。たとえば<code>'//hoge[@attr="fuga"]'</code>と<code>"//hoge[\@attr='fuga']"</code>は同じです。XPath文と一致させておきたいときはシングルクォートを使うと良いでしょう。</p>
+        <p>また、Web::Scraperで<code>sub</code>でコールバックを使うと、<var>$_</var>に<code>process</code>で切り抜かれたHTML::Elementsが渡されます。</p>
+        <p>敵が到達するまでの残り時間は、<code>div</code>タグの<code>title</code>という属性に整数値で書かれているので、<code>sub</code>のコールバック内でDateTimeモジュールを使って加算して（具体的には<code>$dt-&gt;add( seconds=&gt;<var>&lt;数値&gt;</var> )</code>の部分）、日付文字列にして返しています。</p>
+        <pre class="lang-perl"><code>$feed-&gt;{link}  = $ogame_login;
+$feed-&gt;{image} = 'http://board.ogame.jp/ogame_logo/jp.gif';
+</code></pre>
+        <p>ここでは固定されているフィードのリンクとサムネイルイメージを直接指定してます。</p>
+        <pre class="lang-perl"><code># output
+binmode STDOUT, ":utf8";
+print YAML::Dump $feed;
+</code></pre>
+        <p>最後にWeb::Scraperによって<var>$feed</var>に読み込まれたデータをYAMLとして出力します。</p>
+        <h2>おまけ</h2>
+        <p>Plaggerで使うには<code>plagger/assets/plugins/CustomFeed-Script/</code>以下に<code>ogame_check.pl</code>という名前などでスクリプトを配置して</p>
+        <pre class="lang-html"><code>plugins:
+  - module: Subscription::Config
+    config:
+      feed:
+        - url: script:/path/to/plagger/assets/plugins/CustomFeed-Script/ogame_check.pl
+
+  - module: CustomFeed::Script
+</code></pre>
+        <p>という<code>config.yaml</code>で読み込みます。</p>
+        <p>このスクリプトをPlaggerだけで使うつもりなら、<code>use Plagger;</code>と<code>use Plagger::UserAgent;</code>をスクリプトに追記することでWWW::MechanizeはPlagger::UserAgentを使うことも出来ます。（おなじ理由で、DateTimeの代わりにPlagger::Dateを使うこともできます）、あーでも<code>mech</code>で<code>follow_link</code>とか使ってるとダメか……</p>
+        <h2>最後に</h2>
+        <p>「PerlはCPANを使うためのインターフェース」が持論のオレ的には、やりたいことをサクっと解決できるCPANという仕組みはとてもすばらしいと思っています。</p>
+        <p>さて、次はmalaの予定だったけど、連絡付いたので<a href="http://www.dan.co.jp/~dankogai/">Dan Kogai</a>さんで。</p>
+        </div>
+</div>
+    <p><a href="./">Back</a></p>
+    </body>
+</html>

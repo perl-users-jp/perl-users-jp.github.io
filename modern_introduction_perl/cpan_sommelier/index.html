@@ -1,0 +1,99 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+    <head profile="http://purl.org/net/ns/metaprof">
+        <!-- Document Metadata -->
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta http-equiv="Content-Language" content="ja" />
+        <meta http-equiv="Content-Style-Type" content="text/css" />
+        <meta http-equiv="Content-Script-Type" content="text/javascript" />
+        <meta http-equiv="imagetoolbar" content="no" />
+
+        <!-- Atom news feed -->
+
+        <link rel="alternate" type="application/rss+xml" title="RSS feed" href="http://coderepos.org/share/log/websites/perl-users.jp?limit=100&amp;mode=stop_on_copy&amp;format=rss" />
+        <link rel="stylesheet" type="text/css" href="/css/perl-users.jp.css" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+        <link rel="icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+
+        <title>CPANモジュールの選び方 - モダンなPerl入門 - モダンなPerl入門</title>
+
+        <script src="http://www.google-analytics.com/urchin.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            _uacct = "UA-4463402-1";
+            urchinTracker();
+        </script>
+        <!-- script src="/js/codepress/codepress.js" type="text/javascript"></script -->
+    </head>
+    <body>
+        <div id="head-navigation"><a href="/">Perl-users.jp</a></div>
+<!-- content start -->
+<h1>CPANモジュールの選び方</h1>
+
+<p>Perl といえば、再利用可能なモジュールがたくさんたっくさん登録されている CPAN です。現在では 57,022 ものモジュールが登録されています。</p>
+
+<p>そんな CPAN なのですが、あまりにもモジュールが多すぎて目移りしてしまいます。たとえば、日付の処理をしようとおもって<a href="http://search.cpan.org/search?query=Date&amp;mode=module" title="The CPAN Search Site - search.cpan.org">「Date」というキーワードで検索する</a>と、1,764 ものモジュールがマッチして、めうつりしてしまう。</p>
+
+<p>そんなときにどうすればいいのか。それを本稿では解説しようとおもう。</p>
+
+<h3>最終更新日をみる</h3>
+
+<p><img src="http://gyazo.com/e06d9a4d26f1fe988427d89e293747db.png" alt="最終更新日" /></p>
+
+<p>モジュールには最終更新日が表示されています。最終更新日が古いものは、忘れさられた古きモジュールである可能性が高いので使わない方がいいでしょう。</p>
+
+<p>具体的にいうと、2004年以前のモジュールについては注意した方がいいです。</p>
+
+<h3>CPAN Testers の結果をみる</h3>
+
+<p><img src="http://gyazo.com/71c53c87df414346bdd65b76d3ed326d.png" alt="CPAN Testers" /></p>
+
+<p>テストにこけるようなモジュールは作者がやる気ないことがほとんどです。</p>
+
+<p>テストが全部 FAIL しているようなモジュールはつかわない方がいいでしょう。</p>
+
+<h3><code>t/</code> がさびしいモジュールはつかわない</h3>
+
+<p><img src="http://gyazo.com/22d0bc06b939e8f65d947b345aa71e08.png" alt="t/" /></p>
+
+<p>CPAN ではテストを <code>t/</code> というディレクトリ以下におくのですが、このディレクトリの中身がさびしいモジュールはつかわない方がよいでしょう。</p>
+
+<p>十分にテストされていないモジュールを使うことは自分の時間を浪費することにつながります。</p>
+
+<p>モジュールのコード量に比例して十分な量のテストがなくてはおかしいです。</p>
+
+<h3>バグトラッカーへの登録数をみる</h3>
+
+<p><img src="http://gyazo.com/86862997380bdae070e2b2faac43582c.png" alt="RT" /></p>
+
+<p>CPAN にはバグトラッカーがついてるわけですが、このバグトラッカーに登録されたまま放置されているようなモジュールは作者がやる気ないのでつかわないほうがいいでしょう。</p>
+
+<h3>Plaggerをみる</h3>
+
+<p><img src="http://gyazo.com/9e43636f3512fbf21419a8274eb78a98.png" alt="Plagger" /></p>
+
+<p>基本的に Plagger のコアに採用されているモジュールはデファクトスタンダードなモジュールばかりですので、Plagger にありそうな処理であれば Plagger をみるのがよいです。</p>
+
+<h3>IRC で Perl Mongers に聞く</h3>
+
+<p><img src="http://gyazo.com/7f9f6903aa621434a399eeff147262bf.png" alt="Community" /></p>
+
+<p>IRC の <a href="irc://irc.freenode.net/Shibuya.pm">#Shibuya.pm@freenode</a> や <a href="irc://irc.freenode.net/YAPC.Asia-ja">#YAPC.Asia-ja@freenode</a> といった Perl 関係のチャンネルには腕利きの Perl Mongers が揃っていますので、日付関連のモジュールでいいものぐらいはすぐに教えてもらえます。</p>
+
+<h3>Google Code Search で実際に使われているコードを見る</h3>
+
+<p><a href="http://www.google.com/codesearch">Google Code Search</a> にモジュール名などをいれて検索してみると実際に使われているコードを検索することができます。</p>
+
+<p>検索語句に <code>lang:perl</code> を付け加えると Perl でかかれたものだけを検索することができます。</p>
+
+<p>ここで検索結果が多いということはそれだけ使われているということです。また上記 Plagger のような信頼されているアプリで使われているかどうかも見ることができます。</p>
+
+<h3>MENTA の extlib をみる</h3>
+
+<p><a href="http://svn.coderepos.org/share/lang/perl/MENTA/trunk/extlib/">MENTAのextlib</a>では日本で良く利用されるおすすめモジュールが登録されているので参考になるはずです。</p>
+
+<!-- content end -->
+        <hr />
+        <p><a href="/modern_introduction_perl/">目次へ</a></p>
+        <p>Last modified: $Date: 2008-11-25 11:45:42 +0900 (火, 25 11月 2008) $</p>
+    </body>
+</html>

@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>目標達成カウントダウンを華々しく - Articles Advent Calendar 2011 Anysan</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>目標達成カウントダウンを華々しく</h1>
+
+        <p>今日は AnySan を利用したプロダクトをどう使うかの実例を紹介するよ！</p><p>このトラックに参加したい人は <a href="http://atnd.org/events/22890">http://atnd.org/events/22890</a> からどしどし頼むぜ！</p><p>皆さんは Web サービスを開発する上で様々な数値目標と向き合うと思います。<br />
+そんな中でも会員数の目標数値はなかなか比重が重いんじゃないでしょうか?</p><p>後少しで、会員数が目標達成するからと言って関係者全員がそわそわと最新の数値を見るページを F5 連打してたら捗らない上に self-dos になってしまう危険性もあります。</p><p>そういった wktk 感を感じつつ皆が捗る為に、あとどのくらいで目標に達するかをプロジェクトの IRC チャンネルに流す仕組みを作ったら捗りそうな気がしたので、試しに作った物を晒します。</p><p>ikachan を導入している人で、じわじわカウントダウンして興奮したい方はご自由にお使いください。</p>
+
+    <pre class="code">use strict;
+use warnings;
+use utf8;
+
+use DBI;
+use LWP::UserAgent;
+use String::IRC;
+
+my $dbh = DBI-&gt;connect(...);
+my $to = 1_000_000;
+my $ikachan = &#39;http://ikachan.example.com/privmsg&#39;;
+my $channel = &#39;#ninjyatoriai&#39;;
+
+my $last_count = sub {
+    my $rows = $dbh-&gt;selectall_arrayref(q{
+        SELECT last FROM countdown_1000k
+    }, { Slice =&gt; [] });
+    return 0 unless $rows &amp;&amp; @{ $rows };
+    $rows-&gt;[0][0];
+}-&gt;();
+
+my $current_count = sub {
+    my $rows = $dbh-&gt;selectall_arrayref(q{
+        SELECT COUNT(*) FROM current_user
+    }, { Slice =&gt; [] });
+    return 0 unless $rows &amp;&amp; @{ $rows };
+    $dbh-&gt;do(q{
+        UPDATE countdown_1000k SET last=?
+    }, {}, $rows-&gt;[0][0] &gt;= $to ? -1 : $rows-&gt;[0][0]);
+    $rows-&gt;[0][0];
+}-&gt;();
+
+if ($last_count &amp;&amp; $last_count &lt; 0) {
+    exit;
+}
+
+sub ikachan ($){
+    my $msg = shift;
+    LWP::UserAgent-&gt;new()-&gt;post($ikachan, {
+        channel =&gt; $channel,
+        message =&gt; $msg,
+    });
+    exit;
+}
+
+if ($current_count &gt;= $to) {
+    ikachan(String::IRC-&gt;new(&#39;100万人突破ｷﾀ━━━(´∀`)´･ω･`);ﾟДﾟ)･∀･)￣ー￣)´_ゝ`)ﾟ皿ﾟ)∵)TΔT)ΦдΦ)#-_-)~ハ~)ﾟзﾟ)ё)≧｡≦)°.Å)ﾞ･Ω･)^σ^)=ﾟωﾟ)ﾉ━━━!!&#39;)-&gt;red);
+}
+
+for my $i (reverse qw/
+     100000 90000 80000 50000 40000 30000 25000 20000 15000 12500
+     10000 9000 8000 7000 6000 5000 4500 4000 3500 3000 2500 2000 1500
+     1000 900 800 700 600 500 400 300 200 150
+     100 90 80 70 60 50 40 30 20 15 12 11 10 9 8 7 6 5 4 3 2
+/) {
+    if ($to - $last_count &gt; $i &amp;&amp; $to - $current_count &lt;= $i) {
+        my $last = $to - $current_count;
+        if ($i &gt; 500) {
+            ikachan &#34;あと${last}人で100万人ですね&#34;;
+        } elsif ($i &gt; 100) {
+            ikachan(String::IRC-&gt;new(&#34;あと${last}人で100万人だ！&#34;)-&gt;red);
+        } else {
+            ikachan(String::IRC-&gt;new(&#34;100万人とっぱまであと${last}人だぞー&#34;)-&gt;red . &#39;♡&#39;);
+        }
+    }
+}
+
+__END__
+CREATE TABLE countdown_100k (
+    last int
+);</pre>
+
+<div class="section">
+    <h4>まとめ</h4>
+    <p>今日は、会員100万人達成の演出を ikachan を使うと捗る話をしました</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+    <head profile="http://purl.org/net/ns/metaprof">
+        <!-- Document Metadata -->
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta http-equiv="Content-Language" content="ja" />
+        <meta http-equiv="Content-Style-Type" content="text/css" />
+        <meta http-equiv="Content-Script-Type" content="text/javascript" />
+        <meta http-equiv="imagetoolbar" content="no" />
+
+        <!-- Atom news feed -->
+
+        <link rel="alternate" type="application/rss+xml" title="RSS feed" href="http://coderepos.org/share/log/websites/perl-users.jp?limit=100&amp;mode=stop_on_copy&amp;format=rss" />
+        <link rel="stylesheet" type="text/css" href="/css/perl-users.jp.css" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+        <link rel="icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+
+        <title>List::Util - モダンなPerl入門 - モダンなPerl入門</title>
+
+        <script src="http://www.google-analytics.com/urchin.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            _uacct = "UA-4463402-1";
+            urchinTracker();
+        </script>
+        <!-- script src="/js/codepress/codepress.js" type="text/javascript"></script -->
+    </head>
+    <body>
+        <div id="head-navigation"><a href="/">Perl-users.jp</a></div>
+<!-- content start -->
+<h1>リスト処理</h1>
+
+<p>リストを簡単に処理するにはList::Util を使います。
+List::Util は5.8から標準装備です。</p>
+
+<h3>つかいかた</h3>
+
+<pre><code>use strict;
+use warnings;
+use List::Util qw(first max maxstr min minstr reduce shuffle sum);
+</code></pre>
+
+<p>List::UtilはメソッドをExportしないから注意だよ。</p>
+
+<h3>最小・最大</h3>
+
+<pre><code>$v = min 1..9; #1
+$v = minstr 'a' .. 'z' #a
+$v = max 1..9; #9
+$v = maxstr 'a' .. 'z' #z
+</code></pre>
+
+<p>min/maxは与えられたリストを数字としてminstr/maxstrは文字列として評価します。</p>
+
+<h3>シャッフル</h3>
+
+<pre><code>$v = shuffle 1..9;
+@v = shuffle 1..9;
+</code></pre>
+
+<p>リストからランダムな値を取り出したり、ランダムに並べ替えます。</p>
+
+<h3>合計</h3>
+
+<pre><code>$v = sum 1..9; #45
+</code></pre>
+
+<h3>条件に一致した最初の値を取り出す</h3>
+
+<pre><code>$v = first {$_ &gt; 20} (1, 11, 21 ,31); #21
+</code></pre>
+
+<h3>reduce</h3>
+
+<pre><code>$v = reduce { $a &gt; $b ? $a : $b} 1..9; #9
+</code></pre>
+
+<p>reduceはリストの先頭から二つ値($a, $b)を取り、次からは式の返り値を$aとして次の値を
+$bとして評価していきます。</p>
+
+<p>内部的にはfirstとshuffle以外は全てreduceによって実装されています。</p>
+
+<!-- content end -->
+        <hr />
+        <p><a href="/modern_introduction_perl/">目次へ</a></p>
+        <p>Last modified: $Date: 2008-05-22T09:21:23.154313Z $</p>
+    </body>
+</html>
+

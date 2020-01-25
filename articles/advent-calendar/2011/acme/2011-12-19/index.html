@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="makamaka">
+        <title>Acme何thing?　出題編 - Articles Advent Calendar 2011 Acme</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Acme何thing?　出題編</h1>
+
+        <p><a href="http://twitter.com/maka2_donzoko">makamaka</a>です。突然ですがクイズです。</p><p>Acme::Anything<br />
+Acme::Everything<br />
+Acme::Nothing<br />
+Acme::Something</p><p>これらのうち、2011年12月19日現在CPANに存在していないモジュールはどれでしょう？<br />
+答えは明日の記事で！</p><br />
+<p>やった、これで１日ういたよ！</p><p>ばははーい。</p><br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<p>だとあまりにあんまりなので、一つずつみていきましょうか。</p>
+
+    <pre class="code">use 5.014;
+use Acme::Anything;
+use Ultra::Super::Delax::Module;
+use Carp;
+say &#34;ok&#34;;</pre>
+<p>実行するとokが出ます。ところでUltra::Super::Delax::Moduleは私が今適当に考えたモジュールで実際には存在しません。普通は存在しないモジュールをuseすればdieしますよね？</p><p>そう、Acme::Anythingを最初にuseしてしまえば、その後は存在しない「どんな」モジュールをuseしてもエラーにならないのです！　素晴らしいですね！</p><p>ちなみにAcme::Anythingのコードはこういう感じなんですね。</p><p></p>
+
+    <pre class="code">push @main::INC, \ &amp;handler_of_last_resort;
+
+sub handler_of_last_resort {
+    my $fake_source_code = &#39;1&#39;;
+    open my ($fh), &#39;&lt;&#39;, \ $fake_source_code;
+    return $fh;
+};</pre>
+<p>@INCの最後にサブルーチンリファレンスが入っています。皆様ご存知の通り、パスの代わりにCODEREFがはいっていると、モジュール検索時に実行されます。この場合@INCの最後に入っていますので、モジュールが見つからなかった最後の手段として、このサブルーチンが呼び出されます。サブルーチンはファイルを見つけたらファイルハンドルを返さなければなりません。そこで1と書かれたファイル（openに\$scalarを与えると、$scalarの値を内容とするファイルとみなされます）のファイルハンドルを返します。これでどんなモジュールもロードに成功したとみなされるというわけです。</p><p>このテクニックはいくつかのAcmeモジュールだけでなく、他の様々なモジュールやライブラリでもしばしば使用されています。@INCにコードリファレンスやオブジェクトを突っ込むテクニックについて詳しくはperldoc perlfuncしてみてください。</p><p>ふーむ、だいぶ長くなったので、やっぱり続きはまた明日！</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

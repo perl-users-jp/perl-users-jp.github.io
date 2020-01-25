@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Perl の map と grep を使う</title>
+    <link rel="stylesheet" href="/articles/advent-calendar/adventcal.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="/articles/advent-calendar/prettify.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+    <script type="text/javascript" src="/articles/advent-calendar/adventcal.js"></script>
+</head>
+<body>
+
+<h1>Perl の map と grep を使う</h1>
+
+<div class="section">
+<p>すしを奢らなければいけないなんて、バトンを渡されてから知りました。おいしい寿司が食いたい sekimura です。</p>
+
+<p>今回は使いこなすと気持ちよくて、使いすぎると気持ち悪いと言われてしまう <code>grep</code> と <code>map</code> の使い方について紹介します。この二つは文法がよく似ていて、同時に使われることも多いので一気に両方の使い方を覚えるのをおすすめします。</p>
+
+<h2>grep: 配列をフィルターする</h2>
+
+<p>まずは、前回覚えた perldoc を使って <code>grep</code> とはなにかを調べてみましょう。</p>
+
+<pre><code>$ perldoc -f grep
+       grep BLOCK LIST
+       grep EXPR,LIST
+               This is similar in spirit to, but not the same as, grep(1) and
+               its relatives.  In particular, it is not limited to using
+               regular expressions.
+
+               Evaluates the BLOCK or EXPR for each element of LIST (locally
+               setting $_ to each element) and returns the list value
+               consisting of those elements for which the expression evaluated
+               to true.  In scalar context, returns the number of times the
+               expression was true.
+</code></pre>
+
+<p>「UNIX コマンドの <code>grep</code> 等のコマンドと似てるけど違うもの。だって正規表現以外も使えるんだぜ」とか書いていますね。LIST の全要素を（<code>$_</code> を局所的にセットしながら）BLOCK か EXPR で評価し、その結果が真となるものだけからなる配列を返します。スカラコンテキストの場合は、結果が真となる要素の数を返します。例えば <code>%ENV</code> のキーからなる配列から <code>"H"</code> で始まるものだけを抜き出すには以下のようにします。</p>
+
+<pre><code>$ perl -e 'print join " ", (grep /^H/, keys %ENV), "\n"'
+HOME HISTCONTROL
+</code></pre>
+
+<p><code>grep</code> は BLOCK を使った場合にもっと楽しくなります。例えば、以下のように、ある二つの配列をつなぎ合わせたものから、重複を取り除いた配列を得ることができます。</p>
+
+<pre class="lang-perl"><code>my @cities = ('Sapporo', 'Nishitokyo', 'Yokohama');
+my @prefs  = ('Hokkaido', 'Tokyo', 'Yokohama');
+my %seen;
+
+my @uniq = grep { ++$seen{$_} &lt; 2 } (@cities, @prefs);
+
+## @uniq には ('Sapporo', 'Nishitokyo', 'Yokohama', 'Hokkaido', 'Tokyo') が入る。
+</code></pre>
+
+<p>逆に重複したものだけ抜き出したいときには以下のように <code>grep</code> で取得した配列に対して <code>grep</code> することで得られます。</p>
+
+<pre class="lang-perl"><code>my @lunch  = ('Bento', 'Ramen', 'Onigiri', 'Curry');
+my @dinner = ('Tonkatsu', 'Ramen', 'Curry');
+my %seen;
+
+my @dup = grep { $seen{$_} &gt;= 2 } grep { ++$seen{$_} &gt; 1 } (@luch, @dinner);
+
+## @dup には ('Ramen', 'Curry') が入る。
+</code></pre>
+
+<h2>map: 配列の要素を変換する</h2>
+
+<p>例によって <code>perldoc -f map</code> しましょう。</p>
+
+<pre><code>$ perldoc -f map
+       map BLOCK LIST
+       map EXPR,LIST
+              Evaluates the BLOCK or EXPR for each element of LIST (locally
+              setting $_ to each element) and returns the list value composed
+              of the results of each such evaluation.  In scalar context,
+              returns the total number of elements so generated.  Evaluates
+              BLOCK or EXPR in list context, so each element of LIST may
+              produce zero, one, or more elements in the returned value.
+</code></pre>
+
+<p>ほとんど同じことが書いてありますね。<code>grep</code> はフィルターなので、得られる配列は与えられた配列のサブセットになるのに対して、<code>map</code> では与えられた各要素を変換し、その結果を配列として得ることが可能です。</p>
+
+<pre class="lang-perl"><code>my %price_map = (
+  'Ramen' =&gt; 400,
+  'Curry' =&gt; 650,
+  'Katsudon' =&gt; 600,
+);
+my @today = ('Ramen', 'Curry');
+my @meshi_dai = map { $price_map{$_} } @today;
+## @meshi_dai には ('400', '650') が入る。
+
+my @zei_komi = map { $_ x 1.05 } @meshi_dai;
+## @zei_komi には ('420', '682.5') が入る。
+</code></pre>
+
+<p><code>grep</code> のときにはスルーしましたが、 BLOCK 内での <code>$_</code> は元の要素のリファレンスなので、<code>$_</code> を変更してしまうと、元の要素も変更されてしまいます。よく、「破壊的」と呼ばれるケースですね。これを防ぐには、 BLOCK の内部で <code>my</code> 変数にコピーしてから変更を加えていきます。</p>
+
+<pre class="lang-perl"><code>my @addresses = ('katsuo@example.com', 'wakame@example.com', 'tara@example.com');
+my @no_spam = map { my $email = $_; $email =~ s/\@/ at /; $email } @addresses;
+
+## @no_spam には ('katsuo at example.com', 'wakame at example.com', 'tara at example.com) が入る。
+</code></pre>
+
+<p>このようにして、<code>@addresses</code> の要素を変更すること無く <code>@no_spam</code> という変換後の要素を持つ配列を得ることができます。</p>
+
+<h2>使いどころ</h2>
+<p><code>grep</code>, <code>map</code> 両方共 <code>for</code>, <code>foreach</code> のループで書き換えることができますが、それぞれ「フィルター」と「変換」という意味をコードを読む人に的確に伝えることができるのがメリットではないでしょうか。その他にも、デバッガーやワンライナーでループ処理を簡素に書けるのも利点です。 <code>sort</code> 等のコマンドと組み合わせて UNIX のパイプのようにデータを処理すると自分が偉くなったような錯覚に陥るのがオススメどころです。
+</p>
+<p>ただし、 <code>grep</code>, <code>map</code> を単にループ処理をするために、左辺値を受け取らずに使うのはコードを読む人を混乱させるので避けた方がいいでしょう。 (SEE ALSO <code>perldoc perlstyle</code>)
+</p>
+
+<p>次は <del>nipotan さん</del> と思ったら風邪引いてピンチだそうで。 antipop さんお願いします。</p>
+
+</div>
+</body>
+
+</html>

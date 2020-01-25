@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="yappo">
+        <title>あるある ORM ドハマリ大辞典 - Articles Advent Calendar 2011 Dbix</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>あるある ORM ドハマリ大辞典</h1>
+
+        <p>こちら Yappo の日でございますが、 Yappo の執筆ペースが芳しくないので、本日も社員のオオサワが代打で「DBI」や「ORM」について書かせて頂きたいと思います。</p>
+
+<div class="section">
+    <h4>概要</h4>
+    <p>同僚から良くネガティブだなで言われてる事で有名な私が、 ORM を使って複数人開発をする場合にハマるポイントをメモします。</p>
+
+</div>
+<div class="section">
+    <h4>trigger / hook point</h4>
+    <p>insert, update, delete クエリの前後処理を拡張して、レコード作成時刻の設定や update 時刻の更新はたまたレコード削除時に削除テーブルへの自動コピー等を、一度ベースクラス上で定義しておけば新しく作るテーブルへも use parent する等して簡単に適用出来きるように便利になりますが、うっかりしてると後続の開発者がハマったり制約が出てきます。</p>
+
+<div class="section">
+    <h5>DBMS の trigger</h5>
+    <p>ORM の機能の trigger を多用していると、後続は DBMS 本体の trigger を使う事に躊躇します。使っちゃいけないというわけではないでしょうが、一つのクエリに対する副作用がある似たような機能を別レイヤーで使ってしまうと、トラブルが発生した時に ORM なのか DBMS に原因があるのかを切り分けるので混乱しそうです。</p><p>しまいにはお互いの副作用が混ざって酷いトラブルが起きてしまうかもしれないので「ああっ！ここで TRIGGER の定義できればラクなのに！！１」というシチュエーションでも泣く泣く諦めてしまいます。</p>
+
+</div>
+<div class="section">
+    <h5>Master Server に直接クエリを埋め込みにくい</h5>
+    <p>ちょっとしたバッチ処理とかは shell script で書いてしまって、生 SQL を使ってデータを更新するとかやりたくなるケースは結構あると思います。</p><p>例えば ORM の insert trigger で「 url カラムに割り当てられた URL を HTTP GET して来てページタイトルを取得し title 絡むに埋め込む」的な定義がしてあるのを見落としてしまい、バッチ処理では url カラムにだけ値を入れていて後から「あれ？ページタイトルがない！」とか慌てるケースが出てくる可能性があります。この種のうっかりは注意してても発生してしまうので恐い所です。</p>
+
+</div>
+<div class="section">
+    <h5>道を外れると面倒</h5>
+    <p>たとえば update 文の時は常に updated_at カラムを更新するという trigger が全テーブル共通処理として定義されていたとしましょう。まれに read_flg というカラムの更新した時だけは updated_at を更新したくないという要求が出てくる時があります。(まぁカラムを増やして対処するのが正しいのですが動いてるサイトにはそういう状況が出てくる物です。)<br />
+そういう時レアケースに対応しようとしだすと、別口でフラグを立てて bad code を書く事になったりとかアーキテクチャの変更を考えなければいけなくなったりとか大部面倒になります。</p>
+
+</div>
+</div>
+<div class="section">
+    <h4>inflating</h4>
+    <p>途中からプロジェクトに入ってて、あるカラムがオブジェクトに inflating されてたけど stringify っててマジきづかなかったわー！とかなってる人をよく見かけます。</p>
+
+</div>
+<div class="section">
+    <h4>transparent caching</h4>
+    <p>そもそも透過キャッシュ自体があまり良くないものと言う認識が広まってますが、富豪的に作ってるターンの時は便利って言えば便利なんですよね。 Data::Model の当該機能は業務ではつかわんかったけど。</p>
+
+<div class="section">
+    <h5>これだけ透過キャッシュ</h5>
+    <p>もちろん、透過キャッシュすべきテーブルとしないテーブルとか別けて使う事になるんですけど、自分が作ったテーブルでもない限り意識的にならないとどのテーブルに透過キャッシュに入ってるか解らなくて、時たまデータが更新されてないと思ってビビる事がありますね。しかもエンジニアが絡まない view 側の変更をする人とかだともっと良くわからなくなるんじゃないかと思います。</p>
+
+</div>
+<div class="section">
+    <h5>too many memcach query</h5>
+    <p>時たまキャッシュに入ってる事前提にして安心して</p>
+
+    <pre class="code">for my $id (@ids) {
+    my $row = $orm-&gt;lookup($id);
+}</pre>
+<p>とかしてて全部で2000クエリ位吐いてるページを見かけます。多分そのくらいのオーダーだと memcached でも問題でるんじゃねw<br />
+ORM でも油断しないように JOIN を使ってクエリ削減はしたいけど、透過キャッシュとかかましててそれが面倒い場合には最低でも select * from .. where ...  で id list 引っ張って来た後に lookup_multi 的なくえりを叩いて DBMS memcached 双方に優しくなりたい物です。</p>
+
+</div>
+</div>
+<div class="section">
+    <h4>has_a</h4>
+    <p>うっかり使ってると view を書く人が糞程多くのクエリを投げてる事があります。使うなとは言いませんが、使われる view によっては lookup_multi 等で view に渡す前にデータを取ってこないとやばいですね。</p>
+
+<div class="section">
+    <h5>れーすこんでぃしょんもんだい</h5>
+    <p>一度 has_a したらキャッシュして二度同じクエリを投げないようにしてる時に、時たま</p>
+
+    <pre class="code">my $row1 = $orm-&gt;lookup(1);
+my $row2 = $orm-&gt;lookup(1);
+say $row2-&gt;has_a_table1-&gt;name;
+$row2-&gt;has_a_table2-&gt;name(&#39;new name&#39;);
+$row2-&gt;has_a_table2-&gt;update;
+say $row2-&gt;has_a_table1-&gt;name; # あれれ new name になってないよ！</pre>
+<p>とかやっちゃう人が居ますが、その辺も注意がいりますね。</p>
+
+</div>
+</div>
+<div class="section">
+    <h4>expanded row class</h4>
+    <p>ベースとなる ORM の row class を更に便利にするべくプロジェクト独自拡張を入れまくると、新入りの学習コストが膨大に跳ね上がる傾向があります。<br />
+それを使っている側のコードを見るだけでは一瞬で解らなかったりとか、 ORM のドキュメント見ても書いてない機能で探したあげくにプロジェクトのリポジトリにコードがあったりとかっていう回り道をする時もあるのですね。</p>
+
+</div>
+<div class="section">
+    <h4>ORM は悪い子?</h4>
+    <p>基本的には個人プロジェクトや少人数プロジェクト or 小規模負荷プロジェクトで使う分にはコスパが良いですが、規模が拡大するにつれ便利機能をうっかり使う事による過負荷、そもそもの教育コストが高くなる等の問題が出て来て業務向きではないと言われる事が多いですが、プロジェクトに関わるエンジニアの技術水準を上げておけば大概の問題は出にくいので気にしなくても医院じゃないでしょうか。</p><p>じゃぁやっぱり生が一番いいってことじゃないか！？？って事を言う人も出るでしょうが、結局生でやってても ORM が持つ要素の抽象化が欲しくなって来て俺俺 ORM 作りしだす事もあるんで、この銀の弾丸でも何でも無い劇毒さんの良い所と悪い所をちゃんと頭に叩き込んだ上で付き合うのが今を生きる正しい Web エンジニアの姿だと思うのですよ。はい。</p>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>転職してからハマったことや、自分で作っといて忘れてポカした所のメモ帳にだいぶ脚色をした上で後悔しました。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

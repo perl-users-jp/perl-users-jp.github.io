@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head profile="http://purl.org/net/ns/metaprof">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>ヒアドキュメントの中でPerlの式を書く</title>
+    <link rel="stylesheet" href="/articles/advent-calendar/adventcal.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="/articles/advent-calendar/prettify.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"></script>
+    <script type="text/javascript" src="/articles/advent-calendar/adventcal.js"></script>
+</head>
+<body>
+
+<h1>ヒアドキュメントの中でPerlの式を書く</h1>
+
+<div class="section">
+<p><a href="http://news.google.co.jp/news?hl=ja&amp;q=%E6%96%B0%E5%B9%B9%E7%B7%9A&amp;um=1&amp;ie=UTF-8&amp;ncl=1259980833&amp;sa=X&amp;oi=news_result&amp;resnum=1&amp;ct=more-results&amp;cd=1">初代新幹線「0系」最後のラストランの日</a>に、新幹線N700系のぞみでイーモバイルしながらこの記事を書いている<a href="http://namazu.org/~takesako/">id:TAKESAKO</a>です。</p>
+<p>Perlのヒアドキュメントを使うと複数行にわたる文字列を一気に代入したりするときに楽なので、使っている人も多いと思います。</p>
+
+<pre class="lang-perl"><code>my $foo = "bar";
+my $tmp = time(); # ←関数の実行結果
+print&lt;&lt;EOF;
+  &lt;div class="${foo}1"&gt;
+    &lt;h1&gt;TIME: $tmp&lt;/h1&gt;
+  &lt;/div&gt;
+EOF
+</code></pre>
+
+<p>しかし、ヒアドキュメントの途中でサブルーチンの実行結果も一緒に埋め込みたいときがでてくるときがあります。</p>
+
+<h2>@{[ Perlの式 ]}</h2>
+<p>そのようなときは、<code>@{[ リスト ]}</code> というイディオムを使うと非常に便利です。</p>
+
+<pre class="lang-perl"><code>print&lt;&lt;EOF;
+  &lt;div class="${foo}1"&gt;
+    &lt;h1&gt;TIME: @{[ time() ]}&lt;/h1&gt;
+  &lt;/div&gt;
+EOF
+</code></pre>
+
+<p>実行結果：</p>
+<pre class="lang-html"><samp>  &lt;div class="bar1"&gt;
+    &lt;h1&gt;TIME: 1229258525&lt;/h1&gt;
+  &lt;/div&gt;
+</samp></pre>
+
+<p>@{[ リスト ]} の中にはPerlの式をそのまま書くことができます。</p>
+<p>この例では、関数 time() の実行結果がヒアドキュメントの文字列の中に埋め込まれていることがわかります。</p>
+
+<h3>リストコンテキストの罠</h3>
+
+<p>しかし、このイディオムの式はリストコンテキストで評価されるので、wantarray でサブルーチンの戻り値を切り替えている関数などでは期待通りの結果が得られない場合があります。</p>
+
+<pre class="lang-perl"><code>print&lt;&lt;EOF;
+  &lt;div class="${foo}2"&gt;
+    &lt;h1&gt;TIME: @{[ localtime() ]}&lt;/h1&gt;
+  &lt;/div&gt;
+EOF
+</code></pre>
+
+<p>実行結果：</p>
+<pre class="lang-html"><samp>  &lt;div class="bar2"&gt;
+    &lt;h1&gt;TIME: 5 42 21 14 11 108 0 348 0&lt;/h1&gt;
+  &lt;/div&gt;
+</samp></pre>
+
+<p>このような場合は、式が必ずスカラーコンテキストで評価されるように、
+<code>"".localtime()</code> もしくは <code>scalar localtime()</code> などと記述すれば大丈夫です。</p>
+
+<pre class="lang-perl"><code>print&lt;&lt;EOF;
+  &lt;div class="${foo}3"&gt;
+    &lt;h1&gt;TIME: @{[ scalar localtime() ]}&lt;/h1&gt;
+  &lt;/div&gt;
+EOF
+</code></pre>
+
+<p>実行結果：</p>
+<pre class="lang-html"><samp>  &lt;div class="bar3"&gt;
+    &lt;h1&gt;TIME: Sun Dec 14 21:42:05 2008&lt;/h1&gt;
+  &lt;/div&gt;
+</samp></pre>
+
+<h3>"@a\n" と特殊変数 $"</h3>
+
+<p>ちなみに、ダブルクォート文字列中に <code>@a</code> を埋め込んだ場合、例えば <code>"@a\n"</code> は <code>join($",@a)."\n"</code> と等価となります。</p>
+
+<p><code>$"</code> は、配列のリストを文字列に変換するときに自動的に要素間に挿入する文字列（デフォルトは空白 <code>" "</code>）を意味する特殊変数です。<br />
+一時的に <code>$"</code> の値を書き換えて、要素間に自動挿入する文字列をデフォルトの空白から任意の文字列に変更することもできます。</p>
+
+<pre class="lang-perl"><code>do {
+  local $" = " x ";
+  my @a = ('sin', 'cos', 'tan');
+  print "@a\n";
+};
+</code></pre>
+
+<p>実行結果：</p>
+<pre class="lang-html"><samp>sin x cos x tan</samp></pre>
+
+<p>ここで、<code>"@a\n"</code> の部分を <code>"@{[ リスト ]}\n"</code> に置き換えて、</p>
+<pre class="lang-perl"><code>print "@{[ 'sin', 'cos', 'tan' ]}\n";
+</code></pre>
+<p>と、無名配列のデリファレンス <code>@{[ ]}</code> を使うことによって、配列 <code>@a</code> を使わずに、文字列中に直接リストの値を埋め込むことが可能になります。</p>
+
+<p>このようにヒアドキュメントの他にも、ダブルクォーテーションで囲まれた文字列の中でも <code>@{[ リスト ]}</code> のイディオムを使ってPerlの式を展開することができます。</p>
+
+<h2>閑話休題</h2>
+
+<p><a href="/articles/advent-calendar/2008/12.html">数日前の復習</a>ですが、Perlは破壊的な正規表現の置換を行なうので、以下のように複数行にわけて書くのが面倒という話がありました。</p>
+
+<pre class="lang-perl"><code>my $a = "AAA";
+my $b = $a;
+   $b =~ s/A/B/g;
+print "'$a' =&gt; '$b',\n";
+</code></pre>
+
+<p>実行結果：</p>
+<pre class="lang-html"><samp>'AAA' =&gt; 'BBB',
+</samp></pre>
+
+<p>これは、<code>$b = $a</code> の代入文を <code>( )</code> で括って、置換演算子 <code>=~</code> の左辺に持ってくることによって1行短縮することができます。</p>
+
+<pre class="lang-perl"><code>my $a = "AAA";
+( my $b = $a ) =~ s/A/B/g;
+</code></pre>
+
+<p>代入演算子 <code>=</code> は左結合なので、さらに変数 <code>$a</code> の初期化も1行にまとめることができます。</p>
+
+<pre class="lang-perl"><code>( my $b = my $a = "AAA" ) =~ s/A/B/g;
+</code></pre>
+
+<p>これは、<code>my</code>の存在しなかったPerl4の時代で基本的なテクニックだったそうです。</p>
+
+<h2>@{[ リスト ]} の応用例</h2>
+
+<p>ここで<code>map</code>を使えば一時変数の名前もつけなくてよくなるはず…と思って以下のコードを書いて実行してみます。</p>
+
+<pre class="lang-perl"><code>my ($b) = map { s/A/B/g; $_ } ("AAA");
+</code></pre>
+
+<p>実行結果：</p>
+<pre class="lang-html"><samp>Modification of a read-only value attempted at - line 1.</samp></pre>
+
+<p>しかし、このコードは Perl に怒られてエラーになってしまいます。</p>
+
+<p><code>("AAA")</code> としただけでは <code>"AAA"</code> は文字列定数（read-only value）と解釈されるので、値の変更ができないのです。</p>
+
+<h3>map の初期値に @{[]}</h3>
+
+<p>そこで登場するのが <code>@{[ リスト ]}</code> の応用例です。</p>
+
+<pre class="lang-perl"><code>my ($b) = map { s/A/B/g; $_ } @{["AAA"]};
+</code></pre>
+
+<p><code>["AAA"]</code>で無名配列を作ってすぐに<code>@{}</code>でデリファレンスしてあげれば、
+一時的な配列を作成することができます。<br />この配列の値は破壊的な変更が可能です。</p>
+
+<h3>grep の第一引数に s///</h3>
+
+<p>ちなみに、<code>map</code> の他に <code>grep</code> を使っても同じようなコードを書くことができます。</p>
+
+<pre class="lang-perl"><code>my ($b) = grep s/A/B/g || 1, @{["AAA"]};
+</code></pre>
+
+<p>このとき <code>|| 1</code> の部分を省略してしまうと、
+<code>s///</code> の戻り値がそのまま評価されてしまうので、置換に失敗した要素が取り除かれてしまいます。</p>
+
+<pre class="lang-perl"><code>print join ":", grep s/A/B/g, @{["AAA", "ABC", "XXX", "A"]};
+</code></pre>
+<p>実行結果：</p>
+<pre class="lang-html"><samp>BBB:BBC:B</samp></pre>
+
+<p><code>s/A/B/</code> の置換に失敗した <code>"XXX"</code> の値も含めたい場合は、<code>s</code> の後ろに <code>|| 1</code> をつけて、パターンマッチの結果に関わらず常に真になるようにします。</p>
+
+<pre class="lang-perl"><code>print join ":", grep s/A/B/g || 1, @{["AAA", "ABC", "XXX", "A"]};
+</code></pre>
+<p>実行結果：</p>
+<pre class="lang-html"><samp>BBB:BBC:XXX:B</samp></pre>
+
+<p>次は国内滞在説が根強い id:miyagawa さんにお願いしたいと思います。;-)</p>
+
+</div>
+</body>
+
+</html>

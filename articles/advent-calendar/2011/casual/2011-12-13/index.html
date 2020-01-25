@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="issm">
+        <title>Net::Google::Analyticsを使ってGoogle Analyticsのデータを引っ張る - Articles Advent Calendar 2011 Casual</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Net::Google::Analyticsを使ってGoogle Analyticsのデータを引っ張る</h1>
+
+        
+<div class="section">
+    <h4>はじめに</h4>
+    <p>こんにちは！名古屋の片隅で細々とPerlを書いている issm と申します．一昨日の夜にボウリングを6ゲームしたおかげで腕とか膝とかお尻とかの筋肉痛が未だに収まりません．</p><p>さて，Webサイト云々に携わられているみなさまにおかれましては，クライアントさんからページビューがどうの検索キーワードがこうのと相談を受け，設置した Google Analytics のアクセス解析データをまとめることに苦心されていることと思います．（まぁ実際にはそんなに簡単な内容ではないかもしれませんが．）</p><p>Perl Advent Calendar 2011 Casual Track の13日目は，Perl で Google Analytics のデータを引っ張ることを簡単にしてくれるモジュール <a href="http://search.cpan.org/dist/Net-Google-Analytics/">Net::Google::Analytics</a> について，簡単な使い方を紹介します．</p>
+
+<ul>
+<li><a href="http://search.cpan.org/dist/Net-Google-Analytics/">Nick Wellnhofer / Net-Google-Analytics - search.cpan.org</a></li>
+</ul>
+</div>
+<div class="section">
+    <h4>Google Analytics Data Export API</h4>
+    <p>Google Analytics には，常に蓄積されているデータを取得するための Web API「Data Export API」が用意されています．</p>
+
+<ul>
+<li><a href="http://code.google.com/intl/ja-JP/apis/analytics/docs/gdata/home.html">Data Export API - Google &#x30A2;&#x30CA;&#x30EA;&#x30C6;&#x30A3;&#x30AF;&#x30B9; - Google Code</a></li>
+</ul><p>Net::Google::Analytics は，この API とのやりとりをよしなにしてくれるモジュール，という位置づけになります．</p><br />
+<br />
+<br />
+<p></p>
+
+</div>
+<div class="section">
+    <h4>基本的な流れ</h4>
+    <p>処理の流れとしては，次のことを順々に行っていく感じです：</p>
+
+<ul>
+<li>認証</li>
+<li>各種オブジェクト</li>
+<li>プロファイルID</li>
+<li>集計期間</li>
+<li>ディメンションと指標</li>
+<li>データの取得</li>
+</ul>
+<div class="section">
+    <h5>認証</h5>
+    <p>Google Analytics にアクセスするための認証情報を，Net::Google::AuthSub モジュールに渡して認証を行います．</p>
+
+<ul>
+<li><a href="http://search.cpan.org/dist/Net-Google-AuthSub/">Simon Wistow / Net-Google-AuthSub - search.cpan.org</a></li>
+</ul><p>コードにするとこんな感じです：</p>
+
+    <pre class="code lang-Perl">my $analytics = Net::Google::Analytics-&gt;new;
+my $auth      = Net::Google::AuthSub-&gt;new(service =&gt; &#39;analytics&#39;);
+$auth-&gt;login($email, $password);
+$analytics-&gt;auth_params($auth-&gt;auth_params);</pre>
+
+</div>
+<div class="section">
+    <h5>各種オブジェクト</h5>
+    <p>おもに使用するオブジェクトです：</p>
+
+    <pre class="code lang-Perl">my $data_feed = $analytics-&gt;data_feed;       # データフィード
+my $req       = $data_feed-&gt;new_request;     # APIリクエスト
+my $res       = $data_feed-&gt;retrieve($req);  # APIレスポンス</pre>
+
+</div>
+<div class="section">
+    <h5>プロファイルID</h5>
+    <p>プロファイルIDの参照方法については，次をご覧ください：</p>
+
+<ul>
+<li><a href="http://support.google.com/googleanalytics/bin/answer.py?hl=ja&answer=97705">&#x30D7;&#x30ED;&#x30D5;&#x30A1;&#x30A4;&#x30EB; ID - &#x30A2;&#x30CA;&#x30EA;&#x30C6;&#x30A3;&#x30AF;&#x30B9; &#x30D8;&#x30EB;&#x30D7;</a></li>
+</ul><p>ところが，最近Google Analyticsにおけるアップデートがあり，URLの書式にも変更がありました．例えば次のような感じです（個人的にしか確認していないため，他に異なる書式が存在しているかもしれません）：</p>
+
+    <pre class="code">https://www.google.com/analytics/web/#report/visitors-overview/aXXXXXXXXwYYYYYYYYpZZZZZZZZ/</pre>
+<p>「XXXXXXXX」「YYYYYYYY」「ZZZZZZZZ」の部分にはそれぞれ数値があてはまるのですが（桁数は8桁固定ではない），これらのうちの「ZZZZZZZZ」がプロファイルIDとなります．</p><p>プロファイルIDがわかったら，その値をセットします．「ga:」というプリフィックスが必要です：</p>
+
+    <pre class="code lang-Perl">$req-&gt;ids(&#34;ga:${profile_id}&#34;);</pre>
+
+</div>
+<div class="section">
+    <h5>集計期間</h5>
+    <p>集計期間の両端の日付を，YYYY-MM-DD な書式で指定します：</p>
+
+    <pre class="code lang-Perl">my ($start_date, $end_date) = (&#39;2011-12-01&#39;, &#39;2011-12-12&#39;);
+$req-&gt;start_date($start_date);
+$req-&gt;end_date($end_date);</pre>
+
+</div>
+<div class="section">
+    <h5>ディメンションと指標</h5>
+    <p>「どのような切り口で」「どのデータを取得するか」を指定するのが，「ディメンション」「指標」です．それぞれについて，ドキュメントからの一部引用を以下に掲載します：</p>
+
+<blockquote cite="http://code.google.com/intl/ja-JP/apis/analytics/docs/concepts/gaConceptsDataCalculation.html#dimensionsAndMetrics">
+    <p>ディメンションはデータのキーやフィールドのことで、通常は文字列です。通常、ディメンション自体に意味はありませんが、指標と組み合わせることでそのディメンションの観点から指標を分類、つまりセグメント別に分けることができます。</p>
+
+    
+    <cite><a href="http://code.google.com/intl/ja-JP/apis/analytics/docs/concepts/gaConceptsDataCalculation.html#dimensionsAndMetrics">http://code.google.com/intl/ja-JP/apis/analytics/docs/concepts/gaConceptsDataCalculation.html#dimensionsAndMetrics</a></cite>
+    
+</blockquote>
+<blockquote cite="http://code.google.com/intl/ja-JP/apis/analytics/docs/concepts/gaConceptsDataCalculation.html#dimensionsAndMetrics">
+    <p>指標はウェブサイトに対するユーザーの行動の数値的な概要です。たとえばページビューは個々のページのページビューの合計をまとめた指標です。直帰率はサイトの 1 ページのみの閲覧の割合をまとめたものです。</p>
+
+    
+    <cite><a href="http://code.google.com/intl/ja-JP/apis/analytics/docs/concepts/gaConceptsDataCalculation.html#dimensionsAndMetrics">http://code.google.com/intl/ja-JP/apis/analytics/docs/concepts/gaConceptsDataCalculation.html#dimensionsAndMetrics</a></cite>
+    
+</blockquote><p><br />
+例えば，「日ごとの訪問者数とページビュー数がほしい！」ということであれば次のように指定できます：</p>
+
+    <pre class="code lang-Perl">$req-&gt;dimensions(&#39;ga:date&#39;);
+$req-&gt;metrics(&#39;ga:visits,ga:pageviews&#39;);</pre>
+<p><br />
+ディメンションと指標に関する詳細については，次あたりをご確認ください：</p>
+
+<ul>
+<li><a href="http://code.google.com/intl/ja-JP/apis/analytics/docs/concepts/gaConceptsDataCalculation.html">&#x30EC;&#x30DD;&#x30FC;&#x30C8; &#x30C7;&#x30FC;&#x30BF;&#x306E;&#x7B97;&#x51FA; - Google &#x30A2;&#x30CA;&#x30EA;&#x30C6;&#x30A3;&#x30AF;&#x30B9; - Google Code</a></li>
+<li><a href="http://code.google.com/intl/ja-JP/apis/analytics/docs/gdata/dimsmets/dimsmets.html">Dimensions &amp; Metrics Reference - Google Analytics - Google Code</a></li>
+</ul>
+</div>
+<div class="section">
+    <h5>データの取得</h5>
+    <p>こんな感じで，取得したデータをごにょごにょすることができます：</p>
+
+    <pre class="code lang-Perl">$res = $data_feed-&gt;retrieve($req);
+for my $e ( @{$res-&gt;entries} ) {
+    my ($date)           = map $_-&gt;value, @{$e-&gt;dimensions};
+    my ($visits, $views) = map $_-&gt;value, @{$e-&gt;metrics};
+
+    ...
+}</pre>
+
+</div>
+</div>
+<div class="section">
+    <h4>サンプル</h4>
+    <p>個人的に作ったWebサービス <a href="http://www.nicograph.jp">&#x306B;&#x3053;&#x3050;&#x3089;&#x3075;</a> における，今月の昨日までの12日間の検索キーワード別訪問者数について調べてみます．</p><p>主なコードは次のような感じ：</p>
+
+    <pre class="code lang-Perl">use Encode;
+
+...
+
+$req-&gt;start_date(&#39;2011-12-01&#39;);
+$req-&gt;end_date(&#39;2011-12-12&#39;);
+
+$req-&gt;dimensions(&#39;ga:keyword&#39;);
+$req-&gt;metrics(&#39;ga:visits&#39;);
+$req-&gt;sort(&#39;-ga:visits&#39;);  # 降順にソート
+
+$res = $data_feed-&gt;retrieve($req);
+
+for my $e ( @{$res-&gt;entries} ) {
+    my ($keyword) = map $_-&gt;value, @{$e-&gt;dimensions};
+    my ($visits)  = map $_-&gt;value, @{$e-&gt;metrics};
+
+    # 本来ならば，パーセントエンコードな文字の処理とかも必要
+
+    say encode_utf8(sprintf &#34;%4d\t%s&#34;, $visits, $keyword);
+}</pre>
+<p>このスクリプトの出力結果は次のようになりました：</p>
+
+    <pre class="code">  78	(not set)
+   4	にこぐらふ
+   2	evan様
+   2	ぐらふ
+   2	イギリスの食べ物
+   1	&#34;雀姫伝&#34;
+   1	inurl:sm16264521
+   1	m.s.sproject
+   1	my dearest タグ ニコサウンド
+   1	psp 初音ミク -project diva- extend 曲
+   1	vocarock3 収録曲
+   1	【東方mmd】妖精大取材
+   1	ぽぽんぷぐにゃん 検索してはいけない
+   1	ゆっくりカービィのエアライド
+   1	ゴンさん コラ
+   1	ボーカロイドランキング
+   1	モザイク消
+   1	主人公が無双すぎて怖くないゾンビゲーム
+   1	亀梨和也 or 亀梨
+   1	佐々木一匡 2011
+   1	初音ミク -project diva- extend 動画
+   1	大友宗麟 最終章 厳島の戦い
+   1	宮野真守
+   1	寝巻きガブ
+   1	小野 にこ
+   1	我妻由乃
+   1	歌ってみた りぶ</pre>
+<p>訪問者数が少ないことは気にしないでください＞＜</p><br />
+<br />
+<br />
+<p></p>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>Net::Google::Analytics モジュールを使うことで，Google Analytics に蓄積されているデータを，いろいろな切り口で引っ張ってくることができます．</p><p>あとは，グラフ生成系をはじめ各種形式出力系のモジュールと組み合わせれば，アクセス解析レポートなんかの作成の労力をけっこう減らせるんじゃないでしょうかね．</p><br />
+<br />
+<br />
+<p></p>
+
+</div>
+<div class="section">
+    <h4>おわりに</h4>
+    <p>以上，Net::Google::Analytics モジュールについて簡単に紹介してみました．Googne Analyticsなアクセス解析データに触れる際の一助になれば幸いです．</p><p>明日は，<a href="http://mysql-casual.org/2011/11/mysql-casual-advent-calendar-2011.html">MySQL Casual Advent Calendar 2011</a> にも寄稿されている hatak さんです．お楽しみに！</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="ikasam_a">
+        <title>HTTP通信を含むモジュールのテスト #2 - Articles Advent Calendar 2011 Test</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>HTTP通信を含むモジュールのテスト #2</h1>
+
+        
+<div class="section">
+    <h4>はじめに</h4>
+    <p>こんにちは。ikasam_a です。</p><p>8日目に bayashi さんが [/articles/advent-calendar/2011/test/8:title=HTTP通信を含むモジュールのテスト] というエントリを書かれていますが、今日はその続編的な話をします。</p>
+
+</div>
+<div class="section">
+    <h4>フェイクとスタブ</h4>
+    <p>前のエントリでは <a href="https://metacpan.org/module/Test::Fake::HTTPD">Test::Fake::HTTPD</a> を使ってフェイクサーバを立ててテストする、という手法が紹介されています。これは <a href="http://xunitpatterns.com/Test%20Double.html">&#x30C6;&#x30B9;&#x30C8;&#x30C0;&#x30D6;&#x30EB; (Test Double)</a> で言うところの Fake という概念で、"動作するけど手抜き" なサーバを用意して実際に HTTP 通信可能にするってわけです。これで実際のサービスに DoS することなくテストできるので、積極的に使いたいところです。</p><p>テストダブルとは何ぞや？という話は、別のエントリでしたいと思いますので、今日はさらっと流してください！</p><p>このテストダブルには他にも概念カテゴリがあって、例えばよく聞くものにスタブ (Stub) というものがあります。簡単に言うと、右から左へ以下略な感じに "このメソッドを呼ばれたらこの値を返す" という定義をするわけです。この概念を使えば "HTTP クライアントの送信メソッドが呼ばれたら、決め打ちのレスポンスを返す" ということが可能で、HTTP 通信自体をすっ飛ばしちゃってテストできちゃうわけですね。</p>
+
+</div>
+<div class="section">
+    <h4>HTTPリクエストスタブ</h4>
+    <p>というわけで前置きが長くなりましたが、LWP::UserAgent のリクエストスタブとして動作する <a href="https://metacpan.org/module/Test::Mock::LWP::Conditional">Test::Mock::LWP::Conditional</a> というモジュールを書きました。これを使うと、URL ごとに決まったレスポンスを返すようにスタブを当てることができます。</p>
+
+    <pre class="code lang-perl">use Test::More;
+use Test::Mock::LWP::Conditional;
+use LWP::UserAgent;
+use HTTP::Response;
+
+Test::Mock::LWP::Conditional-&gt;stub_request(
+    &#34;http://example.com/&#34; =&gt; HTTP::Response-&gt;new(503)
+);
+
+my $ua = LWP::UserAgent-&gt;new;
+my $res = $ua-&gt;get(&#34;http://example.com/&#34;);
+is $res-&gt;code =&gt; 503, &#34;stubbed response ok&#34;;
+
+done_testing;</pre>
+<p>LWP::UserAgent のインスタンスごとに独立してスタブを当てることもできます。</p>
+
+    <pre class="code lang-perl">my $ua = LWP::UserAgent-&gt;new;
+$ua-&gt;stub_request(&#34;http://example.com/foo&#34; =&gt; HTTP::Response-&gt;new(403));
+
+my $res = $ua-&gt;get(&#34;http://example.com/foo&#34;);
+is $res-&gt;code =&gt; 403, &#34;per instance stubs ok&#34;;</pre>
+<p>途中でスタブをクリアしたい場合はクラスメソッドの reset_all を呼びましょう。</p>
+
+    <pre class="code lang-perl">Test::Mock::LWP::Conditional-&gt;reset_all;</pre>
+<p>同じ URL に複数スタブを当てた場合は、リクエスト回数と同期します。リクエストがスタブ数を超えると、最後のスタブが繰り返し使われます。</p>
+
+    <pre class="code lang-perl">my $url = &#34;http://example.com/continuous&#34;;
+$ua-&gt;stub_request($url =&gt; HTTP::Response-&gt;new(401)); # 1st
+$ua-&gt;stub_request($url =&gt; HTTP::Response-&gt;new(403)); # 2nd
+$ua-&gt;stub_request($url =&gt; HTTP::Response-&gt;new(500)); # 3rd..nth
+
+is $ua-&gt;get($url)-&gt;code =&gt; 401, &#34;1st status is 401&#34;;
+is $ua-&gt;get($url)-&gt;code =&gt; 403, &#34;2nd status is 403&#34;;
+is $ua-&gt;get($url)-&gt;code =&gt; 500, &#34;3rd status is 500&#34;;
+is $ua-&gt;get($url)-&gt;code =&gt; 500, &#34;4th status is 500, too&#34;;</pre>
+<p>今できることは大体こんな感じです。簡単ですね。</p><p>なぜかモジュールの名前に "モック" が入っているわけですが、これは既存の同様なモジュールに Test::Mock::LWP や Test::Mock::LWP::Dispatch というのがあるからだったりします。これらのプロダクトは、使い勝手に少々微妙なところがあったり、実際には依存していないのに requires 'Moose' していたりということがあって、今回置き換えとなるようなモジュールを書いてみました。</p>
+
+</div>
+<div class="section">
+    <h4>おわりに</h4>
+    <p>さて、実は "HTTP通信を含むモジュールのテスト" という観点では、フェイクとスタブのどちらを使っても、大体同じことが実現できることがほとんどです。それでは、なぜ同じ事を実現するために、フェイクやらスタブやら他にもモックやらと、色々と概念があるのでしょうか。ややこしいですが、そこはやはりあるにはあるなりの理由というのもちゃんとあります。次の機会にはこれら "テストダブル" について話してみたいなーなんて思います。</p><p>フェイクやスタブ、場面で適切なものをチョイスするのも大事ですが、最も大事なのはこういった手段を活用してカジュアルにテストを書くことだと思います。今回のモジュールが HTTP 通信を伴うモジュールテストの一助になれば幸いです！</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

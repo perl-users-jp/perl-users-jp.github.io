@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Encodeでラクラク日本語処理 - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Encodeでラクラク日本語処理 - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Encodeでラクラク日本語処理<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/casual/10.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/casual/10.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>こんにちは！ラブプラスとときメモ４の狭間で揺れ動いているxaicronです！！</p>
+<p>今日は日本でプログラムを書いていたら避けては通れない気がする、Encodeの話をしようと思います！</p>
+</div>
+<div class="section">
+<h3>はじめに</h3>
+
+<p>まず、この記事を読む前に、Perlのバージョンの確認をしてください。以下のようにやればバージョンが表示されます。</p>
+
+<pre>
+% perl -v
+</pre>
+
+<p>ここで、5.8.1より下の数字ができてきた方は、Perlのバージョンアップをしてください。5.8.1より下のバージョンでは、Perlの内部文字コードが安定していないので、いい感じになりません。できれば5.8.8以上のバージョンを使いましょう。</p>
+<p>それから、文字コードってなによって人も適当にWikiとかで調べてから読んだ方がいいと思います！！</p>
+</div>
+<div class="section">
+<h3>Encode.pm</h3>
+
+<p><a href="http://search.cpan.org/dist/Encode/">Encode</a>は昔のjcode.plやJcode.pmに代わる、現在の文字コード処理のスタンダードModuleです。ネットなどで見かけるjcode.plやJcode.pmが書かれているものは、レガシーなコードですので今ではあまり参考になりません。</p>
+<p>これからスクリプトを書くときは、Encode.pmを使いましょう。</p>
+</div>
+<div class="section">
+<h3>基本方針</h3>
+
+<p>Encodeの基本は</p>
+
+<ul>
+<li>deocdeして</li>
+<li>いじって</li>
+<li>encode</li>
+</ul>
+
+<p>これに尽きます。</p>
+<p>このルールを守ってないない人は、文字化けに遭遇して、ゲシュタルト崩壊を起こしてしまいますが、それはルールを守らないからです！！しっかりしてください！！</p>
+</div>
+<div class="section">
+<h3>内部文字列とバイト文字列</h3>
+
+<p>Perlには内部文字列と言うものがあります。「flagged utf8」なんて呼ばれ方をしますね！</p>
+<p>Java とかJavaScriptとかでのStringは「UTF16-LE」っていうので保持して扱うようになっていますが、Perlの場合は「UTF-8」を元に、１文字づつ区別できるような形にして保持するようになっていて、この形式になっているかどうかっていうflagがあるので、Perlでは内部文字列のことを「flagged utf8」なんて呼ぶんですね！</p>
+<p>UTF-8で保持されているので、UTF16-LEで発生するサロゲートペアとかいうよくわからないものに悩まされることもなく、length()でちゃんと文字数が取れるので安心して使えますね！</p>
+
+<p>バイト文字列っていうのはそのままで、EUC-JPとかShift_JISとかの「生」の文字列のことです。これは簡単ですね。</p>
+<p>でも「UTF-8のバイト文字列」とPerlの内部文字列の「flagged utf8」は別物なので注意が必要です！！</p>
+<p>これをごっちゃにして考えると、速攻で文字化けを起こして、休暇が減ります。</p>
+<p>「UTF-8のバイト文字列」っていうのはUTF-8のバイト文字列であってそれ以外の何者でもない、ただのバイナリの塊です。これをそのまま扱うと日本語的な１文字づつの処理とかがうまいこと行かないのです。</p>
+<p>「flagged utf8」はさっきも説明したように、「UTF-8」を元に、１文字づつ区別できるような形にして保持されている「内部文字列」です。なので、バイト文字列じゃあないんですね。</p>
+<p>この、バイト文字列なのか内部文字列なのかっていうのを常に意識しておくことがEncodeマエストロへの第一歩です。</p>
+
+<p>まぁ、要するにPerlでは、マルチバイト文字をいい感じに扱うためにバイト文字列を内部文字列っていうのに変換して、プログラミングするといいよってことですね。</p>
+</div>
+<div class="section">
+<h3>用語の定義</h3>
+
+<p>というわけで、話を簡単にするために用語の定義をします。といっても二つだけなので安心してください！</p>
+
+<ul>
+<li>flagged utf8とかフラグ付きUTF-8文字とか内部文字列とかPerlの内部文字列表現とかそういうのは「&lt;b&gt;内部文字列&lt;/b&gt;」と呼ぶことにします。</li>
+<li>「内部文字列」意外の文字列は「&lt;b&gt;バイト文字列&lt;/b&gt;」と呼ぶことにします。</li>
+</ul>
+
+<p>簡単ですね！</p>
+</div>
+<div class="section">
+<h3>encodeとdecode</h3>
+
+<p>まえがきが長くなりましたがやっと本題です。</p>
+<p>Encode の基本、 encode() と decode() を覚えましょう。</p>
+<p>use Encodeすると自動的に使えるようになります。</p>
+
+<p>簡単に説明すると</p>
+
+<ul>
+<li>encode → 内部文字列を、指定した文字コードのバイト文字列にする</li>
+<li>decode → バイト文字列を指定した文字コードとして解釈し、内部文字列に変換する</li>
+</ul>
+
+<p>って感じです。</p>
+
+<p>Encodeのルールは</p>
+
+<ul>
+<li>deocdeして</li>
+<li>いじって</li>
+<li>encode</li>
+</ul>
+
+<p>なので、とりあえずdecodeから見ていきましょう。</p>
+<p>euc-jpのバイト文字列を内部文字列に変換する場合は以下のようにします。</p>
+
+<pre>
+use Encode;
+
+# euc-jpを内部文字列に変換
+my $flagged_utf8 = decode 'euc-jp', $bytes;
+</pre>
+
+<p>これで内部コードになりました。逆に、内部文字列をバイト文字列に変換するときはencodeを使います。</p>
+
+<pre>
+use Encode;
+
+# 内部文字列をShift_JISに変換
+my $sjis_str = encode 'sjis', $flagged_utf8;
+</pre>
+
+<p>これでShift_JISのバイト文字列が帰ってくるので、ファイルに出力するなり、コマンドプロンプトに表示するなりできますね！</p>
+<p>encodeは内部文字列をバイト列に、decodeはバイト列を内部文字列にする関数ということです。</p>
+<p>また、encodeのエイリアスとしてstr2bytes、decodeのエイリアスとしてbytes2strって言う関数がありますが、まぁあんまり使わないですね！！</p>
+
+<p>ちなみに、(en|de)code_utf8という関数もエクスポートされます。これは(en|de)code('utf8' $foo)と等価なので、UTF-8だとわかりきっている場合はこっちを使うのもいいでしょう。</p>
+</div>
+<div class="section">
+<h3>euc-jpをcp932に変換したい</h3>
+
+<p>たとえば、$strがeuc-jpのバイト文字列だったとして、cp932のバイト文字列に変換したいと思います。</p>
+<p>今までの知識でやると、以下のように書けます。</p>
+
+<pre>
+encode('cp932', decode('euc-jp', $str))
+</pre>
+
+<p>でも、まさにこれをやるためのfrom_toという関数がありあます。これを使うと上記のコードは以下のようになります。</p>
+
+<pre>
+from_to $str, 'euc-jp', 'cp932';
+</pre>
+
+<p>ちょっとだけシンプルになりましたね！！でもぼくはあんまりつかったことありません！！</p>
+</div>
+<div class="section">
+<h3>find_encoding</h3>
+
+<p>(en|decode)は文字コードに結構曖昧な名前を入れてもうまいこと解釈してくれます。以下のように適当な名前を与えても全部おんなじになります。</p>
+
+<pre>
+decode 'sjis', $str;
+decode 'Shift_JIS', $str;
+decode 'shiFtjis', $str;
+</pre>
+
+<p>しかしながら、繰り返し同じ文字コードの変換を行うような場合だと、残念ながら結構パフォーマンスが悪いのです。</p>
+<p>実は(en|decode)は内部的に、文字コードの名前解決を行ってその文字コードに対応したオブジェトを生成して、(en|de)codeメソッドを呼ぶ形になっているのです。</p>
+<p>こういう処理を毎回行っているのでなかなか遅いんですねー。でも安心してください！！こういう場合は、find_encodingっていうのを使うととってもハッピーになれます！！</p>
+<p>「文字コードの名前解決を行ってその文字コードに対応したオブジェトを生成」するっている処理を行うのがまさにfind_encodingなのです。</p>
+
+<pre>
+use Encode;
+
+my $encoder = find_encoding 'sjis';
+
+# 内部文字列をShift_JISバイト文字列に変換する
+$encoder-&gt;encode($str);
+
+# Shift_JISバイト文字列を内部文字列に変換する
+$encoder-&gt;deocde($bytes);
+</pre>
+
+<p>こうすれば、名前解決の手間がなくなるので高速になる上に、毎回文字コードを指定する必要もないのでいいですね！</p>
+
+<p>ベンチマークをとったら、find_encodingの方が224%高速という結果がでました。</p>
+
+<pre>
+Benchmark: running find_encoding, normal for at least 3 CPU seconds...
+find_encoding:  3 wallclock secs ( 3.12 usr +  0.00 sys =  3.12 CPU) @ 212403.52/s (n=663761)
+    normal:  4 wallclock secs ( 3.17 usr +  0.00 sys =  3.17 CPU) @ 65515.29/s (n=207749)
+                  Rate        normal find_encoding
+normal         65515/s            --          -69%
+find_encoding 212404/s          224%            --
+</pre>
+
+<p>ベンチマークスクリプトは<a href="http://gist.github.com/252604">gist</a>にあります。</p>
+
+<p>※実際にはオブジェクトの生成自体は一度しか行われない。(en|de)codeが遅いのは単純に関数呼び出しのコストによるものだと思われる。</p>
+</div>
+<div class="section">
+<h3> (en|de)codeに失敗した時の処理をしたい</h3>
+
+<p>さて、文字コード変換の基本はなんとなくわかったと思いますが、使っていると、(en|de)codeに失敗した時になんか処理したいときがあると思います。</p>
+<p>これはどういうときかっていうと、例えばutf8なバイト文字列をShift_JISなバイト文字列に変換したいときとかに変換できない文字とかですね。</p>
+<p>一番簡単な方法は変換に失敗したらcroakするっていうのです。(en|de)codeの第三引数に1を渡すと実現できます。</p>
+
+<pre>
+my $str = decode 'utf8', $bytes, 1;
+my $sjis_bytes = encode 'sjis', $str, 1;
+</pre>
+
+<p>これで、文字列変換に失敗した時にcroakします。</p>
+
+<p>違う文字に変換することもできます。Encodeにはそれを行うためのいくつかの定数がEncode::FB_*という名前で定義されています。</p>
+<p>下記の例は変換できなかった文字を\xXX形式にしてくれます。</p>
+
+<pre>
+% perl
+use Encode;
+
+my $str = decode 'ascii', 'dankogai = 小飼弾', Encode::FB_PERLQQ;
+print $str;
+__END__
+dankogai = \xE5\xB0\x8F\xE9\xA3\xBC\xE5\xBC\xBE
+</pre>
+
+<p>また、サブルーチンリファレンスを渡すことで、独自の動作が定義できます。使い方はPODから拝借しますが、以下のような感じです。</p>
+
+<pre>
+$ascii = encode(&quot;ascii&quot;, $utf8, sub{ sprintf &quot;&lt;U+%04X&gt;&quot;, shift });
+</pre>
+
+<p>これを使えば柔軟な変換エラー処理が実現できますね。</p>
+<p>※余談ですが、UTF-8バイト文字列を内部文字列にする、decode('utf8', $butes, sub{...})はEncode2.39以前ではきちんと動作していませんので、これを使う場合はそれ以上のバージョンに上げる必要があります。(参考<a href="http://blog.livedoor.jp/dankogai/archives/51328340.html">404 Blog Not Found:#perl - Encode 2.39 Released!</a>)</p>
+</div>
+<div class="section">
+<h3>use utf8</h3>
+
+<p>さて、今のご時世、プログラムを書く文字コードはUTF-8が主流になってました。もちろんPerlでも内部表現からしてわかるように、スクリプトをUTF-8で書くことが推奨されています。</p>
+<p>さらに、UTF-8で書いて、use utf8すると、リテラルがコンパイル時に内部文字コードになってくれるのです！</p>
+<p>これを使うことで、プログラム中に日本語リテラルを書くのが怖くなくなります。</p>
+
+<pre>
+use utf8;
+#use Encode;
+
+my $str = '毎週金曜日は○○ゲーの発売日'; # decode utf8 =&gt; '...' と等価
+</pre>
+
+<p>とっても簡単ですね！</p>
+
+<p>さらに、use utf8はレキシカルスコープなので、一部だけ適用したいときとかにも使えたり、no utf8したら、そこは適用範囲外になったり、use utf8されたら日本語の変数とか使えたりいろいろありますので、詳しくはperldoc utf8してください。</p>
+
+<p>モダンなPerlではコードをUTF-8で書いて、use utf8する感じなので、この機会に覚えましょう。</p>
+</div>
+<div class="section">
+<h3>Wide character in print at ...</h3>
+
+<p>さてさて、ここまでくればもうほとんど俺、Encodeつかえるんじゃねって気持ちになっていると思います。</p>
+<p>そこでこんなコードを実行してみると・・・</p>
+
+<pre>
+% perl -l
+use utf8;
+use Encode;
+
+my $str = 'Hello、ハローワーク';
+print $str;
+__END__
+Wide character in print at - line 4.
+Hello、ハローワーク
+</pre>
+
+<p>なんか 「Wide character in print at ...」とかいうwarningsが出ちゃいました！！いったいなんなの！！もう俺はEncode使えない！！寝るって気持ちになったとおもいますが、一回寝てもう一度考えてみましょう。</p>
+<p>これは「内部文字コードをそのまま出力しましたねあなたは」っていうことを言われているのです！具体的には</p>
+
+<ul>
+<li>flagged utf8である</li>
+<li>その文字が 0x100 以上である</li>
+</ul>
+
+<p>場合に警告されちゃいます。</p>
+<p>printやファイルに書き出すときは、バイト文字列を出力することが暗に求められているのです。内部文字コードはバイト文字列そのものではないので親切に教えてくれたわけですね！！本当にありがたいことです！！</p>
+
+<p>つまり、printするときはバイト文字列でないといけないわけなので、encodeしてバイト文字列にしてあげなくてはいけません。</p>
+
+<pre>
+use Encode
+
+print $flagged_utf8;                 # warnings &quot;Wide character in print at ...&quot;
+print encode 'utf8', $flagged_utf8   # ok
+</pre>
+
+<p>ということです！！</p>
+
+<p>さっきの例をwarningsでないように書き直すとこうなります。</p>
+
+<pre>
+% perl -l
+use utf8;
+use Encode;
+
+my $str = 'Hello、ハローワーク';
+print encode 'utf8', $str;
+__END__
+Hello、ハローワーク
+</pre>
+
+<p>おっけーですね。</p>
+<p>あとで登場するbinmodeを使うともうちょっとスマートに書けます。</p>
+</div>
+<div class="section">
+<h3>PerlIOレイヤーを使って透過的に(en|de)codeする</h3>
+
+<p>実際のプログラムでは、ファイルを扱うことが多いと思いますが、読み込まれた文字列はもちろんバイト文字列です。</p>
+<p>Perlでいい感じに扱いたい場合はdecodeする必要がありますが、毎回以下のように書くのはなんだかなーって感じです。</p>
+
+<pre>
+use Encode;
+
+open my $fh, '&lt;', 'sjis.txt' or die $!;
+my $data;
+while ($fh) {
+    $data .= decode sjis =&gt; $_;
+}
+close $fh;
+</pre>
+
+<p>これ、読み込んだときに自動的にdeocdeされないかなーと思いませんか？</p>
+<p>そんな時はPerlIOレイヤーのencodingを使用します！！</p>
+
+<pre>
+use Encode;
+
+open my $fh, '&lt;:encoding(sjis)', 'sjis.txt' or die $!;
+my $data;
+while ($fh) {
+    $data .= $_;
+}
+close $fh;
+</pre>
+
+<p>openするときに、「&lt;:encoding(sjis)っていうのを指定していますね。これで読み込むときに自動的にdecode('sjis', $bytes)してくれるようになります。便利ですねー。</p>
+<p>出力するときは「&gt;:encoding(euc-jp)」とかすればencode('euc-jp', $str)してくれます。賢いですねー。</p>
+
+<p>これを使って、sjisで書かれたファイルをeuc-jpに変換する簡単なプログラムを書いてみましょう！</p>
+
+<pre>
+#use Encode;
+
+open my $in '&lt;:encoding(sjis)', $input or die $!;
+open my $out '&lt;:encoding(euc-jp)', $output or die $!;
+while (&lt;$in&gt;) {
+    print $out $_;
+}
+close $in;
+close $out;
+</pre>
+
+<p>たったこれだけです！</p>
+<p>「use Encode」していないことに注目してください。PerlIOレイヤーはなかなかイカした奴なので、必要になったときに自動的に呼び出してくれるんですねー。なかなか小粋な計らいですね。</p>
+<p>これでファイルの文字コードで悩むこともなくなりましたね！！</p>
+<p>また、「:encoding(foo)」はutf8の場合のみ、「:utf8」とも書けます。</p>
+</div>
+<div class="section">
+<h3>binmode</h3>
+
+<p>ちなみに、PerlIOレイヤーのencoding(foo)っていうのは既に開いているファイルハンドルにも適用できます。その筆頭は標準出力である、「STDOUT」ですね！</p>
+<p>既存のファイルハンドルに適用するにはbinmodeを使います。</p>
+
+<p>外部装置に出力するときは、encodeしなくてはいけないことは先刻承知ですが、毎回printするごとにencode(...)するのは少し面倒だなーってときに重宝します。</p>
+<p>例えば、標準出力は常にeuc-jpだよーってときはこう書きます。</p>
+
+<pre>
+use utf8;
+use Encode;
+binmode STDOUT, ':encoding(euc-jp)';
+
+my $str = 'さくらインターネットとかeuc-jpだよね';
+print $str;
+</pre>
+
+<p>最初の方でIOレイヤーをしていしているので、print $strの部分は自動的にprint encode('euc-jp', $str)したのと同等になります。簡単ですねー。</p>
+</div>
+<div class="section">
+<h3>文字コードを調べたい</h3>
+
+<p>(ec|de)codeは文字コードが分かっているのが前提の関数です。でも、外部から読み込んだデータがあって、それがなんの文字コードなのかわからないってことが稀にあると思います。</p>
+<p>そんなときはEncode::Guessを使うと、どの文字コードなのか推測してくれます。</p>
+
+<p>まずは簡単な方法</p>
+
+<pre>
+use Encode;
+use Encode::Guess qw/sjis euc-jp 7bit-jis/;
+
+decode 'Guess', $data;
+</pre>
+
+<p>まず、use Encode::Guessの引数に推測したい文字コードを配列で指定します。そして、decodeの文字コードを「Guess」にすると自動判定してくれます。</p>
+<p>上記では、sjis euc-jp 7bit-jisを指定していますが、ascii utf8は指定しなくても判定してくれます。</p>
+
+<p>でも文字コードを100%判定するということは実はできません。Shift_JIS・euc-jp・utf8すべてに存在するバイト文字列もあります。</p>
+<p>特に判定したい文字列が短い場合はうまくいきません。</p>
+<p>判定される文字コードが複数になる可能性のある場合は以下のようにやりましょう。</p>
+
+<pre>
+use Encode;
+use Encode::Guess qw/sjis euc-jp 7bit-jis/;
+
+my $decoder = Encode::Guess-&gt;guess($data);
+die $decoder unless ref $decoder;
+
+warn $decoder-&gt;name;
+
+$str = $decoder-&gt;decode($data);
+</pre>
+
+
+<p>guess($data)で文字コードの判定に成功すれば、find_encodingと同じものが戻ります。</p>
+<p>複数の文字コードから判定できなかった場合は、</p>
+
+<pre>
+shiftjis or euc-jp or utf8
+</pre>
+
+<p>というような文字列が戻ってきます。なので、red $decoderの部分でリファレンスかどうかをチェックしています。</p>
+<p>余談ですが、ここで$decoder-&gt;nameというのが出てきていますが、これは文字コード名のエイリアスじゃない、本当の名前を返してれます。</p>
+<p>Encodeでは、Shift_JISはshiftjisが本名のようです。</p>
+
+<p><a href="http://search.cpan.org/perldoc?Encode::Guess">Encode::Guess</a>はもっと他の使い方もあります。詳しくはPODを読んでください。</p>
+</div>
+<div class="section">
+<h3>おまけ</h3>
+
+<p>おまけトラックです。暇な人だけよんでね！</p>
+
+<h4>utf-8とutf8は別物！</h4>
+
+<p>実はfind_encoding(&quot;utf-8&quot;)とfind_encoding(&quot;utf8&quot;)は別物として扱われるのです！これはそれぞれ以下のようになります。</p>
+
+<pre>
+find_encoding(&quot;utf-8&quot;)-&gt;name; # utf-8-strict
+find_encoding(&quot;utf8&quot;)-&gt;name;  # utf8
+</pre>
+
+<p>utf-8は「utf-8-strict」というのからわかるように、厳密なUTF-8として扱われます。</p>
+<p>厳密にチェックしたいときに以下のように使いましょう。</p>
+
+<pre>
+dencode 'utf-8', $str, 1;
+</pre>
+
+<p>ちなみにdecode_utf8は「utf8」が使われています。</p>
+
+<h4>使える文字コード一覧を表示する</h4>
+
+<pre>
+% perl -MEncode -le 'print for (Encode-&gt;encodings(&quot;:all&quot;))'
+</pre>
+
+
+<h4>piconvコマンド</h4>
+
+<p>Encodeと一緒についてくるコマンドです。</p>
+
+<pre>
+% piconv -f utf8 -t ascii --htmlcref foo.html &gt; bar.html
+</pre>
+
+<p>とかやるとUTF-8で書かれたファイルをascii+htmlcref化してくれるので便利ですね。</p>
+
+<pre>
+% piconv -l
+</pre>
+
+<p>とかやると使える文字コード一覧ができてきます。</p>
+
+<p>詳しくは</p>
+
+<pre>
+% piconv --help
+</pre>
+
+<p>とか、いろいろあるので、ちょっと文字コードを変換したいときは便利ですね！</p>
+
+<h4>半角カナを全角カナにしたいとか平仮名をカタカナとか半角英数字を全角英数字とかにしたいお！</h4>
+
+<p><a href="http://search.cpan.org/perldoc?Lingua::JA::Regular::Unicode">Lingua::JA::Regular::Unicode</a>を使いましょう。</p>
+<p>小粒ながらなかなかいいモジュールなんじゃないかと思います。</p>
+<p>これを使うと、「ｶﾞ」を「ガ」にしてくれたりと、いろいろ細かいところもいい感じにやってくれます。</p>
+
+</div>
+<div class="section">
+<h3>まとめ</h3>
+
+<p>Encodeを使えばとっても簡単にマルチバイト文字列を扱えることが分かってもらえたとおもいます！！</p>
+<p>まだまだいろんな使い方があるので、気になる人はPODをみてみるといいと思います！！</p>
+
+<p>明日は、Perl業界一のメガネフェチといわれているissmさんです！お楽しみに！！</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/casual/10.html">Wed, 09 Dec 2009 23:20:23 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

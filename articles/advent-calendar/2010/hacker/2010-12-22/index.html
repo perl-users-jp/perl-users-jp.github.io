@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>DBIx::TransactionManagerでネストしたトランザクションを管理 - Articles Advent Calendar 2010 Hacker</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>DBIx::TransactionManagerでネストしたトランザクションを管理</h1>
+
+        <p>もうすぐクリスマスですね。<br />
+id:nekokakです。</p><p>DBIx::ClassやDBIx::SkinnyなんかのORMを使っていれば、<br />
+ソフトウエア的にネストしたトランザクションを管理する機能が提供されていたりするんですが、</p><p>生DBI派の人でも使えるといいよねということで<br />
+DBIx::SkinnyでつかっていたTransaction管理の仕組みを外だしして作ったのが<br />
+<a href="http://search.cpan.org/dist/DBIx-TransactionManager/">DBIx::TransactionManager</a>です</p><br />
+<p>DBIx::TransactionManagerを使えば</p>
+
+    <pre class="code">use DBI;
+use DBIx::TransactionManager;
+my $dbh = DBI-&gt;connect(&#39;dbi:SQLite:&#39;);
+my $tm = DBIx::TransactionManager-&gt;new($dbh);
+
+{
+    my $txn = $tm-&gt;txn_scope;
+    $dbh-&gt;do(&#34;insert into foo (id, var) values (1,&#39;baz&#39;)&#34;);
+    {
+        my $txn2 = $tm-&gt;txn_scope;
+        $dbh-&gt;do(&#34;insert into foo (id, var) values (2,&#39;bab&#39;)&#34;);
+        $txn2-&gt;commit;
+    }
+    {
+        my $txn3 = $tm-&gt;txn_scope;
+        $dbh-&gt;do(&#34;insert into foo (id, var) values (3,&#39;bee&#39;)&#34;);
+        $txn3-&gt;commit;
+    }
+    $txn-&gt;commit;
+}</pre>
+<p>こんな感じでトランザクションを入れ子にする事が可能です。</p><p>入れ子にできると何が良いかというと、<br />
+ビジネスロジックを細かい単位で作成し、<br />
+その単位毎にトランザクションをかけておき、<br />
+細かい単位で利用可能であるのは勿論のこと、<br />
+ある纏まった単位で一気に細かいビジネスロジックを呼び出す際、<br />
+呼び出し側で大きくトランザクションをかける事で、<br />
+いい感じでトランザクションを制御できることでしょう。</p><br />
+<p>と、ぐだぐだと長くなりましたがとりあえずみんな使ってみるといいと思います！</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

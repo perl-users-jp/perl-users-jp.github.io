@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="charsbar">
+        <title>CSS::LESS::Filter で Twitter Bootstrap をいい感じに改造しよう - Articles Advent Calendar 2012 Hacker</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>CSS::LESS::Filter で Twitter Bootstrap をいい感じに改造しよう</h1>
+
+        <p>みなさん<s>さんざん苦労する</s>サンタクロース業務の準備は進んでいますか？　うちでもいま某案件のクルシミマスリリースに向けて現在見栄えをよくする作業にいそしんでいるのですが、今回採用した Twitter Bootstrap が案外融通のきかないヤツだというのがわかったので、なんとかするべく CSS::LESS::Filter というのを書いてみました。</p><p>基本的な使い方はこんな感じ。github から Bootstrap を clone してきて、このスクリプトを実行すると、breadcrumbs.less と variables.less を書き換えて背景色を指定できるようになります。</p>
+
+    <pre class="code lang-perl">#!/usr/bin/env perl
+use strict;
+use warnings;
+use CSS::LESS::Filter;
+use Path::Extended;
+
+# breadcrumbs の背景色が固定値なのはトンマナ崩れるので困ります！
+{
+  my $filter = CSS::LESS::Filter-&gt;new;
+  $filter-&gt;add(&#39;.breadcrumb { background-color:&#39; =&gt; &#39;@breadcrumbBackground&#39;);
+  my $file = file(&#39;less/breadcrumbs.less&#39;);
+  my $less = $file-&gt;slurp;
+  $file-&gt;save($filter-&gt;process($less));
+}
+
+# 変数の値も変更するよ（この場合はないから追加ね）
+{
+  my $filter = CSS::LESS::Filter-&gt;new;
+  $filter-&gt;add(&#39;@breadcrumbBackground:&#39; =&gt; &#39;#eef8ff&#39;);
+  my $file = file(&#39;less/variables.less&#39;);
+  my $less = $file-&gt;slurp;
+  $file-&gt;save($filter-&gt;process($less, {mode =&gt; &#39;append&#39;}));
+}</pre>
+<p>ここではわかりやすく単純な変数や定数へ置き換えてみましたが、もちろんトンマナ維持のためには変数はなるべく少なくおさえて、LESS の各種関数で色味などの調整をした方がよいでしょう。CSS::LESS::Filter は、内部的には Parse::RecDescent を使って結構マジメに LESS の解析を行っていますが、ユーザレベルでは必要な値をまるごと文字列としてやりとりするようになっているので、LESS の関数だろうとなんだろうと、そのまま渡せます。</p>
+
+    <pre class="code lang-perl">{
+  my $filter = CSS::LESS::Filter-&gt;new;
+  $filter-&gt;add(&#39;.breadcrumb { background-color:&#39; =&gt; &#39;lighten(@navbarBackground, 30%)&#39;);
+  my $file = file(&#39;less/breadcrumbs.less&#39;);
+  my $less = $file-&gt;slurp;
+  $file-&gt;save($filter-&gt;process($less));
+}</pre>
+<p>セレクタは、基本的には { でつないで、プロパティの場合は最後に : をつけて指定しますが、セレクタが複雑でいちいち全部書いていられないという場合は、正規表現を使って指定することもできます。</p>
+
+    <pre class="code lang-perl">  # もっと長いのもありますが、これでも十分長いですよね!
+  my $selector = &#39;.tooltip { &amp;.top .tooltip-arrow { left:&#39;;
+  $filter-&gt;add($selector =&gt; &#39;40%&#39;);
+
+  # こう書いてもOK
+  $filter-&gt;add(qr/\.top \.tooltip-arrow \{ left:/ =&gt; &#39;40%&#39;);</pre>
+<p>ただし、正規表現を使った書き方は、マッチするセレクタがない場合、（セレクタを一意に決められないので）ファイル末尾に該当のデータを追加する機能が利用できないという制約があります。また、うっかりすると想定外のところが書き換えられる可能性もありますので、利用の際にはご注意ください。</p><p>ルールセットにプロパティやルールを追加したい場合は、このようにすると該当部分がまるごと文字列として渡ってきますので、前でも後でも好きなものを好きなように追加してください。返した値がそのままルールセットのブレースの中身になります。</p>
+
+    <pre class="code lang-perl">  # ルールセットを指定する場合は最後を { で止めます。
+  $filter-&gt;add(&#39;.breadcrumb {&#39; =&gt; sub {
+    my $inside = shift;
+    $inside .= &#34;  color: \@navbarLinkColor;\n&#34;;
+    $inside;
+  });</pre>
+<p>ルールセットやプロパティをまるごと削除したい場合、上のように上位のルールセットの中身をまるごと取ってきて正規表現などで消してもよいのですが、undef を渡すとセレクタごと簡単に消してしまえます。</p>
+
+    <pre class="code lang-perl">  $filter-&gt;add(&#39;.breadcrumb { .divider {&#39; =&gt; undef);</pre>
+<p>@import などのルールも操作できますが、これらはうかつに定数値を渡すと、同じコンテキストに複数回出てきたときに一律同じ値が適用されてしまうので、コールバックの中で値を見ながら操作するのが安全です。</p>
+
+    <pre class="code lang-perl">  $filter-&gt;add(&#39;@import&#39; =&gt; sub {
+    my $value = shift;
+    # アコーディオンやカルーセルは使わないので消しちゃいましょう！
+    return if $value =~ /(accordion|carousel)\.less/;
+    return $value; # あとのは現状維持で
+  });</pre>
+<p>@import したいファイルが増えた場合などはセレクタとして空文字を渡すと、ファイルの末尾に任意のルールを追加できます。</p>
+
+    <pre class="code lang-perl">  $filter-&gt;add(&#39;&#39; =&gt; sub {
+    return &lt;&lt;&#39;LESS&#39;;
+@import &#34;foo.less&#34;;
+@import &#34;bar.less&#34;;
+LESS
+  });</pre>
+<p>現状で、Twitter Bootstrap はもちろんのこと、less.js のテストに使われているかなり意地悪な CSS/CSS3 を含むファイルもすべて要素を落とさずにパースできることは確認済みですが、正しくパースできないファイルがあるとか、ほかにもこんな要素にフックをかけられるとうれしい等々の問題や要望があったらお知らせください。</p><p>なお、CSS::LESS::Filter は、当然と言えば当然ですが LESS ではない素の CSS もふつうに扱えます。ただ、LESS から CSS への変換には対応していないので、CSS::LESS::Filter で Bootstrap を改造したあとは手順通りに recess などを走らせてください。最近は Windows 環境でもふつうに動きますので、CSS::LESSp などでがんばるより楽だとおもいます。</p><p>さて、明日はどなたかな？</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

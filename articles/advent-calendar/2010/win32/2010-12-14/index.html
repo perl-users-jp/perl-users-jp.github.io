@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="techno-cat">
+        <title>JScriptからperlを呼び出すよ！ - Articles Advent Calendar 2010 Win32</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>JScriptからperlを呼び出すよ！</h1>
+
+        <p>今日も、愛とロマンティックが止まらない<a href="http://twitter.com/techno_neko">techno-cat</a>デス;)</p>
+
+<div class="section">
+    <h3>今回は、JScriptからperlを呼び出すよ！</h3>
+    <p>まずは、<a href="./5">前回</a>の失態を修正、正しくはこうですよね。</p>
+
+    <pre class="code">&lt;job&gt;
+&lt;script language=&#34;PerlScript&#34;&gt;
+
+use strict;
+use warnings;
+
+$main::WScript-&gt;Echo( &#34;hello world.&#34; );
+
+&lt;/script&gt;
+&lt;/job&gt;</pre>
+<p>(拡張子は"wsf")</p><p><br /><br />
+これを、JScriptでやるとこんな感じ。</p>
+
+    <pre class="code lang-javascript">WScript.Echo( &#34;hello world.&#34; );</pre>
+<p>(拡張子は"js")<br />
+って、こんなことをやりたいわけじゃないんです。</p><p><br /><br />
+まずは、perlスクリプトを用意します。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+
+print &#34;オッス！オラ悟○！！ &#34;;</pre>
+<p>(hello.pl)<br />
+実行方法は、もちろんこんな感じ。</p>
+
+    <pre class="code">&gt; perl hello.pl</pre>
+<p><br /><br />
+これを、同じフォルダ階層に置いたJScriptから呼び出します。</p>
+
+    <pre class="code lang-javascript">
+// perlスクリプトのファイル名
+var script = &#39;hello.pl&#39;;
+
+// スクリプトの絶対パスを作成
+var fso = new ActiveXObject( &#34;Scripting.FileSystemObject&#34; );
+script = fso.BuildPath( fso.GetParentFolderName(WScript.ScriptFullName), script );
+
+// コマンドを作成
+var cmd = &#39;perl &#34;&#39; + script + &#39;&#34;&#39;;
+
+// コマンドを実行
+var WshShell = WScript.CreateObject( &#34;WScript.Shell&#34; );
+var oExec = WshShell.Exec( cmd );
+
+// 標準出力をメッセージボックスに表示
+WScript.Echo( oExec.StdOut.ReadAll() );</pre>
+<p>(hello.js)</p><p><br /><br />
+実はこれにも弱点があって、このままだと標準エラー出力が表示されません。<br />
+ですが、ご安心を！</p>
+
+    <pre class="code lang-javascript">
+// 標準出力
+var stdout = oExec.StdOut.ReadAll();
+
+// 標準エラー出力
+var stderr = oExec.StdErr.ReadAll();</pre>
+<p>あとは、空文字列か判定して表示するだけですね！</p><p><br /><br />
+それから、JScriptでも引数を受け取って、perlに引数を渡せます。</p>
+
+    <pre class="code lang-javascript">var args = WScript.Arguments;
+for (var i=0; i&lt;args.length; i++) {
+	// WScript.Echo( args(i) );
+}</pre>
+<p>(拡張子は"js")<br />
+この引数を念のためダブルクォーテーションで括って、コマンドライン文字列を作ればperlスクリプトに渡せます。</p><br />
+<p>今までコマンドプロンプトで呼び出してた、そこアナタ！</p><p>BATファイル(*.bat)が書けなくたってバッチ処理は出来るんです！！ドラッグ＆ドロップ出来るんです！！！</p><p>ガシガシ書いて、バシバシ処理してはいかがでしょうか？</p><p>さ～て、明日はどなたでしょうか？？</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

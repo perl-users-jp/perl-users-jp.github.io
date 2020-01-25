@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>#18 Plugin - Articles Advent Calendar 2011 Teng</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>#18 Plugin</h1>
+
+        <p>TengにはPlugin機構があります。</p><p>TengでPluginを書く為にはPlugin側でour @EXPORTを定義し、<br />
+そこにpluginとして提供したいメソッド名を書きます。</p>
+
+    <pre class="code">package Your::Plugin::Hello;
+use strict;
+use warnings;
+our @EXPORT = qw/say_hello/;
+
+sub say_hello {
+    print &#34;hello\n&#34;;
+}
+1;</pre>
+<p>これだけでTengのPluginが完成です。</p><p>このPluginをつかうには以下のようにloadします。</p>
+
+    <pre class="code">package Proj::DB;
+use strict;
+use warnings;
+use parent &#39;Teng&#39;;
+
+__PACKAGE__-&gt;load_plugin(&#39;+Your::Plugin::Hello&#39;);
+
+1;</pre>
+<p>すると</p>
+
+    <pre class="code">$teng-&gt;say_hello; # print hello</pre>
+<p>となります。簡単ですね。</p><p>なお、今回はYour::Pluginというnamespaceに新しくPluginを定義したので、load_pluginするときに<br />
+package名の先頭に+をつけました。<br />
+package名の先頭に+をつけると、+をとりのぞいたpackage名をそのまま利用しようとします。</p>
+
+<ol>
+<li>がないと、load_pluginに渡されたpackage名にTeng::Plugin::を補完して利用しようとします。</li>
+</ol><p>なお、現在の所Teng.pmにメソッドを追加する程度のことしかできません。</p><p>またload_pluginではpluginを読み込んだ後に一度だけPluginクラスに定義されているinitメソッドを実行しますので、<br />
+Pluginの初期設定などを行いたい場合はinitに仕込むようにするとよいでしょう。</p><p>明日はTengで提供されているPluginの紹介をしたいと思います</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

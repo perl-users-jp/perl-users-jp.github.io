@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>データのページングについて #19 - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">データのページングについて #19 - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">データのページングについて #19<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/19.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/19.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>こんにちわ！nekokakです！</p>
+<p>十九日目はデータのページングについてです。</p>
+
+<p>webの開発をしていると一度に大量のデータを表示させるのではなく、</p>
+<p>１０件ずつデータを表示させ、画面には次のデータへアクセスするためのリンクを用意する</p>
+<p>いわゆるページングの処理を入れることが良くあります。</p>
+
+<p>例えば、DBICを使っている場合は、</p>
+
+<pre>
+my $itr = $rs-&gt;search(...);
+my $pager = $itr-&gt;pager;
+</pre>
+
+<p>のように、DBIC側でData::Pageのオブジェクトを生成して、</p>
+<p>データのページングをしやすいように提供してくれます。</p>
+
+<p>DBICで開発している方は良く使われていることでしょう。</p>
+
+<p>ただ、DBIx::Skinnyではこのような機能を提供していません。</p>
+
+<p>理由としては、Data::Pageのオブジェクトを作成する為には、</p>
+<p>検索対象となるデータが全部で何件存在するかを知る必要があるからです。</p>
+
+<p>DBICの場合は、pagerメソッドを呼び出すと内部でcountクエリを発行し、</p>
+<p>検索対象の全体件数を取得しています。</p>
+
+<p>しかし、DBIx::Skinnyはsearch_by_sqlのように生のSQLを自分で書く事を前提としたORMなので</p>
+<p>利用者が書いた任意のSQLを解析して同じ条件のcountクエリを発行することは</p>
+<p>とても難しいことです。</p>
+
+<p>なので、実装していません。</p>
+<p>また、個人的にはDBICが内部で勝手にcountクエリを発行するのは嫌です。</p>
+
+<p>というのも、あまり意識せずに使っていると想定しているよりも多くSQLが実行されてしまい</p>
+<p>パフォーマンスに影響が出てくることが多いからです。</p>
+
+<p>普段DBICを使って開発されている方は、DBICのクエリログ機能を使って、</p>
+<p>発行しているSQLを一度全部見てみることをおすすめします。</p>
+
+<p>もしかすると、想定異常にcountメソッドを発行しているかもしれませんよ。</p>
+<p>（最近のDBICでは改善されているかもしれませんが）</p>
+
+<p>じゃぁDBIx::Skinnyでデータのページングはどうすんだよ！</p>
+<p>って思う人もいるとおもいますが、</p>
+<p><a href="http://d.hatena.ne.jp/nekokak/20090924/1253761408">http://d.hatena.ne.jp/nekokak/20090924/1253761408</a></p>
+<p>こちらに以前まとめた記事があるので、参考にしてみてください。</p>
+
+
+<p>今日はここまで。</p>
+<p>明日はid:walf443先生が書いてくれます。</p>
+<p>お楽しみに。</p>
+
+<p>have a nice skinny days!:)</p>
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/dbix-skinny/19.html">Sat, 19 Dec 2009 13:38:01 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+

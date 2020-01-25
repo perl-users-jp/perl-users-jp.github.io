@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>Acme::Porn::JP - Articles Advent Calendar 2010 Acme</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Acme::Porn::JP</h1>
+
+        <p>こんにちはOppai-Detectプロジェクト研究室の<a href="http://yusukebe.com/">yusukebe</a>です。今日はAcme::Porn::JPというgithubに僕が置いているAcmeなモジュールについて紹介します。</p>
+
+<div class="section">
+    <h4>インストールする</h4>
+    
+    <pre class="code">$ git clone git://github.com/yusukebe/Acme-Porn-JP.git
+$ cd Acme-Porn-JP
+$ perl Makefile.PL
+$ make
+$ make install</pre>
+
+</div>
+<div class="section">
+    <h4>これは何？</h4>
+    <p>Acme::Porn::JPはエロい日本語の単語のリストを取得するためのモジュールです。今のところAV女優のリストとAVジャンルリストの取得を行うことができます。</p>
+
+</div>
+<div class="section">
+    <h4>使う</h4>
+    <p>こんな感じでリストを取得できます。</p>
+
+    <pre class="code lang-perl">use Acme::Porn::JP;
+
+my $porn_jp = Acme::Porn::JP-&gt;new();
+my $actress_list = $porn_jp-&gt;actress();
+print $actress_list-&gt;[0] . &#34;\n&#34;;
+
+my $category_list = $porn_jp-&gt;category();
+print $category_list-&gt;[10] . &#34;\n&#34;;</pre>
+
+</div>
+<div class="section">
+    <h4>応用</h4>
+    <p>では、応用として登録されているAV女優のリストを使って、大量のおっぱい画像を集めてみましょう。今回は画像のURL取得にYahoo! 検索 API、画像のダウンロードにクエリー毎の並列処理を行っています。</p>
+
+    <pre class="code lang-perl">#!/usr/bin/perl
+use strict;
+use warnings;
+use Coro;
+use Coro::LWP;
+use LWP::UserAgent;
+use WebService::Simple;
+use Path::Class qw/dir file/;
+use Digest::MD5 qw/md5_hex/;
+use Acme::Porn::JP;
+use Encode;
+use utf8;
+
+my $query = &#39;おっぱい&#39;;
+my $dir   = &#39;./images&#39;;
+my $yahoo = WebService::Simple-&gt;new(
+    base_url =&gt; &#39;http://search.yahooapis.jp/ImageSearchService/V1/imageSearch&#39;,
+    param    =&gt; {
+        appid    =&gt; $ENV{YAHOO_APPID},
+        adult_ok =&gt; 1,
+        results  =&gt; 20,
+        format   =&gt; &#39;jpeg&#39;,
+    }
+);
+
+my $ua = LWP::UserAgent-&gt;new;
+$ua-&gt;show_progress(1);
+$ua-&gt;timeout(10);
+
+my $porn         = Acme::Porn::JP-&gt;new;
+my $actress_list = $porn-&gt;actress();
+for my $actress (@$actress_list) {
+    search( &#34;$query $actress&#34;, 1 );
+}
+
+sub search {
+    my ( $query, $page ) = @_;
+    my $start = ( $page - 1 ) * 10 + 1;
+    my $res   = $yahoo-&gt;get( { query =&gt; $query, start =&gt; $start } );
+    my $ref   = $res-&gt;parse_response();
+    return unless ref $ref-&gt;{Result} eq &#39;ARRAY&#39;;
+    my @coros;
+    for my $r ( @{ $ref-&gt;{Result} } ) {
+        push @coros, async {
+            $ua-&gt;mirror( $r-&gt;{Url},
+                dir($dir)-&gt;file( md5_hex( $r-&gt;{Url} ) . &#39;.jpg&#39; ) );
+        };
+    }
+    $_-&gt;join for @coros;
+}</pre>
+<p>たくさんおっぱい画像が取得できると思います。</p>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>Acme::Porn::JPでハッピーおっぱいライフを送って下さい。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

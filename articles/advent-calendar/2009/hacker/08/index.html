@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Module::Install::XSUtilでXSモジュール用のMakefile.PLを書く - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Module::Install::XSUtilでXSモジュール用のMakefile.PLを書く - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Module::Install::XSUtilでXSモジュール用のMakefile.PLを書く<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/hacker/08.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/hacker/08.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<h3> 前置き</h3>
+
+<p>こんにちは，gfxです。好きなソースはタルタルソースとsv.cです。JPerl Advent Calendar 2009 Hacker Trackも8日目ですね。そろそろTipsを読むだけでは飽き足らず，モジュールを書きたくなってきたんじゃないでしょうか。そんなわけで，今日は<a href="http://search.cpan.org/dist/Module-Install-XSUtil">Module::Install::XSUtil</a>を紹介します。</p>
+</div>
+<div class="section">
+<h3> 本題</h3>
+
+<p>皆さんの中にはよくXSを書く方もいらっしゃると思いますが，XSモジュールを含むディストリビューションはビルド環境の設定が結構大変ですよね。build_requiresにExtUtils::ParseXSやXSLoaderを指定したり，make_maker_argsにOBJECT =&gt; '$(O_FILES)'を指定したりする必要がありますし，Cコンパイラは使えるか，Cコンパイラの警告を有効にしたい，ppport.hは十分に新しいか，などなど考えなければいけないことが多々あります。ディストリビューションの中にXSモジュールが複数あると，また一層大変です。</p>
+
+<p>これらの面倒なことはプログラムにやらせましょう！</p>
+
+<p>まず基本コマンドです。Makefile.PLの冒頭は以下のようになります。</p>
+
+<pre>
+use strict;
+use warnings;
+use inc::Module::Install;
+use Module::Install::XSUtil; # for co-developpers
+
+all_from 'lib/Foo/XS.pm';
+
+cc_warnings;
+use_ppport 3.19;
+</pre>
+
+<p>cc_warningsはコンパイラの警告を有効にするコマンドですが，モジュールでXSを使うことを宣言する意味もあります。設定される警告はコンパイラによって異なりますが，たとえばgcc4だと -Wall -Wextra -Wdeclaration-after-statement となります。</p>
+
+<p>use_ppportはppport.hを生成します。従来の慣習では，ppport.hをディストリビューションに同梱していました。しかし，そのやり方では，ppport.hが提供するルーチンにバグがあった際の対処が面倒です。ユーザーがディストリビューションをビルドする前に，ユーザー自身が同梱されているppport.hを破棄し，新しいppport.hを生成しなければならないからです。use_pportはまさにこの作業を自動化するものです。</p>
+
+<p>XSUtilの基本コマンドはこれだけですが，他にもいくつか便利なコマンドがあります。</p>
+
+<pre>
+cc_src_paths @xs_src_dirs;
+</pre>
+
+<p>XSモジュールが複数のソースからなるケースでは，Makefile.PLの設定は煩雑になりがちです。しかし，cc_src_pathsでディレクトリを指定するのなら一行で済みます。</p>
+
+<p>ところで，これはXSUtilとは直接関係はないのですが，XSファイルが複数あるときには，メインのXSファイルから他のXSファイルのbootルーチンを呼ぶ必要があります。以下はMouseのソースからの抜粋ですが，このような方法で処理するといいでしょう。</p>
+
+<pre>
+/* mouse.h */
+#define MOUSE_CALL_BOOT(name) STMT_START {      \
+        EXTERN_C XS(CAT2(boot_, name));         \
+        PUSHMARK(SP);                           \
+        CALL_FPTR(CAT2(boot_, name))(aTHX_ cv); \
+    } STMT_END
+
+/* Mouse.xs */
+MODULE = Mouse  PACKAGE = Mouse
+BOOT:
+    /* ... */
+    MOUSE_CALL_BOOT(Mouse__Util);
+    MOUSE_CALL_BOOT(Mouse__Util__TypeConstraints);
+    MOUSE_CALL_BOOT(Mouse__Meta__Method__Accessor__XS);
+    MOUSE_CALL_BOOT(Mouse__Meta__Attribute);
+</pre>
+
+<p>また，インクルードパスを指定したいときは，cc_include_pathsを使います。</p>
+<pre>
+cc_include_paths @inc_dirs;
+</pre>
+
+<p>Cプリプロセッサマクロを指定することもできます。</p>
+<pre>
+cc_define qw(-DFEATURE_FOO);
+cc_define qw(-UFEATURE_BAR);
+</pre>
+
+<p>なお，cc_src_pathsやcc_defineなどは既存のオプションに追加してゆくため，一つのMakefile.PLの中で複数回使用することができます。</p>
+
+<p>また，XSとPure Perl二つの実装を持つモジュールの場合は，cc_availableを使用して以下のように設定します。</p>
+
+<pre>
+if(cc_available){
+    cc_warnings;
+    ...;
+}
+</pre>
+
+<p>cc_availableはコンパイラが使用可能かどうかをチェックするコマンドですが，XSUtil バージョン0.19からはMakefile.PLへの引数を調べて，--ppが指定されていると強制的に偽を，--xsが指定されていると強制的に真を返すようになりました。</p>
+
+<p>Perlのバージョンが特定以上の場合のみXSを使用したいというケースでは，以下のようになるでしょう。</p>
+
+<pre>
+if($] &gt;= 5.010 &amp;&amp; cc_available){
+    cc_warnings;
+    ...;
+}
+</pre>
+
+<p>通常のXSモジュールで使用する機能はこのくらいでしょう。XSUtilによって煩雑なMakefile.PLの設定が少しでも楽になれば幸いです。Enjoy XS!</p>
+</div>
+<div class="section">
+<h3> まとめ</h3>
+
+<p>今回は Module::Install::XSUtil について解説しました。</p>
+
+<p>このモジュールは，同様の処理を何度も書いたり見かけたりしているうちに，「もうめんどくさいからモジュールにしちゃおう」とおもって作りました。普段から「定型的なコードがないだろうか」と気をつけていることが重要ですね。</p>
+
+<p>というわけで今回はここまで。明日は id:TAKESAKO さんです。</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/hacker/08.html">Tue, 08 Dec 2009 02:29:01 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

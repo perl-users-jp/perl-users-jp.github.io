@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="techno-cat">
+        <title>Acme::State で Kensiro！ - Articles Advent Calendar 2011 Acme</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Acme::State で Kensiro！</h1>
+
+        <p><a href="http://hokkaido.pm.org/">Hokkaido.pm #6</a>の懇親会で koji_magi さんを突つきました、 techno-cat デス。</p>
+
+<div class="section">
+    <h3>どんな風に突ついたかというと？</h3>
+    
+    <pre class="code lang-perl">use warnings;
+use strict;
+use 5.12.0;
+
+use Acme::State;
+
+our $ata;
+$ata = ( defined $ata ) ? ($ata . &#39;た&#39;) : &#39;あ&#39;;
+say $ata;
+
+__END__</pre>
+<p>実行するたびに、</p>
+
+    <pre class="code">あ
+あた
+あたた
+あたたた
+（以下、省略）</pre>
+
+</div>
+<div class="section">
+    <h3>Acme::State とは？</h3>
+    <p>Storableでシリアライズしてくれて、次回実行時に、復元した状態でスクリプトが実行されるみたいです。<br />
+が、やっぱりAcme。<br />
+そもそもシリアライズ先はホームディレクトリなので、スクリプトのパスは関係なさげデス。<br />あと、インストール時のテストでシリアライズされた残骸（ファイル）も残りっぱなし。。。</p>
+
+</div>
+<div class="section">
+    <h3>まとめ</h3>
+    <p>なんかファイル作られちゃうけど気にしない方にオススメのモジュールです！</p><p>今のところ進捗もAcmeですが、完走したいですね！！</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

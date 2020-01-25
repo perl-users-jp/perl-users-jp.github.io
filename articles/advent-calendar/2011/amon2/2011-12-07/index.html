@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="tokuhirom">
+        <title>caym.js の dispatcher について - Articles Advent Calendar 2011 Amon2</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>caym.js の dispatcher について</h1>
+
+        <p>こんにちは！tokuhirom です！</p><p>caym.js というものを amon2 に標準添付しようとおもっていて、それの紹介です。</p><p><a href="https://github.com/tokuhirom/caym-js">https://github.com/tokuhirom/caym-js</a> このへんにあるよ。</p><p><a href="http://tech.kayac.com/archive/javascript-url-dispatcher.html">http://tech.kayac.com/archive/javascript-url-dispatcher.html</a> という ago さんの記事をよんでからわりとこれつかってたんですが、ただの静的な URL の場合にも regexp でパターンを指定するのが煩雑だなあとおもっていて、なんかいいかんじにできるといいなとおもったんで、なんかそういうのかいたというはなし。</p><p>なんかこういうかんじでつかえる。</p><p>    var dispatcher = new Caym.Dispatcher();<br />
+    dispatcher.register('/my/', function () {<br />
+        // your code here<br />
+    });<br />
+    dispatcher.register('/user/:id', function (id) {<br />
+        // your code here<br />
+    });<br />
+    dispatcher.dispatch(location.pathname);</p><p>簡単ですね。</p><p>わりとめんどくさいし影響範囲をせまくしたいからといって script タグの中にもりもり JS をかいたりしがちなんですが、どうしても HTML ファイルがでっかくなるし editor のサポートがうけづらくなるし、圧縮しづらいし、jslint とかかけづらいし、といったところがあって、やっぱり dispatcher 的なのをつかった方が管理しやすいかなあ、とおもいます。</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>introduction Data::Model - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">introduction Data::Model - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">introduction Data::Model<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/data-model/01.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/data-model/01.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<h3> はじめに</h3>
+
+<p>居酒屋大好き Yappo です。今年の Yet Another JPerl Advent Calendar 2009 として Data::Model のトラックを始める事にしました。</p>
+
+<p>姉妹トラックとしてnekokakさんによる<a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skiny track</a>も開催されています。</p>
+
+<p>JPerl Advent Calendar 2009 のリポジトリで cp -r data/hacker data/foo &amp;&amp; git add data/foo &amp;&amp; git push するだけでオレオレトラック開催出来るので、なにかやりたい人or団体さんはトラック作るといいよ！</p>
+</div>
+<div class="section">
+<h3> このトラックの目的</h3>
+
+<p>Data::Model トラックでは、 POD や Data::Model::Tutorial::JA - <a href="http://search.cpan.org/dist/Data-Model/lib/Data/Model/Tutorial/JA.pm">http://search.cpan.org/dist/Data-Model/lib/Data/Model/Tutorial/JA.pm</a> で説明しきれていないトピックを細く短く25日間お伝えします。</p>
+</div>
+<div class="section">
+<h3> Data::Modelってなに?</h3>
+
+<p>一言で言うと O/R Mapper です。</p>
+<p>Data::ObjectDriver を始めとして Jifty::DBI, Fey::ORM, DBIx::MoCo, Rose::DB, DBIx::Class, DBIx::Skinny 等を参考にして開発されています。</p>
+
+<p>特徴として</p>
+
+<ul>
+<li> KVS 指向の Interface</li>
+<li> DBI 以外のストレージにスキーマデータを保存出来る (例えば Tokyo Tyrant とかの Memcached プロトコルのストレージ)</li>
+<li> 透過キャッシュ</li>
+<li> Mixin によるスキーマクラスの拡張</li>
+<li> Q4M 対応</li>
+<li> 標準で relationship に未対応</li>
+</ul>
+
+<p>パフォーマンスについては DBIx::Skinny と同等というベンチマークを nekokak さんが出してくれました。</p>
+<p>DBIx::Skinny は DBIx::Class より数倍速いという話です。</p>
+</div>
+<div class="section">
+<h3> install</h3>
+
+<p>CPAN - <a href="http://search.cpan.org/dist/Data-Model/">http://search.cpan.org/dist/Data-Model/</a> からインストールも出来ますし、 git - <a href="http://github.com/yappo/p5-Data-Model">http://github.com/yappo/p5-Data-Model</a> でもいいです。</p>
+
+<pre>
+$ cpan Data::Model
+</pre>
+
+<pre>
+$ git clone git://github.com/yappo/p5-Data-Model.git
+$ cd p5-Data-Model
+$ perl Makefile.PL
+$ make install
+</pre>
+
+<p>公式 irc channel として #data-model@irc.perl.org が用意されています。</p>
+</div>
+<div class="section">
+<h3> つかってみよう</h3>
+
+<p>さっそく Data::Model を使ってみます。とても簡単です。</p>
+<p>データストアには SQLite を使いましょう。</p>
+
+<h4> スキーマ定義</h4>
+
+<p>まずはスキーマ定義です。</p>
+
+<p>Data::Model を継承して、 Data::Model::Schema を use する事によりスキーマ作成を行う為の DSL をインストールします。</p>
+
+<pre>
+package MyBookmark;
+use strict;
+use warnings;
+use base 'Data::Model';
+use Data::Model::Schema;
+use Data::Model::Driver::DBI;
+
+my $driver = Data::Model::Driver::DBI-&gt;new(
+    dsn =&gt; 'dbi:SQLite:dbname=mybookmark.db', '', ''
+);
+base_driver $driver;
+
+install_model user =&gt; schema {
+    key 'id';
+    columns qw/ id nickname /;
+};
+
+1;
+</pre>
+
+<p>id という primary key のカラムと nickname というカラムを持った user テーブルを一つだけ作った定義です。</p>
+
+<p>base_driver という所で、 DBI ドライバーを使って SQLite を使って mybookmark.db にデータベースを作るという事を指定しています。</p>
+
+<p>base_driver という指定は、ここに書かなくても問題無いですが簡潔な説明の為に一緒に書いてあります。</p>
+
+<h4> CREATE TABLE 文発行</h4>
+
+<p>スキーマの定義が出来たら、 CREATE TABLE 文を発行してテーブルをセットアップします。</p>
+
+<pre>
+$ perl -MMyBookmark -e 'print join ";\n", MyBookmark-&gt;as_sqls, ""' | sqlite3 mybookmark.db
+</pre>
+
+<p>Data::Model ではスキーマ定義も全部スキーマクラス上で行える事を想定して設計されているので、別途 CREATE TABLE 文を用意する必要はありません。</p>
+
+<h4> 使ってみよう</h4>
+
+<p>よく有る ORM の使い方で Data::Model も利用できます。</p>
+
+<pre>
+# 01.pl
+use strict;
+use warnings;
+use MyBookmark;
+
+my $bookmark = MyBookmark-&gt;new;
+
+# id = 1, nickname = 'Yappo' で user テーブルにレコードを作成
+$bookmark-&gt;set(
+    user =&gt; 1 =&gt; {
+        nickname =&gt; 'Yappo',
+    },
+);
+
+# SELECT * FROM user WHERE id = 1; してレコードを一件取得
+my $row = $bookmark-&gt;lookup( user =&gt; 1 );
+print sprintf "ID: %d\nNICKNAME: %s\n", $row-&gt;id, $row-&gt;nickname;
+
+# 取得したレコードを DELETE 文で削除
+$row-&gt;delete;
+</pre>
+
+<p>実行結果は下記の通り</p>
+<pre>
+$ perl 01.pl
+ID: 1
+NICKNAME: Yappo
+</pre>
+</div>
+<div class="section">
+<h3> まとめ</h3>
+
+<p>今日は Data::Model をインストールして、実際にレコードの出し入れする所までやりました。</p>
+
+<p>明日は、カラム定義に少し突っ込みます。</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/data-model/01.html">Wed, 02 Dec 2009 02:38:46 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

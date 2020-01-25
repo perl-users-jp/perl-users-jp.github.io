@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="mattn <mattn.jp@gmail.com>">
+        <title>そうだ、カレンダを出そう - Articles Advent Calendar 2010 Meta_adcal</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>そうだ、カレンダを出そう</h1>
+
+        <p>こんにちわ。<a href="http://mattn.kaoriya.net/" title="オッサン">mattn</a> です。<br />
+カレンダ表示機能を追加しました。</p><p>カレンダって仕組みを理解しながら作らないといけないので、新人教育の題材としてカレンダ表示は良いんじゃないかなと思います。技術者のスキル判断基準にも出来るかもしれませんね。<br />
+では行きましょう。</p><p>Xslateに渡すオブジェクトとしては calendar という名前のハッシュリファレンスで、その下に rows というハッシュリファレンスの配列、各 row には cols という記事情報を格納したハッシュリファレンスを保持します。<br />
+カレンダは、まずその月の1日が何曜日で始まっているかを見て、そこまで空を表示する必要があります。<br />
+何個空白を入れれば良いかは、週の何曜日かで取得出来ますので Time::Piece の day_of_week を使います。</p>
+
+    <pre class="code lang-perl">@cols = ();
+push @cols, {
+    date   =&gt; undef,
+    exists =&gt; 0,
+    title  =&gt; &#39;&#39;,
+} for 1 .. $t-&gt;day_of_week;</pre>
+<p>あとは Time::Piece に1日ずつ足しながら、その日の記事タイトルを収集し cols に格納して行きます。ただしその日の day_of_week が 0 つまり日曜になった場合には、格納していた cols を rows に追加し、次回から次の cols へ追加を行う様にする必要があります。</p>
+
+    <pre class="code lang-perl">while ( $t-&gt;mday &lt;= 25 ) {
+    my $title;
+    my $exists = ( -e $root-&gt;file( $t-&gt;ymd . &#39;.txt&#39; ) )
+      &amp;&amp; ( $now-&gt;year &gt; $vars-&gt;{year}
+        || $t-&gt;yday &lt;= $now-&gt;yday ) ? 1 : 0;
+
+    if ($exists) {
+        my ( $cached_mtime, $cached_title ) = split /\t/,
+          ( $cache-&gt;get( $t-&gt;mday ) || &#34;0\t&#34; );
+        my $mtime = $root-&gt;file( $t-&gt;ymd . &#39;.txt&#39; )-&gt;stat-&gt;mtime;
+        if ( not $cached_title or $mtime &gt; $cached_mtime ) {
+            my $fh = $root-&gt;file( $t-&gt;ymd . &#39;.txt&#39; )-&gt;open;
+            $title = &lt;$fh&gt;;
+            chomp($title);
+            $cache-&gt;set( $t-&gt;mday =&gt; &#34;$mtime\t$title&#34;, &#39;never&#39; );
+        }
+        else {
+            $title = $cached_title;
+        }
+    }
+
+    if ( $t-&gt;day_of_week == 0 ) {
+        my @tmp = @cols;
+        push @rows, { cols =&gt; \@tmp };
+        @cols = ();
+    }
+
+    push @cols, {
+        date   =&gt; Time::Piece-&gt;new($t),
+        exists =&gt; $exists,
+        title  =&gt; $title,
+      };
+    $t += ONE_DAY;
+}</pre>
+<p>あとは最後に途中まで追加されていた cols を rows に足し、rows 自体を calendar に格納すれば準備okです。<br />
+テンプレートとしてはカレンダ表示用に以下 HTML を指定します。</p>
+
+    <pre class="code lang-html">&lt;table border=&#34;1&#34; class=&#34;calendar&#34;&gt;
+    &lt;tr&gt;[% FOR week IN [&#34;日&#34;, &#34;月&#34;, &#34;火&#34;, &#34;水&#34;, &#34;木&#34;, &#34;金&#34;, &#34;土&#34;] %]&lt;th&gt;[% week %]&lt;/th&gt;[% END %]&lt;/tr&gt;
+[% FOR row IN calendar.rows %]
+    &lt;tr&gt;
+    [% FOR col IN row.cols %]
+        &lt;td class=&#34;cell&#34;&gt;
+            [% IF col.exists %]
+                [% col.date.mday %]&lt;br /&gt;&lt;a class=&#34;article-title&#34; href=&#34;[% uri_for(year _ &#39;/&#39; _ name _ &#39;/&#39; _ col.date.mday) %]&#34;&gt;[% col.title %]&lt;/a&gt;
+            [% ELSE %]
+                [% col.date.mday %]
+            [% END %]
+        &lt;/td&gt;
+    [% END %]
+    &lt;/tr&gt;
+[% END %]
+&lt;/table&gt;</pre>
+<p>このままだとタイトルが折り曲げられず、長いタイトルでカレンダの表示が崩れるので CSS で調整します。</p>
+
+    <pre class="code lang-css">.article-title {
+    overflow: hidden;
+}
+.calendar th {
+    background-color: lightgray;
+}
+.cell {
+    background-color: white;
+    word-break: break-all;
+    font-size: 0.2em !important;
+    width: 70px !important;
+    height: 70px !important;
+    vertical-align: top;
+}</pre>
+<p>動いている例は以下の URL を参照下さい。</p><p>/articles/advent-calendar/2010/acme/calendar<br />
+/articles/advent-calendar/2010/casual/calendar<br />
+/articles/advent-calendar/2010/win32/calendar<br />
+/articles/advent-calendar/2010/meta_adcal/calendar<br />
+/articles/advent-calendar/2010/english/calendar<br />
+/articles/advent-calendar/2010/hacker/calendar<br />
+/articles/advent-calendar/2010/sym/calendar</p><p>簡単ですね。</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>system 使用時にプログラムの終了を待たずに制御を返す方法 - Articles Advent Calendar 2010 Win32</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>system 使用時にプログラムの終了を待たずに制御を返す方法</h1>
+
+        <p>こんにちは。いつまでたっても Perl が全然わからない<a href="http://twitter.com/hasegawayosuke">はせがわ</a>です。</p><p>ActivePerl を使っていて外部のコマンドを system で呼び出したはいいけど、そのプログラムが終了するまで system の呼び出し以降のコードがブロックされて困ったことはありませんか？</p><p>例えば</p>
+
+    <pre class="code lang-perl">print &#34;abc\n&#34;;
+system &#34;notepad.exe&#34;;
+print &#34;def\n&#34;;</pre>
+<p>というコードだと、"def" が表示されるのは、起動したメモ帳が終了してからになってしまいます。<br />
+メモ帳が起動すれば終了を待たずに速やかに次のコードが実行されるほうが嬉しい場合もあります。</p><p>こういう場合は、system で直接 notepad.exe を呼び出すのではなく、いったん start コマンドを介するようにして起動します。</p>
+
+    <pre class="code lang-perl">print &#34;abc\n&#34;;
+system &#34;start&#34;, &#34;notepad.exe&#34;;
+print &#34;def\n&#34;;</pre>
+<p>startコマンドはメモ帳を立ち上げると即座に終了するため、メモ帳の終了を待たずにPerlのコードに制御を戻すことができます。</p><p>同じように、環境変数 PAGER に</p>
+
+    <pre class="code">C:\&gt;set PAGER=start notepad</pre>
+<p>と設定しておくと、コマンドラインから perldoc を呼び出したときにメモ帳でドキュメントを表示することができ、またメモ帳が閉じられるまでコマンドラインがブロックされるということもなくなります。</p><p>ちょっとしたTipsですが覚えておくと便利ですね。</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

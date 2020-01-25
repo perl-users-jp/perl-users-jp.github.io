@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="nekokak">
+        <title>ベンチどうしますか？ - Articles Advent Calendar 2011 Dbix</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>ベンチどうしますか？</h1>
+
+        <p>どうもnekokakです。</p><p>みなさんDBIを使っているコードのベンチマークってどうしてますか？<br />
+SQLのチューニングであればいいのですが、ロジックのベンチマークを取りたい時に<br />
+実際にdatabaseにクエリなげてしまうと、ネットワーク通信等が発生し、細かいロジックのチューニングの邪魔になることがあります。</p><br />
+<p>たとえば私はTengのチューニングをするときに、バックエンドのdatabase性能なんてどうでもよくて、<br />
+プログラムの性能をみたいわけです。<br />
+そんなときに便利なのがTest::Mock::Guardです。（え</p><p>Testというnamespaceにありますが、やっていることはコードをさしかえることなので<br />
+これをつかって実際にデータベースにクエリなげるところとかをフガフガします。</p><p>例えばTengのベンチマークを取る時に試したコードは以下のようなものです。</p>
+
+    <pre class="code">#! /usr/bin/perl
+use strict;
+use warnings;
+use Benchmark qw(:all :hireswallclock);
+use Test::Mock::Guard qw/mock_guard/;
+
+{
+    package Bench;
+    use parent &#39;Teng&#39;;
+    __PACKAGE__-&gt;load_plugin(&#39;Lookup&#39;);
+    __PACKAGE__-&gt;load_plugin(&#39;SingleBySql&#39;);
+
+    package Bench::Schema;
+    use Teng::Schema::Declare;
+    table {
+        name &#39;user&#39;;
+        pk   &#39;id&#39;;
+        columns qw/id name age/;
+    };
+}
+my $gurad = mock_guard(&#39;DBI::st&#39; =&gt; +{fetchrow_hashref =&gt; +{id =&gt; 1, name =&gt; &#39;nekokak&#39;, age =&gt; 33}});
+
+my $db = Bench-&gt;new({connect_info =&gt; [&#39;dbi:SQLite::memory:&#39;,&#39;&#39;,&#39;&#39;]});
+
+$db-&gt;do( q{DROP TABLE IF EXISTS user} );
+$db-&gt;do(q{
+    CREATE TABLE user (
+        id   INT PRIMARY KEY,
+        name TEXT,
+        age  INT
+    );
+});
+
+cmpthese(10000 =&gt; +{
+    single        =&gt; sub {$db-&gt;single(&#39;user&#39;, +{id =&gt; 1})},
+    single_by_sql =&gt; sub {$db-&gt;single_by_sql(&#39;SELECT id,name,age FROM user WHERE id = ?&#39;, [1], &#39;user&#39;)},
+    lookup        =&gt; sub {$db-&gt;lookup(&#39;user&#39;, +{id =&gt; 1})},
+}, &#39;all&#39;);</pre>
+<p>ザックリ説明するとDBI::stのfetchrow_hashrefをmockしてhashrefをかえすだけです。<br />
+こうすることで実際にdatabaseにアクセスすることなく、それらしい雰囲気のデータをかえすことができ<br />
+実際のロジックの性能評価を行うことができます。</p><br />
+<p>なお、DBD::Mockみたいなのがあるので、それをつかってもいいんですが、<br />
+ちょっと大仰でドキュメント読むのがめんどくさかったのでこんな感じでロジックをさしかえました。</p><p>ちなむとこのウルテクはDBIだけにかぎらずいろいろな場所で使えるのでオススメです。</p><p>Test::Mock::Guard++ですね！</p><p>あしたはtomi-ru@tomitaさんの出番ですよ</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

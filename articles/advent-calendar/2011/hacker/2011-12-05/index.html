@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="syohex">
+        <title>Text::UnicodeTable::Simple - 全角文字を含むテキストテーブルを描く - Articles Advent Calendar 2011 Hacker</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Text::UnicodeTable::Simple - 全角文字を含むテキストテーブルを描く</h1>
+
+        
+<div class="section">
+    <h4>前置き</h4>
+    <p>こんにちは. <a href="http://twitter.com/#!/syohex">syohex</a>と申します. みなさん意識は高まっていますか ? 私は若干微妙ですが, 上々です. 今回は拙作の <a href="https://github.com/syohex/p5-Text-UnicodeTable-Simple">Text::UnicodeTable::Simple</a>というモジュールを紹介します.<br />
+現在 CPANにアップされている私の唯一のモジュールでもあります.</p><p>Text::UnicodeTable::Simpleはテキストで表を書くというモジュールです. 同様のモジュールは Text::Table, Text::ASCIITable, Text::SimpleTable等多数存在しているのですが, ひらがな, カタカナ, 漢字といった全角幅の文字を含めると表がずれるという問題があります. Text::ASCIITable::TWという一部の言語に特化したものはあるんですが, Moose依存であったり, 何より使用言語が限られるのは避けたかったので一から作りました.</p><p>Text::ASCIITableが複雑すぎてそれと同じものは無理かなって思って Simpleとつけたのですが, いくつかの類似モジュールの機能も実装していっているので, 他のモジュールからの差し替えもできるものと考えています.</p>
+
+</div>
+<div class="section">
+    <h4>バージョン</h4>
+    <p>バージョン 0.04は依存モジュール Term::ANSIColorのバージョンの指定が抜けていたので, 古い Perlを使っている人はインストールが失敗してしまうかもしれません. 一応この記事が公開される頃には修正した 0.05がミラーサーバにも上がっているじゃないかなと思います.</p><p></p>
+
+</div>
+<div class="section">
+    <h4>使い方</h4>
+    <p>テーブルヘッダをコンストラクタの 'header'パラメータか, set_headerメソッドで設定します. テーブルヘッダに列数が決めているので, 必ず設定が必要です. 行については add_rowメソッド及び add_rowsメソッドで設定します. 区切りの線を入れたい場合は add_row_lineメソッドを使います. drawメソッドでテーブルの文字列を取得できます. また文字列化を overrideしているのでオブジェクトを文字列として扱えば drawメソッド相当のことが行えます.<br />
+コンストラクタの borderパラメータでテーブルの罫線の有無を制御できます. デフォルトでは有効になっているので, 罫線を表示したくない場合は 'border => 0'としてください.<br />
+テーブルの要素はバイナリ列ではなく文字列(decode済み)を使ってください.</p><br />
+<p>以下にサンプルを示します.</p>
+
+    <pre class="code lang-perl">#!perl
+use strict;
+use warnings;
+
+use utf8;
+use Text::UnicodeTable::Simple;
+
+binmode STDOUT, &#34;:utf8&#34;;
+
+my $table = Text::UnicodeTable::Simple-&gt;new(
+    header =&gt; [ qw/名前 在庫数 値段(円)/ ],
+);
+
+$table-&gt;add_rows(
+    [ qw/肉まん 100 88/ ],
+    [ qw/カレーマン 80 100/ ],
+    [ qw/スライムマン 2048 170/ ],
+    [ qw/ピザマン 70 120/ ],
+);
+
+print &#34;$table&#34;;</pre>
+<p><br />
+イメージ<br />
+<img src="https://github.com/perl-users-jp/perl-advent-calendar/raw/master/2011/hacker/2011-12-05/image01.png" alt="with_ansi_color" /></p><p></p>
+
+<div class="section">
+    <h5>色つき文字の対応</h5>
+    <p>コンストラクタに 'ansi_color => 1'を指定することで, ANSI Colorシーケンスを含む文字も扱うことが可能になります. 以下にその例を示します.</p>
+
+    <pre class="code lang-perl">#!perl
+use strict;
+use warnings;
+
+use utf8;
+use Term::ANSIColor qw(:constants);
+use Term::ExtendedColor qw(:all);
+use Text::UnicodeTable::Simple;
+
+binmode STDOUT, &#34;:utf8&#34;;
+
+my $table = Text::UnicodeTable::Simple-&gt;new(
+    header =&gt; [qw/名前 よみ 生年月日 キャッチフレーズ/],
+    ansi_color =&gt; 1,
+);
+
+my @info_by_color = (
+    purple  =&gt; [ qw/高城れに たかぎれに 1993年6月21日 感電少女/ ],
+    red1    =&gt; [ qw/百田夏菜子 ももたかなこ 1994年7月12日 茶畑のシンデレラ/ ],
+    green1  =&gt; [ qw/有安杏果 ありやすももか 1995年3月15日 小さな巨人/ ],
+    yellow1 =&gt; [ qw/玉井詩織 たまいしおり 1995年6月4日 みんなの妹/ ],
+    hotpink =&gt; [ qw/佐々木彩夏 ささきあやか 1996年6月11日 ももクロのアイドル/ ],
+);
+
+while ( my ($color, $value) = splice @info_by_color, 0, 2 ) {
+    $table-&gt;add_row(
+        [ map { fg(&#39;bold&#39;, fg($color, $_)) } @{$value} ]
+    );
+}
+
+print $table-&gt;draw, &#34;\n&#34;;</pre>
+<p><br />
+イメージ<br />
+<img src="https://github.com/perl-users-jp/perl-advent-calendar/raw/master/2011/hacker/2011-12-05/image02.png" alt="with_ansi_color" width="90%" /></p><p></p>
+
+</div>
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>Text::UnicodeTable::Simpleという全角文字を含むテキストテーブルを描画できるモジュールを紹介しました. 私自身頻繁に使うわけではないですが, たまにテキストテーブルを書きたいなってときに使っています. みなさんもそんなときがあればぜひ利用を検討してみてください.</p><p>明日は <a href="http://twitter.com/#!/hide_o_55">hide_o_55</a>さんです.<br />
+お楽しみに.</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

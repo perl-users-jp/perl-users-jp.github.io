@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="xaicron">
+        <title>All Test::Successful - Articles Advent Calendar 2011 Test</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>All Test::Successful</h1>
+
+        
+<div class="section">
+    <h4>はじめに</h4>
+    <p>こんにちは、xaicron です。みんな、僕のグラビア写真は買ってくれたかな？買ってない人は WEB+DB Press vol.66 を今すぐゲットだぜ！！</p><p>さて、ついに長かった Test Track も最終日がやって参りました！みなさんはどうせリア充を尻目にリナカフェの閉店を見たり、独り者同士でなんとなーく集まってお酒飲んだり、もしくは僕のように一人寂しく Advent Calendar を書いているのでしょうね！！その昔、コンビニでゆでたまご買って間違って「あ、あっためてください」っていっちゃったことを何故か思い出しました。</p><p>というわけで、クリスマスぐらいはせめてテストを書きたくないし、そもそもコケたテストとか見たくないわけですね。ですので、僕からのスペシャルなクリスマスプレゼンツ！！その名も Test::Successful だぜ！ベイベー！！</p>
+
+</div>
+<div class="section">
+    <h4>これはなに？</h4>
+    <p>これはあれですね。テストがコケてると悲しいし、テストがコケたまま生活してるとマジ息苦しい。そんなあなたにやすらぎのひとときを。「それは昔祖母の家で食べた温かで優しい味わい。心にも体にも優しい和の料理。梅とちりめんじゃこご飯と季節の野菜たっぷりの煮物弁当 480kcal」にも勝るとも劣らない、一品となっております。</p><p>つまり、全部のテストを強制的にサクセッ(ク)スフルにしちゃうという素晴らしいモジュールです！</p><p>使い方は超絶に簡単で、テストの最初で use するだけです。prove を使えば、</p>
+
+    <pre class="code">$ prove -cr --exec &#34;perl -Ilib -MTest::Successful&#34; t</pre>
+<p>とかするだけ！こっそりと CI ツールの prove の設定を書き換えればその瞬間からオールグリーンまちがいなし！！素晴らいいですね。テストが通っているので、休日とかも安心です。</p>
+
+</div>
+<div class="section">
+    <h4>テストが遅い場合も安心</h4>
+    <p>ちなみに、テストを書いていると、たまに</p>
+
+    <pre class="code">while (1) {
+    fail &#34;fxxk&#34;;
+}</pre>
+<p>みたいなコードを書いてしまうと思います。この場合、テストが延々とコケ続けて終わりませんね。でも Test::Successful なら超安心！！use のときに、':fast' って引数に与えてあげれば、瞬殺です。</p><p>prove なら</p>
+
+    <pre class="code">$ prove -cr --exec &#34;perl -Ilib -MTest::Successful=:fast&#34; t</pre>
+<p>て感じですね。</p>
+
+</div>
+<div class="section">
+    <h4>というわけで</h4>
+    <p>Test::Successful を使えば、テストが常に全部通っているという、超絶安心生活が約束されます！素晴らしいですね！</p><p>さっき書いたばっかりなので、コードは github にしかありませんけどご容赦！</p><p><a href="https://github.com/xaicron/p5-Test-Successful">https://github.com/xaicron/p5-Test-Successful</a></p><p><strong>...というのは嘘なので、みなさん信用しないでください。</strong>ただのジョークモジュールなので、Acme ネームスペースにあるべきでしょう。</p>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>はい、というわけで、25回に分けてやってきました Test Track ですが、無事に完走することが出来ました！執筆者++ 読者++</p><p>一口にテストといっても色々とありますが、結構バリエーションゆたかな記事が出てきてよかったよかった思っています。当然まだまだテストの道は厳しく辛く険しいものですが、皆さんのこれからのテストライフに一役買うことができていれば本望です。</p><p>また、いままでテストを書いたことがないよんって人も、いままでの記事をみて、「いっちょやってみっか」って気持ちになってくれると嬉しいです。</p><p>テストを書くというのは、最初のうちは色々と戸惑うこともあるかもしれませんが、「自分の書いたコードに責任を持つ」というとちょっと重苦しいかもしれませんが、なんというか、「書いた人も使う人も一定の安心感を得る」ためのいいの方法だと思っています。</p><p>テストコードもコードなので、楽しんで書いていきたいですね。</p><p>ではでは、また会う日まで。ごきげんよう！！</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

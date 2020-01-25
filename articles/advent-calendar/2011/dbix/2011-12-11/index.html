@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="zigorou">
+        <title>DBI のお供になりそうなモジュールたち - Articles Advent Calendar 2011 Dbix</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>DBI のお供になりそうなモジュールたち</h1>
+
+        <p>師走にも関わらず風邪を引いてしましました。こんばんは、zigorou です。<br />
+今日は DBI のお供になりそうな拙作モジュールたちをご紹介します。</p>
+
+<div class="section">
+    <h4>Data::RuledFactory</h4>
+    <p><a href="https://github.com/zigorou/p5-data-ruledfactory">p5-data-ruledfactory</a> で開発中のモジュールです。<br />
+主要機能は大体出来てるんですが、後はテストを充実させて pod をきちんと書いたらリリースしようかなとか思ってる所です。<br />
+とはいえ現時点でもやりたいなと思っている事は既に出来ます。</p><p>論より証拠と言う事で、examples フォルダにある <a href="https://github.com/zigorou/p5-data-ruledfactory/blob/master/examples/001_define_rules.pl">001_define_rules.pl</a> についてちょっと解説。</p>
+
+    <pre class="code lang-perl">#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use FindBin;
+use lib &#34;$FindBin::Bin/../lib&#34;;
+use DateTime;
+use Data::RuledFactory;
+
+my $rf = Data::RuledFactory-&gt;new;
+
+$rf-&gt;add_rule( id =&gt; [ Sequence =&gt; { min =&gt; 1, max =&gt; 100, step =&gt; 1 } ] );
+$rf-&gt;add_rule( name =&gt; [ ListRandom =&gt; { data =&gt; [qw/foo bar baz/] } ] );
+$rf-&gt;add_rule(
+    published_on =&gt; [
+        RangeRandom =&gt; {
+            min =&gt; DateTime-&gt;new( year =&gt; 2011, month =&gt; 12, day =&gt; 1 )-&gt;epoch,
+            max =&gt; DateTime-&gt;new( year =&gt; 2011, month =&gt; 12, day =&gt; 24 )-&gt;epoch,
+            incremental =&gt; 1,
+            integer     =&gt; 1,
+        }
+    ]
+);
+
+$rf-&gt;rows(10);
+
+while ($rf-&gt;has_next) {
+    my $d = $rf-&gt;next;
+    printf(
+        &#34;id: %d, name: %s, published_on: %s\n&#34;,
+        $d-&gt;{id},
+        $d-&gt;{name},
+        $d-&gt;{published_on},
+    );
+}</pre>
+<p>このスクリプトのやらんとしているところは、id, name, published_on と言うカラムを持つテーブルのレコードを生成する為のルール定義を行い、<br />
+そのルールに基づいて10件のレコードを生成するって事です。</p><p>このモジュールの良い所は DBI に特に依存していないと言う事です。なので何にでも使えます。<br />
+この例では next() 時にハッシュリファレンスとして受けてますが、事前にカラム定義を columns() メソッドでやっておけば、<br />
+csv の各行の用にレコードを配列リファレンスとして受け取る事も出来ます。</p><p>色んなレシピがあるんですが、詳しい解説はまた別の機会にやるとします。</p>
+
+</div>
+<div class="section">
+    <h4>Iterator::GroupedRange</h4>
+    
+<ul>
+<li>SQL::Maker::Plugin::InsertMulti</li>
+<li>Iterator::GroupedRange</li>
+<li>Data::RuledFactory</li>
+</ul><p>の組み合わせによって、大量のデータをランダムに生成して bulk insert を用いて一気に突っ込んだり出来ます。</p><p>コードにするとこんな感じになります。</p>
+
+    <pre class="code lang-perl">#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use Data::Dump qw(dump);
+use Data::RuledFactory;
+use DateTime;
+use DBI;
+use Getopt::Long;
+use Iterator::GroupedRange;
+use SQL::Maker;
+
+my $opts = {};
+GetOptions(
+    $opts,
+    &#39;dsn|d=s&#39;, &#39;user|u=s&#39;, 
+    &#39;password|p=s&#39;, &#39;rows|r=s&#39;,
+);
+
+%$opts = (
+    rows =&gt; 100,
+    %$opts,
+);
+
+SQL::Maker-&gt;load_plugin(qw/InsertMulti/);
+
+my $dbh = DBI-&gt;connect($opts-&gt;{dsn}, $opts-&gt;{user}, $opts-&gt;{password}, { AutoCommit =&gt; 0, RaiseError =&gt; 1, });
+my $sql = SQL::Maker-&gt;new(
+    driver =&gt; $dbh-&gt;{Driver},
+    new_line =&gt; &#34; &#34;,
+    quote_char =&gt; &#34;&#34;,
+);
+
+my $rf = Data::RuledFactory-&gt;new(
+    columns =&gt; [qw/id app_id user_id title published_on/],
+    rules =&gt; [
+        id           =&gt; [ Sequence =&gt; { min =&gt; 1, max =&gt; 10000, step =&gt; 1 } ],
+        app_id       =&gt; [ ListRandom =&gt; { data =&gt; [ 1000 .. 1100 ] } ],
+        user_id      =&gt; [ RangeRandom =&gt; { min =&gt; 100, max =&gt; 1000, integer =&gt; 1 } ],
+        title        =&gt; [ 
+            StringRandom =&gt; { data =&gt; q#[A-Za-z0-9]{10,16}# } 
+        ],
+        published_on =&gt; [
+            RangeRandom =&gt; {
+                min =&gt; DateTime-&gt;new( year =&gt; 2011, month =&gt; 12, day =&gt; 1 )-&gt;epoch,
+                max =&gt; DateTime-&gt;new( year =&gt; 2011, month =&gt; 12, day =&gt; 25 )-&gt;epoch,
+                incremental =&gt; 1,
+                integer     =&gt; 1,
+            }
+        ]
+    ],
+    rows =&gt; $opts-&gt;{rows},
+);
+
+my $iter = Iterator::GroupedRange-&gt;new(
+    sub {
+        if ($rf-&gt;has_next) {
+            return [ $rf-&gt;next(1) ];
+        }
+        else {
+            return;
+        }
+    }, 10
+);
+
+while ($iter-&gt;has_next) {
+    my $values = $iter-&gt;next;
+    my ($stmt, @bind) = $sql-&gt;insert_multi(
+        &#39;activity&#39;,
+        $rf-&gt;columns,
+        $values,
+    );
+
+    dump($stmt, \@bind);
+
+    $dbh-&gt;do($stmt, undef, @bind);
+    $dbh-&gt;commit;
+}</pre>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>DBIx 以下にあるべきか否かは考えて作るとよりポータブルになるんじゃないかなって思ったりしましたよ！</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

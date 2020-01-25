@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>Javaで便利だと思ったORMをDBIxなモジュールで頑張って再現する - Articles Advent Calendar 2011 Dbix</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Javaで便利だと思ったORMをDBIxなモジュールで頑張って再現する</h1>
+
+        <p>みなさん、こんにちわ。s_ohiraと申します。<br/>今年も各所で技術系Advent Calendarが盛り上がってますがいかがお過ごしでしょうか？</p><p>DBIxに関して書くほどの知識もないため、今までの経験から逆算というアプローチをとります。<br/>CDBIは業務で触ったこともあるんですが、あえてPerlでなくJavaのORMから逆算してみます。<br/>今回は個人的にお気に入りだったiBATISというORMの簡単な紹介とともに、<br/>擬似的な使い心地を求めてみようではないか！という形で進行していきたいと思います。</p><p>ということで、さっそくですが実行部分を見てみますよ！</p><p><pre><code><br />
+// fetch<br />
+Employee emp = (Employee) sqlMap.queryForObject("getEmployee", new Integer(1));</p><p>// fetchrows<br />
+List list = (Employee) sqlMap.queryForList("getFiredEmployees", null);</p><p>// insert<br />
+Integer generatedKey = (Integer) session.insert ("insertEmployee", emp2);</p><p></code></pre></p><p><a href="http://ibatis.apache.org/docs/java/dev/">iBATIS API Reference</a>よりまま(Java1.4な時代だったんですね！)<br/></p><p>たった一行で何かが行われているみたいですね。<br/>引数やら、SQLやら、結果セットやらは一体どこに書かれているのでしょうか？<br/>そういった定義は漏れなく外部のクラスやXMLに書かれることになります。</p><p>一例としてXMLの記述例を挙げておきます。<br/></p><p><pre><code><br />
+&lt;select id="getAccountByUsernameAndPassword" parameterType="Account" resultType="Account"&gt;<br />
+  SELECT<br />
+    SIGNON.USERNAME,<br />
+    ACCOUNT.EMAIL,<br />
+    ACCOUNT.FIRSTNAME,<br />
+    ACCOUNT.LASTNAME,<br />
+    ACCOUNT.STATUS,<br />
+    ACCOUNT.ADDR1 AS address1,<br />
+    ACCOUNT.ADDR2 AS address2,<br />
+    ACCOUNT.CITY,<br />
+    ACCOUNT.STATE,<br />
+    ACCOUNT.ZIP,<br />
+    ACCOUNT.COUNTRY,<br />
+    ACCOUNT.PHONE,<br />
+    PROFILE.LANGPREF AS languagePreference,<br />
+    PROFILE.FAVCATEGORY AS favouriteCategoryId,<br />
+    PROFILE.MYLISTOPT AS listOption,<br />
+    PROFILE.BANNEROPT AS bannerOption,<br />
+    BANNERDATA.BANNERNAME<br />
+  FROM ACCOUNT, PROFILE, SIGNON, BANNERDATA<br />
+  WHERE ACCOUNT.USERID = #{username}<br />
+    AND SIGNON.PASSWORD = #{password}<br />
+    AND SIGNON.USERNAME = ACCOUNT.USERID<br />
+    AND PROFILE.USERID = ACCOUNT.USERID<br />
+    AND PROFILE.FAVCATEGORY = BANNERDATA.FAVCATEGORY<br />
+&lt;/select&gt;<br />
+</code></pre></p><p>プロジェクト名が変わってしまったみたいですが、<a href="http://code.google.com/p/mybatis/downloads/list?can=3&q=Product%3DSample">公式サンプル</a>よりまま<br/></p><p>parameterTypeが引数、resultTypeが結果セットの格納されるVO(値オブジェクト)です。<br/><br />
+引数がコレクションとして与えられた場合は#{hoge}という形で<br/>そのpropertyを条件にすることもできます。</p><p>また、idを指定することでコンテナからSQLとVOのマッピングをシンボルとして取り出して(！！)<br/>お手軽にSQLを実行できる点が密かなお気に入りポイントとなっています。<br/>パラメータ引数や返り値なんかは単なるVOなので特記することはありませんね。<br/>ちなみにSQLの定義で動的なSQLなんかも書けますが、割愛します。<br/></p><p>Perlで作ってやるぜ！な漢気のある方は<a href="http://ibatis.apache.org/docs/java/dev/">API</a>を参考に。<br/>ちなみに最新の公式は<a href="http://code.google.com/p/mybatis/wiki/Welcome?tm=6">こちら</a>みたいです。</p><p>今回はPerl Advent CalendarなのでJavaの話はさっさと切り上げることにして、<br/>個人的に今回、実現したい機能は以下のものとなります。</p><p><ul><br />
+  <li>実行するSQLをシンボルとして取り出す</li><br />
+  <li>オブジェクトへのマッピング</li><br />
+  <li>名前付きプレースホルダ</li><br />
+</ul></p><p>ということで、早速、DBIxモジュールをCPANから探すことにしましょう。<br/>まずは今回、どうしても実現したかったSQLのシンボル化を探すことにします。<br/>普段はmiyagawaさんが作られたData::Section::Simpleを使ってSQLをシンボル化していたのですが、<br/>使い心地そのままなモジュールがCPANにあります。</p><p>DBIx::Simple::DataSection<br/><a href="http://search.cpan.org/~kitano/DBIx-Simple-DataSection-0.02/lib/DBIx/Simple/DataSection.pm">http://search.cpan.org/~kitano/DBIx-Simple-DataSection-0.02/lib/DBIx/Simple/DataSection.pm</a></p><p><pre><code><br />
+my $rs = $db->query_by_sql('select.sql', $foo, $bar) <br />
+    or die $db->error;</p><p>__DATA__<br />
+@@ select.sql <br />
+SELECT FROM foo WHERE foo = ? OR bar = ?<br />
+</code></pre></p><p>今度はCPANから、またもままで引用です。<br/>この例ではselect.sqlというシンボルを作って、query_by_sqlという関数に食わせています。<br/>サンプルでは$foo, $barをそれぞれ渡していますが、配列で一気に渡すことも可能です。</p><p>一番、実現したかった項目を満たすことはできましたが、1行で完結してしまったため、<br/>以降の選択肢が限られてしまいました。このモジュールが実現しているSQL実行をキーに<br/><br />
+残り二つの項目を満たすモジュールを探していきたいと思います。</p><p>でわ、DBIx::Simple::DataSectionの規定クラスを確認しましょう。<br/>どうやら、DBIx::Simpleを使っているのでこの名前空間になっているようですね。<br/><a href="http://search.cpan.org/~juerd/DBIx-Simple-1.35/lib/DBIx/Simple.pm">DBIx::Simple</a><br/>結果セットの取り出し方が色々とありますが、objectメソッドを使うと捗りそうですね。</p><p><pre><code><br />
+$db->result_class = 'DBIx::Simple::Result';<br />
+$result = $db->query(...);</p><p>$obj = $result->object    @objs = $result->objects<br />
+</code></pre></p><p>これで2項目をクリアすることができました。<br/>最後は名前付きプレースホルダですね。正規表現を使（ry<br/>でわなく、DBIxでどこまでがんばれるか!?<br/>ということで、名前付きプレースホルダのモジュールを見つけてきましたよ。<br/>所要時間は約30秒、圧倒的なスピードでした。<br/>つ <a href="http://search.cpan.org/~izut/DBIx-Placeholder-Named-0.08/lib/DBIx/Placeholder/Named.pm">DBIx::Placeholder::Named</a></p><p><pre><code><br />
+my $sth = $dbh->prepare(<br />
+    q{ INSERT INTO some_table (this, that) VALUES (:this, :that) }<br />
+) or die $dbh->errstr;</p><p>$sth->execute({ this => $this, that => $that, });<br />
+</code></pre><br />
+この例だと、thisとthatがそれぞれ名前付きプレースホルダとして扱われるようですね。<br/>DBIx::Simple::DataSectionと組み合わせることでかなり直感的に扱うことができそうな感じです。<br/>ただ、これを使う場合はDBIx::Simpleとの排他になってしまいますね。</p><p>個人的にはやりたかった内容は見つかったので、ほぼ(自己)満足です。<br/>明日はPerl界の3大バーテンダーの一人でもあるcharsbarさん！(と思います)</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="hisaichi5518">
+        <title>Data::Validatorでバリデーションする - Articles Advent Calendar 2010 Casual</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Data::Validatorでバリデーションする</h1>
+
+        <p>はじめまして！<a href="http://twitter.com.hisaichi5518">@hisaichi5518</a>です。就活生です。誰か雇ってください。<br />
+Text::Xatenaについて書こうと思っていたんですが、もう<a href="/articles/advent-calendar/2010/meta_adcal/5">Text::Xatenaの記事</a>が他のトラックにあるので、今日はgfxさんによってリリースされた<a href="https://github.com/gfx/p5-Data-Validator">Data::Validator</a>を紹介しようと思います。</p>
+
+<div class="section">
+    <h4>Data::Validator とは</h4>
+    <p>実行時型チェック / パラメーターチェックが出来る便利なモジュールです。<br />
+現在、Params::Validateがデファクトスタンダードっぽいんですが、速度が遅かったりするので正直微妙です。</p>
+
+</div>
+<div class="section">
+    <h4>ベンチマーク</h4>
+    <p><a href="https://github.com/gfx/p5-Data-Validator/blob/master/benchmark/simple.pl">p5-Data-Validator/benchmark/simple.pl</a></p>
+
+    <pre class="code">Params::Validate/0.95
+Smart::Args/0.06
+Data::Validator/0.06
+without type constraints
+                   Rate   P::Validate P::Validate/off       S::Args D::Validator
+P::Validate     20968/s            --             -1%          -44%         -67%
+P::Validate/off 21144/s            1%              --          -43%         -67%
+S::Args         37179/s           77%             76%            --         -42%
+D::Validator    63999/s          205%            203%           72%           --</pre>
+<p>Data::Validatorが抜群に早いですね。素晴らしい。これは試してみないと！！！！<br />
+というわけで試しましょう。</p>
+
+</div>
+<div class="section">
+    <h4>Data::Validatorのインストール</h4>
+    
+    <pre class="code">    cpanm Data::Validator</pre>
+<p>CPANにも上がってるので簡単ですね！</p>
+
+</div>
+<div class="section">
+    <h4>Data::Validatorの使い方</h4>
+    
+    <pre class="code lang-perl">    use Data::Validator;
+    my $v = Data::Validator-&gt;new(
+        hoge =&gt; { isa =&gt; &#34;Num&#34; },
+    );
+    my $args = $v-&gt;validate(hoge =&gt; 123);</pre>
+<p>これまた簡単！<br />
+isaだけなら、「 hoge => "Num" 」でも大丈夫です。<br />
+例えば、以下のようにすると「Invalid value for 'hoge': Validation failed for 'Num' with value str」と怒られます。</p>
+
+    <pre class="code lang-perl">    my $args = $v-&gt;validate(hoge =&gt; &#34;str&#34;);</pre>
+<p>isaは、Mouseのtype constraint名か任意のtype constraintオブジェクトを渡す事が出来ます。<br />
+<a href="http://search.cpan.org/dist/Mouse/lib/Mouse/Util/TypeConstraints.pm#Default_Type_Constraints">Mouse::Util::TypeConstraintsのDefault Type Constraints</a>とかですね。<br />
+URIかどうか確かめたい！という時はこうします。</p>
+
+    <pre class="code lang-perl">use Data::Validator;
+use MouseX::Types::URI;
+
+my $v    = Data::Validator-&gt;new( uri =&gt; { isa =&gt; &#39;URI&#39; } );
+my $args = $v-&gt;validate(uri =&gt; &#39;http://example.com/&#39;);</pre>
+<p>あらまあ、簡単。</p>
+
+    <pre class="code">use Mouse::Util::TypeConstraints;
+use Data::Validator;
+
+my $MyHash = subtype &#39;MyHash&#39;, as &#39;HashRef&#39;;
+coerce $MyHash,
+    from &#39;ArrayRef&#39;, via { +{ @{$_} } };
+
+my $v = Data::Validator-&gt;new(
+    foo =&gt; $MyHash,
+);
+$v-&gt;validate({ foo =&gt; { a =&gt; 42 } }); #=&gt; { foo =&gt; { a =&gt; 42 } }
+$v-&gt;validate({ foo =&gt; [ a =&gt; 42 ] }); #=&gt; { foo =&gt; { a =&gt; 42 } }</pre>
+<p>なんて事も出来ます。これは、<a href="https://github.com/gfx/p5-Data-Validator/blob/master/t/006_moose_coerce.t">テストからコピペした</a>んですけども。</p><p>Data::Validatorをもっと詳しく知りたい場合は<a href="http://search.cpan.org/dist/Data-Validator/lib/Data/Validator.pm">POD</a>とか<a href="https://github.com/gfx/p5-Data-Validator/tree/master/t">/t以下</a>を見ればいいと思います。</p>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>Data::Validatorかんたん、はやい、べんり！<br />
+これだけべた褒めしておいてなんですが、このモジュールはリリースされたばかりです。<br />
+みんなでたくさん使って、さらにいいものにしていきましょう！</p><p>「OSSは使って育てるもの。」by <a href="http://twitter.com/#!/__gfx__/status/9988955441209346">@__gfx__</a></p><p>次は、<a href="http://twitter.com/bayashi">bayashi</a>さんです！</p>
+
+</div>
+<div class="section">
+    <h4>関連リンク</h4>
+    <p><a href="http://d.hatena.ne.jp/gfx/20101111/1289481327">Idea of Data::Validator</a><br />
+コンセプトとかが書かれています。<br />
+<a href="http://d.hatena.ne.jp/gfx/20101112/1289548718">Data::Validatorの凝った使い方</a><br />
+ここでは説明してないメソッドwith()について書かれています。<br />
+<a href="https://github.com/gfx/p5-Data-Validator">Data::Validator</a><br />
+github<br />
+<a href="http://search.cpan.org/dist/Data-Validator/">Data::Validator</a><br />
+CPAN</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

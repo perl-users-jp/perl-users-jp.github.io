@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="kazeburo">
+        <title>それCallbacksで - DBIxを作りだす前に - Articles Advent Calendar 2011 Dbix</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>それCallbacksで - DBIxを作りだす前に</h1>
+
+        <p>どうもkazeburoです。DBIx Trackなのに、DBIxを作らない話。</p><p>myfinderさんがDBIxを作る第一歩としてDBIのサブクラスの作り方を紹介しましたが、実際にDBIxを作り出す前に、その機能がDBIの標準機能でできないか調べるのがオススメです。</p>
+
+<div class="section">
+    <h4>Callbacksの基本</h4>
+    <p>CallbacksはDBIに標準で用意されているHook機能です。</p>
+
+    <pre class="code">my $dbh = DBI-&gt;connect(&#39;dbi:SQLite:dbname=test.db&#39;,&#39;&#39;,&#39;&#39;, {
+    RaiseError =&gt; 1,
+    PrintError =&gt; 0,
+    Callbacks =&gt; {
+        connected =&gt; sub {
+            ...
+        }
+    }
+});</pre>
+<p>接続時のAttributesにCallbacksを追加します。上では接続が完了(connected)したらcoderefが呼び出されます。</p><p>接続時にテーブルを作成するなら</p>
+
+    <pre class="code">connected =&gt; sub {
+    my $dbh = shift;
+    $dbh-&gt;do(&lt;&lt;EOF);
+CREATE TABLE IF NOT EXISTS tbl (
+    id           INTEGER      NOT NULL PRIMARY KEY,
+    name         VARCHAR(255) NOT NULL,
+    meta         TEXT NOT NULL DEFAULT &#39;&#39;,
+    created_at   DATETIME     NOT NULL
+)
+EOF
+    return;
+},</pre>
+<p>などと書けます。DBIのcallbackでは最後にundefを返します。</p><p>connect時のattribute以外でも Database Handler(dbh) に対してCallbackを追加することが可能です<br />
+ </p>
+
+    <pre class="code">$dbh-&gt;{Callbacks} = {
+   &#39;do&#39; =&gt; sub {
+        ...
+    },
+};</pre>
+<p>connected や do の他にも prepare、select(all|row|col)_(array|arrayref|hashref) などの Database Handler(dbh) のメソッドもこの方法でcallbackが登録できます。</p>
+
+</div>
+<div class="section">
+    <h4>Statement Handler への Callback 登録</h4>
+    <p>Statement Handler(sth) に対するHookは、ChildCallbacks を使うと簡単に登録が可能です。ChildCallbacksを使わない場合、sthに対して毎回 Callbacksを設定する必要があります。</p>
+
+    <pre class="code">my $dbh = DBI-&gt;connect(&#39;dbi:SQLite:dbname=test.db&#39;,&#39;&#39;,&#39;&#39;, {
+    RaiseError =&gt; 1,
+    PrintError =&gt; 0,
+    Callbacks =&gt; {
+        ChildCallbacks =&gt; {
+            &#39;execute&#39; =&gt; sub {
+                ...
+            }
+        },
+    },
+}</pre>
+<p>これで、prepare => execute 時でも登録したcoderefを起動できます。</p>
+
+</div>
+<div class="section">
+    <h4>サンプル</h4>
+    <p>以下は、Hookを利用してbind parameterにundefind valueが入っていたらエラーとするサンプル。NULLが意図しない形で入る事で全行舐めることが起きることを防げます。</p>
+
+    <pre class="code">my $callback = sub {
+    my ($obj,$query,$attr,@binds) = @_;
+    my $i=0;
+    map { ! defined $_ &amp;&amp; die(&#34;undefined bind value found at \#$i, in query \x27$query\x27&#34;); $i++ } @binds;
+    return;
+};
+  
+my %callbacks;
+$callbacks{$_} = $callback for qw/do selectrow_array selectrow_arrayref
+                                  selectrow_hashref selectall_arrayref
+                                  selectall_hashref selectcol_arrayref/;
+
+my $dbh = DBI-&gt;connect(&#39;dbi:SQLite:dbname=test.db&#39;,&#39;&#39;,&#39;&#39;, {
+    RaiseError =&gt; 1,
+    Callbacks =&gt; {
+        %callbacks,
+        ChildCallbacks =&gt; {
+            &#39;execute&#39; =&gt; sub {
+                my ($obj,@binds)=@_;
+                $callback-&gt;($obj, $obj-&gt;{Statement}, undef, @binds);
+                return;
+            },
+        },
+    },
+});
+
+eval { 
+    my $sth = $dbh-&gt;prepare(&#34;SELECT * FROM hoge WHERE foo=?&#34;);
+    $sth-&gt;execute($foo);
+};
+like( $@, qr/undefined bind value found/);
+
+eval {
+    $dbh-&gt;selectrow_arrayref(&#34;SELECT * FROM hoge WHERE foo=?&#34;,undef,$foo);
+};
+like( $@, qr/undefined bind value found/);</pre>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>Callbacksを使うと、DBIxを作らなくてもDBIの拡張ができます。が、Attributesの階層が深くなったりCallbackの管理がうまくできないので、やりたい事が溜まったら、サブクラスに挑戦してみるのも良いんじゃないかなぁと思ってます。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

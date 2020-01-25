@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Perl::Tidyで明快コーディング！ - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Perl::Tidyで明快コーディング！ - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Perl::Tidyで明快コーディング！<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/casual/09.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/casual/09.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>Perlのコードを書くとき、CPANモジュールを作成するとき、そして就職活動時のエントリーで課題のperlスクリプトを提出する時に超実益的で役立つ、Perl::Tidyを紹介してみます。</p>
+</div>
+<div class="section">
+<h3> Perl::Tidyとは</h3>
+<p>ソースコードを解析して美しく麗しいコードにしてくれる、怠け者ばかりなPerl userには欠かせないモジュールです。</p>
+</div>
+<div class="section">
+<h3> インストール</h3>
+<p>CPANからインストールします。</p>
+<pre>
+cpan Perl::Tidy
+</pre>
+
+<p>Windows上でActivePerlを使っている場合は、PPMパッケージとしてインストールします。</p>
+<pre>
+ppm install Perl-Tidy
+</pre>
+</div>
+<div class="section">
+<h3> 使い方</h3>
+<p>以下のような汚いコードがあるとします。mud10years.plとでも名付けることにします。</p>
+<pre>
+use strict;use warnings;my $module="Perl::Tidy";my $user=
+ "haoyayoi";my $desc1=" is so coolist module.";my $desc2= " Lets try it!";my $deschash = {module=&gt;"$module",
+desc =&gt;$desc1.     $desc2,
+};
+print $deschash-&gt;{module}.$deschash-&gt;{desc}." by $user";
+</pre>
+<p>このコードを実行すると、次のように出力されます。</p>
+<blockquote>
+<p>Perl::Tidy is so coolist module. Lets try it! by haoyayoi</p>
+</blockquote>
+<p>正常に出力されるのは判りました。ですが、肝心のソースコードがいびつすぎて読みづらいため、保守性にも欠けます。Perl::Tidyを使って、綺麗に整形されたコードとして出力してみます。</p>
+<pre>
+perltidy mod10years.pl -o future10years.pl
+</pre>
+<p>これで future10years.pl というファイルが生成されました。このファイルには以下の整形された状態のコードが収まっています。</p>
+<pre>
+use strict;
+use warnings;
+my $module   = "Perl::Tidy";
+my $user     = "haoyayoi";
+my $desc1    = " is so coolist module.";
+my $desc2    = " Lets try it!";
+my $deschash = {
+    module =&gt; "$module",
+    desc   =&gt; $desc1 . $desc2,
+};
+print $deschash-&gt;{module} . $deschash-&gt;{desc} . " by $user";
+</pre>
+<p>すっきりと見通しがよくなりました！</p>
+</div>
+<div class="section">
+<h3> テキストエディタのマクロとしての利用</h3>
+<p>Perl::Tidyが素晴らしい整形機能を持っていることはわかりました。ですが、毎回ファイルに出力してシェルコマンドを通すのも億劫です。そこで、テキストエディタからマクロとして利用できるようにしてみます。</p>
+
+<p>vimを使っているので、vimのマクロをあげてみます。</p>
+<pre>
+echo "map ,ptv <esc>:'&lt;,'&gt;! perltidy<cr>" &gt;&gt; ~/.vimrc
+source ~/.vimrc
+</pre>
+<p>ビジュアルモードにして対象のコードを選択し、,ptvの順にキーを押すと整形処理が実行されます。非常にお手軽ですね！</p>
+
+<p>EmacsやEmEditorなど、ほかにも様々なテキストエディタでも、それぞれにあわせたマクロを作成することで可能になります。</p>
+</div>
+<div class="section">
+<h3> perltidyのもう一つ機能</h3>
+<p>perltidyがソースコードを綺麗に整えてくれることはわかりましたが、これ以外にも優れた機能が存在します。オプションに -html を加えることにより、ハイライトされたHTMLドキュメントとして出力が可能です。</p>
+<pre>
+perltidy -html mud10years.pl
+</pre>
+<p>ただし、このオプションではコードの整形は行われません。そこで、出力がSTDOUTとなる -st オプションとpipeを組み合わせて少し工夫してみます。</p>
+<pre>
+perltidy -st mud10years.pl | perltidy -html -nnn -o beautifull10years.html
+</pre>
+<p>これで、ハイライト＋行ナンバリング＋整形の組み合わせが実現されたドキュメントが出力されるようになりました。</p>
+
+<p>PODが含まれているモジュールを対象にする場合は、HTMLドキュメント出力時に -frm オプションも使ってみましょう。</p>
+</div>
+<div class="section">
+<h3> Best Practiceとしてのすすめ</h3>
+<p>Perl::Tidyは Perl Best Practice (PBP) なコーディングを行う上で利用推奨されています。$HOME/.perltidyrc に -pbp と書いて保存することでperltidy実行時にPBPスタイルが反映されます。</p>
+
+<p>.perltidyrcには -h オプションで表示される内容が指定できるので、自分なりの設定も見つけてみましょう。</p>
+</div>
+<div class="section">
+<h3> おまけ</h3>
+<p>前日のsugyanさんが書いた記事に、記号プログラムが掲載されています。興味のある人はPerl::Tidyに通してみましょう。</p>
+</div>
+<div class="section">
+<h3> まとめ</h3>
+<p>Perlは色々な書き方ができるが故にソースコードも十人十色です。インデントの置き方からスペースのはさみ方、括弧との位置づけまでいろいろな組み合わせがあるため、ソースコードの整形だけで楽しくなってしまう人もいるかもしれません。ですが、ソースコード整形なんておまけです。整形なんてPerl::Tidyに任せて、新しいコードを書くべきです。</p>
+
+<p>モジュール作成、およびplファイル作成でPerl::Tidyは役に立ちますが、それ以外でもコーディングスタイルが定まらない場合などの参考にもなります。モダンなコーディングを手にするきっかけとして、一度使用してみてはいかがでしょうか。</p>
+
+<p>明日はxaicronさんです！お楽しみに！</p>
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/casual/09.html">Tue, 08 Dec 2009 15:00:01 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

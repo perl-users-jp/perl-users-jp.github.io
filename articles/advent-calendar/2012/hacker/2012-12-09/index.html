@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="Daisuke Maki (aka lestrrat)">
+        <title>Scope::Guard等でリソース解放を実装する際に知っておきたいこと - Articles Advent Calendar 2012 Hacker</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Scope::Guard等でリソース解放を実装する際に知っておきたいこと</h1>
+
+        <p>みなさんガードオブジェクト使ってますか。ガードオブジェクトとは一般的には</p>
+
+<ul>
+<li>オブジェクト生成時になんらかのリソースを初期化・取得</li>
+<li>オブジェクト解放時に該当リソースを解放</li>
+</ul><p>という動作をするオブジェクトをさします。</p><p>Perlではガーベジコレクションにリファレンスカウント方式を取っているため、ガードオブジェクトが解放されるタイミングが制御しやすいので比較的頻繁にガードオブジェクトを作って様々なリソースの初期化〜解放までを簡単にコントロールしたりします。</p><p>わかりやすい例で言うと、例えば現在実行中のスクリプトが動いている間だけ別プロセスでmemcachedのようなサーバーを立てたい、という時にProc::Guardなどのモジュールを使うと、以下のようなコードを仕込むだけで簡単にmemcachedプロセスを起動、終了することができます</p>
+
+    <pre class="code lang-perl">use strict;
+use Proc::Guard;
+
+my $guard = Proc::Guard-&gt;new(command =&gt; [ &#34;memcached&#34;, &#34;-p&#34;, &#34;99999&#34; ]);
+... コード ...</pre>
+<p>この$guardオブジェクトが有効な限りはmemcachedが生き続け、スクリプト終了時には$guardオブジェクト無効化と同時にmemcachedサーバーは停止させられます。</p><p>便利ですね！</p>
+
+<div class="section">
+    <h3>それ本当に解放されてんの？</h3>
+    <p>・・・ですが、これだけで100%解放がされると安心してはいけません。特に*絶対に解放を成功させないといけない* リソースに関してはもう少し用心して実装をする必要があります。具体的には(1)シグナル処理と(2)循環参照の存在がポイントです。</p>
+
+</div>
+<div class="section">
+    <h3>罠1: シグナル</h3>
+    <p>まず簡単な例を見てみましょう。下記は最初のProc::Guardの例で示したようなかなりシンプルな使用例です。以下のスクリプトを実行すると、1秒のsleepの後、ガードがリリースされてコードが実行され、"Scope guard fired!"のメッセージが出力されるはずです。</p>
+
+    <pre class="code lang-perl">use strict;
+use Log::Minimal;
+use Scope::Guard ();
+
+my $guard = Scope::Guard-&gt;new(sub {
+    infof(&#34;$$ Scope guard fired!&#34;);
+});
+sleep 1;</pre>
+<p>ではこのスクリプトを少し変更して、ワーカーやデーモンのスクリプトのようにループを入れてみましょう。</p>
+
+    <pre class="code lang-perl">use strict;
+use Log::Minimal;
+use Scope::Guard ();
+
+my $guard = Scope::Guard-&gt;new(sub {
+    infof(&#34;$$ Scope guard fired&#34;);
+});
+infof(&#34;$$ Starting loop...&#34;);
+while (1) {
+    sleep 1;
+}</pre>
+<p>このスクリプトを実行すると、"Starting loop..."のメッセージが出力されたあと、ビジーループに入りますのでスクリプトの実行は止まりません。通常はここでCtrl-C等を押してスクリプトを止めます。では実際Ctrl-Cを押して見るとどうなるでしょう？ガードオブジェクトは実行されるでしょうか？</p><p>答えは残念ながらNOです。Ctrl-CはSIGINTとしてスクリプトに送信され、PerlのデフォルトのSIGINTに対するハンドラに全てを任せるとガードオブジェクトが正しく動作しません。具体的にはガードオブジェクトのデストラクタが実行されるチャンスがないのです。</p><p>このコードではただメッセージが表示されるかされないかというだけでしたが、これが例えば他のプロセスと共有しているファイルだったり、次回スクリプトを実行する際に存在してはいけないファイルだったりした場合は問題になってきますね。</p><p>ここでポイントとなるのは上記のコードではシグナルの処理を何もしていないということです。ならばこれを正しく動作させるためには「シグナルを受け取ったらループは終了する」「だが同時にリソース解放等のクリーンアップコードは確実に走らせる」という2点を行う必要があります。</p><p>これを行うには原理的には以下のようなコードを用意すればOKです。要はループの終了条件を設定するが、コード自体は自然の流れで走らせる、という動作をさせてやればいいのです：</p>
+
+    <pre class="code lang-perl">use strict;
+use Log::Minimal;
+use Scope::Guard ();
+
+my $guard = Scope::Guard-&gt;new(sub {
+    infof(&#34;$$ Scope guard fired&#34;);
+});
+
+my $loop = 1;
+
+# Signal handler to exit the loop after receiving SIGINT
+$SIG{INT} = sub { $loop = 0 };
+
+infof(&#34;$$ Starting loop...&#34;);
+while ($loop) {
+    sleep 1;
+}</pre>
+<p>上記のようにすることで、SIGINTを受け取った次のループは実行されず、スクリプトは正常終了し、ガードオブジェクトも正しく処理されます。</p>
+
+</div>
+<div class="section">
+    <h3>罠2: 循環参照</h3>
+    <p>まずは問題のないコードを見てみます。この例では一時ファイルにデータを書き込み、ガードオブジェクトの処理が実行された時にそれを読み込みに行きます。一時ファイルにはCLEANUPフラグが設定されていますので、本来であればスクリプト終了時にこれも解放されるべきなのですが、ガードオブジェクトに参照されているために必ず$guardの処理が先に実行されます。</p><p>よって、ガードオブジェクト解放時に必ずファイルは存在していて、そこからデータを読み込んで表示できるはずです。</p>
+
+    <pre class="code lang-perl">use strict;
+use File::Temp ();
+use Log::Minimal;
+use Scope::Guard ();
+
+my $temp  = File::Temp-&gt;new(CLEANUP =&gt;1);
+my $guard = Scope::Guard-&gt;new(sub {
+    open my $fh, &#39;&lt;&#39;, $temp-&gt;filename or
+        die &#34;Failed to open $temp: $!&#34;;
+    my $data = do { local $/; &lt;$fh&gt; };
+    infof (&#34;Data is &#39;%s&#39;&#34;, $data);
+    undef $temp;
+});
+print $temp &#34;Hello, World!\n&#34;;
+$temp-&gt;flush;</pre>
+<p>ではここに循環参照をいれるとどうなるでしょう？循環参照されているオブジェクトとはオブジェクト自ら持っているデータからいくつかの連鎖を経て、また自分への参照が保持されているオブジェクトの事を言います。リファレンスカウントによるガーベジコレクションの場合はこのような構造体はプログラム終了時まで解放されることはありません。</p><p>Perlの場合、「グローバルデストラクション」というフェーズがあり、このタイミングでこれらの循環参照されたオブジェクトの解放が行われます。すなわち循環参照されているオブジェクトだといってもリソース解放はキチンとされます。では何が問題なのでしょうか。</p><p>問題はグローバルデストラクション時にはオブジェクト解放の順番が未定義である、ということです。当然、上記例のようにガードオブジェクトが他のオブジェクトがまだ存在している事に依存している場合はその依存しているオブジェクトがすでに解放されている可能性があるのです。</p><p>上記例ではいずれ解放される一時ファイルですのでリークはありませんが、先にファイルが解放されているとデータが読み込めない、という状態になってしまいます。</p><p>このような場合ガードオブジェクトは正しく動いているのに正しく解放処理が行われない可能性があります。PSGIアプリケーションなどではクロージャをPSGIサーバーに渡すので、その際にクロージャの中で何かが循環参照されている事も多々ありますので要注意です。</p><p>それほど多く見られる状態ではありませんが オブジェクトが生きている間は必ず存在しなくてはいけないもの、プログラム終了時にはかならず解放しなくてはいけないリソースの解放にガードオブジェクトを使う場合は以下のようにグローバル・パッケージスコープの変数とEND {} ブロックをうまく使うと正しく回避できます：</p>
+
+    <pre class="code lang-perl">package MyObject;
+use strict;
+our $GUARD;
+
+sub hoge {
+    ...
+    $GUARD = Scope::Guard-&gt;new(sub {
+        ...
+    });
+}
+
+END {
+    undef $GUARD;
+}</pre>
+<p>END {} ブロックはグローバルデストラクションの前に必ず実行されますので、このタイミングで全てのガードを解放してしまう、というのが味噌です。複数ガードオブジェクトが必要な場合は<a href="https://github.com/stf-storage/stf/blob/master/lib/STF/Utils.pm#L10-L17">もっと汎用化してみるとよいかもしれません</a>。</p>
+
+</div>
+<div class="section">
+    <h3>まとめ</h3>
+    <p>ガードオブジェクトはこれ以外にも自分が書いた以外のコードを呼び出している時に予期しないエラーがあった際のクリーンアップに使ったり（しかもtry {} のように明示的にブロックを必要としない）となかなか便利なのですが、上記のようなトリッキーな状況に陥った際にはある程度の知識がないとはまりがちです。今回は自分の経験を踏まえて他の誰かが同じ轍を踏まないことを祈って記事にしてみました。Enjoy!</p><p>(なお、本記事のコードは全てperl-5.16.1 で確認しています)</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

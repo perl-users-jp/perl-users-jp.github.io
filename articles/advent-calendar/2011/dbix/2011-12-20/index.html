@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="kamipo">
+        <title>DBIx::QueryLog でクエリの実行計画も丸見えにする！ - Articles Advent Calendar 2011 Dbix</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>DBIx::QueryLog でクエリの実行計画も丸見えにする！</h1>
+
+        <p>好きって言葉は最高さーー！！！！kamipoです！！今日はAKB48の紅白対抗歌合戦があるので急いでいきたいと思います！！</p>
+
+<div class="section">
+    <h4>DBIx::QueryLog で EXPLAIN の結果もロギングしたい</h4>
+    <p>xaicron さんの9日目のエントリ、[/articles/advent-calendar/2011/dbix/9:title=DBIx::QueryLog で DBI で実行された SQL を丸見えにする！]でおなじみの神モジュール DBIx::QueryLog 便利ですよね！？<br />
+でもEXPLAINの結果もロギングできたらもっと便利だと思いませんか？僕は思いました！！</p><p>そこで、EXPLAIN の結果もロギングできる<a href="https://github.com/xaicron/p5-DBIx-QueryLog/pull/3">&#x30D1;&#x30C3;&#x30C1;</a>を取り込んでもらったので、新しいのが出たら使えるようになると思います！(いまはまだMySQLだけですが…)</p>
+
+</div>
+<div class="section">
+    <h4>つかいかた</h4>
+    <p>とくにクエリに意味はないですが、こういうクエリを投げると</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+use DBI;
+use DBIx::QueryLog;
+
+my $dbh = DBI-&gt;connect(
+    &#34;DBI:mysql:dbname=test;host=localhost&#34;,
+    {
+        AutoCommit =&gt; 1,
+        RaiseError =&gt; 1,
+    },
+) or die $DBI::errstr;
+
+DBIx::QueryLog-&gt;explain(1);
+
+my $rows = $dbh-&gt;selectall_arrayref(
+    &#39;SELECT * FROM akb48 a, akb48 k, akb48 b WHERE a.id = k.id AND k.id = b.id AND a.id = ?&#39;,
+    +{ Slice =&gt; +{} },
+    48,
+);</pre>
+
+    <pre class="code">[2011-12-20T17:01:10] [main] [0.000581] SELECT * FROM akb48 a, akb48 k, akb48 b WHERE a.id = k.id AND k.id = b.id AND a.id = &#39;48&#39; at akb48.pl line 18
+.---------------------------------------------------------------------------------------------.
+| id | select_type | table | type  | possible_keys | key     | key_len | ref   | rows | Extra |
++----+-------------+-------+-------+---------------+---------+---------+-------+------+-------+
+|  1 | SIMPLE      | a     | const | PRIMARY       | PRIMARY |       4 | const |    1 |       |
+|  1 | SIMPLE      | k     | const | PRIMARY       | PRIMARY |       4 | const |    1 |       |
+|  1 | SIMPLE      | b     | const | PRIMARY       | PRIMARY |       4 | const |    1 |       |
+&#39;----+-------------+-------+-------+---------------+---------+---------+-------+------+-------&#39;</pre>
+<p>EXPLAIN がログに出ました！これで INDEX が効いてないクエリもすぐ見つけられて捗りますね！！</p><p>これだけだとあれなので、僕が EXPLAIN でどこを見てよくないクエリを判断してるのかというと、まずは rows を見ればいいです。rows が十分に小さいクエリは大丈夫です。rows が大きいと重いクエリになりうるのでそういうときに possible_keys や key を見て自分が想定してる実行計画か、もっとよい実行計画にできるかを考えるのがよいと思います。</p><p>それではそろそろ時間なのでこれにて。</p><p>あ～〜！よっしゃいくぞーー！！！！</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

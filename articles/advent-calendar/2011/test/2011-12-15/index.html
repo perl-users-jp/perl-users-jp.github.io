@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="xaicron">
+        <title>テストのカバレッジを出す - Articles Advent Calendar 2011 Test</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>テストのカバレッジを出す</h1>
+
+        
+<div class="section">
+    <h4>はじめに</h4>
+    <p>最近腰痛と肩こりで寝るのも辛い xaicron です。凝り固まった体と心を優しくときほぐしてくれる。そんな人間を皆さんには目指して欲しい。</p><p>さて、今日はテストのカバレッジを取る方法についてちょろっと書こうと思います。</p><p>カバレッジというと原理主義てきな人たちにはご褒美であり、僕らのような lazy な人間にはちょっとめんどくさいなって感じますね。<br />
+要件的議所とかにカバレッジ率 100% を目指せ！みたいなことが書いてあったりして、それが目的になっちゃったりすることもあるかと思います。</p><p>でもまぁ、カバレッジを上げることが本当の目的ではないので、あくまでも目安として使うぐらいでいいでしょう。だってカバレッジ上げるとかめんｄ（ｒｙ</p>
+
+</div>
+<div class="section">
+    <h4>カバレッジを取る</h4>
+    <p>perl でカバレッジを取る方法といえば Devel::Cover ですね。他にもいろいろありますが。</p><p>とりあえず、テストしたいプロジェクトにいって</p>
+
+    <pre class="code">$ perl Makefile.PL
+$ cover -test</pre>
+<p>ってするだけでテストカバレッジが取れます！すごい！！</p><p>ちなみに以下は、拙作の DBIx::QueryLog でカバレッジを取った結果です。</p>
+
+    <pre class="code">---------------------------- ------ ------ ------ ------ ------ ------ ------
+File                           stmt   bran   cond    sub    pod   time  total
+---------------------------- ------ ------ ------ ------ ------ ------ ------
+blib/lib/DBIx/QueryLog.pm      99.5   82.4   82.1  100.0    0.0  100.0   90.7
+Total                          99.5   82.4   82.1  100.0    0.0  100.0   90.7
+---------------------------- ------ ------ ------ ------ ------ ------ ------</pre>
+<p>ぶっちゃけ 60% ぐらいかと思ってましたが、結構ちゃんとテスト書いてあったみたいです！安心ですね。<br />
+これは一個しかモジュール無いのであれですが、複数あるばあいもちゃんと OK です。</p><p>pod が 0% なのはこのモジュールの特性上致し方なし。</p><p>読み方は、それぞれ</p>
+
+<table>
+    <tr>
+    <th>word</th>
+    <th>意味                                                 </th>
+    </tr>
+    <tr>
+    <td>stmt </td>
+    <td>命令網羅率。いわゆるひとつのステートメント            </td>
+    </tr>
+    <tr>
+    <td>barn </td>
+    <td>分岐網羅率。if とか else とか                         </td>
+    </tr>
+    <tr>
+    <td>cond </td>
+    <td>条件網羅率。or とか and とか                          </td>
+    </tr>
+    <tr>
+    <td>sub  </td>
+    <td>サブルーチンの網羅率。そのまま                        </td>
+    </tr>
+    <tr>
+    <td>pod  </td>
+    <td>ドキュメント網羅率。実装しているサブルーチンを書くべし</td>
+    </tr>
+    <tr>
+    <td>time </td>
+    <td>なんじゃらほい                                        </td>
+    </tr>
+</table><p>barn と cond を 100% にするのは結構たいへんなので sub と stmt ぐらいをある程度上げとけばいいのかなって思います。</p><p>ちなみに、これの詳細な結果は cover_db/coverage.html をみるとわかります。</p><p>開くと以下のような感じになっています。</p><p><img src="https://github.com/perl-users-jp/perl-advent-calendar/raw/master/2011/test/2011-12-15/7603de72eb477e2c245d3c5514033289.png" /></p><p>cond とかをクリックすると以下のようになっててとってもわかりやすいですね。</p><p><img src="https://github.com/perl-users-jp/perl-advent-calendar/raw/master/2011/test/2011-12-15/5605bfcd423be976d6b15cf4adda6593.png" /></p><p>これを見ながらいろいろと修正してカバレッジを上げて行きましょう！！</p><p>やり終えたら</p>
+
+    <pre class="code">$ cover -delete</pre>
+<p>とかすれば、cover_db が消えてすっきりですね。</p>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>超絶簡単にカバレッジを取得できるので、「あれ、わたしのカバレッジ低すぎ？」と思ったらこっそり上げて行きましょう！<br />
+まぁ何事も程々にですけど。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

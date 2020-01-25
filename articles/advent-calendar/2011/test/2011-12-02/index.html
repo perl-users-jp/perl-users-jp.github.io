@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>use Test::Attribute::AutoLevel - Articles Advent Calendar 2011 Test</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>use Test::Attribute::AutoLevel</h1>
+
+        <p>こんにちは、ｶﾜ(・∀・)ｲｲ!!アイコンで有名なnekokakだよ。</p><p>今日はｶﾜ(・∀・)ｲｲ!!僕がつくった<a href="http://search.cpan.org/dist/Test-Attribute-AutoLevel/">Test::Attribute::AutoLevel</a>という<br />
+イカしたモジュールを紹介してみたいと思うんだ。</p><p>僕はテストを書く時にテスト用の便利関数を定義することがよくあるんだ。<br />
+そのテスト関数の中でTest::Moreのテスト関数を実行するんだけど、<br />
+そこでテストがコケたときに表示されるエラーメッセージがおかしなことになるんだ。</p><p>例えば</p>
+
+    <pre class="code">use strict;
+use warnings;
+use Test::More;
+
+sub test_cute_icon {
+    my $icon = shift;
+    is $icon-&gt;{state}, &#39;cute&#39;;
+}
+
+{
+    package My::Icon;
+    sub new {
+        my ($class, $opts) = @_;
+        bless $opts, $class;
+    }
+}
+
+my $icon = My::Icon-&gt;new(+{name =&gt; &#39;nekokak&#39;, state =&gt; &#39;not cute&#39;});
+
+test_cute_icon($icon);
+
+done_testing;</pre>
+<p>こんなテストがあったとするよね。<br />
+これを./t/01_cute.tというファイル名として実行すると、</p>
+
+    <pre class="code">not ok 1
+#   Failed test at ./t/01_cute.t line 7.
+#          got: &#39;not cute&#39;
+#     expected: &#39;cute&#39;
+1..1
+# Looks like you failed 1 test of 1.</pre>
+<p>こんな感じのエラーがでるんだ。<br />
+Test::Moreのテスト関数はテストが失敗した行数を表示してくれるからそこを見に行くんだけど、<br />
+テスト失敗箇所として表示されている７行目を見に行っても<br />
+test_cute_icon関数内の</p>
+
+    <pre class="code">is $icon-&gt;{state}, &#39;cute&#39;;</pre>
+<p>の行数が表示されちゃうよね。</p><p>でも、実際に表示して欲しい行数って２２行目の</p>
+
+    <pre class="code">test_cute_icon($icon);</pre>
+<p>ココだと思うんだよ。<br />
+今回はtest_cute_icon関数を一回しか呼び出してないから、すぐに何が原因かは分かると思うんだけど、<br />
+便利関数を定義するくらいだから、何度も呼び出すよね？<br />
+そうすると、どこで便利テスト関数をよびだしてテストが失敗しても同じ行数をレポートしてしまう。</p><p>／(^o^)＼ﾅﾝﾃｺｯﾀｲ</p><br />
+<p>Test::Moreには呼び出し改装を制御するしくみがあるんだ。<br />
+その仕組みを利用するとこんな感じになる。</p>
+
+    <pre class="code">use strict;
+use warnings;
+use Test::More;
+
+sub test_cute_icon {
+    my $icon = shift;
+    local $Test::Builder::Level = $Test::Builder::Level + 1;
+    is $icon-&gt;{state}, &#39;cute&#39;;
+}
+
+{
+    package My::Icon;
+    sub new {
+        my ($class, $opts) = @_;
+        bless $opts, $class;
+    }
+}
+
+my $icon = My::Icon-&gt;new(+{name =&gt; &#39;nekokak&#39;, state =&gt; &#39;not cute&#39;});
+
+test_cute_icon($icon);
+
+done_testing;</pre>
+<p>$Test::Builder::Levelをlocal定義して値を設定して上げる感じだね。<br />
+そうすると実行結果は</p>
+
+    <pre class="code">not ok 1
+#   Failed test at ./t/01_cute.t line 21.
+#          got: &#39;not cute&#39;
+#     expected: &#39;cute&#39;
+1..1
+# Looks like you failed 1 test of 1.</pre>
+<p>って想定した行数がでるよね。<br />
+でもさ、</p>
+
+    <pre class="code">local $Test::Builder::Level = $Test::Builder::Level + 1;</pre>
+<p>って書くのダサいよね？長いし。</p><p>ってことで作ったのがTest::Attribute::AutoLevelなんだ。<br />
+使い方は超簡単だよ。</p>
+
+    <pre class="code">use strict;
+use warnings;
+use Test::More;
+use Test::Attribute::AutoLevel;
+
+sub test_cute_icon : AutoLevel {
+    my $icon = shift;
+    is $icon-&gt;{state}, &#39;cute&#39;;
+}
+
+{
+    package My::Icon;
+    sub new {
+        my ($class, $opts) = @_;
+        bless $opts, $class;
+    }
+}
+
+my $icon = My::Icon-&gt;new(+{name =&gt; &#39;nekokak&#39;, state =&gt; &#39;not cute&#39;});
+
+test_cute_icon($icon);
+
+done_testing;</pre>
+<p>こんなふうにするだけなんだ。<br />
+Test::Attribute::AutoLevelをuseして、<br />
+便利テスト関数名のところに: AutoLevelっていうattributeをつけるだけだね。</p><p>そうすると、テスト実行結果はこんなかんじになる。</p>
+
+    <pre class="code">not ok 1
+#   Failed test at ./t/01_cute.t line 21.
+#          got: &#39;not cute&#39;
+#     expected: &#39;cute&#39;
+1..1
+# Looks like you failed 1 test of 1.</pre>
+<p>実際に便利テスト関数を呼び出した行数がテスト失敗行数としてレポートされるね。</p><p>＼(^o^)／YATTA!</p><br />
+<p>localとかよくわかんないことやらなくても簡単にleveを制御できたね♪</p><br />
+<p>最後にテストがコケたままだと隣の人に嫌味言われるかもしれないので、テストが通るようにしとくね。</p>
+
+    <pre class="code">use strict;
+use warnings;
+use Test::More;
+use Test::Attribute::AutoLevel;
+
+sub test_cute_icon : AutoLevel {
+    my $icon = shift;
+    is $icon-&gt;{state}, &#39;cute&#39;;
+}
+
+{
+    package My::Icon;
+    sub new {
+        my ($class, $opts) = @_;
+        bless $opts, $class;
+    }
+}
+
+my $icon = My::Icon-&gt;new(+{name =&gt; &#39;nekokak&#39;, state =&gt; &#39;cute&#39;});
+
+test_cute_icon($icon);
+
+done_testing;</pre>
+<p>実行結果はこうだよ</p>
+
+    <pre class="code">$ prove -lvc ./t/01_cute.t
+./t/01_cute.t .. 
+ok 1
+1..1
+ok
+All tests successful.
+Files=1, Tests=1,  0 wallclock secs ( 0.04 usr  0.01 sys +  0.03 cusr  0.00 csys =  0.08 CPU)
+Result: PASS</pre>
+<p>All tests successful.だね！</p><p>こんな感じでみんな気持ちよくテスト書けるように工夫するといいよ。<br />
+じゃあね。</p><p>明日はikasam_aさんだよ</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

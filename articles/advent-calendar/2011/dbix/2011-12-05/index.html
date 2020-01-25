@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="hirobanex">
+        <title>PerlのO/Rマッパーよくある機能一覧 - Articles Advent Calendar 2011 Dbix</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>PerlのO/Rマッパーよくある機能一覧</h1>
+
+        <p>こんにちは！<a href="http://twitter.com/hirobanex">hirobanex</a>です！Casualなぼくなんで、Casual向けに、生DBIじゃなくてDBIx系が出てくる理由とか、O/Rマッパーでできることとか、そんな感じのふわっとしたところを考えてまとめてみたいと思います。</p>
+
+<div class="section">
+    <h4>サマリ</h4>
+    <p>ざっくりまとめると、O/Rマッパーの機能一覧（＝DBIで扱いづらい一覧）は以下のようになります。</p>
+
+<ul>
+<li>トランザクション管理</li>
+<li>Fork管理</li>
+<li>コネクション管理</li>
+<li>警告／エラー設定</li>
+<li>Perl内部文字列化設定</li>
+<li>トリガー</li>
+<li>クエリビルディング</li>
+<li>インフレイト／デフレイト</li>
+<li>リレーション設定</li>
+</ul><p>さて、それぞれCasualに解説していきたいと思います。</p>
+
+</div>
+<div class="section">
+    <h4>トランザクション管理</h4>
+    <p>DBIを生で使って、autocommitオプションから、beginとかcommitとかrollbackしたりしてもいいですが、もっと簡単（気軽に）に使いたいと思いますよね？！例えば、小分けにしたメソッドをまとめて、全体でトランザクションかけるんだけど、小分けにしたメソッド個別でもトランザクションかけておきたいかいう場合ですね。O/Rマッパーでは良い感じに、ネストをサポートした、トランザクション開始を宣言から終了宣言までの間でコミットとロールバックしてくれるメソッドが提供されています！その他、詳しくは、[/articles/advent-calendar/2011/dbix/1:title=第一回のnekokakさんの『DBIx::Handlerで安心DB生活』]を御覧ください。</p>
+
+</div>
+<div class="section">
+    <h4>Fork管理</h4>
+    <p>生のDBIを使ってParallel::ForkmanagerとかPrefork型のサーバーを使っていたりすると問題が発生することがあります。詳しくは、[/articles/advent-calendar/2011/dbix/4:title=第四回のnihenさんの『続DBIとforkの関係』]を御覧ください。</p>
+
+</div>
+<div class="section">
+    <h4>コネクション管理</h4>
+    <p>DBIを生で使っていると、データベース側からいつの間にかコネクション切られてしまったり、[/articles/advent-calendar/2010/hacker/3:title=意図せずダラダラとコネクションが維持され続けたり]、悩ましいことが多いですね。とりあえず、トランザクションとかForkとかコネクションはわりと密結合な関係なので、O/RマッパーとかDBIx系のモジュールまかせるに越したことはありませんね！</p>
+
+</div>
+<div class="section">
+    <h4>警告／エラー設定</h4>
+    <p>DBIには、RaiseErrorとかPrintErrorとか設定がありますが、最初はなんだかよくわかりませんね。なので、このあたりの設定もとりあえず、O/Rマッパーとか任せるいいですね。</p>
+
+</div>
+<div class="section">
+    <h4>Perl内部文字列化設定</h4>
+    <p>外部の文字列はデコードしてからPerlで扱うのが一般的です。なので、DBから取得したデータもしたいのですが、いちいちselectするたびにデコードするのはしんどいですね！このあたりを良い感じに一括で行う設定はDBIだとデータベース別に違うので、これもO/Rマッパーに任せると楽ですね。</p>
+
+</div>
+<div class="section">
+    <h4>トリガー</h4>
+    <p>insertする前／後、updateする前／後などに、実行した機能を実装できるのがトリガーです。データベース側でもトリガーがついていますが、プログラムベースでもトリガーがつけられると、コード側にロジックを確保できるのでうれしかったりします。</p>
+
+</div>
+<div class="section">
+    <h4>クエリビルディング</h4>
+    <p>Perlのデータ構造でSQL文を表現することです。O/Rたる所以ですが、生SQLを書くのがしんどいことがありますね。クエリビルダーを使うと、ある程度リファレンスができているときに$db->search('user',$where)のように取得できたり、条件によって$whereを切り替えたりするのに非常に便利です。また、find_or_createとか$db->insert($table, \%record, 'INSERT IGNORE');みたいなショートカットメソッドもあったりますね。非常に開発しやすいですね！</p>
+
+</div>
+<div class="section">
+    <h4>インフレイト／デフレイト</h4>
+    <p>SQLにの返り値の生データをPerlオブジェクトにするのがインフレイトで、PerlオブジェクトからSQLのデータ文字列にするのがデフレイトです。具体的には、「Perl内部文字列化設定」のように、Perlコード内では、日付データを生ではなくDateTimeのオブジェクトで持っていたかったり、Perlのデータ構造をSQL内ではJSONなどで保存しておきたかったり、というケースに利用できます。とてもうれしいですね！</p>
+
+</div>
+<div class="section">
+    <h4>リレーション設定</h4>
+    <p>RDBMSでは、テーブル間でカラムを共有することがほとんどです。userテーブルのプライマリーキーのidが、tweetテーブルのキーになっていたり、テーブル間でいろんな関係が表現されていますが、O/Rマッパーでもその関係を描くことができます。意識して使えば便利ですね！詳しくは、<a href="http://gihyo.jp/dev/serial/01/perl-hackers-hub/000301?page=2">&#x3053;&#x3061;&#x3089;&#x306E;typester&#x3055;&#x3093;&#x306E;&#x300C;&#x30EA;&#x30EC;&#x30FC;&#x30B7;&#x30E7;&#x30F3;&#x306E;&#x5B9A;&#x7FA9;&#x300D;&#x306E;&#x89E3;&#x8AAC;</a>ご御覧ください。</p>
+
+</div>
+<div class="section">
+    <h4>【補足】Iteratorオブジェクト、Rowオブジェクト</h4>
+    <p>O/Rマッパーとか使っていると、クエリのリターンバリューが、このようなオブジェクトになっていると思います。「なんかちょっとわかりづらいなー、小難しいなー」という気が最初はするのですが、このようなオブジェクトのカタチに実装することで、上述してきた機能を実装することが可能になりますし、その他の便利な機能を実装されているので、しっかりO/Rマッパーのドキュメントやコード読んで使うといいですね。</p>
+
+</div>
+<div class="section">
+    <h4>最後に</h4>
+    <p>「あれ？なんか人の記事から拝借しすぎじゃない？」という気もしますが、Casualな感じで許してもらえればです。なんとなくレベルでO/RマッパーやDBIx系モジュールを使う意味が理解できて頂ければ何よりです。煩雑になるので、具体的なO/Rマッパー名やモジュール名は列挙できませんでしたが、基本的にDBIx::ClassとかTengとかならだいたい実装されているようなので、是非それらを使ってみては如何でしょうか。まだ紹介されていない個別の機能だけに対応するようなDBIxモジュールに関しては、今後PerlHackerの方が紹介してくれると思います！</p><p>さて、次はkazeburoさんです。See you later!</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

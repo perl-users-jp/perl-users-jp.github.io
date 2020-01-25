@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>C#(ASP.NET 4)で記号プログラミングをやってみたい! - Articles Advent Calendar 2010 Sym</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>C#(ASP.NET 4)で記号プログラミングをやってみたい!</h1>
+
+        <p>こんにちは、Microsoft好きの<a href="http://subtech.g.hatena.ne.jp/mayuki/">id:mayuki</a>です。<br />
+昨日はperl -MDigest::SHA -e 'print Digest::SHA->new(256)->add("hauhau")->hexdigest' という感じでPerlを活用しました。Perlすばらしいですね。</p><p>昨今記号プログラミングというのが流行っているようで、みんな大好きC#でもできないかなーと思いますよね。<br />
+とはいえ通常C#のコードはpublic class Programなどとはじまるので最初無理だろう思ったのですが、唯一 class 定義などを書かずに実行できる環境がある事に気づきました。そう…ASP.NETです。</p>
+
+<div class="section">
+    <h4>記号で文字を出力してみる</h4>
+    <p>と、なんかできそうな雰囲気がしてきたので恒例の "Hello, World!" を……といきたいところですが折角なので "hauhau" しましょう。はうはう。</p>
+
+    <pre class="code lang-cs">&lt;%=@&#34;%&gt;/*&lt;%*/[&#39;&lt;&#39;-(&#39;(&#39;-&#39;-&#39;)]/*%&gt;*/);//&lt;%=@&#34;%&gt;/*&lt;%*/[&#39;)&#39;]/*%&gt;*/);//&lt;%=@&#34;%&gt;/*&lt;%*/[&#39;*&#39;]/*%&gt;*/);//&lt;%=@&#34;%&gt;/*&lt;%*/[&#39;&lt;&#39;-(&#39;(&#39;-&#39;-&#39;)]/*%&gt;*/);//&lt;%=@&#34;%&gt;/*&lt;%*/[&#39;)&#39;]/*%&gt;*/);//&lt;%=@&#34;%&gt;/*&lt;%*/[&#39;*&#39;]/*%&gt;*/);//</pre>
+<p>というわけでごく普通の何の変哲のないC#(ASP.NET)のコードができあがりました。これをDefault.aspxとして保存します。<br />
+Web.configにはC#としてコンパイルされるようdefaultLanguageの指定をしておきます。これを忘れるとVB.NET扱いになってしまいます。</p>
+
+    <pre class="code lang-xml">&lt;configuration&gt;
+    &lt;system.web&gt;
+        &lt;compilation debug=&#34;true&#34; targetFramework=&#34;4.0&#34; defaultLanguage=&#34;C#&#34;/&gt;
+    &lt;/system.web&gt;
+&lt;/configuration&gt;</pre>
+<p>そしてどこか(IISやVisual Studio 2010などの開発環境)に配置してWebブラウザで Default.aspx を表示すると…</p>
+
+    <pre class="code">hauhau</pre>
+<p>ヤッター。はうはう。更にちょちょっと書き換えると…</p>
+
+    <pre class="code lang-cs">&lt;%=@&#34;%&gt;/*&lt;%*/[&#39;*&#39;]/*%&gt;*/);//&lt;%=@&#34;%&gt;/*&lt;%*/[&#39;&#34;&#39;]/*%&gt;*/);//&lt;%=@&#34;%&gt;/*&lt;%*/[&#39;@&#39;+(&#39;+&#39;-&#39;*&#39;)]/*%&gt;*/);//&lt;%=@&#34;%&gt;/*&lt;%*/[&#39;)&#39;]/*%&gt;*/);//&lt;%=@&#34;%&gt;/*&lt;%*/[&#39;[&#39;]/*%&gt;*/);//&lt;%=@&#34;%&gt;/*&lt;%*/[&#39;*&#39;]/*%&gt;*/);//</pre>
+<p>大好きなあの子の名前が…!</p>
+
+    <pre class="code">uiharu</pre>
+<p>ヤッター……と言いたいところですが、あえて "hauhau" などを選んだのは "Hello, World!" のような好きな文を出力できるわけではないという理由からだったりします。</p>
+
+</div>
+<div class="section">
+    <h4>種明かし</h4>
+    <p>どうやって出力しているのかというお話です。とりあえず文字 "u" を表示するコード <%=@"%>/*<%*/['*']/*%>*/);// の最後 );// を x);// に変更してコンパイルエラーにしてみましょう。<br />
+エラーページには「完全なコンパイル ソースを表示」というaspxがcs(C#)に変換されたあとのコードを表示する機能があるのでこれで覗けます。</p><p>するとこんな感じのコードが見つかります。見ての通り "u" を出力しているコードですね。</p>
+
+    <pre class="code lang-cs">行 184:          private void @__Render__control1(System.Web.UI.HtmlTextWriter @__w, System.Web.UI.Control parameterContainer) {
+行 185:              
+行 186:              #line 1 &#34;c:\users\tomoyo\documents\visual studio 10\Projects\WebApplication6\WebApplication6\Default2.aspx&#34;
+行 187:                   @__w.Write(@&#34;);
+行 188:  
+行 189:              
+行 190:              #line default
+行 191:              #line hidden
+行 192:              @__w.Write(&#34;/*&#34;);
+行 193:              
+行 194:              #line 1 &#34;c:\users\tomoyo\documents\visual studio 10\Projects\WebApplication6\WebApplication6\Default2.aspx&#34;
+行 195:                                      */[&#39;*&#39;]/*
+行 196:              
+行 197:              #line default
+行 198:              #line hidden
+行 199:              @__w.Write(&#34;*/);//&#34;x);</pre>
+<p>これを見てもわかるように、aspxの構文は解析されてC#のソースコードとして一度変換されコンパイルされます。大体以下のような感じです。<br />
+<%= … %> が</p>
+
+    <pre class="code">#line 1 &#34;…&#34;
+@_w.Write(expr);</pre>
+<p>と変換され、<br />
+<% expr %> は</p>
+
+    <pre class="code">#line 1 &#34;…&#34;
+expr</pre>
+<p>に、そしてそれ以外の直接かかれた文字は</p>
+
+    <pre class="code">#line default
+#line hidden
+@_w.Write(&#34;文字&#34;);</pre>
+<p>に変換されます。#lineという行はコンパイラがマークとして残している行ですね。</p><p>というわけで先ほどの <%=@"%>/*<%*/['*']/*%>*/);// をばらしてみると…</p>
+
+<ul>
+<li><%=@"%> は@_w.Write(@"); に変換され、逐語的文字列リテラル(ヒアドキュメントみたいなやつ)を開いて、</li>
+<li>/* は @_w.Write("/*"); に変換され、ダブルクォートでそこまでの一度逐語的文字列リテラルを閉じ、今度はコメントを開始し、</li>
+<li><%*/['*']/*%> は @_w.Write(*/['*']/*); に変換され、一度そこまでのコメントを閉じて ['*'] を残して、またコメントを開始して、</li>
+<li>*/);// は @_w.Write(*/);//); に変換され、コメントを閉じつつ ); で一番最初の Write メソッドの括弧を閉じて、後ろに余分な);がついてしまうので//でコメントアウト</li>
+</ul><p>という風に展開されます。</p><p>初心者の方にはちょっとわかりにくいかもしれないので色をつけつつちょっと切り出すと…</p>
+<pre>
+             @__w.Write(<span style="color:darkred;background-color:#ffeeee">@");
+            
+            
+            #line default
+            #line hidden
+            @__w.Write("</span><span style="color:green">/*");
+            
+            #line 1 "c:\users\tomoyo\documents\visual studio 10\Projects\WebApplication6\WebApplication6\Default2.aspx"
+                                    */</span>['*']<span style="color:green">/*
+            
+            #line default
+            #line hidden
+            @__w.Write("*/</span>);<span style="color:green">//");</span>
+</pre><p>こうなっていましてさらにコメントを消すと…</p>
+<pre>
+             @__w.Write(<span style="color:darkred;background-color:#ffeeee">@");
+
+            
+            #line default
+            #line hidden
+            @__w.Write("</span>['*']);
+</pre><p>と言うのが残ります。</p><p>@" から次の " までが逐語的文字列リテラルで、その文字列のStringのインデクサに '*' というCharを渡すと、42という値に変換され、文字列リテラルの42番目の文字を取ってきて、めでたく "u" が出てきてそれをWriteしているので "u" が表示されるという訳です。そしてこれを繰り返せば文字列を作れます。かんたんですね。<br />
+まあ逐語的文字列リテラルにある文字しか出せないですが。</p><p>数値は普通にChar型の足し算引き算( '+' - '-' )などで得ることができるのでインデクサの値にしたり、Stringとくっつけて文字列にしたりできます。でもCharにはもどせません。戻せるならこんな苦労は要らない訳で。</p><p>他にも定番の技として (""+('-' == '-')) とすると "True", (""+('-' != '-')) とすれば "False" という文字列を得られるので、同じようにインデクサを使えば</p>
+
+<ul>
+<li>("" + ('-' == '-'))['-'-'-'] //=> T</li>
+<li>("" + ('-' != '-'))['-'-'-'] //=> F</li>
+</ul><p>などを得ることができます。</p>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>という訳でここまでで記号のみで出力できるようになった文字は 記号 + 数字 + F T W a d e f h i l n r s t u です。<br />
+hauhauはできますがHello, World!できないため、より高度なテクニックでの完璧な記号プログラミングを模索中です。</p><p>なお、コンパイラの出力に頼っているので動作は環境とバージョンに強く依存することを付け加えておきます。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

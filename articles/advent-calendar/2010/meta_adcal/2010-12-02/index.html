@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>URLに応じたページが表示されるまで - Articles Advent Calendar 2010 Meta_adcal</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>URLに応じたページが表示されるまで</h1>
+
+        <p>当初は3日くらいで次の人に回すつもりだったのですが、なんだかんだで機能追加してるので5日くらい書かないといけないのではないか戦々恐々としてるkanです。</p><p>昨日は <a href="http://localhost:5000/">http://localhost:5000/</a> へアクセスすると「hello」と表示されるようになったので、いよいよ本格的に作っていくことにします。まず、ページの構成をどうするか考えます。最初、こんな感じに考えました</p>
+
+<ul>
+<li><a href="http://localhost/2010/meta/">http://localhost/2010/meta/</a>  : meta trackのエントリ(1日から25日まで)の一覧</li>
+<li><a href="http://localhost/2010/meta/1">http://localhost/2010/meta/1</a> : meta trackのエントリ(1日目)</li>
+</ul><p>更に、複数のtrackを扱うのでtrackの一覧を出して欲しいということになり</p>
+
+<ul>
+<li><a href="http://localhost/2010/">http://localhost/2010/</a></li>
+</ul><p>年/ で、その年のtrack一覧を表示するようにしました。</p><p>これを実現するには、アクセス毎に処理を振り分ける必要があります。CPANにはpath routing用のモジュールが沢山ありますが、今回はシンプルに使える Router::Simple を使うことにしました。↑のルールは以下のように書けます。</p>
+
+    <pre class="code lang-perl">$router-&gt;connect(
+    &#39;/{year:\d{4}}/&#39;,
+    { controller =&gt; &#39;Calendar&#39;, action =&gt; &#39;track_list&#39; }
+);
+$router-&gt;connect(
+    &#39;/{year:\d{4}}/{name:[a-zA-Z0-9_-]+?}/&#39;,
+    { controller =&gt; &#39;Calendar&#39;, action =&gt; &#39;index&#39; }
+);
+$router-&gt;connect(
+    &#39;/{year:\d{4}}/{name:[a-zA-Z0-9_-]+?}/{day:\d{1,2}}&#39;,
+    { controller =&gt; &#39;Calendar&#39;, action =&gt; &#39;entry&#39; }
+);</pre>
+<p>「{year:\d{4}}」のように書くと「\d{4}」という正規表現にマッチした値を「year」というキーで参照できるようになります。以下のような感じです。</p>
+
+    <pre class="code lang-perl">my $p = $router-&gt;match($env);
+warn $p-&gt;{year};</pre>
+<p>処理を振り分けたら、画面を表示する処理を作ります。HTMLを出力する場合、perlのソース中にHTMLを埋め込んでいく手もありますが、可読性が落ちて早々にメンテが困難になるケースが多いと思います(e.g. perl4時代のCGIスクリプト)。そういった理由から個人的にはなるべく最初からテンプレートをコードと分離するようにしています。</p><p>分離したテンプレートはplain textで書いて正規表現で置換、とかでも良いのですが、どうせ誰かすぐ使うだろうということで、今をときめく Text::Xslate を使ってしまうことにしました。Text::Xslate::Syntax::TTerse を使ってTT2風の構文で記述することにします。</p>
+
+    <pre class="code lang-perl">my $tx = Text::Xslate-&gt;new(
+    syntax    =&gt; &#39;TTerse&#39;,
+    path      =&gt; [&#39;tmpl&#39;, &#39;app/tmpl&#39;],
+    cache_dir =&gt; &#39;/tmp/app-adventcalendar&#39;,
+    cache     =&gt; 1,
+    function  =&gt; {
+        uri_for =&gt; sub {
+            my($path, $args) = @_;
+            my $uri = $base-&gt;clone;
+            $uri-&gt;path($conf-&gt;{base_path} . $uri-&gt;path . $path);
+            $uri-&gt;query_form(@$args) if $args;
+            $uri;
+        },
+    },
+);</pre>
+<p>pathに↑のように複数のディレクトリを指定しておくと、基本的に app/tmpl の下にテンプレートファイルを置くけど、tmpl/ の下に置くとそっちを使うようにする、みたいなことが出来て便利ですね。</p><p>シンプルなテンプレートを表示して満足したので明日に続きます。</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

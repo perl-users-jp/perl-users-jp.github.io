@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>色々な検索方法3 #07 - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">色々な検索方法3 #07 - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">色々な検索方法3 #07<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/07.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/07.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>こんにちわ！nekokakです！</p>
+<p>七日目はDBIx::Skinnyのresultsetメソッドについてです。</p>
+</div>
+<div class="section">
+<h3> resultset</h3>
+
+<p>resultsetを使う事で、インクリメンタルに検索条件を設定することができます。</p>
+<p>例えばCGIなどでユーザの入力を元に検索条件を組み立てる必要があることはよくあることでしょう。</p>
+<p>そういう時にこのresultsetメソッドは大活躍できまうす。</p>
+
+<p>DBIx::Skinnyでsearch_by_sql/search_namedの生SQLを書くケースをのぞいて</p>
+<p>joinクエリが発行できるのもresultsetメドッドだけです。</p>
+
+<p>今日はそんなresultsetメソッドに入門してみましょう。</p>
+
+<p>まずresultsetのオブジェクトを作ります。</p>
+<pre>
+my $rs = $db-&gt;resultset;
+</pre>
+
+<p>次にselectするカラムを指定しましょう。</p>
+<pre>
+$rs-&gt;add_select('user.id' =&gt; 'user_id');
+</pre>
+
+<p>一つ目の引数はSELECT時に使用されるベースとなるカラム指定で</p>
+<p>二つ目の引数はASで指定される名前になります</p>
+<p>この場合、作られるSQLは</p>
+
+<pre>
+SELECT user.id AS user_id
+</pre>
+<p>となります。</p>
+
+<p>selectするカラムはresultsetオブジェクトを作る時に指定する事も可能です。</p>
+
+<pre>
+my $rs = $db-&gt;resultset(
+    {
+        select =&gt; [
+                    'user.id AS user_id',
+                  ],
+    }
+);
+</pre>
+
+<p>resultsetでSQLを組み立てている時に途中でSQLを確認したくなる場合がありますが、その場合は</p>
+
+<pre>
+print $rs-&gt;as_sql;
+</pre>
+
+<p>とすればその時点で、どのようなSQLが組み上がるかが出力されます。</p>
+<p>printデバッグ最高ですね！</p>
+
+<p>次にselectするテーブルを指定します</p>
+
+<pre>
+# SELECT user.id AS user_id FROM user
+$rs-&gt;from(['user']);
+</pre>
+
+<p>テーブルの指定は複数行う事も出来ます</p>
+
+<pre>
+# SELECT user.id AS user_id FROM user, profile
+$rs-&gt;from(['user', 'profile']);
+</pre>
+
+<p>fromもresultsetオブジェクトを生成するタイミングで指定する事が可能です</p>
+
+<pre>
+my $rs = $db-&gt;resultset(
+    {
+        select =&gt; [
+                    'user.id AS user_id',
+                  ],
+        from   =&gt; ['user'],
+    }
+);
+</pre>
+
+<p>次に検索条件を追加しましょう。</p>
+
+<pre>
+# SELECT user.id AS user_id FROM user WHERE user.name = ?
+# bind: nekokak
+$rs-&gt;add_where('user.name' =&gt; 'nekokak');
+</pre>
+
+<p>このようにadd_whereメソッドを使用して検索条件を追加していきます。</p>
+<p>bindされた値を確認するには、</p>
+
+<pre>
+use Data::Dumper;
+print Dumper $rs-&gt;bind;
+</pre>
+
+<p>printデバッグ最高ですね！</p>
+
+<p>さて、この時点のSQLを発行したい場合はretrieveメソッドを使用します。</p>
+
+<pre>
+my $itr = $rs-&gt;retrieve;
+</pre>
+
+<p>retrieveメソッドを呼び出せば、今までくみ上げてきたSQLを使用して、DBに対して実行します。</p>
+<p>retrieve呼び出し後の使い方は他のsearch系メソッドと同様です。</p>
+</div>
+<div class="section">
+<h3> さらに複雑なSQLを組上げる</h3>
+
+<p>IN/NOT INを使う場合</p>
+
+<pre>
+$rs-&gt;add_where('user.id' =&gt; {'IN' =&gt; \@user_ids});
+$rs-&gt;add_where('user.id' =&gt; {'NOT IN' =&gt; \@user_ids});
+</pre>
+
+<p>INの場合はこのように指定する事も可能です。</p>
+
+<pre>
+$rs-&gt;add_where('user.id' =&gt; \@user_ids);
+</pre>
+
+<p>比較演算子を使う場合</p>
+
+<pre>
+$rs-&gt;add_where('user.id' =&gt; {'&lt;' =&gt; 1});
+$rs-&gt;add_where('user.id' =&gt; {'&gt;' =&gt; 1});
+$rs-&gt;add_where('user.id' =&gt; {'!=' =&gt; 1});
+</pre>
+
+<p>IS NULL/ IS NOT NULLを指定したい場合はscalarリファレンスを指定します</p>
+
+<pre>
+$rs-&gt;add_where('user.id' =&gt; \'IS NULL');
+$rs-&gt;add_where('user.id' =&gt; \'IS NOT NULL');
+</pre>
+
+<p>検索条件をorで囲みたい場合はこのように指定します</p>
+
+<pre>
+$rs-&gt;add_where('user.id' =&gt; [{'&gt;' =&gt; 10}, {'&lt;' =&gt; 100}]);
+</pre>
+
+<p>また検索条件を明示的にandで囲みたい場合は</p>
+
+<pre>
+$rs-&gt;add_where('user.id' =&gt; ['-and' =&gt; {'&gt;' =&gt; 10}, {'&lt;' =&gt; 100}]);
+</pre>
+
+<p>このように指定します。</p>
+
+<p>また演算子が固定の場合は</p>
+
+<pre>
+$rs-&gt;add_where('user.id' =&gt; ['-and' =&gt; 1,2,3]);
+</pre>
+
+<p>このように指定する事も可能です。</p>
+
+<p>テーブルJOINする場合</p>
+
+<pre>
+# FROM user INNER JOIN bookmark ON user.id = bookmark.user_id
+$rs-&gt;from([]);
+$rs-&gt;add_join(
+    user =&gt; [
+        {
+            type  =&gt; 'inner',
+            table =&gt; 'bookmark',
+            condition =&gt; 'user.id = bookmark.user_id',
+        },
+    ],
+);
+</pre>
+
+<p>このようなJOINクエリが生成されます。</p>
+
+<p>始めに$rs-&gt;from([]);を呼び出して、from を空にしているのは</p>
+<p>add_joinで起点となるテーブルを指定しているためです。</p>
+
+<p>引数の</p>
+<ul>
+<li>typeはjoinのさせ方</li>
+<li>tableはjoinさせるテーブル</li>
+<li>conditionはJOIN時の条件</li>
+</ul>
+<p>となります。</p>
+
+<p>これでDBIx::Skinnyの検索系メソッドは終了です。</p>
+<p>明日は更新系メソッドの使い方を見ていきたいと思います。</p>
+
+<p>have a nice skinny days!:)</p>
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/dbix-skinny/07.html">Mon, 07 Dec 2009 01:19:01 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+

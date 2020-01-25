@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Inflate について - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Inflate について - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Inflate について<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/data-model/11.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/data-model/11.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<h3> はじめに</h3>
+
+<p>今回から数回にわたって Inflate にについて書きます。</p>
+
+<p>Data::Model でも、他の ORM と同様に Inflate/Deflate が用意されています。</p>
+
+<p>これは、データベースから値を取得した時に自動的にオブジェクトのインスタンスを作ってユーザがオブジェクトごしに値にアクセス出来るようになります。</p>
+<p>ぎゃくに、オブジェクトを渡して INSERT すると自動的にシリアライズしてテーブルに保存します。</p>
+</div>
+<div class="section">
+<h3> スキーマ定義</h3>
+
+<p>さて、実際に Inflate を使ったカラムを作ってみましょう。</p>
+
+<p>MyBookmark の bookmark テーブルは、ブックマークした時間が保存出来ないので、保存出来るようにします。</p>
+<p>そして、ブックマークした日時を DateTime のオブジェクトとして扱えるようにしましょう。</p>
+<p>データベースには epoch time を保存しておいて、通常は DateTime として扱いたい場合を書いてみます。</p>
+
+<p>以下のようなコードになります。</p>
+<pre>
+    column create_at =&gt; int =&gt; {
+        required =&gt; 1,
+        unsigned =&gt; 1,
+        default =&gt; sub { time() },
+        inflate =&gt; sub {
+            DateTime-&gt;from_epoch( epoch =&gt; $_[0] );
+        },
+        deflate =&gt; sub {
+            ref($_[0]) &amp;&amp; $_[0]-&gt;isa('DateTime') ? $_[0]-&gt;epoch : $_[0];
+        },
+    };
+</pre>
+
+<p>INSERT 時に値を省略出来るように　default の定義をしています。今回は INSERT した時の time の値をそのまま入れます。</p>
+
+<p>inflate の第一引数はデータベースから取り出したままの値です。</p>
+<p>今回は epoch time が入ってくるので DateTime オブジェクトにして返します。</p>
+
+<p>deflate の第一引数は row オブジェクトで利用している、そのカラムの値です。</p>
+<p>inflate と比べて若干ややこしいですが、 $row-&gt;create_at( time() ) などと DateTime ではなく直接 epoch time を入れられる事に対応するためにこうなってます。</p>
+</div>
+<div class="section">
+<h3> 使ってみる</h3>
+
+<p>使い方は特に変わった事をする必要はありません。</p>
+<p>create_at が DateTime オブジェクトを返すという事と、 create_at に epoch time と DateTime を入れられるという事位です。</p>
+
+<p>以下のように使います。</p>
+
+<pre>
+    $bookmark-&gt;set( bookmark =&gt; [1, 1] );
+    my $row = $bookmark-&gt;lookup( bookmark =&gt; [1, 1] );
+    print $row-&gt;create_at . "\n";
+
+    my $dt = DateTime-&gt;new( year =&gt; 1978, month =&gt; 3, day =&gt; 20 );
+    $row-&gt;create_at( $dt );
+    print $row-&gt;create_at . "\n";
+    $row-&gt;update;
+
+    my $row2 = $bookmark-&gt;lookup( bookmark =&gt; [1, 1] );
+    print $row2-&gt;create_at . "\n";
+    $row2-&gt;create_at( 0 );
+    print $row2-&gt;create_at . "\n";
+    $row2-&gt;update;
+
+    my $row3 = $bookmark-&gt;lookup( bookmark =&gt; [1, 1] );
+    print $row3-&gt;create_at . "\n";
+</pre>
+
+<p>結果は下記の通り。</p>
+
+<pre>
+(この行は実行した時間が入ります)
+1978-03-20T00:00:00
+1978-03-20T00:00:00
+0
+1970-01-01T00:00:00
+</pre>
+
+<p>0 になってる部分は、 create_at に 0 を入れたため、そのまま出てきてしまっています。</p>
+<p>あくまでもデータベスから値を出すときに inflate 処理されているという事です。</p>
+
+<p>これは、回避策がありますがまた今度の機会に。</p>
+</div>
+<div class="section">
+<h3> まとめ</h3>
+
+<p>本日は Inflate を使ったカラムの作り方を扱いました。</p>
+
+<p>明日はもう少し Inflate について掘り下げます。</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/data-model/11.html">Mon, 14 Dec 2009 05:51:02 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

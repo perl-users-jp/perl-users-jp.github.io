@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="Nobuo Danjou <nobuo.danjou@gmail.com>">
+        <title>MiniDBIでmysqlを使ってみよう - Articles Advent Calendar 2010 Perl6</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>MiniDBIでmysqlを使ってみよう</h1>
+
+        <p>perl6でデータベース操作を行う方法は、現在のところMiniDBIというモジュールを使うのが良さそうなので、その使い方を紹介します。MiniDBIはrakudo-star-2010-11に同梱されていましたので、追加のインストールは不要です。</p><p>使い方はこんな感じです。</p>
+
+    <pre class="code">#!/usr/bin/env perl6
+use v6;
+use MiniDBI;
+
+my $dbh = MiniDBI.connect(
+    &#39;MiniDBI:mysql:database=hoge;host=127.0.0.1&#39;,
+    &#39;root&#39;,
+    &#39;&#39;,
+    :RaseError
+);
+$dbh.do(&#39;set names utf8&#39;);
+
+{
+    my $sth = $dbh.prepare(&#39;select * from hoge where id = ?&#39;);
+    $sth.execute(42);
+    while $sth-&gt;fetchrow_hashref() -&gt; $row {
+        my $body = Buf.new($row&lt;body&gt;.comb&gt;&gt;.ord).decode;
+        $body.say;
+    }
+}
+{
+    my $sth = $dbh.prepare(&#39;insert into hoge values (?,?)&#39;);
+    $sth.execute(50, &#39;ほげほげ&#39;);
+}</pre>
+<p>まずまず普通に動いているようです。注意しないといけないのは、</p>
+
+<ul>
+<li>MiniDBD::mysql.pm6がNativeCallでlibmysqlclientを呼び出しているので、環境によってはexport LD_LIBRARY_PATH=/usr/local/mysql/lib等としておく必要がある点</li>
+<li>'set names utf8'を自分でしないと「????」な感じになる点。まあよくある話ですね。</li>
+<li>fetchrow_hashrefでとれた文字列はそのままだと壊れてるので、Bufに突っ込んでdecodeする必要がある点</li>
+<li>MiniDBD::mysql.pm6を読むとわかりますがかなり素朴な実装なので、SQLインジェクションを食らう点</li>
+</ul><p>くらいでしょうか。実際にはこれをベースに自分で安全な実装を書く方が良いと思います。NativeCallを使ってlibmysqlclientをたたいているので、そこらへんの使い方は参考になるでしょう。</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

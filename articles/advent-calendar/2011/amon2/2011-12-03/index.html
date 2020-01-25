@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="tokuhirom">
+        <title>strftime.js - Articles Advent Calendar 2011 Amon2</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>strftime.js</h1>
+
+        <p>さて、3日目です。 tokuhirom です。</p><p>今日は Amon2 の next release にふくまれる予定の strftime.js にかんする話題です。初日の JS の話のつっこんだ話題というかんじですね。</p><p>JavaScript をつかっているとなくてこまるなーとおもう関数の一つが strftime ですが、これの実装を Amon2 の次期版にはバンドルします。</p><p>Web 上をあさると strftime の実装はいくつかでてくるのですが、i18n されていて、フリーな実装で、おおきいライブラリに依存していなくて、いいかんじのものが意外となかったりしてこまります。</p><p>というわけでそういう条件をみたすものをつくりました。</p><p>こちらになります。</p><p><a href="https://github.com/tokuhirom/strftime-js">https://github.com/tokuhirom/strftime-js</a></p>
+
+    <pre class="code lang-javascript">(new Date).strftime(&#39;%H:%M:%S&#39;);</pre>
+<p>のように、なんとなく期待した動作が達成されます。</p><p>まあたいがい strftime とかなくても生活できますが、ないとちょっとめんどくさいわけです。</p><p>依存関係とかないんで、 Amon2 以外でもご利用いただければいいのではないかとおもいます。</p><p>なお、strftime の実装としては、YUI のものがこれ以外だといい出来です。</p><p>でもまあ、単一のファイルで最低限につかえるかんじのやつがほしかったのであたらしくかきました。<br />
+いわゆるひとつのミニマリスティックスピリッツです。</p><p>なんならコピペしてつかってもいいですね。</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

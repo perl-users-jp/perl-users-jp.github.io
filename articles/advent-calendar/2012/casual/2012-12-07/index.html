@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="mattn <mattn.jp@gmail.com>">
+        <title>Mojolicious::Lite を使って一人ぼっちSNS「AloneSNS」を作る。 - Articles Advent Calendar 2012 Casual</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Mojolicious::Lite を使って一人ぼっちSNS「AloneSNS」を作る。</h1>
+
+        <p>おでんが美味しい季節になって来ましたね。たまごがないとおでんを食べた気になれない <a href="http://mattn.kaoriya.net">mattn</a> ですこんにちわ。<br />
+Twitter や Facebook に代表される大型SNS(ソーシャルネットワーク)を見ると、数年前には考えられない程の動的コンテンツを扱っていて、機能は目覚しく移り替えし、Ajax API を使うなんてのは当たり前の世の中になりました。<br />
+もはや「Ajax API を提供してクライアントサイドで動的コンテンツを整形する」といった事は、こういった大規模サイトでなくとも一般的な状況になりつつあります。</p><p>モダンなウェブサイトを作る際、僕はよく API を先に作ります。データベース設計が終わった段階で、それを API としてサーブする為の仕組みを作ります。<br />
+Java であれば</p>
+
+<ul>
+<li>エンティティ</li>
+<li>DAO (Data Access Object)</li>
+<li>サービス</li>
+</ul><p>といった流れでしょうか。Perl に至っては ORM や SQL Builder も数多く存在し、最近であれば Teng や SQL::Maker が良く選ばれているのではないでしょうか。(個人観測範囲)<br />
+しかし新しいテーブルを作ったり、フィールド名を変更したり、キーを変更した際に、上記の作業を繰り返し行うのはとても億劫(おっくう)でもあります。</p><p>もちろんデータベース設計がしっかり出来ていれば、こんな事はめったに起こらない事かもしれませんが、機能追加や既存データベースから一気にアプリケーションを組み上げたい場合には、これらは手間の掛かる作業になり得ます。</p><p>例えばです。</p>
+
+<blockquote >
+    <p><em>テーブルを作成したら、Ajax API のエンドポイントが生え、GET メソッドで行単位の JSON オブジェクトが返却される API が出来上がったら便利でしょうか。</em><br />
+<em>POST メソッドで行に挿入され、PUT メソッドで更新され、そして DELETE メソッドで削除されるのです。</em></p>
+
+    
+</blockquote><p>これって良く考えたら、REST として独立した機能であって、固有のアプリケーションにそれほど依存する事無く実装出来ると思いませんか？</p><p>もちろん、データベース層に業務特有の制限が掛かる事もあるのは当然ですが、実はそれほど多くないのではないかと思ったりもします。<br />
+先日そんな事を考えながら某所でつぶやいたら <a href="http://d.hatena.ne.jp/charsbar/">charsbar</a> さんがサクっと Mojolicious::Lite で作ってくれたので、それをベースにして汎用アプリケーションに仕上げてみました。</p>
+
+<div class="section">
+    <h4>REST でデータベースを扱うアプリケーション</h4>
+    <p>まず app.pl から。</p>
+
+    <pre class="code lang-perl">#!perl
+use strict;
+use warnings;
+
+use Mojolicious::Lite;
+use DBI;
+use SQL::Maker;
+use File::Basename;
+use File::Spec;
+
+my $config = do File::Spec-&gt;catfile(dirname(__FILE__), &#39;config.pl&#39;)
+  or die &#34;config.pl not exists&#34;;
+
+my $dbi = $config-&gt;{DBI};
+my ($_, $driver) = DBI-&gt;parse_dsn($dbi-&gt;[0]);
+
+my $dbh = DBI-&gt;connect(@$dbi);
+my $builder = SQL::Maker-&gt;new(driver =&gt; $driver);
+
+sub config {
+  my $table = shift;
+  my $tc = $config-&gt;{tables}-&gt;{$table};
+  return unless $tc;
+  $tc-&gt;{fields} = [&#39;*&#39;] unless $tc-&gt;{fields};
+  $tc-&gt;{options} = +{limit =&gt; 10} unless $tc-&gt;{options};
+  $tc-&gt;{defaults} = +{} unless $tc-&gt;{defaults};
+  $tc-&gt;{primary_keys} = [] unless $tc-&gt;{primary_keys};
+  $tc-&gt;{protected_keys} = [] unless $tc-&gt;{protected_keys};
+  $tc;
+}
+
+get &#39;/:table&#39; =&gt; sub {
+  my $self = shift;
+
+  my $table = $self-&gt;param(&#39;table&#39;);
+  my $tc = config($table) or return $self-&gt;render_not_found;
+
+  my $offset = $self-&gt;req-&gt;headers-&gt;header(&#39;x-row-offset&#39;);
+  $tc-&gt;{options}-&gt;{offset} = $offset if $offset;
+  my $limit = $self-&gt;req-&gt;headers-&gt;header(&#39;x-row-limit&#39;);
+  $tc-&gt;{options}-&gt;{limit} = $limit if $limit;
+
+  my $query = $self-&gt;req-&gt;url-&gt;query-&gt;to_hash;
+
+  for (@{$tc-&gt;{protected_keys}}) {
+    return $self-&gt;render_exception(&#39;Oops!&#39;) if $query-&gt;{$_};
+  }
+
+  my ($sql, @binds) = $builder-&gt;select(
+    $table,
+    $tc-&gt;{fields},
+    $query,
+    $tc-&gt;{options});
+
+  my $rows = $dbh-&gt;selectall_arrayref($sql, {Slice =&gt; +{}}, @binds);
+  $self-&gt;respond_to(
+    json =&gt; {json =&gt; $rows},
+    html =&gt; sub {
+      $self-&gt;stash(result =&gt; $rows);
+      $self-&gt;render(template =&gt; &#39;table&#39;);
+    }
+  );
+};
+
+post &#39;/:table&#39; =&gt; sub {
+  my $self = shift;
+
+  my $table = $self-&gt;param(&#39;table&#39;);
+  my $tc = config($table) or return $self-&gt;render_not_found;
+
+  my $params = $self-&gt;req-&gt;body_params-&gt;to_hash;
+
+  for (@{$tc-&gt;{protected_keys}}) {
+    return $self-&gt;render_exception(&#39;Oops!&#39;) if $params-&gt;{$_};
+  }
+
+  while (my ($key, $value) = each(%{$tc-&gt;{defaults}})) {
+    next if $params-&gt;{$key};
+    utf8::decode($value) if $value &amp;&amp; !utf8::is_utf8($value);
+    $params-&gt;{$key} = $value;
+  }
+  my ($sql, @binds) = $builder-&gt;insert($self-&gt;param(&#39;table&#39;), $params);
+  my $res = $dbh-&gt;do($sql, undef, @binds);
+  $self-&gt;respond_to(
+    any  =&gt; {json =&gt; {res =&gt; $res}},
+  );
+};
+
+put &#39;/:table&#39; =&gt; sub {
+  my $self = shift;
+
+  my $table = $self-&gt;param(&#39;table&#39;);
+  my $tc = config($table) or return $self-&gt;render_not_found;
+
+  my $query = $self-&gt;req-&gt;url-&gt;to_hash;
+  my $params = $self-&gt;req-&gt;body_params-&gt;to_hash;
+
+  for (@{$tc-&gt;{primary_keys}}) {
+    return $self-&gt;render_exception(&#39;Oops!&#39;) unless $query-&gt;{$_};
+  }
+  for (@{$tc-&gt;{protected_keys}}) {
+    return $self-&gt;render_exception(&#39;Oops!&#39;) if $params-&gt;{$_};
+  }
+
+  my ($sql, @binds) = $builder-&gt;update($table, $params, $query);
+  my $res = $dbh-&gt;do($sql, undef, @binds);
+  $self-&gt;respond_to(
+    any  =&gt; {json =&gt; {res =&gt; $res}},
+  );
+};
+
+del &#39;/:table&#39; =&gt; sub {
+  my $self = shift;
+
+  my $table = $self-&gt;param(&#39;table&#39;);
+  my $tc = config($table) or return $self-&gt;render_not_found;
+
+  my $query = $self-&gt;req-&gt;url-&gt;query-&gt;to_hash;
+
+  for (@{$tc-&gt;{primary_keys}}) {
+    return $self-&gt;render_exception(&#39;Oops!&#39;) unless $query-&gt;{$_};
+  }
+  for (@{$tc-&gt;{protected_keys}}) {
+    return $self-&gt;render_exception(&#39;Oops!&#39;) if $query-&gt;{$_};
+  }
+
+  my ($sql, @binds) = $builder-&gt;delete($table, $query);
+  my $res = $dbh-&gt;do($sql, undef, @binds);
+  $self-&gt;respond_to(
+    any  =&gt; {json =&gt; {res =&gt; $res}},
+  );
+};
+
+get &#39;/&#39; =&gt; &#39;index&#39;;
+
+app-&gt;start;
+
+__DATA__
+
+@@ table.html.ep
+&lt;!DOCTYPE HTML&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;meta charset=&#34;UTF-8&#34;&gt;
+&lt;title&gt;database utility&lt;/title&gt;
+&lt;style type=&#34;text/css&#34;&gt;
+td { min-width: 100px; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+% if ($result &amp;&amp; $result-&gt;[0]) {
+&lt;table border=&#34;1&#34;&gt;
+  &lt;tr&gt;
+% for my $key (sort keys $result-&gt;[0]) {
+    &lt;th&gt;&lt;%= $key %&gt;&lt;/th&gt;
+% }
+  &lt;/tr&gt;
+% for my $row (@{$result}) {
+  &lt;tr&gt;
+% for my $col (sort keys $row) {
+    &lt;td&gt;&lt;%= $row-&gt;{$col} %&gt;&lt;/td&gt;
+% }
+  &lt;/tr&gt;
+% }
+&lt;/table&gt;
+%} else {
+Not available.
+%}
+&lt;/body&gt;
+&lt;/html&gt;
+
+@@ not_found.json.ep
+{&#34;error&#34;: &#34;Not Found&#34;}
+
+@@ exception.json.ep
+{&#34;error&#34;: &#34;&lt;%= $exception %&gt;&#34;}</pre>
+<p>そして config.pl には以下の様に記述します。</p>
+
+    <pre class="code lang-perl">+{
+  DBI =&gt; [
+    &#39;dbi:SQLite:./foo.db&#39;,
+    &#39;&#39;,
+    &#39;&#39;,
+    {sqlite_unicode =&gt; 1},
+  ],
+  tables =&gt; {
+    foo =&gt; { 
+      fields =&gt; [&#39;*&#39;],
+      options =&gt; {
+        order_by =&gt; &#39;id&#39;,
+        limit =&gt; 10,
+      },
+    },
+  },
+}</pre>
+<p>ご覧の通り、まだ「固有のアプリケーション特有の機能」に特化しないアプリケーションです。<br />
+起動するには morbo コマンドを使って</p>
+
+    <pre class="code">morbo app.pl</pre>
+<p>と実行します。<br />
+config.pl の DBI で指定した接続情報に従ってデータベース接続します。また tables のキーとして登録されている名称で</p>
+
+    <pre class="code">http://localhost:3000/foo</pre>
+<p>にアクセスがあった場合、foo テーブルを select し id フィールドで並べ替えて 10行リミットの結果を返します。<br />
+例えば</p>
+
+    <pre class="code lang-sql">create table foo (id int not null primary key, name text);
+insert into foo (id, name) values (1, &#39;tokuhirom&#39;);
+insert into foo (id, name) values (2, &#39;yappo&#39;);
+insert into foo (id, name) values (3, &#39;kan&#39;);</pre>
+<p>というテーブルを作成し、ブラウザからアクセスすると</p>
+
+<blockquote >
+    <p><img src="https://github.com/perl-users-jp/perl-advent-calendar/raw/master/2012/casual/2012-12-07/image01.png" alt="alonesns1" /></p>
+
+    
+</blockquote><p>という風に表示されます。そしてシェルから curl で、拡張子 json を付けてアクセスして見ましょう。</p>
+
+    <pre class="code">curl http://localhost:3000/foo.json
+[{&#34;name&#34;:&#34;tokuhirom&#34;,&#34;id&#34;:1},{&#34;name&#34;:&#34;yappo&#34;,&#34;id&#34;:2},{&#34;name&#34;:&#34;kan&#34;,&#34;id&#34;:3}]</pre>
+<p>さらにパラメータを付けてみましょう。</p>
+
+    <pre class="code">curl http://localhost:3000/foo.json?id=1
+[{&#34;name&#34;:&#34;tokuhirom&#34;,&#34;id&#34;:1}]</pre>
+<p>絞り込めていますね。ポストして見ましょう。</p>
+
+    <pre class="code">curl -d id=4 -d name=mattn http://localhost:3000/foo.json
+{&#34;res&#34;:1}</pre>
+<p>結果が 1 で返りました。再度全て取得してみましょう。</p>
+
+    <pre class="code">curl http://localhost:3000/foo.json
+[{&#34;name&#34;:&#34;tokuhirom&#34;,&#34;id&#34;:1},{&#34;name&#34;:&#34;yappo&#34;,&#34;id&#34;:2},{&#34;name&#34;:&#34;kan&#34;,&#34;id&#34;:3},{&#34;name&#34;:&#34;mattn&#34;,&#34;id&#34;:4}]</pre>
+<p>行が挿入されていますね。更新します。</p>
+
+    <pre class="code">curl -X PUT -d name=nekokak http://localhost:3000/foo.json?id=4
+{&#34;res&#34;:1}</pre>
+
+    <pre class="code">curl http://localhost:3000/foo.json
+[{&#34;name&#34;:&#34;tokuhirom&#34;,&#34;id&#34;:1},{&#34;name&#34;:&#34;yappo&#34;,&#34;id&#34;:2},{&#34;name&#34;:&#34;kan&#34;,&#34;id&#34;:3},{&#34;name&#34;:&#34;nekokak&#34;,&#34;id&#34;:4}]</pre>
+<p>id が 4 のレコードが mattn から nekokak に書き換わりました。最後に削除してみます。</p>
+
+    <pre class="code">curl -X DELETE http://localhost:3000/foo.json?id=4
+{&#34;res&#34;:1}</pre>
+
+    <pre class="code">curl http://localhost:3000/foo.json
+[{&#34;name&#34;:&#34;tokuhirom&#34;,&#34;id&#34;:1},{&#34;name&#34;:&#34;yappo&#34;,&#34;id&#34;:2},{&#34;name&#34;:&#34;kan&#34;,&#34;id&#34;:3}]</pre>
+<p>削除されました。URL のクエリパラメータが SQL の where 句に相当し、ポストパラメータが登録や更新に使われる値となります。<br />
+なお、この状態で何もクエリパラメータを指定せずに DELETE を投げると全件削除されます。<br />
+削除する際のプライマリキーを指定したい場合は以下の様に設定します。</p>
+
+    <pre class="code">+{
+  DBI =&gt; [
+    &#39;dbi:SQLite:./foo.db&#39;,
+    &#39;&#39;,
+    &#39;&#39;,
+    {sqlite_unicode =&gt; 1},
+  ],
+  tables =&gt; {
+    foo =&gt; { 
+      fields =&gt; [&#39;*&#39;],
+      primary_keys =&gt; [&#39;id&#39;],
+      options =&gt; {
+        order_by =&gt; &#39;id&#39;,
+        limit =&gt; 10,
+      },
+    },
+  },
+}</pre>
+<p>パラメータによりこの primary_keys が全て満たされない場合には例外が発生します。</p>
+
+    <pre class="code">curl -X DELETE -d hoge=4 http://localhost:3000/foo.json
+{&#34;error&#34;: &#34;Oops!&#34;}</pre>
+<p>さて前述の様に、このアプリケーションはまだ固有のアプリケーションの機能に特化していません。<br />
+つまりデータベースのテーブルを REST に従い行単位に処理するアプリケーションの雛形になり得るのです。</p><p>実際に使えるかどうかを試してみようと思います。Ajax API を使った一人ぼっちソーシャルネットワークを作ってみました。</p><p>通常の状態で / にアクセスすると、テンプレートが無いので Mojolicious が用意している画面が表示されますが templates というフォルダを作成して index.html.ep というファイルを作成するとそのファイルが優先される様になります。アプリケーションは一切触りません。<br />
+また静的コンテンツは public というフォルダを作成してそこに配置します。</p>
+
+</div>
+<div class="section">
+    <h4>データベースを作る</h4>
+    <p>まずデータベース設計。<br />
+フィールドには、発言のIDと発言ユーザ、発言内容、登録日があれば良いので以下の DDL にします。</p>
+
+    <pre class="code lang-sql">create table statuses (
+  id integer primary key,
+  user text,
+  text text,
+  created_at datetime default (datetime(&#39;now&#39;,&#39;localtime&#39;))
+);</pre>
+<p>ユーザがキーじゃないですが、今回はサンプルなのでご了承下さい。<br />
+created_at は指定されなければ localtime が入る様にします。他のフィールドも default を付けるべきですが、以下で説明したい事があるのでここではそのままとします。<br />
+そして config.pl を以下の様に記述します。</p>
+
+    <pre class="code lang-perl">+{
+  DBI =&gt; [
+    &#39;dbi:SQLite:./db/alonesns.db&#39;,
+    &#39;&#39;,
+    &#39;&#39;,
+    {sqlite_unicode =&gt; 1},
+  ],
+  tables =&gt; {
+    statuses =&gt; { 
+      fields =&gt; [&#39;*&#39;],
+      defaults =&gt; {
+        user =&gt; &#39;きっと俺&#39;,
+      },
+      primary_keys =&gt; [&#39;id&#39;],
+      protected_keys =&gt; [&#39;created_at&#39;],
+      options =&gt; {
+        order_by =&gt; &#39;created_at desc&#39;,
+        limit =&gt; 10,
+      },
+    },
+  },
+}</pre>
+<p>statuses テーブルは、参照される際に全てのフィールド(fields で指定された物)を返します。<br />
+また更新と削除の際に primary_keys で指定されたフィールドがパラメータとして指定されていない場合には例外が発生します。<br />
+さらにパラメータにて protected_keys に含まれるキーが指定されている場合にも例外が発生します。<br />
+最後に、GET メソッドを実行した場合には created_at フィールド降順でソートされ、最大行数は10行の結果が返ります。<br />
+defaults で指定されたキーは、パラメータにて指定されなかった場合に代替される値です。<br />
+今回は「ぼっちSNS」なので基本的にユーザは「きっと俺」です。ログイン画面もありません。</p><p>これだけで Twitter に似せた API が出来てしまいました。</p>
+
+</div>
+<div class="section">
+    <h4>画面を作る</h4>
+    <p>では UI を作ります。</p>
+
+    <pre class="code lang-html">&lt;!DOCTYPE HTML&gt;
+&lt;html lang=&#34;ja&#34;&gt;
+&lt;head&gt;
+&lt;meta charset=&#34;UTF-8&#34;&gt;
+&lt;title&gt;ぼっちSNS&lt;/title&gt;
+&lt;link media=&#34;all&#34; rel=&#34;stylesheet&#34; href=&#34;alonesns.css&#34; type=&#34;text/css&#34; /&gt;
+&lt;script src=&#34;https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js&#34;&gt;&lt;/script&gt;
+&lt;script src=&#34;alonesns.js&#34;&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;div id=&#34;content&#34;&gt;
+    &lt;h1&gt;ぼっちSNS&lt;/h1&gt;
+    &lt;label id=&#34;message&#34; for=&#34;status&#34;&gt;今なにしてまんねん？&lt;/label&gt;
+    &lt;input type=&#34;text&#34; id=&#34;status&#34; name=&#34;status&#34; /&gt;
+    &lt;div id=&#34;statuses&#34;&gt;&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+&lt;!-- vim:set et: --&gt;</pre>
+<p>画面はこれだけですね。インプットボックスと発言を表示するコンテナのみです。<br />
+そして javascript は以下の通り。</p>
+
+    <pre class="code lang-javascript">$(function() {
+  function update_statuses() {
+    $.getJSON(&#34;/statuses.json&#34;, function(res) {
+      var ul = $(&#39;&lt;ul/&gt;&#39;).appendTo($(&#39;#statuses&#39;).empty());
+      $.each(res, function(n, status) {
+        $(&#39;&lt;li/&gt;&#39;)
+          .append($(&#39;&lt;span/&gt;&#39;).addClass(&#39;user&#39;).text(status.user))
+          .append($(&#39;&lt;span/&gt;&#39;).addClass(&#39;status&#39;).text(&#39;「&#39; + status.text + &#39;」&#39;))
+          .append($(&#39;&lt;br/&gt;&#39;))
+          .append($(&#39;&lt;span/&gt;&#39;).addClass(&#39;created_at&#39;).text(status.created_at))
+          .appendTo(ul);
+      });
+    });
+  }
+
+  $(&#39;#status&#39;).keypress(function(e) {
+    var $this = $(this);
+    if (e.keyCode !== 13 || !$this.val()) return true;
+    $.post(&#39;/statuses.json&#39;, {&#39;text&#39;: $this.val()}, function() {
+      update_statuses();
+      $this.val(&#39;&#39;);
+    }, &#34;json&#34;);
+  });
+
+  update_statuses();
+});</pre>
+<p>update_statuses は発言一覧を取得し、コンテナに表示しています。<br />
+入力エリアでエンターキーが押された場合は、JSON API にテキストを POST し、発言一覧を更新します。<br />
+適当な CSS を付ければ以下の様な画面が出来上がりました。</p>
+
+<blockquote >
+    <p><img src="https://github.com/perl-users-jp/perl-advent-calendar/raw/master/2012/casual/2012-12-07/image02.png" alt="alonesns2" /></p>
+
+    
+</blockquote><p>いいですね！シュールですね！そして簡単ですね！</p>
+
+</div>
+<div class="section">
+    <h4>あとがき</h4>
+    <p>今後機能拡張する際、キー項目とならないフィールドを追加するのであれば何もする必要がありませんし、もし制御が必要な場合でも config.pl のみ弄ればいい事になります。</p><p>なお、ログインであったりアクセス制限と言った、「固有アプリケーション特有の機能」が必要な場合は、app.pl 本体を弄る事になります。app.pl を雛形として捕らえたのはこの為です。<br />
+アクセス制限であれば、hook メソッドを使って各メソッドにディスパッチされる前にチェックしてしまえば良いと思いますし、ログインした際のIDに従って更新してはいけないテーブルの制御も出来るかと思います。</p><p>なお、上記の config.pl では tables に指定していないテーブルにはアクセス出来ません。また fields を指定していない場合は全てのフィールドが公開対象になります。<br />
+実運用で使える物かどうか全く検証していませんので、ご利用は計画的に。</p><p>ただし例えばローカル開発環境で、ログ的に挿入されているレコードを API でアクセスしたいといったニーズには答えられるので、随所に使いどころはあると思っていますし僕も使って行こうと思っています。<br />
+最後に今回の「ぼっちSNS」のソースを github に上げておきました。興味のある方はご覧下さい。</p>
+
+<blockquote >
+    <p><a href="https://github.com/mattn/alonesns">https://github.com/mattn/alonesns</a></p>
+
+    
+</blockquote><p>明日は kfly8 さんです。お楽しみに。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

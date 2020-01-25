@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Q4M を使ってる時のシグナル処理に注意 - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Q4M を使ってる時のシグナル処理に注意 - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Q4M を使ってる時のシグナル処理に注意<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/data-model/03.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/data-model/03.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<h3> はじめに</h3>
+
+<p>今日は趣向を変えて、 tips さんを。</p>
+
+<p>Q4M だけに限った話ではなく SELECT SLEEP(10); とかしてる時でも良いんですが、今回は Q4M を使ってる時の注意という話です。</p>
+
+<p>Data::Model の Q4M 対応では、もちろん DBI を使って Q4M を使うわけですが、これとシグナルを組み合わせるとシグナルを送った直後にシグナルハンドラを呼ばないんですね。</p>
+
+<p>例えばこんなの</p>
+
+<pre>
+    # こいつは、 Q4M の queue_wait が終わるまでシグナルをトラップしない
+    local $SIG{INT} = sub { warn "int" };
+    $queue-&gt;queue_running( queue_test =&gt; sub {}, timeout =&gt; 5 );
+</pre>
+
+<p>何故かというと perl のメインループは以下のような実装で</p>
+
+<pre>
+int
+Perl_runops_standard(pTHX)
+{
+    dVAR;
+    while ((PL_op = CALL_FPTR(PL_op-&gt;op_ppaddr)(aTHX))) {
+        PERL_ASYNC_CHECK();
+    }
+
+    TAINT_NOT;
+    return 0;
+}
+</pre>
+
+<p>一般的なケースだと (PL_op = CALL_FPTR(PL_op-&gt;op_ppaddr)(aTHX)) してるところで、実際のオペコードを実行して PERL_ASYNC_CHECK() のとこで、オペコード実行中に受け取ったシグナルに対するハンドラを処理してるのです。</p>
+
+<p>ようするに、オペコード実行中にシグナルを受け取っても即座に処理してないんですよね。</p>
+
+<p>DBI をはじめとする XS だと、一度 XS のコードを呼ばれると処理が終わるまでは PERL_ASYNC_CHECK() が実行されないため、今回のように即座にハンドラが呼ばれないということなんです。</p>
+</div>
+<div class="section">
+<h3> 解決法</h3>
+
+<p>POSIX の sigaction を使えば Perl の世界のシグナル処理をすっ飛ばして、 low level なところでシグナルをトラップしてくれるのでなんとかなります。これは DBI のドキュメントにも書かれています。</p>
+
+<pre>
+    # DBI のドキュメントを参考にしたよ
+    # これはトラップする
+    use POSIX ':signal_h';
+
+    # シグナル設定
+    my $mask = POSIX::SigSet-&gt;new( SIGINT );
+    my $action = POSIX::SigAction-&gt;new(sub { warn "int" }, $mask);
+
+    # local $SIG{INT} = sub {} 相当の事をするので、もともとのシグナルを覚えとく
+    my $oldaction = POSIX::SigAction-&gt;new();
+    sigaction(SIGINT, $action, $oldaction);
+
+    $queue-&gt;queue_running( queue_test =&gt; sub {}, timeout =&gt; 5 );
+
+    # もともとのシグナルに戻す
+    sigaction(SIGINT, $oldaction);
+</pre>
+</div>
+<div class="section">
+<h3> もうちょっとスマートに</h3>
+
+<p>上のコードは、スコープの中だけシグナルを変えようとして頑張ってるので、いろいろ処理が面倒です。</p>
+
+<p>そういう時は Sys::SigAction を使うと良いでしょう。 POSIX::SigAction をうまいぐわいにラップして、 Sys::SigAction のオブジェクトの DESTROY が呼ばれるタイミングで sigaction(SIGINT, $oldaction); をやってくれます。</p>
+
+<p>ほとんど local $SIG{INT} と同じ感じです。</p>
+
+<pre>
+    # せいかい
+    use Sys::SigAction qw( set_sig_handler );
+    my $h = set_sig_handler( 'INT', sub { warn "int" }, { flags =&gt; SA_RESTART });
+    $queue-&gt;queue_running( queue_test =&gt; sub {}, timeout =&gt; 5 );
+</pre>
+</div>
+<div class="section">
+<h3> まとめ</h3>
+
+<p>今日は、長時間ブロックする SQL を扱いつつシグナルをハンドリングしたくなった時の tips を紹介しました。</p>
+
+<p>明日は、またチュートリアル的な事をしましょう。</p>
+</div>
+<div class="section">
+<h3> 参考文献</h3>
+<ul>
+<li> <a href="http://search.cpan.org/~timb/DBI-1.609/DBI.pm#Signal_Handling_and_Canceling_Operations">http://search.cpan.org/~timb/DBI-1.609/DBI.pm#Signal_Handling_and_Canceling_Operations</a></li>
+<li> <a href="http://search.cpan.org/dist/Sys-SigAction/lib/Sys/SigAction.pm">http://search.cpan.org/dist/Sys-SigAction/lib/Sys/SigAction.pm</a></li>
+<li> <a href="http://d.hatena.ne.jp/tokuhirom/20091202/1259743712">http://d.hatena.ne.jp/tokuhirom/20091202/1259743712</a></li>
+</ul>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/data-model/03.html">Fri, 04 Dec 2009 05:21:01 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

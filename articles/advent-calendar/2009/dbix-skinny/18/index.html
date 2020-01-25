@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>テーブルを動的に扱う方法について #18 - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">テーブルを動的に扱う方法について #18 - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">テーブルを動的に扱う方法について #18<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/18.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/dbix-skinny/18.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<p>こんにちは。モバイルファクトリーの千葉と申します。</p>
+<p>今回DBIx::Skinnyを仕事で使わせてもらっている縁でエントリを担当させていただくことになりました。</p>
+
+<p>18日目はDBIx::Skinnyでテーブルを動的に扱う方法について説明します。</p>
+
+
+<p>DBの分割をする際などに、テーブルの構成は固定されているが、テーブル名は動的に指定したいという場合があると思います。</p>
+
+<p>しかしDBIx::Skinnyでは使用するテーブルの名前や構成をあらかじめスキーマで定義しておく必要があるため、標準では未定義のテーブルに対して問い合わせをすることはできません（search_by_sqlについてはその限りではありませんが）。</p>
+
+<p>そんなときは共通のスキーマをあらかじめ定義しておいて、実行時にそれを関連付けるという方法をとることができます。</p>
+
+<pre>
+package Proj::DB;
+use DBIx::Skinny setup =&gt; +{
+   dsn =&gt; 'dbi:SQLite:',
+   username =&gt; '',
+   password =&gt; '',
+};
+
+package Proj::DB::Schema;
+use DBIx::Skinny::Schema;
+
+# 共通スキーマの定義
+install_table 'access_log' =&gt; schema {
+   pk 'id';
+   columns qw/id domain remote_host request status created_at/;
+};
+
+package main;
+
+my $db = Proj::DB-&gt;new;
+
+# テーブル作成
+$db-&gt;do(q{ CREATE TABLE IF NOT EXISTS access_log_20091218 LIKE access_log });
+
+# 作成したテーブルに共通スキーマの適用
+$db-&gt;schema-&gt;schema_info-&gt;{access_log_20091218} = $db-&gt;schema-&gt;schema_info-&gt;{access_log};
+
+# 通常のテーブルと同じように扱うことができる
+$db-&gt;create('access_log_20091218', { id =&gt; 1, domain =&gt; 'example.com',
+remote_host =&gt; '127.0.0.1', request =&gt; '/', status =&gt; 200 });
+$db-&gt;update('access_log_20091218', { status =&gt; 500 }, { id =&gt; 1 });
+$db-&gt;search('access_log_20091218', { id =&gt; 1 });
+$db-&gt;delete('access_log_20091218', { id =&gt; 1 });
+</pre>
+
+<p>さらにこのテーブルのRowクラスも指定したいという場合はこのようにすることができます。</p>
+
+<pre>
+my $db = Proj::DB-&gt;new;
+
+# あらかじめ定義しておいた共通Rowクラスと作成したテーブルをマッピング
+$db-&gt;{row_class_map}-&gt;{access_log_20091218} = 'Proj::DB::Row::AccessLog';
+
+my $row = $db-&gt;search('access_log_20091218', { id =&gt; 1 })-&gt;first;
+print ref $row #=&gt; 'Proj::DB::Row::AccessLog'
+</pre>
+
+<p>現在これらの処理をまとめたDBIx::Skinny::Mixin::ProxyTableというモジュールを開発中ですのでよろしくお願いします。</p>
+<p><a href="http://github.com/daijirow/p5-dbix-skinny-mixin-proxy_table">http://github.com/daijirow/p5-dbix-skinny-mixin-proxy_table</a></p>
+
+<p>以上、簡単ですがDBIx::Skinnyでテーブルを動的に扱う方法について説明しました。</p>
+
+
+<p>ありがとうございました。</p>
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/dbix-skinny/18.html">Fri, 18 Dec 2009 08:00:02 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+

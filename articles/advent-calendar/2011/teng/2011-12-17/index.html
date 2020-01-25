@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>#17 error handling - Articles Advent Calendar 2011 Teng</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>#17 error handling</h1>
+
+        <p>Tengではエラーハンドリングを利用者が独自に定義することが可能です。</p><p>たとえばデフォルトの挙動として</p>
+
+    <pre class="code">$teng-&gt;search_by_sql(&#39;* FROM user WHERE id = ?&#39;, [1]);</pre>
+<p>このように誤ったSQLを実行してしまった時などは</p>
+
+    <pre class="code">@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@ Teng &#39;s Exception @@@@@
+Reason  : DBD::SQLite::db prepare failed: near &#34;*&#34;: syntax error at ....
+
+SQL     : * FROM user WHERE id = ?
+BIND    : $VAR1 = [
+          1
+        ];
+
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ at ....</pre>
+<p>といったエラーメッセージがcroakされます。</p><p>この処理はTeng#handle_errorメソッドでおこなっているので、<br />
+Tengを継承しているクラスでオーバーライドすることが可能です。</p><br />
+<p>たとえばTengで表示されるエラーメッセージがうるさい場合なんかは</p>
+
+    <pre class="code">package Proj::DB;
+use strict;
+use warnings;
+use parent &#39;Teng&#39;;
+
+sub handle_error {
+    my ($self, $stmt, $bind, $reason) = @_;
+    $reason =~ s/\r?\n//;
+    require Data::Dumper;
+    local $Data::Dumper::Indent = 0;
+    local $Data::Dumper::Terse  = 1;
+    local $Data::Dumper::Useqq  = 1;
+    local $Data::Dumper::Pair   = &#39;=&gt;&#39;;
+    Carp::croak sprintf &#39;%s %s %s&#39;, $reason, $stmt, Data::Dumper::Dumper($bind);
+}
+
+1;</pre>
+<p>このようにすることで</p>
+
+    <pre class="code">DBD::SQLite::db prepare failed: near &#34;*&#34;: syntax error at /Users/kobayashi.atsushi/perl5/perlbrew/perls/perl-5.12.1/lib/site_perl/5.12.1/Teng.pm line 206. * FROM user WHERE id = ? [1] at ...</pre>
+<p>と、１行で収めることも可能です。</p><p>明日はPluginについて紹介したいと思います</p>
+
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

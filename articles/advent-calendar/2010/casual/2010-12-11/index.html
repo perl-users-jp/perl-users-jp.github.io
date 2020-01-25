@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="bayashi <bayashi@cpan.org>">
+        <title>Perlで文学を嗜む Net::AozoraBunko - Articles Advent Calendar 2010 Casual</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Perlで文学を嗜む Net::AozoraBunko</h1>
+
+        <p>今年の Advent Calendar もいよいよ中盤戦。<br />
+もういくつ寝ると、メリークリ○○ス！<br />
+きのうの Acme Track (<a href="/articles/advent-calendar/2010/acme/10">Acme::Yomeru</a>) につづいて Casual Track にやってまいりました <a href="http://twitter.com/#!/bayashi">bayashi</a> です。こんにちは！</p><p>さて、みなさん、コード書いてますか、コード読んでますか。<br />
+短く簡潔なコードを読むと、気持ちもスッキリしますね。<br />
+でも、たまには文学なんてどうですか。<br />
+Perl で文学が嗜めるなんて、なんか渋くないですか。</p>
+
+<div class="section">
+    <h3>青空文庫</h3>
+    <p><a href="http://ja.wikipedia.org/wiki/%E9%9D%92%E7%A9%BA%E6%96%87%E5%BA%AB">青空文庫 - Wikipedia</a><br />
+<blockquote><br />
+日本国内において著作権が消滅した文学作品、あるいは著作権は消滅していないものの著作権者が当該サイトにおける送信可能化を許諾した文学作品を収集・公開しているインターネット上の電子図書館<br />
+</blockquote><br />
+<blockquote><br />
+古くは森鴎外、夏目漱石、芥川龍之介など、近くは中島敦（1942年没）、太宰治（1948年没）、林芙美子（1951年没）、宮本百合子（1951年没）、堀辰雄（1953年没）、坂口安吾（1955年没）、高村光太郎（1956年没）などの作品がある<br />
+</blockquote></p><p>なかなかすごいラインナップ！ 青空文庫++<br />
+これは Perl インターフェースがほしい！</p>
+
+</div>
+<div class="section">
+    <h3>Net::AozoraBunko</h3>
+    <p>というわけで書いてみました。<a href="https://github.com/bayashi/Net-AozoraBunko">Net::AozoraBunko</a>。<br />
+このモジュールは、青空文庫の作家や作品を検索し、作品をダウンロードすることができます。<br />
+まだ CPAN にはあげてなくて、 github においてあります。</p>
+
+<div class="section">
+    <h4>使い方</h4>
+    <p>一気に書いてみます。</p>
+
+    <pre class="code lang-perl">  use utf8;
+  use Net::AozoraBunko;
+
+  $ab = Net::AozoraBunko-&gt;new;
+
+  # 作家一覧を取得します
+  $authors = $ab-&gt;authors;
+
+  $author = shift @{$authors};
+
+  # 作家の情報を取得します
+  $author_info = $ab-&gt;author($author-&gt;{url});
+
+  # 作家の作品一覧を取得します
+  $works = $ab-&gt;works($author-&gt;{url});
+
+  # 作家の作品を作業中のものを含んで取得します
+  $all_works = $ab-&gt;works($author-&gt;{url});
+
+  # 作家をキーワード検索します
+  $search_author_results = $ab-&gt;search_author(&#39;検索語&#39;);
+
+  # 作家の作品をキーワード検索します
+  $search_work_results   = $ab-&gt;search_work($author-&gt;{url}, &#39;検索語&#39;);
+
+  # 作品のテキストを取得します
+  $text = $ab-&gt;get_text($search_work_results-&gt;[0]-&gt;{url});
+
+  # 作品を zip ファイルのまま取得します
+  $zip  = $ab-&gt;get_zip($works-&gt;[0]-&gt;{url});</pre>
+<p>ひととおり揃えたつもりです。是非一度お試しいただけると幸いです。</p><p>いやしかし、コマンドラインツールが欲しいですね。<br />
+これからがんばって書こうと思います。</p><p>というわけで、冬はコタツで文学を楽しみましょう！</p><p>明日は、僕も昔住んでました、名古屋でPerlをゆるく語る会の <a href="http://twitter.com/#!/issm">issm さん</a>です！<br />
+どーら楽しみにしといてちょ！</p>
+
+</div>
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

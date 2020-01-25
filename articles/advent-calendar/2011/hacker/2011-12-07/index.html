@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="i47_rozary">
+        <title>Time::Piece::Over24 - 24時以降の時間をTime::Pieceで扱う - Articles Advent Calendar 2011 Hacker</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Time::Piece::Over24 - 24時以降の時間をTime::Pieceで扱う</h1>
+
+        
+<div class="section">
+    <h4>前置き</h4>
+    <p>こんにちは。はじめまして i47_rozary と申します。みなさん、意識は高まっていますか？ 僕は上々でいたーいです。今回は拙作の<a href="https://github.com/rozary/Time-Piece-Over24">Time::Piece::Over24</a>というモジュールを紹介いたします。</p><p>皆さん <a href="http://search.cpan.org/~msergeant/Time-Piece-1.20/Piece.pm">Time::Piece</a> ってモジュールご存知ですか? 軽いとの評判もあり、<a href="http://search.cpan.org/~drolsky/DateTime-0.70/lib/DateTime.pm">DateTime</a> に代わって使われるようになってきている時間系のモジュールであります。</p><p>ボクは時間周りの処理をよくするので、よく使うんですけれども。<a href="http://search.cpan.org/~msergeant/Time-Piece-1.20/Piece.pm">Time::Piece</a>は、24時以降の時間(例えば、25時は翌日の1時であるとか)を扱えないので、深夜帯に生きるボクには活かせづらいときがままありました。<br />
+だので、そこら辺をよしなにしたいなといった趣向のモジュールになります。</p>
+
+</div>
+<div class="section">
+    <h4>使い方</h4>
+    
+<div class="section">
+    <h5>24時以降のTime::Pieceオブジェクトを作っちゃう</h5>
+    
+    <pre class="code lang-perl">use strict;
+use warnings;
+use Time::Piece::Over24;
+
+my $t1 = localtime-&gt;from_over24_time(&#34;25:00&#34;);
+print $t1-&gt;datetime;
+#2011-12-07T01:00:00
+
+my $t2 = localtime-&gt;from_over24_datetime(&#34;2011-12-01 25:00:00&#34;);
+print $t2-&gt;datetime;
+#2011-12-02T01:00:00
+</pre>
+<p>時間だけを入れると、当日からの時間を返して、日付までいれるとその日付の通りのTime::Pieceオブジェクトを返してくれます。<br />
+簡単ですね。</p>
+
+</div>
+<div class="section">
+    <h5>24時以降の表示をする</h5>
+    <p>こちらは少し面倒です。<br />
+切り替わりの時間を指定してあげて使うようにしました。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+use Time::Piece::Over24;
+
+my $t3 = localtime-&gt;strptime(&#34;2011-01-01 01:00:00&#34;,&#34;%Y-%m-%d %T&#34;);
+$t3-&gt;over24_offset(&#34;03:00:00&#34;);
+print $t3-&gt;over24_datetime;
+#2011-12-31T25:00:00
+</pre>
+<p>こんな感じで、27時までは前日ですよという様なイメージですね。<br />
+この時、over24_datetime上での1日の時間というのは、3時以上27時未満というサイクルで動くようになります。<br />
+通常の0時から24時未満を使いたいときは、そのままdatetimeを使えます。</p>
+
+</div>
+<div class="section">
+    <h5>注意事項</h5>
+    <p>この切り替わり時間なんですけれど、現在以下のような感じになっていますのでご注意ください…。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+use Time::Piece::Over24;
+
+my $t4 = localtime-&gt;strptime(&#34;2011-01-01 01:00:00&#34;,&#34;%Y-%m-%d %T&#34;);
+$t4-&gt;over24_offset(&#34;03:00:00&#34;);
+print $t4-&gt;over24_offset;
+#03:00:00
+
+my $t5 = localtime-&gt;strptime(&#34;2011-01-01 01:00:00&#34;,&#34;%Y-%m-%d %T&#34;);
+print $t5-&gt;over24_offset;
+#03:00:00 同じ!!
+</pre>
+<p>だので、切り替わりの時間を別々にしたいときは…。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+use Time::Piece::Over24;
+
+my $t4 = localtime-&gt;strptime(&#34;2011-01-01 01:00:00&#34;,&#34;%Y-%m-%d %T&#34;);
+$t4-&gt;over24_offset(&#34;03:00:00&#34;);
+print $t4-&gt;over24_offset;
+#03:00:00
+
+my $t5 = localtime-&gt;strptime(&#34;2011-01-01 01:00:00&#34;,&#34;%Y-%m-%d %T&#34;);
+print $t5-&gt;over24_offset(&#34;00:00:00&#34;);
+print $t5-&gt;over24_offset;
+#00:00:00
+
+$t4-&gt;over24_offset(&#34;03:00:00&#34;); #もう一度
+print $t4-&gt;over24_offset;
+#03:00:00
+</pre>
+<p>面倒なのですが、このようにして貰えば出来ます。</p>
+
+</div>
+<div class="section">
+    <h5>時の狭間</h5>
+    <p>Aの時間とBの時間の間であるかチェックする機能もつけてみました。<br />
+SQLではBETWEENなんですけれど、今回はis_duringとかいうメソッド名にしてしまいました。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+use Test::MockTime qw/:all/;
+use Time::Piece::Over24;
+
+#今が21時だとして
+set_absolute_time(&#34;2011-12-06T12:00:00Z&#34;);
+
+my $t6 = localtime;
+print $6-&gt;is_during(&#34;21:00&#34;,&#34;25:00&#34;);
+#1
+
+print $6-&gt;is_during(&#34;21:10&#34;,&#34;25:00&#34;);
+#undef
+
+#datetimeも使えます
+print $6-&gt;is_during(&#34;2011-12-06 21:00:00&#34;,&#34;2011-12-06 25:00&#34;);
+#1
+
+#Time::Pieceもそのまま使えます
+my $t7 = $6-&gt;strptime(&#34;2011-12-06 21:00:00&#34;,&#34;%Y-%m-%d %T&#34;);
+my $t8 = $6-&gt;strptime(&#34;2011-12-07 01:00:00&#34;,&#34;%Y-%m-%d %T&#34;);
+print $6-&gt;is_during($t7,$t8);
+#1
+
+1;</pre>
+<p>という感じで簡単ですよね。<br />
+わざわざTime::Pieceに入れ込むなとか言わないであげてください…。</p><p>ちなみにTest::MockTimeはTime::Pieceをuseする前にいれてあげてください。</p>
+
+</div>
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>Time::Piece好き&&深夜帯大好きが高じてこんなモジュールを作ってみました。<br />
+仕様、実装とも不安なところもあるのですが、是非触ってもらえたらと思います。</p><p>最後に、<a href="http://search.cpan.org/~msergeant/Time-Piece-1.20/Piece.pm">Time::Piece</a>、<a href="http://search.cpan.org/~kasei/Time-Piece-MySQL-0.06/lib/Time/Piece/MySQL.pm">Time::Piece::MySQL</a>、<a href="http://search.cpan.org/~ddick/Test-MockTime-0.12/lib/Test/MockTime.pod">Test::MockTime</a>は日頃大変利用させてもらっています。ありがとうございます。</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

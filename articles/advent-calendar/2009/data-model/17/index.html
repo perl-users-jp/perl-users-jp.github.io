@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>Data::Model::Driver::Memcachedで超効率データ保存 - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<body class="layout-two-column-right">
+<div id="container">
+    <div id="container-inner" class="pkg">
+
+        <div id="banner">
+            <div id="banner-inner" class="pkg">
+                <h1 id="banner-header">Data::Model::Driver::Memcachedで超効率データ保存 - JPerl Advent Calendar 2009
+</h1>
+                <p id="banner-description">Perl に関するちょっとした Tips をのっけてみるよ。ちゃんと続くかな？</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagebody">
+        <div id="pagebody-inner">
+            <div id="alpha">
+                <div id="alpha-inner">
+
+
+<div class="entry">
+    <h1 class="entry-header">Data::Model::Driver::Memcachedで超効率データ保存<a href="http://b.hatena.ne.jp/entry/http://perl-users.jp/articles/advent-calendar/2009/data-model/17.html"><img src="http://b.hatena.ne.jp/entry/image/http://perl-users.jp/articles/advent-calendar/2009/data-model/17.html" alt="B!"/></a></h1>
+
+    <div class="entry-content">
+        <div class="section">
+<h3> はじめに</h3>
+<p>YAPC::Asia 2009で、Data::Modelの話を聞いて以来、Data::Modelがとても気になっているdannです。</p>
+
+<p>今回は、Data::Model::Driver::Memcachedについて紹介します。これは、Memcachedプロトコルを話すサーバーにデータを格納するためのDriverです。これの素晴らしいところは、空間効率を高めることを考えて設計されていて、かつアプリケーション側のコードは綺麗にかける工夫がなされているという点です。</p>
+
+<p>では、どこにその工夫があるかをみていきましょう。</p>
+</div>
+<div class="section">
+<h3> Data::Model::Driver::Memcachedの空間効率を含めるための工夫</h3>
+<p>Data::Model::Driver:::Memcachedでは、以下のような流れでデータを保存します。</p>
+
+<ul>
+<li> データ全体のtable名をrenameし圧縮</li>
+<li> データのvalueからkeyを削除</li>
+<li> データのkey名をrenameし圧縮</li>
+<li> データをMessagePack(defaultでは）で圧縮</li>
+<li> 最後にMemcachedなどのKVSに保存</li>
+</ul>
+
+<p>このように、データを圧縮することで空間効率を高めています。</p>
+
+<h4>  valueからのkey名の削除</h4>
+<p>Data::Modelでは、テーブルに格納するデータをシリアライズして圧縮して、KVSに保存しますが、そのときにはvalueにはkey名は不要なのでkey名をvalueから削除しています。</p>
+<p>strip_keysというオプションをdriverに設定することで利用できます。</p>
+
+<pre>
+package MyApp::Schema;
+use strict;
+use warnings;
+use base 'Data::Model';
+
+...
+
+base_driver(
+    Data::Model::Driver::Memcached-&gt;new(
+        memcached =&gt; Cache::Memcached::Fast-&gt;new(
+            { servers =&gt; [ { address =&gt; "localhost:11211" }, ], }
+        ),  
+        strip_keys =&gt; 1,
+    )
+);
+
+...
+</pre>
+
+<h4> テーブル名の圧縮による省スペース化</h4>
+<p>Data::Modelでは、キー名にテーブル名を含めるのですが、テーブル名をuという短い文字列に圧縮することができます。</p>
+<p>schema_options model_name_realname =&gt; 'u'; で設定をしています。</p>
+
+<pre>
+package MyApp::Schema;
+use strict;
+use warnings;
+use base 'Data::Model';
+
+...
+
+install_model user =&gt; schema {
+    schema_options model_name_realname =&gt; 'u';
+    key 'id';
+    index 'name';
+    columns qw/id name nickname/;
+};
+
+...
+</pre>
+</div>
+<div class="section">
+<h3> キー名の圧縮による省スペース化</h3>
+<p>テーブル名だけでなく、キー名も圧縮することができます。</p>
+<p>以下のようにキー名を数値にマッピングしておくことで、実行時にキー名を数値にリネームしてキーのサイズも圧縮することが出来ます。</p>
+<p>schema_options column_name_renameでその設定をしています。</p>
+
+<pre>
+package MyApp::Schema;
+use strict;
+use warnings;
+use base 'Data::Model';
+...
+
+install_model user =&gt; schema {
+    key 'id';
+    index 'name';
+    columns qw/id name nickname/;
+    schema_options column_name_rename =&gt; {
+        id       =&gt; 1,
+        name     =&gt; 2,
+        nickname =&gt; 3,
+    };  
+};
+...
+</pre>
+</div>
+<div class="section">
+<h3> シリアライザにMessagePackを使うことによる省スペース化</h3>
+<p>シリアライザは選択できるようになっていて、DefaultはMessagePackという空間効率的なシリアライザを使われます。Data::Modelがこのようにシリアライズを切り替えられるようになっていることで、この効率化が実現できるところがポイントです。</p>
+
+<pre>
+base_driver(
+    Data::Model::Driver::Memcached-&gt;new(
+        memcached =&gt; Cache::Memcached::Fast-&gt;new(
+            { servers =&gt; [ { address =&gt; "localhost:11211" }, ], }
+        ),  
+        serializer =&gt; 'Default',
+    )   
+);
+</pre>
+
+
+<p>どのように圧縮されるのかは、MessagePackの仕様に書かれているので、それをみるのがいいです。MessagePackがとても空間効率を意識して設計されていることがわかると思います。</p>
+<p><a href="http://msgpack.sourceforge.jp/spec">http://msgpack.sourceforge.jp/spec</a></p>
+
+<p>Data::Modelでは、テーブル名・キー名が短くなったデータに対して、さらにMessagePackで圧縮をしているため、かなり空間効率がいいと言えます。</p>
+</div>
+<div class="section">
+<h3> アプリケーションのコードのシンプルさ</h3>
+<p>以下のようにモデルを定義しておけば、アプリケーションのコードは、どのように圧縮されるのかを意識することなく、効率的にキー名及びデータの格納が行えます。</p>
+<p>上記で述べたモデルの設定を実際にまとめてみましょう。</p>
+
+<pre>
+package MyApp::Schema;
+use strict;
+use warnings;
+use base 'Data::Model';
+use Data::Model::Schema;
+use Data::Model::Driver::Memcached;
+use Cache::Memcached::Fast;
+
+base_driver(
+    Data::Model::Driver::Memcached-&gt;new(
+        memcached =&gt; Cache::Memcached::Fast-&gt;new(
+            { servers =&gt; [ { address =&gt; "localhost:11211" }, ], }
+        ),
+        serializer =&gt; 'Default',
+        strip_keys =&gt; 1,
+    )
+);
+install_model user =&gt; schema {
+    schema_options model_name_realname =&gt; 'u';
+    key 'id';
+    index 'name';
+    columns qw/id name nickname/;
+    schema_options column_name_rename =&gt; {
+        id       =&gt; 1,
+        name     =&gt; 2,
+        nickname =&gt; 3,
+    };
+};
+
+1;
+</pre>
+
+<p>Memcachedなどに格納するときには、以下のようにすることで格納できます。</p>
+<p>特に利用する際には、データの圧縮などについて意識することなく利用することが出来ます。</p>
+
+<p>セットする場合</p>
+<pre>
+$model-&gt;set(
+    user =&gt; '1',
+    {   name     =&gt; 'Warai',
+        nickname =&gt; 'Meshi',
+    }   
+);
+</pre>
+
+<p>getする場合</p>
+<pre>
+my ($get) = $model-&gt;get( user =&gt; '1' );
+</pre>
+</div>
+<div class="section">
+<h3> 空間効率について</h3>
+<p>Data::Modelでのオプション設定による空間効率について、以下のような簡単なテストコードで確認してみます。</p>
+
+<pre>
+use strict;
+use warnings;
+use Test::More;
+use MyApp::Schema;
+use Data::Dumper;
+
+my $model = MyApp::Schema-&gt;new;
+$model-&gt;set(
+    user =&gt; '1',
+    {   name     =&gt; 'Warai',
+        nickname =&gt; 'Meshi',
+    }   
+);
+
+my ($get) = $model-&gt;get( user =&gt; '1' );
+is( $get-&gt;id,       '1',     'id' );
+is( $get-&gt;name,     'Warai', 'name' );
+is( $get-&gt;nickname, 'Meshi', 'nickname' );
+
+done_testing;
+</pre>
+
+<p>実行して、telnet localhost 11211でmemcachedに接続して確認してみましょう。</p>
+
+<h4>  Data::Modelのデフォルト状態で圧縮した状態</h4>
+<h4> デフォルトの設定</h4>
+<pre>
+package MyApp::Schema;
+use strict;
+use warnings;
+use base 'Data::Model';
+use Data::Model::Schema;
+use Data::Model::Driver::Memcached;
+use Cache::Memcached::Fast;
+
+base_driver(
+    Data::Model::Driver::Memcached-&gt;new(
+        memcached =&gt; Cache::Memcached::Fast-&gt;new(
+            { servers =&gt; [ { address =&gt; "localhost:11211" }, ], }
+        ),  
+    )   
+);
+install_model user =&gt; schema {
+    key 'id';
+    index 'name';
+    columns qw/id name nickname/;  
+};
+
+1;
+</pre>
+
+<p>telnetでmemcachedにつないでサイズの確認をしてみましょう。</p>
+<pre>
+STAT bytes 106
+</pre>
+
+<p>defaultでは、106バイトになりました。</p>
+
+
+<h4> Data::Modelのオプションで圧縮した場合</h4>
+<p>モデルは、以下のものとします。</p>
+<pre>
+package MyApp::Schema;
+use strict;
+use warnings;
+use base 'Data::Model';
+use Data::Model::Schema;
+use Data::Model::Driver::Memcached;
+use Cache::Memcached::Fast;
+
+base_driver(
+    Data::Model::Driver::Memcached-&gt;new(
+        memcached =&gt; Cache::Memcached::Fast-&gt;new(
+            { servers =&gt; [ { address =&gt; "localhost:11211" }, ], }
+        ),
+        serializer =&gt; 'Default',
+        strip_keys =&gt; 1,
+    )
+);
+install_model user =&gt; schema {
+    schema_options model_name_realname =&gt; 'u';
+    key 'id';
+    index 'name';
+    columns qw/id name nickname/;
+    schema_options column_name_rename =&gt; {
+        id       =&gt; 1,
+        name     =&gt; 2,
+        nickname =&gt; 3,
+    };
+};
+
+1;
+</pre>
+
+<p>telnetでmemcachedにつないでサイズの確認をしてみましょう。</p>
+<pre>
+STAT bytes 69
+</pre>
+
+<p>圧縮した場合には69bytesになりました。</p>
+
+<h4> サイズの比較</h4>
+<p>Data::Modelのオプションを使って圧縮した場合には69bytes、デフォルト状態（Data::ObjectDriverのDriverなど）の場合では106bytesになりました。</p>
+<p>したがって、今回のケースでは、圧縮した場合にデフォルト状態と比較して0.65倍となり、空間効率がかなりいいことが確認できました。</p>
+</div>
+<div class="section">
+<h3> まとめ</h3>
+<p>Data::Model::Driver::Memcachedは、KVSをデータストアとして使うために、空間効率を意識した設計がなされています。</p>
+<p>具体的には、キーの値からの削除、テーブル名及びキー名の短縮、MessagePackによる圧縮、により空間効率を高める工夫をしています。</p>
+<p>Data::Modelユーザーだけではなく、他のMemcachedプロトコルに対応したNoSQLサーバーを使われる方も、Data::ModelのDriverの実装を参考にされるのがいいのではないかと思います。</p>
+
+<p>それでは、次回は再びyappoさんです。お楽しみに！</p>
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/data-model/17.html">Sun, 20 Dec 2009 16:11:01 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

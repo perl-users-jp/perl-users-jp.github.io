@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="takesako">
+        <title>EBCDIC文字コードで記号プログラムを難読化する - Articles Advent Calendar 2010 Sym</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>EBCDIC文字コードで記号プログラムを難読化する</h1>
+
+        <p>3回連続で執筆を担当している<a href="http://developer.cybozu.co.jp/takesako/">id:TAKESAKO</a>です。</p><p>ASCIIと非互換な文字コードとして古くからEBCDICが知られています。<br />
+今日は記号プログラミングでわかりにくくしたJavaScriptプログラムをASCII非互換の文字コードEBCDICでさらに難読化してみようと思います。</p>
+
+<div class="section">
+    <h3>EBCDICとは</h3>
+    <p>1964年にIBMによって作られた汎用大型コンピュータ用の文字コードがEBCDICです。<br />
+EBCDICは「Extended Binary Coded Decimal Interchange Code」の略で「エビシディック」と発音します。COBOLなどの古代言語で使用された二進化十進数(BCD)を拡張する形で文字コードが定義されています。メインフレームやホストコンピュータなどで現在も使用されている現役バリバリの文字コードです。</p>
+
+</div>
+<div class="section">
+    <h3>cp500（International EBCDIC）</h3>
+    <p>EBCDICには、いくつかのコードページがあるのですが、記号プログラムの難読化に一番使えそうなcp500を考えてみます。</p><p><img src="https://github.com/perl-users-jp/perl-advent-calendar/raw/9ce29d2faf619b5927575acfa4ec1aa997fff5da/2010/sym/cp500.png" width="500" height="513"></p>
+
+</div>
+<div class="section">
+    <h3>cp819（ISO-8859-1）</h3>
+    <p>これをISO-8859-1のコードページcp819と比較すると以下になります。</p><p><img src="https://github.com/perl-users-jp/perl-advent-calendar/raw/9ce29d2faf619b5927575acfa4ec1aa997fff5da/2010/sym/cp819.png" width="500" height="513"></p>
+
+</div>
+<div class="section">
+    <h3>ASCIIと非互換なEBCDIC</h3>
+    <p>cp500で読み込むと、以下の記号は次の表で置き換えられてしまいます。</p>
+
+<table>
+    <tr>
+    <td>Hex</td>
+    <td>ASCII</td>
+    <td>cp500</td>
+    </tr>
+    <tr>
+    <td>0x5b</td>
+    <td>[</td>
+    <td>$</td>
+    </tr>
+    <tr>
+    <td>0x5c</td>
+    <td>\</td>
+    <th></th>
+    </tr>
+    <tr>
+    <td>0x5e</td>
+    <td>^</td>
+    <td>;</td>
+    </tr>
+    <tr>
+    <td>0x60</td>
+    <td>`</td>
+    <td>-</td>
+    </tr>
+    <tr>
+    <td>0x7e</td>
+    <td>~</td>
+    <td>=</td>
+    </tr>
+    <tr>
+    <td>0x7d</td>
+    <td>}</td>
+    <td>'</td>
+    </tr>
+</table><p>これを利用して記号のみで書かれたJavaScriptプログラムを難読化してみましょう。</p>
+
+</div>
+<div class="section">
+    <h3>ebcdic.js</h3>
+    <p>以下のファイルをASCIIで1行書いてみます（ただし改行は除く）。</p>
+
+    <pre class="code lang-js">[~}}^[``^[`~``[\``[`[^</pre>
+<p>このファイルをcp500のEBCDIC文字コードで読み直すと以下になります。</p>
+
+    <pre class="code lang-js">$=&#39;&#39;;$--;$-=--$*--$-$;</pre>
+<p>変数$に-10を代入していることになります。</p>
+
+</div>
+<div class="section">
+    <h3>ebcdic.html</h3>
+    <p>以下のHTMLを作成し、cp500のEBCDIC文字コードでさきほどのJavaScriptファイルを読み込んで実行してみましょう。</p>
+
+    <pre class="code">&lt;!DOCTYPE html&gt;
+&lt;meta charset=&#34;cp819&#34;/&gt;
+&lt;script charset=&#34;cp500&#34; src=&#34;ebcdic.js&#34;&gt;&lt;/script&gt;
+&lt;script&gt;
+&#39;&#39;[_=((_=&#39;&#39;+-~-~&#39;&#39;)+{})[-~_*_]+(_+{})[_]+(_+{}._)[_]+(_+![])[_*_]+(_+!&#39;&#39;)
+[_/_]+(_+!&#39;&#39;)[_]+(&#39;&#39;+!&#39;&#39;)[_]+(_+{})[-~_*_]+(_+!&#39;&#39;)[_/_]+(_+{})[_]+(_+!&#39;&#39;)
+[_]][_](_[_][_]((_=-~-~&#39;&#39;+&#39;&#39;,(_+!&#39;&#39;)[_])+(_+!&#39;&#39;)[_*_]+(_+!&#39;&#39;)[_/_]+(&#39;&#39;+!&#39;&#39;)
+[_]+(_+!&#39;&#39;)[_]+(_+{}._)[_]+&#39;\&#39;&#39;+[&#39;&#39;,~_^~_*_+_,_*_+_-~_,_&lt;&lt;_-~_,~_*~_|_,~_*
+_^~_*_+_,_&lt;&lt;_-~_,_*_+_-~_,-_*~_+_,_&lt;&lt;_-~_|_,~(_*-_+_),(_-~_+_|_)+&#39;(&#34;&#39;,(_+_)
+*_,(_-~_+_|_)-~_,_/_|_*_+_,-~(_*_&lt;&lt;_*_),_-~_+_-~_,_*_+_-~_,~_*_^~_*_+_,(_&lt;&lt;
+_-~_)+&#39;.&#39;,_*_+_,(_-~_+_|_)-~_,(_+_)*_,(_-~_|_&lt;&lt;_-~_|_)+&#39;.&#39;,~(~_-_+_),~_*_^~
+_*_+_,~_*_^~_*_+_,_*_+_-~_,-_*~_+_,_|_&lt;&lt;_,_+_*_,_/_+_-~_,(~-_+_|_)+&#39;=&#39;,&#39;&#39;+_
+%_+_*_,~(_*-_+_),_&lt;&lt;_-~_,(_*_+_-~_)+&#39;()&#34;,-$*$*$)&#39;][(_+{})[_*_]+(_+{})[_]+(_
++_/&#39;&#39;)[_*_]+(_+{}._)[_]](&#39;\\&#39;+_/_)+&#39;\&#39;&#39;)())()
+&lt;/script&gt;</pre>
+<p>さて、どうなったでしょうか？</p>
+
+</div>
+<div class="section">
+    <h3>動作ブラウザ</h3>
+    <p>Windows上のIEやSafariのブラウザではそのままOSの提供するEBCDICの文字コード変換エンジンが利用できます。驚くべき事に最新のWindowsでもEBCDICのサポートは続けられているのです。</p>
+
+</div>
+<div class="section">
+    <h3>さらに詳しく</h3>
+    <p>IBMのコードページ500（EBCDIC）を利用したハックはgihyo.jpのエイプリルフール記事として掲載させていただきましたので、もしも興味のある方はご覧になってください。</p>
+
+<ul>
+<li><a href="http://gihyo.jp/dev/column/01/prog/2010/aprilfool2010-02">http://gihyo.jp/dev/column/01/prog/2010/aprilfool2010-02</a></li>
+</ul>
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

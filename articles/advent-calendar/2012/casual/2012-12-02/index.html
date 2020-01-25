@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="hirobanex">
+        <title>List::Compareで二つの配列の集合を扱うの巻 - Articles Advent Calendar 2012 Casual</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>List::Compareで二つの配列の集合を扱うの巻</h1>
+
+        <p>こんにちは！<a href="http://twitter.com/hirobanex">hirobanex</a>です！本日はフランクに、２つの配列の集合を良い感じに取り扱える<a href="http://search.cpan.org/~jkeenan/List-Compare-0.37/lib/List/Compare.pm">List::Compare</a> のご紹介です。podみると、いろいろなメソッドとかオプションがあるのですが今回ご紹介するのは、</p>
+
+<ul>
+<li>get_intersection</li>
+<li>get_union</li>
+<li>get_Lonly</li>
+<li>get_Ronly</li>
+</ul><p>の基本的な4つのメソッドです。</p>
+
+<div class="section">
+    <h4>取り扱う集合とメソッドの関係</h4>
+    <p>それぞれのメソッドの機能をコトバで説明するよりも図で説明したほうがわかりやすいのですが、ベン図のあれっていえばだいたいの方はわかると思うので、図は出しませんwというわけで、それぞれ以下のようになります。</p>
+
+<ul>
+<li>get_intersection : 2つの配列の共通部分を取り出す</li>
+<li>get_union : 2つの配列で合わせた部分を取り出す（List::MoreUtilsのuniq関数と同じ）</li>
+<li>get_Lonly : 2つの配列のうち、左側側だけの部分を取り出す</li>
+<li>get_Ronly : 2つの配列のうち、右側だけの部分を取り出す</li>
+</ul>
+</div>
+<div class="section">
+    <h4>サンプルコード</h4>
+    <p>左？右？何それ？って感じですが、実際の以下のサンプルをご覧頂ければ一目瞭然です。</p>
+
+    <pre class="code lang-vim">use strict;
+use warnings;
+use List::Compare;
+
+use Data::Dumper;
+
+my @left  = qw/1 2 3 4/;
+my @right = qw/3 4 5 6 7 8 9/;
+
+my $lc = List::Compare-&gt;new(\@left, \@right); #このコンストラクション時に、左に入れるのか、右に入れるかが重要
+
+my @intersection = $lc-&gt;get_intersection;
+my @union        = $lc-&gt;get_union;
+my @left_only    = $lc-&gt;get_Lonly;
+my @right_only   = $lc-&gt;get_Ronly;
+
+warn Dumper \@intersection; # [3,4]
+warn Dumper \@union;        # [1,2,3,4,5,6,7,8,9]
+warn Dumper \@left_only;    # [1,2]
+warn Dumper \@right_only;   # [5,6,7,8,9]</pre>
+
+</div>
+<div class="section">
+    <h4>使いどころ</h4>
+    <p>List::Compareの実際の使いどころは、</p>
+
+<ul>
+<li>2つの配列が用意されいる</li>
+<li>List::Compareのメソッドを2回以上使う予定だ</li>
+</ul><p>という状態です。このモジュールを使わなくても、grepを使えば簡単に同じことができてしまいますし、いちいちnewしないといけないので、意外とコードも長くなりますので、1回くらいしか使わないのなら、知らない人が見てキモいと思わないように使わないほうがいいと思います。とわいえ、複数回使用する場合は、grepで書くよりも、モジュール名やメソッド名がわかりやすいことから、このモジュールを使ったほうが可読性が高まるし、なんか集合の取り扱いことをやりたいのねっていうのが伝わりやすいかなーという印象です。</p><p>以上、本日は小粒な使っても使わなくてもいいようなモジュールのご紹介でしたーw明日は、<a href="https://twitter.com/koba04">koba04</a>さんです！See you again!</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

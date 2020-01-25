@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="koba04 <koba0004@gmail.com>">
+        <title>Path::Classで簡単ファイル操作 - Articles Advent Calendar 2010 Casual</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Path::Classで簡単ファイル操作</h1>
+
+        <p>こんにちは！モダンPerlの裏側しか知らない<a href="http://twitter.com/koba04">koba04</a>です。</p><p>今日は、少し前まで「続・初めてのPerl」を読んでいた自分が、遅ればせながらその便利さに感動して使うようになったPath::Classについてを。(ってもう使ってますよね。。)<br />
+多分Casual Trackの中でも最も初心者向けな内容になっているんじゃないかと思います。。</p><p>何が便利かというと、「File::Spec」や「File::Path」、「IO::Dir」、「IO::File」、「File::stat」などのモジュールにある関数を「Path::Class」をインターフェイスとして使うことが出来ます。<br />
+とりあえず「use Path::Class」でいいので便利ですね！</p><p></p>
+
+<div class="section">
+    <h3>オブジェクトの作成</h3>
+    <p>まずはファイルオブジェクトの作成。(file)</p>
+
+    <pre class="code lang-perl">use Path::Class;
+my $file = file(&#39;path&#39;, &#39;to&#39;, &#39;file.txt&#39;);
+# or
+my $file = file(&#39;path/to/file.txt&#39;); </pre>
+<p>ディレクトリの場合は、(dir)</p>
+
+    <pre class="code lang-perl">my $dir = dir(&#39;path&#39;, &#39;to&#39;, &#39;dir&#39;);
+# or
+my $dir = dir(&#39;path/to/dir&#39;); </pre>
+<p>簡単ですね。<br />
+えっ、Linux上でWindowsのパスに変更したい？(as_foreign)</p>
+
+    <pre class="code lang-perl">$file = $file-&gt;as_foreign(&#39;Win32&#39;);
+say $file; # =&gt; &#39;path\to\file.txt&#39;
+
+# 直接作ることも出来ます。(new_foreign)
+$file = Path::Class::File-&gt;new_foreign(&#39;Win32&#39;, &#39;path/to/file.txt&#39;);
+say $file; # =&gt; &#39;path\to\file.txt&#39;</pre>
+<p>'Win32'の他にも'Unix'や'Mac'、'Cygwin'など指定出来ます。</p><br />
+<p>それでは、上記で作成した「Path::Class::File」、「Path::Class::Dir」オブジェクトをもとに色々操作していきましょう。</p><p></p>
+
+</div>
+<div class="section">
+    <h3>パス操作</h3>
+    
+    <pre class="code lang-perl"># カレントディレクトリを/Users/koba04とします。
+
+# 絶対パスを取得(absolute)
+
+$file = file(&#39;foo.txt&#39;);
+$dir = dir(&#39;foo&#39;);
+say $file-&gt;absolute; # =&gt; &#39;/Users/koba04/foo.txt&#39;
+say $dir-&gt;absolute;  # =&gt; /Users/koba04/foo
+
+# 実行スクリプトのパスやそのディレクトリも簡単に取得出来ます。
+
+say file(__FILE__)-&gt;absolute;       # =&gt; 実行スクリプトの絶対パス。 (/path/to/script.pl)
+say file(__FILE__)-&gt;absolute-&gt;dir;  # =&gt; 実行スクリプトがあるディレクトリの絶対パス。(/path/to)
+
+
+# 相対パスがいい？(relative)
+
+$file = file(&#39;/Users/koba04/foo/bar.txt&#39;);
+$dir = dir(&#39;/Users/koba04/foo/bar&#39;);
+say $file-&gt;relative;  # =&gt; foo/bar.txt
+say $dir-&gt;relative;  # =&gt; foo/bar
+
+
+# パスを整理
+
+$file = file(&#39;/Users/koba04/Music////./././../foo/bar.txt&#39;);
+$dir = dir(&#39;/Users/koba04/Music////./././../foo/bar&#39;);
+say $file;  # =&gt; /Users/koba04/Music/../foo/bar.txt
+say $dir;  # =&gt; /Users/koba04/Music/../foo/bar
+
+
+# ..も整理される。(resolve =&gt; Cwd::realpathが使用されている)
+
+say $file-&gt;resolve;  # =&gt; /Users/koba04/foo/bar.txt  
+say $dir-&gt;resolve;  # =&gt; /Users/koba04/foo/bar
+
+# 実際に存在しないディレクトリやファイルがパスに含まれていると空文字になる。
+
+say file($test_dir, &#39;no/../foo/bar.txt&#39;)-&gt;resolve; # =&gt; &#39;&#39;
+
+
+# ひとつ上のディレクトリオブジェクトが欲しい？(parent)
+
+$up_dir = $file-&gt;parent;
+say $up_dir;  # =&gt; /Users/koba04/Music/foo
+$up_dir = $dir-&gt;parent;
+say $up_dir;  # =&gt; /Users/koba04/Music/foo
+
+
+# ディレクトリ以下のファイル、ディレクトリのオブジェクト配列をつくる。(children)
+
+my @artist_list = dir(&#39;/Users/koba04/Music/iTunes/iTunes Media/Music&#39;)-&gt;children;
+for my $artist ( sort @artist_list ) {
+    say $artist-&gt;absolute;
+}
+# /Users/koba04/Music/iTunes/iTunes Media/Music/!!!
+# /Users/koba04/Music/iTunes/iTunes Media/Music/.DS_Store
+# /Users/koba04/Music/iTunes/iTunes Media/Music/22-20s
+# /Users/koba04/Music/iTunes/iTunes Media/Music/AKB48
+# /Users/koba04/Music/iTunes/iTunes Media/Music/ASIAN KUNG-FU GENERATION
+# /Users/koba04/Music/iTunes/iTunes Media/Music/Aimee Mann
+# /Users/koba04/Music/iTunes/iTunes Media/Music/Albert Hammond, Jr_
+# /Users/koba04/Music/iTunes/iTunes Media/Music/Anberlin
+# /Users/koba04/Music/iTunes/iTunes Media/Music/Aphex Twin
+# /Users/koba04/Music/iTunes/iTunes Media/Music/Arab Strap
+# /Users/koba04/Music/iTunes/iTunes Media/Music/Arctic Monkeys
+# /Users/koba04/Music/iTunes/iTunes Media/Music/Arlo
+# /Users/koba04/Music/iTunes/iTunes Media/Music/Ash
+:
+:</pre>
+
+</div>
+<div class="section">
+    <h3>ファイル情報を取得</h3>
+    <p>File::statオブジェクトが取得出来るのでそこから色々情報を取得できます。</p>
+
+    <pre class="code lang-perl">
+# 更新時間を出力
+
+say &#39;modify time =&gt; &#39; . localtime($file-&gt;stat-&gt;mtime);
+# =&gt; modify time =&gt; Wed Dec  8 01:31:12 2010</pre>
+
+</div>
+<div class="section">
+    <h3>ファイルをまとめて処理</h3>
+    <p>あるディレクトリ以下のファイルに対する処理も、コールバック関数を指定する方法で簡単に出来ます。<br />
+File::Findみたいな感じですね。</p>
+
+    <pre class="code lang-perl">
+# テストディレクトリ構成
+# /Users/koba04/list/foo.txt
+# /Users/koba04/list/bar
+# /Users/koba04/list/baz
+# /Users/koba04/list/baz/zzz.txt
+
+# recurse
+
+dir(&#39;/Users/koba04/list&#39;)-&gt;recurse(callback =&gt; sub {
+    my $file = shift;
+    say $file;
+});
+# /Users/koba04/list
+# /Users/koba04/list/bar
+# /Users/koba04/list/baz
+# /Users/koba04/list/foo.txt
+# /Users/koba04/list/baz/zzz.txt
+
+# 探索の順番を変更することもできます。
+# depthfirst = 深さ優先
+# preorder   = 幅優先
+# デフォルト(depthfirst =&gt; 0, preorder =&gt; 1,)
+
+dir(&#39;/Users/koba04/list&#39;)-&gt;recurse(
+    depthfirst =&gt; 1,
+    preorder =&gt; 0,
+    callback =&gt; sub {
+         say shift;
+    }
+);
+# /Users/koba04/list/bar
+# /Users/koba04/list/baz/zzz.txt
+# /Users/koba04/list/baz
+# /Users/koba04/list/foo.txt
+# /Users/koba04/list
+</pre>
+<p>ディレクトリ以下のファイルをiteratorで処理することも出来ます。<br />
+（非再帰的なので、ディレクトリ直下のファイル/ディレクトリのみ）</p>
+
+    <pre class="code lang-perl">
+# while(my $file = dir(&#39;/Users/koba04/list&#39;)-&gt;next) { とすると無限ループになるので注意！(えっ、しない!?)
+
+my $dir = dir(&#39;/Users/koba04/list&#39;);
+while(my $file = $dir-&gt;next) {
+    say $file;
+}
+# /Users/koba04/list
+# /Users/koba04/list/..
+# /Users/koba04/list/bar
+# /Users/koba04/list/baz
+# /Users/koba04/list/foo.txt
+
+
+# カレントディレクトリ以下のファイルのみを処理する
+while(my $file = $dir-&gt;next) {
+    next if $file eq $dir or $file-&gt;resolve eq $dir-&gt;parent; # カレントと１つ上のディレクトリを除外
+    say $file;
+}
+# /Users/koba04/list/bar
+# /Users/koba04/list/baz
+# /Users/koba04/list/foo.txt
+</pre>
+
+</div>
+<div class="section">
+    <h3>作りたい？</h3>
+    <p>ファイルを作成してみます。(touch)</p>
+
+    <pre class="code lang-perl">use Try::Tiny;
+
+try {
+    $file-&gt;touch;  # 存在する場合はアクセス、更新時刻を更新する
+} catch {
+    die $_;
+};</pre>
+<p>ディレクトリを作成してみます。(mkdir, mkpath)</p>
+
+    <pre class="code lang-perl"># これはmkdirコマンドで。
+
+mkdir $dir or die &#34;Can&#39;t mkdir $!&#34;;
+
+# 存在しないサブディレクトリも一緒に作成。
+
+try {
+    $dir-&gt;mkpath;
+} catch {
+    die $_;
+};
+</pre>
+
+</div>
+<div class="section">
+    <h3>ファイルを読んだり書いたり</h3>
+    <p>openやopenr、openw関数により、IO::FileやIO::Dirのオブジェクトを取得することができます。</p><p>ファイルを読み込みたい？(openr)</p>
+
+    <pre class="code lang-perl">$file = file(&#39;path/to/read.txt&#39;);
+my $reader;
+try {
+    $reader = $file-&gt;openr;
+} catch {
+    die $_;
+};
+# or
+# my $reader = $file-&gt;open(&#39;r&#39;) or die $!;
+
+while (my $line = $reader-&gt;getline ) {
+    print $line;
+}
+$reader-&gt;close;</pre>
+<p>ファイルに書き込みたい？(openw)</p>
+
+    <pre class="code lang-perl">$file = file(&#39;path/to/write.txt&#39;);
+my $writer;
+try {
+    $writer = $file-&gt;openw;
+} catch {
+    die $_;
+};
+# or
+# my $writer = $file-&gt;open(&#39;w&#39;) or die $!;
+
+$writer-&gt;print(&#34;line1\n&#34;);
+$writer-&gt;print(&#34;line2\n&#34;);
+$writer-&gt;close;</pre>
+<p>ファイルに追記したい？(open('a'))</p>
+
+    <pre class="code lang-perl">$file = file(&#39;path/to/write.txt&#39;);
+my $appender = $file-&gt;open(&#39;a&#39;) or die $!;
+$appender-&gt;print(&#34;line3\n&#34;);
+$appender-&gt;close;</pre>
+
+</div>
+<div class="section">
+    <h3>ファイルの内容を一度に読み込みたい？(slurp)</h3>
+    
+    <pre class="code lang-perl">$file = file(&#39;path/to/write.txt&#39;);
+try {
+
+    # スカラーに入れたい
+    $lines = $file-&gt;slurp;
+
+    # 配列に入れたい
+    @line_list = $file-&gt;slurp;
+
+    # 改行コード削除したい
+    @line_list = $file-&gt;slurp(chomp =&gt; 1);
+
+    # PerlIOレイヤを指定したい。
+    $lines = $file-&gt;slurp(iomode =&gt; &#39;&lt;:encoding(UTF-8)&#39;);
+
+} catch {
+    die $_;
+};</pre>
+
+</div>
+<div class="section">
+    <h3>削除したい？</h3>
+    <p>ファイルまたはディレクトリを削除してみます。(remove)</p>
+
+    <pre class="code lang-perl">$file-&gt;remove or die $!;
+$dir-&gt;remove or die $!;</pre>
+<p>ディレクトリ以下のファイル、ディレクトリもまとめて削除してみます。(rmtree)</p>
+
+    <pre class="code lang-perl">$dir-&gt;rmtree or die $!;</pre>
+
+</div>
+<div class="section">
+    <h3>拡張したい？</h3>
+    <p>継承することで独自のファイル、ディレクトリクラスを作ることができます。</p><p>openrやopenwメソッドの他に、追記が出来るopenaメソッドを使えるようにしてみます。</p>
+
+    <pre class="code lang-perl"># 私のファイルクラス
+{
+    package My::File;
+    use Carp;
+    use parent qw(Path::Class::File);
+
+    # 対応するディレクトリクラスを指定
+    sub dir_class { return &#34;My::Dir&#34; }
+
+    # メソッドを追加してみる。
+    sub opena { $_[0]-&gt;open(&#39;a&#39;) or croak &#34;Can&#39;t append $_[0]: $!&#34;  }
+
+}
+
+# 私のディレクトリクラス
+{
+    package My::Dir;
+    use parent qw(Path::Class::Dir);
+
+    # 対応するファイルクラスを指定
+    sub file_class { return &#34;My::File&#34; }
+
+}
+
+# My::File or My::dir になっている。
+$file = My::File-&gt;new(&#34;test.txt&#34;);
+$dir = $file-&gt;dir;
+
+say ref $file;  # =&gt; My::File
+say ref $dir;  # =&gt; My::Dir
+
+
+# My::Dirから作ったオブジェクトもMy::File or My::Dir になっている。
+say ref $dir-&gt;file(&#34;bar.txt&#34;);  # =&gt; My::File
+
+my $writer = $file-&gt;openw;
+$writer-&gt;print(&#34;test\n&#34;);
+$writer-&gt;close;
+
+my $appender = $file-&gt;opena;    # 拡張したメソッドを使ってみる。
+$appender-&gt;print(&#34;test2\n&#34;);
+$appender-&gt;close;
+</pre>
+<p><br />
+Path::Classは初心者な自分でもコードやテストも読みやすいので、勉強するにもいいモジュールだと思います。</p><p></p>
+
+</div>
+<div class="section">
+    <h3>See Also</h3>
+    
+    <pre class="code lang-perl">
+perldoc Path::Class
+perldoc Path::Class::Dir
+perldoc Path::Class::File
+</pre>
+<p>記事書くのに書いたテスト。<br />
+<a href="https://gist.github.com/730442">https://gist.github.com/730442</a></p><br />
+<p>明日は、<a href="http://twitter.com/usuihiro">usuihiro</a>さんです。楽しみですね！</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

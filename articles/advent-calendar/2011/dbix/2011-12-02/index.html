@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="myfinder">
+        <title>オレオレDBIxへの第一歩 - DBIのサブクラスを作る - Articles Advent Calendar 2011 Dbix</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>オレオレDBIxへの第一歩 - DBIのサブクラスを作る</h1>
+
+        
+<div class="section">
+    <h4>注意書き</h4>
+    <p>ここで紹介しているオレオレDBIxモジュールの作成方法は、ある種呪いにも似た副作用を発生させる可能性があるので十分に検討した上で利用してください。<br />
+あわせて DBIx 名前空間にあるモジュールは用法、用量を守って正しくお使いください。</p>
+
+</div>
+<div class="section">
+    <h4>はじめに</h4>
+    <p>こんばんは、DBIx トラック2日目をやる myfinder です。<br />
+今回は DBIx::ナントカ の紹介ではなく、オレオレDBIxへの第一歩として DBI のサブクラスを作る方法について書きます。</p>
+
+</div>
+<div class="section">
+    <h4>作り方</h4>
+    <p><a href="http://search.cpan.org/~timb/DBI-1.609/DBI.pm#Subclassing_the_DBI">Subclassing_the_DBI</a> という枠組みがあるのでこれに従えば、オレオレDBIxを作成できます。<br />
+大変 Casual な枠組みですね。</p>
+
+</div>
+<div class="section">
+    <h4>はじめの一歩</h4>
+    <p>「千里の道も一歩から」という言葉がありますが、オレオレDBIxもまずは一歩を踏み出さないと始まらないと思います。<br />
+ということで、下記が最小のオレオレDBIxです。</p>
+
+    <pre class="code lang-perl">use strict;
+use version;
+our $VERSION = &#39;0.03&#39;;
+
+package DBIx::OreOre;
+use parent qw(DBI);
+
+package DBIx::OreOre::db;
+use parent qw(DBI::db);
+
+package DBIx::OreOre::st;
+use parent qw(DBI::st);
+
+1;</pre>
+<p>たったこれだけです。<br />
+use して使いたい場合</p>
+
+    <pre class="code lang-perl">use DBIx::OreOre;
+
+$oreore_dbh = DBIx::OreOre-&gt;connect($data_source, $username, $auth, \%attrs) or die;</pre>
+<p>でもよいのですが、</p>
+
+    <pre class="code lang-perl">use DBIx::OreOre;
+
+my @dsn = (
+  &#39;dbi:mysql:host=localhost;database=mysql;mysql_socket=/tmp/mysql.sock;&#39;,
+  &#39;root&#39;,
+  &#39;&#39;,
+  {
+      RootClass =&gt; &#39;DBIx::OreOre&#39;,
+  },
+);
+
+my $dbh = DBI-&gt;connect(@dsn) or die;</pre>
+<p>として、DSN に RootClass 指定することでも利用可能です。<br />
+DSN は config ファイルなどに別途定義することも多いと思いますので、後からオレオレDBIxを使いたいという場合こちらの使い方をするのも良いでしょう。</p><p>但し、見ての通りこのままでは何もしません。<br />
+なにもしないのは寂しいので、何かやらせてみましょう。</p>
+
+</div>
+<div class="section">
+    <h4>なにかやらせる</h4>
+    <p>DBI が提供する枠組みでは DBI, DBI::db, DBI::st それぞれのサブクラスを定義するわけなので、当然各フェーズで実行される関数に処理をかぶせる事が可能です。<br />
+例えば connect した時に何がしかの前処理をしたい場合</p>
+
+    <pre class="code lang-perl">〜
+package DBIx::OreOre;
+use parent qw(DBI);
+
+sub connect {
+  my $self = shift;
+  my ($dsn, $user, $pass, $attrs) = @_;
+
+  # MySQL だったら
+  if ($dsn =~ /^(?i:dbi):mysql:/) {
+    〜
+  }
+  # PostgreSQL だったら
+  if ($dsn =~ /^(?i:dbi):Pg:/) {
+    〜
+  }
+  # SQLite だったら
+  if ($dsn =~ /^(?i:dbi):SQLite:/) {
+    〜
+  }
+
+  $self-&gt;SUPER::connect($dsn, $user, $pass, $attrs);
+}
+〜</pre>
+<p>という形で connect 直前に処理を挟むことができます。<br />
+connect 直後に何かしたい場合、connected という関数が呼ばれる事になっているので connect 時同様</p>
+
+    <pre class="code lang-perl">〜
+package DBIx::OreOre::db;
+use parent qw(DBI::db);
+
+sub connected {
+  my $self = shift;
+  my ($dsn, $user, $credential, $attrs) = @_;
+
+  # なにがしかの処理
+}
+〜</pre>
+<p>という形で後処理をさせることができます。<br />
+また、独自のアトリビュートをつけることで、処理時の挙動を変更するなども容易です。<br />
+やり方は簡単で、DSN に1行追加するだけです。</p>
+
+    <pre class="code lang-perl">use DBIx::OreOre;
+
+my @dsn = (
+  &#39;dbi:mysql:host=localhost;database=mysql;mysql_socket=/tmp/mysql.sock;&#39;,
+  &#39;root&#39;,
+  &#39;&#39;,
+  {
+      RootClass =&gt; &#39;DBIx::OreOre&#39;,
+      foo       =&gt; 1,
+  },
+);
+
+my $dbh = DBI-&gt;connect(@dsn) or die;</pre>
+<p>というような形で追加すると</p>
+
+    <pre class="code lang-perl">〜
+sub connect {
+  my $self = shift;
+  my ($dsn, $user, $pass, $attrs) = @_;
+
+  if ($attrs-&gt;{foo}) {
+    print STDERR &#34;foo is $attrs-&gt;{foo}&#34;;
+  }
+
+  $self-&gt;SUPER::connect($dsn, $user, $pass, $attrs);
+}</pre>
+<p>渡した内容で処理を分岐するなども可能です。<br />
+foo を DBI::OreOre::st 側でも使いたい場合</p>
+
+    <pre class="code lang-perl">sub connected {
+  my $self = shift;
+  my ($dsn, $user, $credential, $attrs) = @_;
+  $self-&gt;{private_dbix_oreore} = { &#39;foo&#39; =&gt; $attrs-&gt;{foo} };
+}</pre>
+<p>として値を入れておくことで</p>
+
+    <pre class="code lang-perl">〜
+package DBIx::OreOre::st;
+use parent qw(DBI::st);
+
+sub execute {
+  my $self = shift;
+  my (@args) = @_;
+  my $foo = $self-&gt;{private_dbix_oreore}-&gt;{foo};
+
+  if ($foo) {
+    print STDERR &#34;foo is $foo&#34;;
+  }
+
+  return $self-&gt;SUPER::execute(@args);
+}
+〜</pre>
+<p>のように持ちまわることが可能になります。</p>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>2日目はオレオレDBIxの作り方を紹介しました。<br />
+最初にも申し上げたとおり、ここで紹介しているオレオレDBIxモジュールの作成方法で作ったモジュールは、大きくDBIの挙動を変えてしまうこともできるので注意が必要だと思います。</p><p>しかしながらこの手法でしか解決が難しい or ここでしかできない処理を入れ込む、といった問題や目的がある場合は有効な手段であるとも思いますので、用法用量を守って正しくお使いください。</p><p>明日は bayashi さんです。お楽しみに！</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

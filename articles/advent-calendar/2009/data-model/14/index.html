@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="ja">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//bulknews.typepad.com/test/styles.css" media="all"/>
+    <title>カラムの定義について - JPerl Advent Calendar 2009</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/articles/advent-calendar/2009/casual/index.xml"/>
+</head>
+<p>使い方はそれぞれ</p>
+
+<pre>
+    column 'column_name';
+    columns qw/ column_name1 column_name2 column_name3 column_name4 /;
+</pre>
+
+<p>となります。</p>
+<p>この使い方は、カラム名だけ引数に与えて与えた引数でのカラム名定義を行ってくれます。</p>
+</div>
+<div class="section">
+<h3> カラム定義を真面目にする</h3>
+
+<p>上の簡単な使い方だとカラムの型やら具体的な定義が書かれてないので NOT NULL 制約があるのか何なのか良くわかりません。</p>
+<p>そこで、 DBIC とかの良くあるちゃんとした定義を書きます。</p>
+
+<p>これには先の column を利用します。 columns では詳細な定義はできません。</p>
+
+<pre>
+    column column_name
+        =&gt; int =&gt; $options;
+</pre>
+
+<p>このように書きます。</p>
+<p>第一引数はカラム名。</p>
+<p>第二引数はカラム型。</p>
+<p>第三引数がカラムの詳細な定義となります。</p>
+
+<p>カラムの詳細な定義とは、 NOT NULL 制約やら DEFAULT の設定やカラムのサイズなどです。</p>
+<p>具体的に定義可能なパラメータは <a href="http://search.cpan.org/dist/Data-Model/lib/Data/Model/Schema.pm#COLUMN_OPTIONS">http://search.cpan.org/dist/Data-Model/lib/Data/Model/Schema.pm#COLUMN_OPTIONS</a> に記載してあります。</p>
+
+<p>例えば</p>
+<pre>
+    name CHAR(16) NOT NULL
+</pre>
+<p>という定義をしたいときは</p>
+<pre>
+    column name
+        =&gt; char =&gt; {
+            required =&gt; 1,
+            size     =&gt; 16,
+        };
+</pre>
+
+<p>という定義を行います。</p>
+</div>
+<div class="section">
+<h3> DEFAULT 値</h3>
+
+<pre>
+    name CHAR(16) DEFAULT 'Yappo'
+</pre>
+
+<p>というような DEFAULT の定義をするには</p>
+
+<pre>
+    column name
+        =&gt; char =&gt; {
+            default  =&gt; 'Yappo',
+            size     =&gt; 16,
+        };
+</pre>
+
+<p>と書けば良いだけなのですが、例えば特定の計算結果(YUID とか)を DEFAULT として入れておきたい場合もあるかと思います。</p>
+<p>そんな時は default =&gt; sub {} のように CODE リファレンスを書いておくと INSERT するタイミングで CODE リファレンスを実行してくれて、その戻り値を INSERT する用になります。</p>
+
+<pre>
+    my @names = qw/ Yappo nekokak kan /;
+    column name
+        =&gt; char =&gt; {
+            default  =&gt; sub {
+                @names[rand(@names)]
+            },
+            size     =&gt; 16,
+        };
+</pre>
+
+<p>とかやれば、 Yappo, nekokak, kan のいづれかが DEFAULT として利用されます。</p>
+</div>
+<div class="section">
+<h3> AUTO INCREMENT</h3>
+
+<p>さて、いよいよ auto increment の出番です。</p>
+<p>といっても、とても簡単で auto_increment =&gt; 1 するだけです。</p>
+
+<pre>
+    column id
+        =&gt; int =&gt; {
+            required       =&gt; 1,
+            unsigned       =&gt; 1,
+            auto_increment =&gt; 1,
+        };
+</pre>
+
+<p>これだけなんで、とっても簡単ですね。この定義で SQLite と MySQL ともに動きます。</p>
+<p>ちなみに unsigned =&gt; 1 ってのは INT UNSIGNED ってするだけです。</p>
+
+<p>さて、 MySQL の MyISAM, BDB テーブルでは複合 primary key の二つ目のカラムに AUTO_INCREMENT を指定できます。</p>
+<p><a href="http://dev.mysql.com/doc/refman/5.1/en/example-auto-increment.html">http://dev.mysql.com/doc/refman/5.1/en/example-auto-increment.html</a></p>
+<p>一つ目の値のグーループに対する auto increment をつけてくれるのですが Data::Model で以下のようにスキーマ定義を行ってテーブルを作れば対応可能です。</p>
+
+<pre>
+{
+    package TestTable;
+    use base 'Data::Model';
+    use Data::Model::Schema;
+    use Data::Model::Driver::DBI;
+
+    my $driver = Data::Model::Driver::DBI-&gt;new(
+        dsn =&gt; 'dbi:mysql:database=test'
+    );
+    base_driver $driver;
+
+    install_model auto_increment_test =&gt; schema {
+        key [qw/ id entry_id /];
+        column id
+            =&gt; int =&gt; {
+                required =&gt; 1,
+                unsigned =&gt; 1,
+            };
+        column entry_id
+            =&gt; int =&gt; {
+                auto_increment =&gt; 1,
+                required       =&gt; 1,
+                unsigned       =&gt; 1,
+            };
+    };
+}
+print join(";\n", TestTable-&gt;as_sqls, '');
+</pre>
+
+<p>使い方は以下の通りで</p>
+
+<pre>
+my $db = TestTable-&gt;new;
+
+$db-&gt;set( auto_increment_test =&gt; 1 );
+$db-&gt;set( auto_increment_test =&gt; 1 );
+$db-&gt;set( auto_increment_test =&gt; 2 );
+$db-&gt;set( auto_increment_test =&gt; 1 );
+$db-&gt;set( auto_increment_test =&gt; 1 );
+$db-&gt;set( auto_increment_test =&gt; 2 );
+
+my $itr = $db-&gt;get('auto_increment_test');
+while (&lt;$itr&gt;) {
+    printf "id = %d, entry_id = %d\n", $_-&gt;id, $_-&gt;entry_id;
+}
+</pre>
+
+<p>結果は下記のようになります。</p>
+
+<pre>
+my $db = TestTable-&gt;new;
+
+$db-&gt;set( auto_increment_test =&gt; 1 );
+$db-&gt;set( auto_increment_test =&gt; 1 );
+$db-&gt;set( auto_increment_test =&gt; 2 );
+$db-&gt;set( auto_increment_test =&gt; 1 );
+$db-&gt;set( auto_increment_test =&gt; 1 );
+$db-&gt;set( auto_increment_test =&gt; 2 );
+
+my $itr = $db-&gt;get('auto_increment_test');
+while (&lt;$itr&gt;) {
+    printf "id = %d, entry_id = %d\n", $_-&gt;id, $_-&gt;entry_id;
+}
+</pre>
+</div>
+<div class="section">
+<h3> まとめ</h3>
+
+<p>本日はカラム定義の詳細を書きました。</p>
+<p>明日は他のカラム定義を見ていきます。</p>
+
+
+</div>
+
+    </div>
+    <div class="entry-meta">
+        <a rel="bookmark" href="/articles/advent-calendar/2009/data-model/14.html">Wed, 16 Dec 2009 03:40:03 GMT</a>
+        &nbsp;|&nbsp;
+        <a href="./index.html">Index</a>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+            <div id="beta">
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Main Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/">2009 top page</a><a href="/articles/advent-calendar/2009/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/hacker/">hacker track</a><a href="/articles/advent-calendar/2009/hacker/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/casual/">casual track</a><a href="/articles/advent-calendar/2009/casual/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                    </ul>
+                    </div>
+                </div>
+
+                <div class="module-feed module">
+                    <h2 class="module-header">Yet Anthor Tracks</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="/articles/advent-calendar/2009/dbix-skinny/">DBIx::Skinny track</a><a href="/articles/advent-calendar/2009/dbix-skinny/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                            <li><a href="/articles/advent-calendar/2009/data-model/">Data::Model track</a><a href="/articles/advent-calendar/2009/data-model/index.xml"><img src="/img/feed-icon-14x14.png" alt="rss"/></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module-elsewhere module">
+                    <h2 class="module-header">Other Sites</h2>
+                    <div class="module-content">
+                        <ul>
+                            <li><a href="http://www.perladvent.org/2009/">Perl Advent Calendar 2009</a></li>
+                            <li><a href="http://perl6advent.wordpress.com/">Perl 6 Advent Calendar</a></li>
+                            <li><a href="http://advent.plackperl.org/">Plack Advent Calendar</a></li>
+                            <li><a href="http://www.catalystframework.org/calendar/2009/">Catalyst Advent Calendar</a></li>
+                            <li><a href="http://opensource.kayac.com/ja/projects/ark/advent/2009/">Ark Advent Calendar 2009</a></li>
+                            <li><a href="http://advent.rjbs.manxome.org/">RJBS Advent Calendar</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- powered by -->
+                <div class="module-powered module">
+                    <div class="module-content">
+                        Powered by <a href="http://opensource.kayac.com/ja/projects/nim/" title="nim">nim</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

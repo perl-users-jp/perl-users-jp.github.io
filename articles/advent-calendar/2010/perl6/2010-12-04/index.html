@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="Nobuo Danjou <nobuo.danjou@gmail.com>">
+        <title>モジュールを使ってみよう - Articles Advent Calendar 2010 Perl6</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>モジュールを使ってみよう</h1>
+
+        <p>今日は、モジュールの話をしてみます。Perl5といえば、最強のライブラリ群CPANのおかげでたいていのことはちょちょいと簡単に書けてしまうすばらしい言語ですね。Perl6はどうなんでしょう？</p>
+
+<div class="section">
+    <h3>どこにある？</h3>
+    <p>まず、どこにあるのか探してみましょう。Perl5ではライブラリは@INCに入っているパスにありました。</p>
+
+    <pre class="code">$ perl -E &#39;say $_ for @INC&#39;
+/home/danjou/perl5/perlbrew/perls/perl-5.12.2/lib/site_perl/5.12.2/x86_64-linux
+/home/danjou/perl5/perlbrew/perls/perl-5.12.2/lib/site_perl/5.12.2
+/home/danjou/perl5/perlbrew/perls/perl-5.12.2/lib/5.12.2/x86_64-linux
+/home/danjou/perl5/perlbrew/perls/perl-5.12.2/lib/5.12.2
+.
+</pre>
+<p>こんな感じでしたね。Perl6だと、</p>
+
+    <pre class="code">$ perl6 -e &#39;say $_ for @*INC&#39;
+/home/danjou/.perl6/lib
+/home/danjou/tmp/rakudo-star-2010.11/install/lib/parrot/languages/perl6/lib
+.
+</pre>
+<p>こんな感じ。「@INC」だったのが「@*INC」になってますね。それ以外は大差ないコードで調べることができました。 では、この3つのパスはなんなのか、というと、</p>
+
+<dl>
+<dt>$HOME/.perl6/lib</dt>
+<dd> これは自分のホームディレクトリ以下に入れるモジュールが入る場所です。ぜひここを肥やして便利なPerl6ライフを送りましょう。</dd>
+<dt>install/lib/parrot/languages/perl6/lib</dt>
+<dd> これはrakudo-starをインストールしたときに入った、デフォルトでついてくるモジュールが入っている場所です。あとで詳しくのぞいてみましょう。</dd>
+<dt>.</dt>
+<dd> これはカレントディレクトリですね。</dd>
+</dl>
+<div class="section">
+    <h4>追記</h4>
+    <p>#per6@freenodeで読んでもらったら、</p>
+
+    <pre class="code">$ perl6 -e &#39;.say for @*INC&#39;</pre>
+<p>のほうがよくね？と言われました。こっちの方がperl6っぽいですね！</p>
+
+</div>
+</div>
+<div class="section">
+    <h3>どんなのがある？</h3>
+    <p>ではinstall/lib/parrot/languages/perl6/libをのぞいてどんなのがあるか見てみましょう。</p>
+
+    <pre class="code">$ cd ~/tmp/rakudo-star-2010.11/install/lib/parrot/languages/perl6/lib
+$ ls
+Algorithm      Form      MIME         MiniDBI.pm6     SVG.pm    YAML
+Config         Form.pir  Math         Module          Term      YAML.pir
+Configure.pir  Form.pm   MiniDBD      NativeCall.pir  Test      YAML.pm
+Configure.pm   HTTP      MiniDBD.pir  NativeCall.pm6  Test.pir
+Digest         JSON      MiniDBD.pm6  SVG             Test.pm
+File           LWP       MiniDBI.pir  SVG.pir         XML
+</pre>
+<p>ほほう。意外にもいろいろあるような気がしますね！ここでわかるのは</p>
+
+<ul>
+<li>モジュールはやっぱりTest.pmのように.pmという拡張子をつかう</li>
+<li>MiniDBI.pm6のように.pm6拡張子もいいらしい</li>
+<li>MiniDBI.pirってなんだろう？</li>
+</ul><p>.pirは気になりますね。なんでしょう。</p>
+
+    <pre class="code">$ head MiniDBD.pir
+.loadlib &#39;perl6_ops&#39;
+
+.HLL &#34;perl6&#34;
+
+.namespace []
+.sub &#34;_block74&#34;  :anon :subid(&#34;73_1291954984.02617&#34;)
+    .param pmc param_278 :slurpy
+.annotate &#39;line&#39;, 0
+    .const &#39;Sub&#39; $P79 = &#34;74_1291954984.02617&#34; 
+    capture_lex $P79
+</pre>
+<p>MiniDBD.pirファイルの先頭の10行をのぞいてみました。なんだこれ。私たちが知っているPerl的なものとはどうも様子が違いますね。やってることは何となく想像できますけど、これはちがう。これはParrotという別の言語のファイルでした。<br />
+Perl6はParrot仮想マシン上で動いています。なので、これはPerl6の下のParrotで動作するファイルのようです。<del>イメージとしてはPerl5におけるXSモジュール、のような立場ではないでしょうか。</del><ins>Perl6のコードをParrotにコンパイルしたもので、実際にはこのコードが実行されることになります。</ins> Perl6とParrotの関係についてはcharsbarさんによる<a href="http://gihyo.jp/dev/serial/01/modern-perl/0014">&#x30E2;&#x30C0;&#x30F3;Perl&#x306E;&#x4E16;&#x754C;&#x3078;&#x3088;&#x3046;&#x3053;&#x305D; &#x7B2C;14&#x56DE;&#x3000;Rakudo&#xFF1A;&#x5B9F;&#x88C5;&#x3059;&#x308B;&#x65B9;&#x6CD5;&#x3060;&#x3063;&#x3066;&#x3072;&#x3068;&#x3064;&#x3067;&#x306F;&#x306A;&#x3044;&#x306E;&#x3067;&#x3059;</a>を読んでいただくとよいと思います。</p>
+
+</div>
+<div class="section">
+    <h3>つかってみよう！</h3>
+    <p>では早速使ってみようと思います。先ほどみたlsの結果にはLWPというディレクトリがありましたね。ということは！httpクライアントがいそうな気がします。</p>
+
+    <pre class="code">$ ls LWP
+Simple.pir  Simple.pm
+</pre>
+<p>お、ありましたありました。LWP::Simpleですね。JSONというのも気になります。</p>
+
+    <pre class="code">$ ls JSON
+Tiny  Tiny.pir  Tiny.pm
+</pre>
+<p>JSON::Tinyというのが使えそうです。では、早速書いてみましょう。</p>
+
+    <pre class="code">#!/usr/bin/env perl6
+# fetch_tweet.pl
+use v6;
+use LWP::Simple;
+use JSON::Tiny;
+
+sub MAIN ($screen_name) {
+    my $str = LWP::Simple.get(
+        &#34;http://api.twitter.com/1/statuses/user_timeline.json?screen_name=$screen_name&amp;count=1&#34;
+    );
+    my $data = from-json($str);
+    say $data.[0].&lt;text&gt;;
+}</pre>
+<p>今回書いたのは、指定されたユーザーのtwitterタイムラインから最新の１件を取得して表示するプログラムです。すごい実用的じゃないですか。Perl6でかけるんですよ！すばらしい。<br />
+実行してみましょう！</p>
+
+    <pre class="code">$ perl6 fetch_tweet.pl
+Usage:
+fetch_tweet.pl screen_name
+
+$ perl6 fetch_tweet.pl lopnor
+4日め書いてる
+</pre>
+<p>みごとに動きました！</p>
+
+</div>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>
