@@ -78,18 +78,39 @@ sub build_entries {
     #$self->build_atom(\@entries);
 }
 
+
+# ビルドのルールは次の通り
+#
+# CASE1: content/foo/index.(md|html) から public/foo/index.html をビルド
+# この時、URL pathは次の3種で、一番上をcanonial属性に指定する
+#      /foo/
+#      /foo/index.html
+#      /foo
+#
+# CASE2: content/foo/bar.(md|html) から次の２つをビルド
+#      1. public/foo/bar/index.html
+#      2. public/foo/bar.html
+# この時、URL pathは次の4種で、一番上をcanonial属性に指定する
+#      /foo/bar
+#      /foo/bar/
+#      /foo/bar/index.html
+#      /foo/bar.html
+#
 sub build_entry {
     my ($self, $src) = @_;
 
-    # mkdir
-    my $dest_dir = $self->to_public($src->parent);
-    $dest_dir->mkpath;
-
     my $matter = $self->front_matter($src);
 
-    my $dest;
+    my $name = $src->basename =~ s!\.([^.]+)$!!r;
+    my $dest_dir = $self->to_public($src->parent);
+    $dest_dir = $dest_dir->child($name) unless $name eq 'index';
+    $dest_dir->mkpath;
+    my $dest = $dest_dir->child('index.html');
+    my $sub_dest; $sub_dest = $dest->parent->parent->child("$name.html") unless $name eq 'index';
+
     if ($matter->format eq 'html') {
-        $dest = $src->copy($dest_dir);
+        $src->copy($dest);
+        $src->copy($sub_dest) if $sub_dest;
     }
     else {
         my $html = $self->_render_string('entry.html', {
@@ -99,10 +120,8 @@ sub build_entry {
             author      => $matter->author,
             description => $matter->description,
         });
-
-        my $name = $src->basename =~ s!\.[^.]+$!.html!r;
-        $dest = $dest_dir->child($name);
         $dest->spew_utf8($html);
+        $sub_dest->spew_utf8($html) if $sub_dest;
     }
 
     $self->diag("Created entry $dest\n");
