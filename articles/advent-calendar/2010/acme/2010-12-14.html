@@ -24,8 +24,8 @@ use Moose;</pre>
 <p>「舶来品は使わん！」という頑固な攘夷派の方にオススメです。</p><p>今回は、@INCによるモジュールロードのフックでアホなことをしていますが、以下のようにモジュールをロードした際に暗黙的にロードされるモジュールをトレースして、遅延ロード化を検討したりとか、わりと実用的なこともできます。</p>
 
     <pre class="code lang-perl">perl -MPerl6::Say -e &#39;BEGIN{unshift @INC,sub{ say join &#34;\t=&gt;\t&#34;,(caller)[0],do{(my $mod = $_[1]) =~ s!/!::!g;$mod =~ m!(.+)\.pm!}}}use MyModule;&#39;</pre>
-HASH(0x55c5bd7da228)
-HASH(0x55c5bd7f2d80)
+HASH(0x5626864a88c8)
+HASH(0x562686490ed0)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>
