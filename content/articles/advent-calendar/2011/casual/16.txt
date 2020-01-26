@@ -1,0 +1,251 @@
+dropbox-api-command - DropboxでLinuxライクなコマンド操作を
+meta-author: aska
+meta-tags: perl
+meta-date: 2011-12-16
+
+はい、One Page Appsの@su_askaです。
+
+今日はちゃんとPerlの話をしようと思います。
+
+DropboxというとクライアントOSにインストールして使用するイメージが強いですが、自分のサーバー上でも利用したい場合もあります。
+
+Linux用のパッケージもあるので全部同期して構わなければそれをインストールする方法もあるのですが、デーモンまで上げるのはちょっと大袈裟だなーというシチュエーションもありますよね！
+
+例えば...
+
+- 個人契約のサーバーで運用しているDBのバックアップ
+- 期間削除
+
+そんな時はdropbox-api-commandの出番です！（迫真
+
+https://github.com/s-aska/dropbox-api-command
+
+インストールの仕方や細かい使用方法は上記URLを参照下さい。
+
+** 豊富なコマンド群
+
+linuxライクな
+
+- ls
+- **find**
+- **sync**
+- cp
+- mv
+- rm
+- mkdir
+- get
+- put
+- uid
+
+API単体の操作はcurlでも可能ですがrsyncっぽい処理を自作するのはなかなか面倒です!
+
+*** syncの使用例 ( remote => local )
+
+delete ( -d ), dry run ( -n ), verbose ( -v ) に作り手のこだわりを感じますね!!
+
+>||
+> dropbox-api sync dropbox:/product/checker/src /tmp/product -dnv
+remote_base: /product/chrome-extentions/checker/src
+local_base: /private/tmp/product
+** download **
+skip background.html
+download /private/tmp/product/external.png
+download /private/tmp/product/icon-32.png
+download /private/tmp/product/icon-128.png
+skip icon.gif
+skip jquery-1.4.2.min.js
+skip main.js
+skip manifest.json
+skip options.html
+skip popup.html
+skip reset.css
+** delete **
+skip background.html
+remove background.html.tmp
+skip icon.gif
+skip jquery-1.4.2.min.js
+skip main.js
+skip manifest.json
+skip options.html
+skip popup.html
+skip reset.css
+||<
+
+** 今なら親切なマニュアル付き
+
+意外とこの手のプロダクトはgithubに置きっ放しで作者以外使い方がわからなかったりオプションの説明が抜けていたりするものも少なくないのですが、このプロダクトはすべてのコマンド・オプション・実行結果のサンプルをREADMEに張っていますし、helpサブコマンドから各コマンドの使用方法を参照することができます。
+
+** アプリケーションへの組み込み
+
+Dropbox API v1.0 対応の WebService::Dropbox をご利用下さい。
+
+https://metacpan.org/module/WebService::Dropbox
+
+すべてのREST APIに対応するメソッドがあり対応する名前がそのまま、日本語のエスケープ処理等気にせずdecodeされたutf8文字列でファイル名を投げれるので凄くストレスフリーですね!
+
+
+明日は Werlのダメ人間 さんです。お楽しみに！
+
+<a onclick="document.getElementById('omake').style.display = 'block'">おまけ</a>
+
+<div id="omake" style="display: none">
+
+※以下ボツネタ
+
+* plackupでワンライナー
+
+** envをげろげろーってするやつ
+
+>|perl|
+plackup -e "sub { use Data::Dumper;warn Dumper(@_);[200, [], ['ok']] }"
+||<
+
+** give me 適当なヘッダー
+
+>|perl|
+plackup -e "sub { [404, ['X-XRDS-Location', 'http://www.example.jp/xrds'], ['404']] }"
+||<
+
+** CPANにUPする前に欠かせない紳士のPODチェック
+
+>|perl|
+plackup -MDocLife::Pod -e 'DocLife::Pod->new( root => "./lib" )->to_app'
+||<
+
+* ワンライナーの探し方（過去自分で書いた）
+
+gistに上げてAPIをブラウザでアクセスしてCtrl-F
+
+https://api.github.com/users/s-aska/gists (s-askaの所はあなたのIDにしてね!)
+
+description埋めてないとこれでも探せないZe☆
+
+* ガラケーサイト with Plack::Session
+
+Amon2::Setup::Flavor::MobileJP ! ※詳しくはamon2トラック参照
+
+Amon2::Setup::Flavor::MobileJP !! ※大 (ry
+
+Plack::MiddlewareでSession使う必要があり、
+
+HTTP::SessionからURIに埋めるヤツを複写して使っていたのですが、
+
+今はcpanに上げています。
+
+Plack::Session::State::URI使うとcookieダメな子も安心!
+
+※CookieいけるときはCookieで的な事まではしてないです、ごめんよみんな
+
+>|perl|
+enable 'Plack::Middleware::Session',
+    %{ $config->{Session} },
+    state => Plack::Session::State::URI->new(
+        session_id_name => 'sss',
+    );
+||<
+
+* MySQL Casual with Teng
+
+jsonの値MySQLに突っ込みたい時に xxx_json 的なカラムは自動en/decodeする的なコード
+
+よくある_onをDateTimeにする奴とかと一緒な感じですね。 (詳しくはtengトラック参照)
+
+やり方は色々あります、以下はあくまでサンプルという事でお願いします。
+
+>|perl|
+sub db {
+    my $c = shift;
+    unless ( defined $c->{db} ) {
+        my $conf = $c->config->{DBI}
+          or die "missing configuration for 'DB'";
+        my $dbh = DBI->connect(@$conf);
+        my $schema = Teng::Schema::Loader->load(
+            namespace => 'MyApp::DB',
+            dbh => $dbh
+        );
+        for my $table (values %{ $schema->tables }) {
+            for my $column (grep /_json$/, @{ $table->columns }) {
+                $table->add_inflator($column, sub {
+                    $_[0] ? decode_json(shift) : {}
+                });
+                $table->add_deflator($column, sub {
+                    encode_json(shift)
+                });
+            }
+        }
+        $c->{db} = MyApp::DB->new(
+            dbh    => $dbh,
+            schema => $schema
+        );
+    }
+    return $c->{db};
+}
+||<
+
+- スキーマから定義
+- _json で終わるカラム名は自動 en/decode
+- カラム拡張とかもしたいので MyApp::DB は書いてある
+
+* Perlのススメ
+
+このエントリーを見てくれた人の中には
+
+「実は私まだPerl Mongerじゃ...」という方もいるかも知れません（居ないよ!!）
+
+なので色々紹介してみましょう!!
+
+** 書
+
+みんなもどんどん書いてみよう!
+
+- 初めてのPerl
+- 続・初めてのPerl
+- モダンPerl入門
+- Perl CPANモジュールガイド
+- 体系的に学ぶ 安全なWebアプリケーションの作り方
+
+** 環境
+
+今更感満載ですがこれが全部揃わないことにはperlの開発は始まりません!!
+
+- perlbrew ... システムPerlで開発しちゃらめーーー
+- cpanm ... モジュールのインストールはもちろん
+- carton ... バージョン管理もバッチリ
+- Plack ... mod_perlはオワコン
+- git ... 商用のVCS使ったことねーから!!
+- TextMate ... EmacsやVimが人気ですが個人的にはTextMateが好みです
+- MBP ... やっぱり開発はUnixが望ま...、おっと<a href="http://mattn.kaoriya.net">mattn</a>さんの影が
+- 水 ... 長時間開発する際は適度な水分補給を忘れずに
+
+** 超頻用Module
+
+アプリ書く時にほぼ毎回全部使う奴ですね!!!
+
+- Amon2 ... 紳士はCatalystと聞くと重たい気持ちになる
+- JSON ... 紳士はXMLなんて使わないんです（ｷﾘｯ
+- Xslate ... 紳士はTTとかマジ勘弁
+- Furl ... LWP使っていいのは小学生まで
+- Teng ... Liteな時は Amon2::DBI, DBIx::Simple あたりがオススメ
+
+** 集い
+
+#perl-casual@freenode.netや各地PM、最近はTwitterもあるので気軽にやり取りできるようになりました。
+
+まずはビールからという人はPMに顔を出すのが一番手っ取り早いと懐います、あとMySQL Casualとかいいと思います、私は泥酔して@myfinderさんにご迷惑を（ｒｙ
+
+あとはPerl話沢山聴きたい時はYAPCですが年に一回でチケットが売り切れ続出なので早目にチェックするといいと思います、トークするとチケット無料です、やったね！（ｒｙ
+
+** 今年の戦果
+
+1記事書かせて頂いた記念に自分の成果物を晒したいと思います!
+
+来年もいっぱいなにか作ってると思います!!
+
+- DocLife ... cpan/githubのお供に
+- dropbox-api-command ... Linux環境でデーモンじゃなくてスクリプトでDropbox扱いたい時に
+- bookma!{ぶ) ... http://bookma.org/
+- MarkdownBinder ... http://doc.7kai.org/ (wikiっぽいMarkdownビューア )
+- MarkdownDiary ... http://blog.7kai.org/ (blogっぽいMarkdownビューア )
+- 7kai Tasks ...https://tasks.7kai.org/ (ソーシャルタスク管理サービス)
+
+</div>
