@@ -1,0 +1,22 @@
+name: CI
+
+on: 
+  push:
+    branches:
+      - content
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+      
+    - name: Setup Perl
+      uses: shogo82148/actions-setup-perl@v1
+      with:
+        perl-version: '5.30'
+    
+    - name: Build
+      run: make test
+
