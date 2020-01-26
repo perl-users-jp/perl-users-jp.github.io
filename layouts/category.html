@@ -11,8 +11,12 @@
     <body>
         <h1><?= $vars->{category} ?></h1>
         <ul>
-?           for my $file (@{$vars->{files}}) {
-            <li><a href="<?= $file->{href} ?>"><?= $file->{title} ?></a></li>
+?           for (@{$vars->{files}}) {
+            <li>
+                <a href="<?= $_->{href} ?>">
+                    <?= $_->{matter}->exists && $_->{href} =~ m!advent! && $_->{name} =~ m!\d\d*! ? sprintf("%d日目 - %s by %sさん", $_->{name}, $_->{title}, ($_->{matter}->author ? $_->{matter}->author : "名無し")  ) : $_->{title} ?>
+                </a>
+            </li>
 ?           }
         </ul>
 

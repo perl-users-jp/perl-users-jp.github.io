@@ -8,6 +8,7 @@ use PerlUsersJP::FrontMatter;
 
 use Path::Tiny ();
 use Date::Format ();
+use Scalar::Util ();
 use Text::MicroTemplate;
 
 use Text::Xatena;
@@ -179,6 +180,7 @@ sub build_categories {
 sub build_category {
     my ($self, $src_category, $src_list) = @_;
 
+    # すでにカテゴリ一覧のページが存在していたら、生成しないでおく
     $src_category = Path::Tiny::path($src_category);
     for my $ext ('html', 'txt', 'md', 'markdown') {
         return if $src_category->child("index.$ext")->exists;
@@ -187,28 +189,32 @@ sub build_category {
     my $content_dir = $self->content_dir;
     my $category = $src_category =~ s!$content_dir!!r;
 
+    my @src_list = map {
+        my $file   = Path::Tiny::path($_);
+        my $matter = $self->front_matter($file);
+        my $name   = $file->basename =~ s!\.[^.]+$!!r;
+        my $title  = $matter->exists ? $matter->title : $file->basename . '/';
+        my $href   = $matter->exists ? "$category/$name" : "$category/@{[$file->basename]}/";
+        {
+            file   => $file,
+            matter => $matter,
+            name   => $name,
+            title  => $title,
+            href   => $href,
+        }
+    } $src_list->@*;
+
     my $html = $self->_render_string('category.html', {
         category    => $category,
         description => $category,
         title       => $category,
-        files       => [map {
-            my $file = Path::Tiny::path($_);
-            my $matter = $self->front_matter($file);
-            my ($basename, $title, $href);
-            if ($matter->exists) {
-                my $name = $file->basename =~ s!\.[^.]+$!.html!r;
-
-                $basename = $file->basename;
-                $title = $matter->title;
-                $href = sprintf('%s/%s', $category, $name);
-            }
-            else {
-                $basename = $file->basename;
-                $title = $basename . '/';
-                $href = sprintf('%s/%s', $category, $basename);
-            }
-            { title => $title, href => $href }
-        } sort { $a cmp $b } $src_list->@* ],
+        files       => [
+            sort {
+                Scalar::Util::looks_like_number($a->{name}) && Scalar::Util::looks_like_number($b->{name})
+                ? $a->{name} <=> $b->{name}
+                : $a->{name} cmp $b->{name}
+            } @src_list
+        ],
     });
 
     my $category_dir = $self->public_dir->child($category);
