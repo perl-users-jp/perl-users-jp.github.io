@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="cooldaemon">
+        <title>AnyEvent::RabbitMQ - メッセージキュー…使いこなしてますか？ - Articles Advent Calendar 2011 Hacker</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>AnyEvent::RabbitMQ - メッセージキュー…使いこなしてますか？</h1>
+
+        
+<div class="section">
+    <h4>前置き</h4>
+    <p>こんにちは。<a href="http://github.com/cooldaemon/">cooldaemon</a> と申します。みなさん、意識は高まっていますか？ 私は上々です。今回は拙作の <a href="http://search.cpan.org/~ikuta/AnyEvent-RabbitMQ/">AnyEvent::RabbitMQ</a> というモジュールを紹介いたします。</p><p>AnyEvent::RabbitMQ は、AMQP ブローカーと非同期にメッセージを送受信するための AMQP クライアントです。AMQP とは、メッセージを扱うミドルウェアのオープンな標準仕様です。AMQP の正確で詳しい内容は、<a href="http://www.amqp.org/">AMQP &#x306E;&#x516C;&#x5F0F;&#x30B5;&#x30A4;&#x30C8;</a>や <a href="http://www.google.co.jp/search?q=AMQP">Google</a> をご確認ください。</p><p>本当の事を言うと、名前は AnyEvent::AMQP::Client でも良かったのですが、私は、AMQP ブローカー実装の一つ <a href="http://www.rabbitmq.com/">RabbitMQ</a> を常用しており、RabbitMQ 以外の AMQP ブローカーを利用する機会も必要もなく、また、接続性を保証する事もしたくなかったので、あえて名前に AMQP を含めずに RabbitMQ を含めました。</p>
+
+</div>
+<div class="section">
+    <h4>で、結局、何ができるの？</h4>
+    <p>率直に申し上げると、RabbitMQ + AnyEvent::RabbitMQ は、Gearman、TheSchwartz、Qudo、Q4M 等のライバルです。</p><p>元々、個人的趣味で細々と作成していたのですが、仕事で下記の条件を満たした Web API を作成する必要があり、試しに利用してみたところ、かなり満足の行く結果を得られましたので、今回は、その事例を中心に紹介いたします。</p>
+
+<ul>
+<li>秒間 200 件程度の HTTP リクエストを捌く必要がある</li>
+<li>外部システムとの接続の都合で、一つの HTTP リクエストは、平均 5 秒は接続し続ける必要がある</li>
+<li>既存の API と同一のドメインを利用する必要がある</li>
+</ul><p>同時接続 1000 程度の HTTP リクエストなら、社内に転がっている 1U サーバ<a href="#fn1" title="Core2Duo 3GH/Memory 2G 程度">*1</a>一台で十分捌けるだろうし、機器故障に備えて二重化しても二台で十分だろうという予測の元、下記の構成でシステム設計を行いました。</p>
+
+    <pre class="code">[様々な HTTP クライアント] &lt;-&gt; [Apache * N台] &lt;-&gt; [RabbitMQ * 2台] &lt;-&gt; [Perl 製の Worker * 2台]</pre>
+<p>Apache と Worker の間の RabbitMQ の役割は、<a href="http://www.rabbitmq.com/getstarted.html">&#x3053;&#x3053;</a>の 6.RPC の図の通りです。</p>
+
+<div class="section">
+    <h5>HTTP クライアント</h5>
+    <p>HTTP クライアントは、お客様のシステムとなるため、工夫の余地はありません。</p>
+
+</div>
+<div class="section">
+    <h5>Apache * N台</h5>
+    <p>Apache も、既存の API とドメインを揃える必要があるので、既存システムの Apache をそのまま流用しました。よって、サーバ台数も既存システムそのままです。</p>
+
+</div>
+<div class="section">
+    <h5>RabbitMQ * 2台</h5>
+    <p>Apache と RabbitMQ を接続するため、Apache に届いた HTTP リクエストを RabbitMQ の Queue に追加する mod を C で書こうとしたのですが、<a href="http://www.rabbitmq.com/mochiweb.html">RabbitMQ &#x306B; HTTP &#x30A4;&#x30F3;&#x30BF;&#x30FC;&#x30D5;&#x30A7;&#x30FC;&#x30B9;&#x3092;&#x8FFD;&#x52A0;&#x3059;&#x308B;&#x30D7;&#x30E9;&#x30B0;&#x30A4;&#x30F3;</a>を見つけたので、<a href="http://github.com/cooldaemon/rabbitmq-http-proxy">&#x5C4A;&#x3044;&#x305F; HTTP &#x30EA;&#x30AF;&#x30A8;&#x30B9;&#x30C8;&#x3092; Queue &#x306B;&#x8FFD;&#x52A0;&#x3059;&#x308B; RabbitMQ &#x30D7;&#x30E9;&#x30B0;&#x30A4;&#x30F3;</a>を Erlang で書き、mod_proxy_balancer で接続しました。</p><p>実は、RabbitMQ 上には、HTTP リクエストを貯めるキュー以外にも、お客様にメールを送る為のキュー、障害時のトレースログを保存するためのキュー、後々の為に 商用DB に履歴を保存する為のキューなどが存在しているのですが、今回は説明の範囲外とさせてください。</p><p>また、RabbitMQ のインストールや運用方法も、今回の説明から除外させて頂きます。詳しくは、RabbitMQ 公式サイトの<a href="http://www.rabbitmq.com/documentation.html">&#x30C9;&#x30AD;&#x30E5;&#x30E1;&#x30F3;&#x30C8;&#x30DA;&#x30FC;&#x30B8;</a>をご確認ください。</p><p>少しだけ補足させて頂くと、<a href="http://www.rabbitmq.com/getstarted.html">&#x3053;&#x3053;</a>の 3.Publish/Subscribe の図に示されているテクニックを使うと、簡単にリクエストやレスポンスのログを貯めておく事ができます。</p>
+
+</div>
+<div class="section">
+    <h5>Perl 製の Worker * 2台</h5>
+    <p>実は、フルスクラッチでシステム構築を行う必要があり、<a href="http://www.rabbitmq.com/devtools.html">AMQP &#x30AF;&#x30E9;&#x30A4;&#x30A2;&#x30F3;&#x30C8;</a> が存在する言語であれば何を選択しても良かったのですが、AnyEvent::RabbitMQ が非同期かつ複数 Channel に対応<a href="#fn2" title="対応していないクライアントも多いのです">*2</a>している事<a href="#fn3" title="自画自賛で恐縮です">*3</a>、<a href="http://kumofs.sourceforge.net/">KumoFS</a> を非同期に利用するためのクライアント <a href="http://search.cpan.org/~dmaki/Cache-Memcached-AnyEvent/">Cache::Memcached::AnyEvent</a> が存在していた事、外部システムとの連携のために非同期 HTTP 通信を高速に行える <a href="http://github.com/mala/AnyEvent-Curl">AnyEvent-Curl</a> が存在していた事が決め手となり Perl を採用しました。</p><p>実案件では、物理サーバ一台につき CPU の数だけ DaemonTools 配下で Worker を起動しています。これは、<a href="http://www.rabbitmq.com/getstarted.html">&#x3053;&#x3053;</a>の 2.Work queues の図の通りで、これから紹介する Worker を何も考えずに複数起動するだけで実現できます。</p>
+
+</div>
+</div>
+<div class="section">
+    <h4>やっと本題</h4>
+    <p>Perl で記述した HTTPD Worker の例は、下記の通りです。 まずは、ソースコード全体を俯瞰してください。</p>
+
+    <pre class="code lang-perl">#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use Coro;
+use Net::RabbitFoot;
+use JSON::XS;
+use Readonly;
+use Data::Dumper;
+
+Readonly my @MQ_CONNECT_ARGS =&gt; (
+    host  =&gt; &#39;10.0.0.10&#39;,
+    port  =&gt; 5672,
+    user  =&gt; &#39;guest&#39;,
+    pass  =&gt; &#39;guest&#39;,
+    vhost =&gt; &#39;/&#39;,
+);
+
+Readonly my $PREFETCH =&gt; 5;
+
+$| = 1;
+
+$SIG{HUP} = $SIG{INT} = $SIG{TERM} = sub {
+    warn &#34;Trapped SIGNAL.\n&#34;;
+    $Coro::main-&gt;ready;
+};
+
+my $json = JSON::XS-&gt;new()-&gt;utf8();
+
+my $rf = eval {
+    Net::RabbitFoot-&gt;new()-&gt;load_xml_spec()-&gt;connect(
+        @MQ_CONNECT_ARGS,
+        (map {
+            &#39;on_&#39; . $_ =&gt; failure_handler(&#39;connecn.on_&#39; . $_)
+        } qw(close read_failure)),
+    );
+};
+die $@ if $@;
+
+eval {
+    my $ch = $rf-&gt;open_channel(
+        on_close =&gt; failure_handler(&#39;channel.on_close&#39;),
+    );
+    $ch-&gt;qos(prefetch_count =&gt; $PREFETCH);
+    $ch-&gt;consume(
+        queue      =&gt; &#39;http&#39;,
+        no_ack     =&gt; 0,
+        on_consume =&gt; unblock_sub {
+            work($json, $ch, shift);
+        }
+    );
+};
+if ($@) {
+    $rf-&gt;close;
+    die $@;
+};
+
+schedule;
+$rf-&gt;close;
+exit;
+
+sub failure_handler {
+    my ($event) = @_;
+    return unblock_sub {
+        warn Dumper({$event =&gt; \@_});
+        $Coro::main-&gt;ready;
+    };
+}
+
+sub work {
+    my ($json, $ch, $request,) = @_;
+
+    my $response = make_http_response(@_);
+
+    $ch-&gt;publish(
+        routing_key =&gt; $request-&gt;{header}-&gt;reply_to,
+        header      =&gt; {
+            app_id  =&gt; $response-&gt;{code},
+            headers =&gt; $response-&gt;{headers},
+        },
+        body        =&gt; $response-&gt;{body},
+        on_return   =&gt; failure_handler(&#39;channel.on_return&#39;),
+    );
+
+    $ch-&gt;ack(
+        delivery_tag =&gt; $request-&gt;{deliver}-&gt;method_frame-&gt;delivery_tag,
+    );
+
+    return;
+}
+
+sub make_http_response {
+    my ($json, $ch, $request,) = @_;
+
+    warn Dumper({headers =&gt; $request-&gt;{header}-&gt;headers});
+
+    my $request_body = $json-&gt;decode($request-&gt;{body}-&gt;payload);
+
+    warn Dumper({body =&gt; $request_body});
+
+    return {
+        code    =&gt; 200,
+        headers =&gt; {
+            &#39;Content-Type&#39; =&gt; &#39;text/plain; charset=UTF-8&#39;,
+        },
+        body    =&gt; q{Merry X&#39;mas},
+    };
+}</pre>
+
+<div class="section">
+    <h5>AnyEvent::RabbitMQ は、どこ行った？</h5>
+    <p>ごめんなさい。今回は、AnyEvent::RabbitMQ を Coro で包んだ拙作の <a href="http://search.cpan.org/~ikuta/Net-RabbitFoot/">Net::RabbitFoot</a> を使用しました。処理順を保証する為に発生する AnyEvent 系モジュールのコールバックサブルーチンのネストの嵐を見ると、私は精神的苦痛を感じるので、AnyEvent 系モジュールは、継続や<a href="http://yapcasia.org/2011/talk/82">&#x30E2;&#x30CA;&#x30C9;</a>で包み、床下配線として利用する事にしています。</p><p>もし仮に AnyEvent::RabbitMQ を直接使う<a href="#fn4" title="海外ユーザの方々は、AnyEvent::RabbitMQ を直接使っているようです。Coro に依存したくないのでしょうね">*4</a>と、極端な話、connect 時に on_success に指定したコールバックサブルーチン内に全ての処理を記述するか、コードを AnyEvent->condvar だらけにか選択する事になります。</p>
+
+</div>
+<div class="section">
+    <h5>main スレッドについて</h5>
+    <p>main スレッドは、下記の仕事をしています。</p>
+
+<ul>
+<li>RabbitMQ へ接続して Channel を開く</li>
+<li>キューに貯まったメッセージを 5 個ずつ捌く事を RabbitMQ へ通知</li>
+<li>キューの監視を行うサブルーチンを登録</li>
+<li>シグナルや障害が発生するまで待つ</li>
+</ul><p>では、順番に説明して行きます。</p>
+
+</div>
+</div>
+<div class="section">
+    <h3>*** RabbitMQ へ接続して Channel を開く</h3>
+    <p>スレッド毎に AMQP ブローカーと接続する行為は、リソースの無駄遣いであるため、AMQP には、一つの接続を Channel で分割する仕様が定義されています。通常は、各スレッド毎に Channel を開く事でスレッドセーフを保証します。</p><p>今回は、継続による疑似スレッドという事もあり、同時に実行されるスレッドは常に一つである事から、キューの監視で使用している Channel を、各スレッド内のメッセージ送信時にも使い回しています<a href="#fn5" title="実案件では、念のため、各スレッド毎に Channel を開いています">*5</a>。もし Coro ではなく ithread を使う際には、スレッド毎に Channel を開く必要があります。</p>
+
+</div>
+<div class="section">
+    <h3>*** キューに貯まったメッセージを 5 個ずつ捌く事を RabbitMQ へ通知</h3>
+    <p>qos で設定した prefetch_count がそれです。ここに 5 と指定すると、この Channel の処理中のメッセージが 5 個になるまで、メッセージが届く度に on_consume の unblock_sub が呼ばれます。つまり、ここに指定した値が並列度となります。</p>
+
+</div>
+<div class="section">
+    <h3>*** キューの監視を行うサブルーチンを登録</h3>
+    <p>Coro から利用する場合は、必ず unblock_sub を指定してください。イベントループからコールバックサブルーチンが呼ばれるので、このコールバックサブルーチン内で Coro::rouse_cb を利用する際に具合が悪いのです。</p><p>no_ack に 0 を指定しているので、Ack しないとメッセージは消費されませんが、ここは 1 にして Ack 不要にしても構いません。</p>
+
+</div>
+<div class="section">
+    <h3>*** シグナルや障害が発生するまで待つ</h3>
+    <p>schedule しているだけです。つまり、初期化処理後の main スレッドの主な仕事は、大人しく静かに寝ている事です。$Coro::main->ready が呼ばれるという事は、この Worker の終了を意味します。</p>
+
+<div class="section">
+    <h5>on_consume により呼ばれる子スレッドについて</h5>
+    <p>on_consume で登録されているコールバックサブルーチンは、work を呼んでいるだけなので、work の処理を見ていきます。work の処理は下記の通りです。</p>
+
+<ul>
+<li>HTTP Request Header を標準エラーに出力</li>
+<li>HTTP Request Body を標準エラーに出力</li>
+<li>HTTP Response を返信用のキューに送信</li>
+<li>メッセージを Ack する</li>
+</ul><p>では、順番に説明して行きます。</p>
+
+</div>
+</div>
+<div class="section">
+    <h3>*** HTTP Request Header を標準エラーに出力</h3>
+    <p>on_consume に指定されたコールバックサブルーチンの第一引数はハッシュとなっており、header と body というキーを持ちます。メッセージを送る publish の引数と比較して頂けると解り易いのですが、$request の header と body には、拙作の rabbitmq-http-proxy が Publish 時に指定した header と body が入っています。</p>
+
+</div>
+<div class="section">
+    <h3>*** HTTP Request Body を標準エラーに出力</h3>
+    <p>rabbitmq-http-proxy の癖で、GET/POST されたパラメータは JSON 化されて body にセットされています。そこで、JSON::XS で decode しています。</p>
+
+</div>
+<div class="section">
+    <h3>*** HTTP Response を返信用のキューに送信</h3>
+    <p>これまた rabbitmq-http-proxy の癖で、header の app_id に HTTP Status Code を指定しています。headers が配列のリファレンスではなく、ハッシュのリファレンスな所も、どうにかしたい所です。実案件では、headers に CGI.pm で作成した Cookie 等の HTTP Headers を設定しています。</p>
+
+</div>
+<div class="section">
+    <h3>*** メッセージを Ack する</h3>
+    <p>前述しましたが、Consume 時の no_ack に 0 を指定しているので、メッセージを消費する為に Ack が必要です。Ack しない場合、Consume している Channel が閉じるか Cancel するまで、この Worker の別スレッドや、他の Worker が同一のメッセージを受け取る事ができません。</p><p>以上で Worker の説明終わりです。簡単でしたか？難しかったでしたか？簡単だと思って頂ければ成功なのですが…。</p>
+
+<div class="section">
+    <h4>まとめ</h4>
+    <p>国内外の AMQP と RabbitMQ の認知度の都合上、AnyEvent::RabbitMQ に対する意見や要望、機能追加や障害対応のパッチは、全て日本国外から頂いており、日本国内では、多分、全く利用されていません。</p><p>今回、例として扱った案件は、オープンソースだけで対応できる仮想の案件となりますが、クレジットカード決済のサービスを提供する際に発生した実案件が元となっています。故に AnyEvent::RabbitMQ や Net::RabbitFoot は、実際にミッションクリティカルな現場で利用されているものであり、日本国内のみなさんにとっても有益なモジュールであるという確信をもって紹介させて頂きました。</p><p>もしよろしければ、RabbitMQ 共々、ご利用頂ければ幸いです。</p><p>ちなみに、実案件で構築したシステムは、他にも多くの CPAN モジュールに依存した形で構築されており、この場をお借りして、Perl コミュニティにお礼申し上げます。いつも、良質なコードを提供してくれて、ありがとうございます。みなさんが良いクリスマスを迎えられますように！</p>
+
+</div>
+</div>HASH(0x5615c08b8eb0)
+HASH(0x5615c08e2f18)
+HASH(0x5615c093c168)
+HASH(0x5615c09432c8)
+HASH(0x5615c093c468)
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>Text::Xslateで安全なテンプレート生活を送ろう！ - Articles Advent Calendar 2010 Hacker</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Text::Xslateで安全なテンプレート生活を送ろう！</h1>
+
+        <p>いよいよクリスマスまで残り4日となりましたが皆様はいかがお過ごしでしょうか。クリスマスが終わると年越しですね。年末年始は枕を高くして眠りたいですね。XSSの恐怖に怯えたくないですね。テンプレートファイルのgrepログを眺めるだけの単純なお仕事で時間を使いたくありませんね。それなら<a href="http://xslate.org/">Text::Xslate</a>を使ってエスケープのことは忘れましょう！<br />
+Text::Xslateはウェブアプリケーションのために最適化したテンプレートエンジンです。Xslateの一部は今年のJPerl Advent Calendar Casual Trackでも紹介されていますね<a href="#fn1" title="KolonというのはXslateのデフォルトのテンプレート構文です。">*1</a>。</p>
+
+<ul>
+<li>[/articles/advent-calendar/2010/casual/8:title=Kolonでかこう]</li>
+</ul><p>さて、ウェブアプリケーションではユーザーからの入力をHTMLページに埋め込むことがよくありますが、そこで気をつけなければならないのがXSSですね。このあたりのことは私よりも詳しい方がおおぜいいらっしゃるのでそちらを参考にしてください。</p>
+
+<ul>
+<li><a href="http://labs.cybozu.co.jp/blog/kazuho/archives/2008/12/textmicrotemplate.php">Text::MicroTemplate - &#x30C6;&#x30F3;&#x30D7;&#x30EC;&#x30FC;&#x30C8;&#x30A8;&#x30F3;&#x30B8;&#x30F3;&#x306E;&#x30BB;&#x30AD;&#x30E5;&#x30EA;&#x30C6;&#x30A3;&#x3068;&#x5229;&#x4FBF;&#x6027;</a></li>
+<li><a href="http://developer.cybozu.co.jp/kazuho/2010/10/xss-f211.html">XSS&#x306B;&#x5F37;&#x3044;&#x30A6;&#x30A7;&#x30D6;&#x30B5;&#x30A4;&#x30C8;&#x3092;&#x4F5C;&#x308B; &ndash; &#x30C6;&#x30F3;&#x30D7;&#x30EC;&#x30FC;&#x30C8;&#x30A8;&#x30F3;&#x30B8;&#x30F3;&#x306E;&#x9078;&#x5B9A;&#x57FA;&#x6E96;&#x3068;&#x30B9;&#x30CB;&#x30DA;&#x30C3;&#x30C8;&#x306E;&#x751F;&#x6210;&#x624B;&#x6CD5;</a></li>
+<li><a href="http://subtech.g.hatena.ne.jp/mala/20100222/1266843093">HTML&#x306E;script&#x30BF;&#x30B0;&#x5185;&#x306B;&#x51FA;&#x529B;&#x3055;&#x308C;&#x308B;JavaScript&#x306E;&#x30A8;&#x30B9;&#x30B1;&#x30FC;&#x30D7;&#x51E6;&#x7406;&#x306B;&#x8D77;&#x56E0;&#x3059;&#x308B;XSS&#x304C;&#x3068;&#x3066;&#x3082;&#x591A;&#x3044;&#x4EF6;&#x306B;&#x3064;&#x3044;&#x3066;</a></li>
+<li><a href="http://blog.nomadscafe.jp/2010/11/xssjavascriptjson.html">XSS&#x3092;&#x56DE;&#x907F;&#x3057;&#x3064;&#x3064;&#x3001;&#x30C6;&#x30F3;&#x30D7;&#x30EC;&#x30FC;&#x30C8;&#x304B;&#x3089;JavaScript&#x306B;JSON&#x3067;&#x5024;&#x3092;&#x6E21;&#x3059;&#x65B9;&#x6CD5;</a></li>
+</ul><p>Xslateは、特に上記リストの最初のエントリで紹介されているText::MicroTemplateのアイデアを採用し、テンプレートに埋め込む値をデフォルトでHTMLエスケープするようにしています。Template::ToolkitやHTML::Templateと異なり、原則としてテンプレート側にエスケープ処理のためのコードを書く必要がありません。というより、書いてはいけません。このAdvent Calendar用のテンプレートを見ていただくとそれがわかると思います。</p>
+
+<ul>
+<li><a href="https://github.com/perl-users-jp/perl-advent-calendar/blob/master/tmpl/index.html">https://github.com/perl-users-jp/perl-advent-calendar/blob/master/tmpl/index.html</a></li>
+<li><a href="https://github.com/perl-users-jp/perl-advent-calendar/blob/master/tmpl/entry.html">https://github.com/perl-users-jp/perl-advent-calendar/blob/master/tmpl/entry.html</a></li>
+</ul><p>entry.htmlではText::Xatenaで整形したHTMLを埋め込みますが、その部分のテンプレートは以下のようになっています。</p>
+
+    <pre class="code lang-html">    &lt;div class=&#34;entry-content&#34;&gt;
+      [% text %]
+    &lt;/div&gt;</pre>
+<p>このtextはエスケープされませんが、それは<a href="https://github.com/p5-app-adventcalendar/p5-app-adventcalendar/blob/master/lib/App/AdventCalendar.pm#L295">&#x30A2;&#x30D7;&#x30EA;&#x30B1;&#x30FC;&#x30B7;&#x30E7;&#x30F3;</a>側でそのまま(raw)埋め込むよう指定しているからです。</p>
+
+    <pre class="code lang-perl">#line 295
+    text      =&gt; mark_raw($text),</pre>
+<p>テンプレート側でもmark_rawを行うことはできますが、これを使うのは開発中だけにしておき、リリースの際は全てアプリケーション側で処理するようにしたほうがいいでしょう。重要な処理をアプリケーションコードに分離することでメンテナンスしやすくなりますし、またアプリケーションとテンプレートをうっかり同期し忘れてXSSが発生するというアクシデントが原理的に起こらなくなります。<br />
+安全なテンプレートエンジンを使って年末年始はのんびりしましょう！<br />
+以上、<a href="http://github.org/gfx/">gfx</a>でした！</p>
+HASH(0x5615c08e7bc8)
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

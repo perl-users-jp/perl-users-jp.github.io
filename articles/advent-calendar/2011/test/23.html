@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="tsucchi">
+        <title>Perl 以外の何かをテストする - Articles Advent Calendar 2011 Test</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Perl 以外の何かをテストする</h1>
+
+        
+<div class="section">
+    <h4>はじめに</h4>
+    <p>こんにちは、tsucchi です。書く人がいないみたいなので、再登場してみました。今回は Perl 以外の何かをテストする方法について書きます。</p>
+
+</div>
+<div class="section">
+    <h4>「何か」って例えば何？</h4>
+    
+<ul>
+<li>自社内の Web API をテストしたい</li>
+<li>SQL(とくにストアドルーチン)をテストしたい</li>
+</ul><p>他にもいろいろありそうな気がしますが、とりあえず思いついたのはこんなところです。<a href="#fn1" title="僕が実際にやったことがあるのが、これらなのです">*1</a></p>
+
+</div>
+<div class="section">
+    <h4>基本</h4>
+    <p>Perl 以外の何かをテストする場合は、そのサービスに対するクライアントを使ったテストになることが多いのではないか、と思います。クライアントがない場合は作ることになります。</p>
+
+</div>
+<div class="section">
+    <h4>例1) 自社内の Web API をテストする</h4>
+    <p>Web API みたいなものを作っている場合、テストは HTTP クライアントを使ったものになります。8日めの記事 <a href="/articles/advent-calendar/2011/test/8">HTTP通信を含むモジュールのテスト</a>を参考にどうぞ。</p><p>基本的には、Web サービスに対応するクライアントを書いて、それを使ってテストをすることになります。</p><p>MyProj::SuperCoolWebService の add というサービスが、引数を足し算した答えを返してくれるサービスだとしたら、こんな感じになります。(こんな感じでテストできるようにクライアントを書く、というほうが正確かもしれません)</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+use utf8;
+use MyProj::SuperCoolWebService::Client;
+use Test::More;
+
+subtest &#39;add&#39;, sub {
+    my $service = MyProj::SuperCoolWebService::Client-&gt;new();
+    is( $service-&gt;add(1, 2), 3, &#39;add(1, 2)&#39;);
+    # サービスがたくさんあるような場合は、クライアントの実装は下記のようになる
+    is( $service-&gt;execute(&#39;add&#39;, 1, 2), 3, &#39;add(1, 2)&#39;);
+};
+
+done_testing();</pre>
+
+<div class="section">
+    <h5>クライアントの実装方法</h5>
+    <p>基本的には <a href="HTTP::Request">HTTP::Request</a> なり Furl なりをつかって、HTTP を投げる実装をします。アプリサーバでテストコードを動かす場合は、アプリが使っているライブラリを直接使うような実装もできます。(アプリも Perl でかかれていることが前提です。モデルクラスとかサービスクラスを use してそのメソッドを呼ぶような実装になります)</p><p>後者の方が高速なことが多いですが、細かな挙動の違いに悩まされることもあるので、環境変数などで切り替えができるようにしておくと良いでしょう。</p><p></p>
+
+</div>
+</div>
+<div class="section">
+    <h4>例2) ストアドルーチンをテストする</h4>
+    <p>ストアドルーチンの場合は、クライアントを書く必要はありませんが、ラッパーのようなものを容易しておくと楽にテストできます。<a href="#fn2" title="この例は MySQL を前提としています">*2</a>また、このラッパーに SQL::Maker や SQL::Abstract をラップして、SQL を直接投げれるものを用意しておくと、データの準備やゴミデータの削除や値の照合などに使えて便利です。</p>
+
+    <pre class="code lang-perl">package MyProj::SQLUtil;
+use strict;
+use warnings;
+use utf8;
+use SQL::Maker;
+
+sub new {
+    my ($class, $dbh) = @_;
+    my $self = {
+        dbh =&gt; $dbh,
+    };
+    bless $self, $class;
+}
+
+# ストアドファンクションを実行する
+sub execute_sf {
+    my ($self, $function_name, @args) = @_;
+    my $dbh = $self-&gt;{dbh};
+    my $sql = &#34;SELECT $function_name( &#34; . join(&#39;,&#39;, map{ &#39;?&#39; } @args) . &#34;)&#34;;
+    my $row_aref = $dbh-&gt;selectrow_arrayref($function_name, undef, @args);
+    return $row_aref-&gt;[0];
+}
+
+# ストアドプロシージャを実行する
+sub execute_sp {
+    my ($self, $proc_name, @args) = @_;
+    my $dbh = $self-&gt;{dbh};
+    my $sql = &#34;CALL $proc_name( &#34; . join(&#39;,&#39;, map{ &#39;?&#39; } @args) . &#34;)&#34;;
+    my $sth = $dbh-&gt;prepare($sql);
+    $sth-&gt;execute(@args)
+}
+
+# select。基本的には SQL::Maker に丸投げ
+sub select {
+    my ($self, $table, $condition, $option) = @_;
+    my $builder = SQL::Maker-&gt;new( driver =&gt; &#39;mysql&#39; );
+    my ($sql, @bind) = $builder-&gt;select($table, $condition, $option);
+    my $dbh = $self-&gt;{dbh};
+    my @rows = @{ $dbh-&gt;selectall_arrayref($sql, { Slice =&gt; {} }, @bind) };
+    return @rows if ( wantarray() );
+    return $rows[0];
+}
+# 今回は不要だけど、insert/delete/update なんかも用意しておくと便利
+
+1;</pre>
+<p>テストコード側はこんな感じになります。例はいつもの引数を足し算するストアドファンクションです。</p>
+
+    <pre class="code lang-perl">use strict;
+use warnings;
+use utf8;
+use Test::More;
+use MyProj::SQLUtil;
+
+subtest &#39;add&#39;, sub {
+    my $dbh  = prepare_dbh();
+    my $util = MyProj::SQLUtil-&gt;new($dbh);
+    is( $util-&gt;execute_sf(&#39;SF_Add&#39;, 1, 2), 3);
+};
+
+done_testing();</pre>
+<p>ストアドプロシージャの場合だと、ストアド実行の副作用をテストしないといけないので、ちょっと面倒くさいです。「何かのデータを save するとフラグが変わる」というストアドとします。</p>
+
+    <pre class="code lang-perl">subtest &#39;save&#39;, sub {
+    my $dbh  = prepare_dbh();
+    my $util = MyProj::SQLUtil-&gt;new($dbh);
+
+    my $id   = prepare_data($dbh); #何らかの手段でデータを準備しておく
+
+    my $row = $util-&gt;select(&#39;SomeData&#39;, { id =&gt; $id });
+    is( $row-&gt;{saved}, &#39;0&#39;); #precondition 本来はテストしなくてもいい。
+
+    $util-&gt;execute_sp(&#39;SP_Save&#39;, $id); #SP を実行
+
+    $row = $util-&gt;select(&#39;SomeData&#39;, { id =&gt; $id });
+    is( $row-&gt;{saved}, &#39;1&#39;); #フラグが変わった(これをテストしたい)
+};
+</pre>
+
+<div class="section">
+    <h5>おまけ</h5>
+    <p>SQL で テストコードを書くようなやりかたもあるようです。<a href="http://d.hatena.ne.jp/ZIGOROu/20111210/1323527007">MyTAP + my_prove + MySQL::Sandbox で快適 SQL Unit Testing</a></p>
+
+</div>
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>サービスに対応するクライアントを書くことで、Perl 以外のものをテストする方法を紹介しました。もうすぐクリスマスですね！</p>
+
+</div>HASH(0x5615c08cfc18)
+HASH(0x5615c08a9c50)
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

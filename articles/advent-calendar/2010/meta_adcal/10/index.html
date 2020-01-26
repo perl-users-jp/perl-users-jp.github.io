@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>Acvent Calendar Applicationを高速化する - Articles Advent Calendar 2010 Meta_adcal</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Acvent Calendar Applicationを高速化する</h1>
+
+        <p>10日になったので最適化しましょう。<br />
+まず手始めにいろいろキャッシュしましょうね。<a href="https://github.com/p5-app-adventcalendar/p5-app-adventcalendar/blob/master/lib/App/AdventCalendar.pm">p5-app-adventcalendar</a>でキャッシュできそうなものはいろいろありますが、今回はRouter、Template Engine、Formatterをキャッシュします。このアプリではそれぞれ<a href="http://search.cpan.org/dist/Router-Simple/">Router::Simple</a>、<a href="http://search.cpan.org/dist/Text-Xslate/">Text::Xslate</a>、<a href="http://search.cpan.org/dist/Text-Xatena/">Text::Xatena</a>を使います<a href="#fn1" title="Text::XslateとText::Xatenaは見た目が似ていて紛らわしいですね。">*1</a>。</p><p>もともとこの三つのオブジェクトはhandler()内でいちいちnew()していたのでした。これでは効率が悪い！ということでhandler()の外に出したりidごとにキャッシュしたりするようにしたのでした。</p><p>めでたしめでたし。</p><p>さらに工夫するとすれば、いちいちText::Xatenaでフォーマットしなおしているのがよくないですね。今度の記事ではそれをやろうと思います。</p><p>gfxでした！</p>
+HASH(0x5615c08e7d00)
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

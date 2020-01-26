@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="cho45">
+        <title>Text::Xatena - はてな記法のような記法フォーマットパーサー - Articles Advent Calendar 2010 Meta_adcal</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Text::Xatena - はてな記法のような記法フォーマットパーサー</h1>
+
+        <p>こんにちは、<a href="http://www.lowreal.net">cho45</a>です。</p><p>今回この  advent calendar に拙作 Text-Xatena が使われたということで、ちょいと Xatena フォーマットの話でも書こうと思います。</p>
+
+<div class="section">
+    <h3>Text::Xatena の位置づけ</h3>
+    <p>みなさんご存知かもしれませんが、既に CPAN には Text::Hatena というモジュールがあります。ではなぜ今また、似たようなフォーマットの別のモジュールを書く必要があったのでしょうか。これには以下のような理由があります。</p>
+
+<ul>
+<li>Text::Hatena は実のところあまり Hatena::Diary と互換がない</li>
+<li>Text::Hatena は非常に遅い</li>
+<li>Text::Hatena ははてなに依存した記法がいくつか存在する (id 記法など)</li>
+</ul><p>これらのことを解決するために、Text::Xatena は作られました。</p>
+
+<div class="section">
+    <h4>Text::Xatena はブロックレベルの互換性が Hatena::Diary と高い</h4>
+    <p>はてな記法は割と複雑で、スーパープレ記法やコメント記法をうまくとりあつかうためにいくらか苦労をしょいこまなければなりません。</p><p>Text::Xatena はそれらの挙動を執拗にテストしているので、よりはてな記法に近い挙動をします。これらのテストは、世界一はてな記法に詳しいことで知られる id:onishi さんによる指摘で入っているものもあり、大変安心できます。</p><p>ちなみに誤解があるといけないので言っておきますが、Text::Hatena は、はてなダイアリーで使われている記法フォーマットモジュールとは異なります。</p>
+
+</div>
+<div class="section">
+    <h4>Text::Xatena は一般的なフォーマット系モジュールと同じぐらいの早さ</h4>
+    <p><a href="https://github.com/cho45/Text-Xatena/blob/master/benchmark/benchmark.pl">ベンチマーク</a>によると、他の似たようなフォーマットモジュールと同じぐらいの速度です。</p>
+
+    <pre class="code">Rate   Hatena  Textile Markdown   Xatena
+Hatena   26.8/s       --     -84%     -86%     -89%
+Textile   171/s     537%       --      -8%     -27%
+Markdown  186/s     594%       9%       --     -20%
+Xatena    233/s     770%      37%      25%       --</pre>
+
+</div>
+<div class="section">
+    <h4>Text::Xatena は特定サービスに依存した独自の記法に対応しない</h4>
+    <p>例えば id: や google: wikipedia: など、はてな記法には多くの特定サービス依存の記法が存在します。これらを Xatena では基本的には実装していません (よりはてな記法と互換性の高い Inline モジュールを作るかもしれませんが)。</p><p>また、はてな記法におけるいくつかの不便な点を変えた状態をデフォルトにしています。例えば、はてな記法では改行1つで p タグ自動挿入になりますが、Xatena では改行1つでは単に br の挿入になります。大変普通の挙動です。</p>
+
+</div>
+</div>
+<div class="section">
+    <h3>Text::Xatena の使いかた</h3>
+    <p>簡易的には単に以下の通りに使えます。</p>
+
+    <pre class="code lang-perl">my $thx = Text::Xatena-&gt;new;
+$thx-&gt;format($string);</pre>
+<p>Inline フォーマットは独立しており、別に指定することができます。デフォルトの Inline フォーマッタは http://...:title というタイトルを自動的にとってくる記法に対応していませんが、以下のようにするとそれが有効になります (cache は実際には Cache::File などにすべきでしょう)。</p>
+
+    <pre class="code lang-perl">my $thx = Text::Xatena-&gt;new;
+$thx-&gt;format($string,
+	inline =&gt; Text::Xatena::Inline::Aggressive-&gt;new(cache =&gt; Cache::MemoryCache-&gt;new)
+);</pre>
+<p>さらに、いくつかデフォルトの挙動がはてな記法と異る部分については、hatena_compatible オプションを渡すと、はてなダイアリーの記法により近くなります。すなわち、改行1つで p が挿入されるようになり、見出し記法は構造化されず全部フラットになります。</p>
+
+    <pre class="code lang-perl">my $thx = Text::Xatena-&gt;new(hatena_compatible =&gt; 1);;
+$thx-&gt;format($string,
+	inline =&gt; Text::Xatena::Inline::Aggressive-&gt;new(cache =&gt; Cache::MemoryCache-&gt;new)
+);</pre>
+<p><br />
+ちなみに format メソッドが返す値は本文の部分のHTMLだけです。どういうことかというと、脚注記法 <a href="#fn1" title="これのことです">*1</a> の内容は含まれません。脚注記法の結果を取得して表示するには以下のようにします。</p>
+
+    <pre class="code lang-perl">my $thx = Text::Xatena-&gt;new;
+my $inline = Text::Xatena::Inline-&gt;new;
+my $formatted = $thx-&gt;format(&#39;aaa((foobar)) bbb((barbaz))&#39;, inline =&gt; $inline);
+my $out = &#39;&#39;;
+$out .= &#39;&lt;div class=&#34;body&#34;&gt;&#39;;
+$out .= $formatted;
+$out .= &#39;&lt;/div&gt;&#39;;
+$out .= &#39;&lt;div class=&#34;notes&#34;&gt;&#39;;
+for my $footnote (@{ $inline-&gt;footnotes }) {
+ $out .= sprintf(&#39;&lt;div class=&#34;footnote&#34; id=&#34;#fn%d&#34;&gt;*%d: %s&lt;/div&gt;&#39;,
+   $footnote-&gt;{number},
+   $footnote-&gt;{number},
+   $footnote-&gt;{note}, ### HTML を含む
+ );
+}
+$out .= &#39;&lt;/div&gt;&#39;;</pre>
+<p>ちなみに脚注記法は若干実装が面倒で、まぁ以上に書いたように本文の要素とは別のものを扱うという点でも面倒ですが、俗にgkbr対応とか言われるのがあります。どういうことかというと以下の通りです。</p><p>(((；゜Д゜))))ガクブル を書けるようにするために</p>
+
+    <pre class="code">(((foobar))) は脚注にしない。((foobar)) は脚注。)((foobar))( は ((foobar)) となり、脚注にならない。</pre>
+<p>とかいうルールがあり、割と面倒です。</p><p></p>
+
+</div>
+<div class="section">
+    <h3>まとめ</h3>
+    <p>Text::Hatena ははてな記法との互換性もいまいちですし、遅いのであまりオススメできませんが、Text::Xatena を使うとお手軽にはてな記法のような記法に対応できます。</p><p>ダイアリー完全互換な実装セットも作りたいなあとは思っていますが、自分が全く使わない記法は挙動をよく知らないので割と困ってます。「こういう記法に対応して欲しい!」ということがあれば、ご意見をいただければ実装するかもしれません。あるいはパッチを頂ければなんとかします。</p><p>ということで、Text::Xatena で快適なブロッギングライフを送りましょう! それでは!</p>
+
+</div>HASH(0x5615c08e20e0)
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

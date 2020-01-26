@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="mattn <mattn.jp@gmail.com>">
+        <title>RSS 出力対応した作業ログ - Articles Advent Calendar 2010 Meta_adcal</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>RSS 出力対応した作業ログ</h1>
+
+        <p>こんにちわ。Perl 界の桜井章一と呼ばれている <a href="http://mattn.kaoriya.net/">mattn</a> です。キメゼリフは「あんた、コードが煤けてるぜ」です<a href="#fn1" title="要出典">*1</a>。<br />
+今回初めて JPerl Advent Calendar に参加しましたが、この Advent Calendar を動かしてるサーバアプリのソースをガチャガチャと触っている、とてもしつけのなっていない大人です。</p><p>このサーバアプリで今回私が手を入れたのは、RSS の出力部分ですが今日はどの様に対応したかを説明します。どちらかというと作業ログです。</p><p><a href="https://github.com/p5-app-adventcalendar/p5-app-adventcalendar">App::AdventCalendar</a> は kan さんがこの JPerl Advent Calendar の為に書いたサーバアプリで、テキストファイルを食わしてブログ形式に仕上げる代物です。中身は PSGI 形式のリクエスト handler と、Text::Xatena を使った整形、Router::Simple を使ったルーティング、Text::Xslate をテンプレートエンジンに使っています。結構人気のある物を集めた作りだと思います。<br />
+非常に分かりやすく作ってあると思うので、ぜひ参考にソースを見ると勉強になるかと思います。ちなみに私が確認しているので Windows 上での動作は保障します。<br />
+RSS 対応するにあたり、まずルーティングしている部分を触りました。通常の記事をサーブしているハンドラは以下の部分です。</p>
+
+    <pre class="code lang-perl">$router-&gt;connect(
+    &#39;/{year:\d{4}}/{name:[a-zA-Z0-9_-]+?}/&#39;,
+    {
+        tmpl =&gt; &#39;index.html&#39;,
+        act  =&gt; sub {
+            # snip
+        },
+    }
+);</pre>
+<p>この URL の後ろに rss を付けて RSS を出力する様にしたいので、この部分をコピペして以下を追加。</p>
+
+    <pre class="code lang-perl">$router-&gt;connect(
+    &#39;/{year:\d{4}}/{name:[a-zA-Z0-9_-]+?}/rss&#39;,
+    {
+        content_type =&gt; &#39;application/xml&#39;,
+        tmpl         =&gt; &#39;index.xml&#39;,
+        act          =&gt; sub {
+            # snip
+        },
+    }
+);</pre>
+<p>各ハンドラに共通的に設定されている content_type を "application/xml" に、tmpl を "index.xml" に変更しました。ハンドラの中身は通常のHTML版と変わりませんが、RSS を配信するには幾らか情報が足りません。link、category、author に設定する内容です。<br />
+link は HTML 版のリンクを指せば良いのでカテゴリと日付番号を足して設定。残る category と author については記事を書いた本人が設定すべきものなので、メタ情報を吸い上げる仕組みを別途実装しました。<br />
+どんな風に記述するかは、<a href="http://mattn.kaoriya.net/software/lang/perl/20101204012213.htm">先日書いた記事</a>を見て頂く事とします。</p><p>RSS 出力対応を行った際、通常 HTML 版と共通するテキストファイル解析処理を parse_entry というサブルーチンにまとめましたが、そこに処理を追加しました。テキストを読み込んでいる部分を見ると</p>
+
+    <pre class="code lang-perl">my $text = $file-&gt;slurp( iomode =&gt; &#39;&lt;:utf8&#39; );
+my ( $title, $body ) = split( &#34;\n\n&#34;, $text, 2 );</pre>
+<p>テキストと本文は最初の空行で区切られるので、上記リンク先で説明している記述方法の場合、タイトル側にメタ情報が含まれれますね。</p>
+
+    <pre class="code lang-perl">my ( $tmp, %meta ) = ( &#39;&#39;, () );
+for ( split /\n/, $title ) {
+    if ($tmp) {
+        my ( $key, $value ) = m{^meta-(\w+):\s*(.+)$};
+        if ($key) {
+            $meta{$key} = $value;
+        }
+    } else {
+        $tmp = $_;
+    }
+}
+$title = $tmp;</pre>
+<p>こんな感じにタイトル部から「meta-XXX」となっている部分を拾い上げ、タイトルを再設定します。また parse_entry が返すハッシュリファレンスに対して以下の様にメタ情報をマージしました。</p>
+
+    <pre class="code lang-perl">return {
+    title     =&gt; $title,
+    text      =&gt; $text,
+    update_at =&gt; $ftime-&gt;strftime( &#39;%c&#39; ),
+    pubdate   =&gt; $ftime-&gt;strftime( &#39;%Y-%m-%dT%H:%M:%S&#39; ),
+    footnotes =&gt; $inline-&gt;can(&#39;footnotes&#39;) ? $inline-&gt;footnotes : {},
+    %meta, # ここ
+};</pre>
+<p>これで RSS テンプレートで entry.author という変数が参照出来る様になります。<br />
+さて最後に、category です。meta-tags というメタ情報から複数の category ノードを作る必要があります。meta-tags で記事の著者に設定してもらったカンマセパレート文字列を配列に乗せ変えます。<br />
+メタ情報の吸い上げは汎用的に作ったので簡単ですね。</p>
+
+    <pre class="code lang-perl">my @tags = split /,\s*/, $entry-&gt;{tags} || &#39;&#39;;
+$entry-&gt;{categories} = \@tags;</pre>
+<p>あとはテンプレートで entry.categories をループで回してあげればok。</p>
+
+    <pre class="code lang-xml">&lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34;?&gt;
+&lt;rss version=&#34;2.0&#34;&gt;
+  &lt;channel&gt;
+    &lt;title&gt;[% name %] - [% conf.title %]&lt;/title&gt;
+    &lt;link&gt;[% uri_for(year _ &#39;/&#39; _ name _ &#39;/&#39;) %]&lt;/link&gt;
+    &lt;description&gt;[% name %] - [% conf.title %]&lt;/description&gt;
+    [% FOR entry IN entries %]&lt;item&gt;
+      &lt;title&gt;[% entry.title %]&lt;/title&gt;
+      &lt;pubDate&gt;[% entry.pubdate %]&lt;/pubDate&gt;
+      &lt;link&gt;[% uri_for(entry.link) %]&lt;/link&gt;
+      [% FOR category IN entry.categories %]&lt;category&gt;[% category %]&lt;/category&gt;
+      [% END %]
+      &lt;guid isPermaLink=&#34;true&#34;&gt;[% uri_for(entry.link) %]&lt;/guid&gt;
+      &lt;description&gt;
+      [% entry.text | unmark_raw %]
+      &lt;/description&gt;
+      &lt;author&gt;[% entry.author %]&lt;/author&gt;
+    &lt;/item&gt;
+    [% END %]
+  &lt;/channel&gt;
+&lt;/rss&gt;</pre>
+<p>簡単ですね。</p>
+HASH(0x5615c08e3a58)
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>

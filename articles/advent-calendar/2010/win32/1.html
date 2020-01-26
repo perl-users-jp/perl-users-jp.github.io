@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>Windows で Perl をはじめよう！ - Articles Advent Calendar 2010 Win32</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Windows で Perl をはじめよう！</h1>
+
+        <p>はじめまして、こんにちは。集まる人数がわかりきっているのに勝手に Win32 Track を始めて既に後悔の香りがぷんぷん漂っている xaicron です。<br />
+Windows で Perl を日常的に書いている人は、日本に3人しかいないと言われています<a href="#fn1" title="要出典">*1</a>。<br />
+そんな状況を脱却したい。みんな Windows で Perl を使おう！だって、本当は心のどこかで Windows が好きなはずだから！！！</p><p>とはいえ、「Windows で Perl ってほんまに動くんかいな？」と思われるかも知れませんが、これが意外とちゃんと動きます。<br />
+流行りの Plack だって動くし、DBI も動くし、スクレイピングや Excel 操作までお手の物です。<br />
+この Track では、Windows で 全く Perl を動かしたことがない人が、日常的に Windows で Perl を動かすに至るように洗脳しますので、ぜひ最後までお付き合いください。</p><p>とりあえず今日は、初日ということで、Windows に Perl をインストールする方法をご紹介します。</p><p><ins>いろいろとツッコミをいただいたので、記事を修正しました。(thanks charsbar++ hasegawa++ songmu++)</ins></p>
+
+<div class="section">
+    <h4>Perl をインストールしよう！</h4>
+    <p>Windows には 大きく分けて 3種類の Perl が存在します。</p>
+
+<ul>
+<li>ActivePerl</li>
+<li>Strawberry Perl</li>
+<li>Cygwin Perl</li>
+</ul><p>今回は Cygwin についてはひとまず置いておきます<a href="#fn2" title="そのうち日本有数の Cygwin Perl Hacker が記事を書いてくれるでしょう">*2</a>。</p>
+
+<div class="section">
+    <h5>ActivePerl について</h5>
+    <p>ActivePerl は ActiveState 社が メンテナンス・パッケージングしている Perl です。CPANのモジュールをより容易にインストールすることができる ppm というパッケージ管理ツールが付いているため、とても簡単にいろんなモジュールをインストールしたり、アンインストールしたりすることができます。<a href="#fn3" title="apt や yum のようなものと思ってもらえればいいです">*3</a><br />
+少し前から、ppm は GUI として動作するようになっており、初心者の方にはとても安心して使えるものとなっています。<a href="#fn4" title="参考: http://blog.livedoor.jp/xaicron/archives/50717241.html">*4</a><br />
+また、最近のバージョンであれば、cpan コマンドも難しいことを気にせずに使えるようになっています。<a href="#fn5" title="昔のバージョンでは Config.pm を手でいじったり、namke をダウンロードしてきたりとなかなか大変でした。">*5</a><br />
+さらに、5.10.1 以降であれば、MinGW が同梱されているため、別途 C コンパイラを用意する必要もなくなっています。</p>
+
+</div>
+<div class="section">
+    <h5>Strawberry Perl について</h5>
+    <p>ActivePerl で cpan を動かすのにそれなりの苦労を強いられていたころ、そういったもろもろの問題を解決しつつ、かつ gcc ベースでコンパイルされたものが Strawberry Perl です。<br />
+Strawberry Perl は、インストールしたその瞬間から cpan コマンドが動作するように設計されており、さらに、 gcc や dmake などといったコマンドが同梱されているので、Linux などで Perl 開発の経験がある人には、違和感なく扱うことができます。<br />
+また、gcc ベースであるため、ActivePerl でインストールが困難だったモジュールも比較的容易にインストールすることができます。<a href="#fn6" title="もちろん、Windows を想定して書かれていないものもあるため、すべてとはいきませんが">*6</a><br />
+ただし、ppm とは違い、すべて自力でインストールする必要があるのと、ImageMagick のような 多くの C libray に依存しているようなモジュールのインストールは困難な場合があります。<a href="#fn7" title="ActivePerl の ppm であれば、ImageMagick はコンパイル済みバイナリが配布されているので、何も考える必要なくインストールできます。">*7</a></p><p><hr></p><p>どちらも基本的な Perl の機能については違いはありませんので、自分の好きな方を選べばいいと思います。<br />
+ちなみに私は、Strawberry Perl を常用しており、必要がある場合のみ ActivePerl を使うようにしています。</p>
+
+</div>
+</div>
+<div class="section">
+    <h4>ActivePerl のインストール方法</h4>
+    <p><a href="http://www.activestate.com/activeperl/downloads">http://www.activestate.com/activeperl/downloads</a> あたりから、最新版をダウンロードしてきます。(現在は 5.12.2)<br />
+msi 形式になっているので、ダブルクリックするとインストーラーが立ち上がりますので、あとは指示に従ってください。</p><p>また、zip 形式も配布されています。<br />
+こちらはダウンロード後に解凍し、「Installer.bat」を起動し、あとはいくつかの質問に答えればインストールできます。</p>
+
+</div>
+<div class="section">
+    <h4>Strawberry Perl のインストール方法</h4>
+    <p><a href="http://strawberryperl.com/">http://strawberryperl.com/</a> から、最新版をダウンロードしてきます。(現在は5.12.1)<br />
+こちらも msi 形式になっているので、ダブルクリックしてインストールしてください。</p><p>zip 形式で、通常のインストール版や、ポータブル版もあります。<br />
+zip 形式のものは、たとえば C:\strawberryperl に解凍したとして</p>
+
+    <pre class="code">C:\&gt; cd C:\strawberryperl
+C:\strawberryperl&gt; perl\bin\perl.exe relocation.pl.bat
+C:\strawberryperl&gt; perl\bin\perl.exe update_env.pl.bat</pre>
+<p>などとすればインストールできます。</p><p><hr></p><p>基本的には、どちらの Perl をインストールする場合もインストーラーを使えばいいでしょう。</p>
+
+</div>
+<div class="section">
+    <h4>まとめ</h4>
+    <p>今日は、Windows にある二つの Perl についての簡単な違いと、インストール方法について書いてみました。<br />
+インストールについては、どちらもインストーラーがあるのでつまずくことなく出来ると思います。<br />
+これであなたも今日から Windows Perl Mongers です！！</p><p>明日は vim script と go しか書いていないんじゃないかともっぱらの噂になっている mattn さんです！！<br />
+お楽しみに！！</p>
+
+</div>HASH(0x5615c0893b40)
+HASH(0x5615c08acd60)
+HASH(0x5615c08ad060)
+HASH(0x5615c08ac8c8)
+HASH(0x5615c08c2de8)
+HASH(0x5615c08a1230)
+HASH(0x5615c08acb80)
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
+    </body>
+</html>
