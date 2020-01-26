@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - content
+  schedule:
+    - cron: '0 6 * * SAT'
 
 jobs:
-  build-deploy:
+  test:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
