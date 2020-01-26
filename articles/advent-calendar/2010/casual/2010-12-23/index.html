@@ -41,9 +41,9 @@ DynaLoaderはXSモジュール用の.so/.dllをロードするためのモジュ
 baseは@ISAを設定するプラグマモジュールです。代わりに5.10から標準になった<a href="http://search.cpan.org/perldoc?parent">parent</a>を使いましょう。baseを使っていると思わぬ罠にハマることがありますが<a href="#fn2" title="ベースモジュールのロードに失敗したことを検出できない、誤ってロード済みと判断してロードしないなどの問題が確認されています。">*2</a>、parentではそのようなことはありません。<br />
 bytesはsubstr()などの挙動を強制的にバイト単位にするプラグマモジュールです。このプラグマの元で文字列操作を行うと、テキスト文字列<a href="#fn3" title="「テキスト文字列」は昔はutf8-flagged文字列やユニコード文字列と呼ばれることがありましたが、それは誤りです。utf8 flagの立っていない、Latin-1(ISO-8859-1)でエンコードされた文字列もまた正しいテキスト文字列だからです。">*3</a>を渡してもバイト列を渡しても同じ挙動になりますが、そのような挙動はおそらく間違っています。テキスト文字列を渡すべきかバイト列を渡すべきかというのはそのルーチンの仕様の問題であり、そのルーチンがバイト列を処理するルーチンであるならば、使用者がきちんとバイト列を渡すべきです。<a href="http://search.cpan.org/perldoc?perlunifaq">perlunifaq</a> (<a href="http://perldoc.jp/docs/perl/5.10.0/perlunifaq.pod">&#x65E5;&#x672C;&#x8A9E;&#x8A33;</a>）も参考になります。</p><p>いじょ。JPerl Advent Calendar随一の後ろ向きなエントリを目指しました！<br />
 いよいよ明日はクリスマスイブですね！Perl界のトリックスターが満を持して登場します！お楽しみに！</p>
-HASH(0x563f384d6c38)
-HASH(0x563f384ce3f0)
-HASH(0x563f384ceca8)
+HASH(0x55c5bd7f2db0)
+HASH(0x55c5bd8072d0)
+HASH(0x55c5bd7d05e0)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>
