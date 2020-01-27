@@ -284,6 +284,8 @@ sub format_text {
         return Text::Markdown::markdown($text);
     }
     elsif ($format eq 'hatena') {
+        no warnings qw(once);
+        local $Text::Xatena::Node::SuperPre::SUPERPRE_CLASS_NAME = 'code prettyprint';
         state $xatena = Text::Xatena->new;
         my $inline    = Text::Xatena::Inline->new;
         my $html = $xatena->format( $text, inline => $inline );
