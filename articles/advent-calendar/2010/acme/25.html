@@ -19,7 +19,7 @@
 <a href="http://search.cpan.org/dist/Acme-PM-Paris-Meetings">Acme::PM::Paris::Meetings</a><br />
 <a href="http://search.cpan.org/dist/ACME-PM-Voronezh">ACME::PM::Voronezh</a></p><p>基本的にはpodに活動報告やリンク先が書いてあったり、次回の会合の日程を知るためのモジュールです。</p><p>Acme::PM::Barcelonaではかなり詳細にライトニングトークの内容が掲載されたPODが付属しています。</p><p>Acme::PM::Berlin::Meetingsは詳細なミーティングの歴史が付いています。</p><p>Acme::PM::ChicagoはChicago.pmで誰かに何かをやらせるのに毎月もめるので、リストからランダムに名前を選ぶ関数がついていたりします。2004年以降更新されていませんが……</p><p>先達を見習って私も<a href="https://github.com/makamaka/Acme-PM-Hachioji">Acme::PM::Hachioji</a>というのをつくってみました。大変てきとーかつ、機能がありませんので我こそはと思う方はどんどん弄ってください。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use  Acme::PM::Hachioji;
 
 my $meetings = Acme::PM::Hachioji-&gt;meetings;
@@ -30,7 +30,7 @@ while ( my $meeting = $meetings-&gt;next ) {
 <p><a href="http://atnd.org/events/11405">Hachioji.pmの次回新年会</a>の日程が取り出せますよ！</p><br />
 <p>もちろん</p><p></p>
 
-    <pre class="code lang-perl">while ( my $meeting = $meetings-&gt;previous ) {
+    <pre class="code prettyprint lang-perl">while ( my $meeting = $meetings-&gt;previous ) {
     print $meeting-&gt;ymd, &#34;\n&#34;;
 }</pre>
 <p>前回の会合の日程もとれます。</p><br />
@@ -47,7 +47,7 @@ TITLE: Acme for PM - Acme::PM::*.</p><p>Hello, I am <a href="http://twitter.com/
 <a href="http://search.cpan.org/dist/Acme-PM-Paris-Meetings">Acme::PM::Paris::Meetings</a><br />
 <a href="http://search.cpan.org/dist/ACME-PM-Voronezh">ACME::PM::Voronezh</a></p><p>Basically they say activities or links, and inform next meetings.</p><p>I also wrote <a href="https://github.com/makamaka/Acme-PM-Hachioji">Acme::PM::Hachioji</a>.</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use  Acme::PM::Hachioji;
 
 my $meetings = Acme::PM::Hachioji-&gt;meetings;
@@ -58,14 +58,14 @@ while ( my $meeting = $meetings-&gt;next ) {
 <p>You can get next Hachioji.pm meeting date!  But it is not yet decided, so retrn undef.</p><br />
 <p>Of course</p>
 
-    <pre class="code lang-perl">while ( my $meeting = $meetings-&gt;previous ) {
+    <pre class="code prettyprint lang-perl">while ( my $meeting = $meetings-&gt;previous ) {
     print $meeting-&gt;ymd, &#34;\n&#34;;
 }</pre>
 <p>You can get privious date.</p><br />
 <p>Well, in this winter vacation, would you like to write Acme::PM module of you.<br />
 Wish a happy new year!</p>
-HASH(0x55c176591708)
-HASH(0x55c176590cb8)
+HASH(0x55809a8ce7b0)
+HASH(0x55809a8ce888)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

@@ -23,7 +23,7 @@
     <h3><a href="http://search.cpan.org/perldoc?find2perl">find2perl</a></h3>
     <p><a href="http://search.cpan.org/perldoc?File::Find">File::Find</a>付属スクリプト(で、いいんだっけ)。 findコマンド互換の引数を取り、実行可能なperl scriptを吐き出します。</p><p>例えばカレントディレクトリ及び下位ディレクトリ内にある一週間以上前に修正された*.txtファイルを探すなんて場合は</p>
 
-    <pre class="code">C:\&gt;find2perl . -mtime +7 -a -name &#34;*.txt&#34; | perl</pre>
+    <pre class="code prettyprint">C:\&gt;find2perl . -mtime +7 -a -name &#34;*.txt&#34; | perl</pre>
 <p>のようにします。</p>
 
 </div>
@@ -41,7 +41,7 @@
     <h3><a href="http://search.cpan.org/perldoc?pwhich">pwhich</a></h3>
     <p><a href="http://search.cpan.org/dist/File-Which/">File::Which</a>付属スクリプト。実行ファイルのパスを調べてくれる便利屋さん</p>
 
-    <pre class="code">C:\&gt;pwhich explorer
+    <pre class="code prettyprint">C:\&gt;pwhich explorer
 C:\WINDOWS\explorer.EXE</pre>
 <p>ちなみにどーでもいいことですが、私はこいつの存在に気がつかずに独自にwhichスクリプトを書いていました。</p>
 
@@ -55,7 +55,7 @@ C:\WINDOWS\explorer.EXE</pre>
     <h3><a href="http://search.cpan.org/perldoc?piconv">piconv</a></h3>
     <p>あのdankogaiさんがmaintainerを努める<a href="http://search.cpan.org/dist/Encode">Encode</a>の付属スクリプト。文字コード変換API/ツールである<a href="http://ja.wikipedia.org/wiki/Iconv">iconv</a>のperl版</p><p>使用例としてはlwp-requestと組み合わせて</p>
 
-    <pre class="code">C:\&gt;lwp-request http://example.com/written-in-utf8.txt | piconv -f utf-8 -t cp932 | more</pre>
+    <pre class="code prettyprint">C:\&gt;lwp-request http://example.com/written-in-utf8.txt | piconv -f utf-8 -t cp932 | more</pre>
 <p>なんてのが出来ますかね。<br />
  <br />
 <hr /></p><p>とりあえずこんな感じで。</p><p>みなさんもお暇な時にでも dir X:\path\to\perl\bin\*.bat して何か便利そうなスクリプトがいつの間に入っていないか気にかけてあげてください。</p><br />

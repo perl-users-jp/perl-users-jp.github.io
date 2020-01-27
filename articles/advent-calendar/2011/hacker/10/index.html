@@ -43,7 +43,7 @@ dukkiedukkie と申します。みなさん、意識は高まっていますか�
     <h4>FarmBalanceについて</h4>
     <p>例えば、オンライントランザクションで新規ユーザの追加リクエストがあり、参加ファームを決定するとき、アプリケーションの方で以下のように「どのファーム番号に参加すると最も負荷分散されるか？」とFarmBalancenに聞きます。</p>
 
-    <pre class="code lang-perl">use FarmBalance;
+    <pre class="code prettyprint lang-perl">use FarmBalance;
 my $farms = 4;      #- ファーム数
 my $stats = {	    #- ファームごとのデータ量やTPS,QPSなど（バランスキー）統計を与える
        &#39;a_table_rows&#39; =&gt; [1000, 700, 629, 800],
@@ -66,7 +66,7 @@ print &#34;DefineNode:&#34; , $df-&gt;{effective_farm} , &#34;\n&#34;; #- 参加
 ....</pre>
 <p>「ファームごとのデータ量やTPS,QPSなど統計」の与え方は例えばDBに</p>
 
-    <pre class="code lang-sql">create table farm_info (
+    <pre class="code prettyprint lang-sql">create table farm_info (
 	farm_id int unsigned primary key,
 	artist_table_rows int,
 	cd_table_rows int,
@@ -89,7 +89,7 @@ print &#34;DefineNode:&#34; , $df-&gt;{effective_farm} , &#34;\n&#34;; #- 参加
     <p>数億件を超える大量なデータを持つデータベースからのデータ移管においてもFarmBalanceロジックは役に立つと思います。<br />
 例えばマイグレ用データで、ユーザIDをキーに各エンティティのデータ件数がわかっている場合、その統計をタブ区切テキストなどで記述した上で、</p>
 
-    <pre class="code lang-perl">use FarmBalance;
+    <pre class="code prettyprint lang-perl">use FarmBalance;
 my $farms = 4;
 my $src = &#39;migration.tsv&#39;; #- ユーザIDをキーとするデータ件数TSV
 my $stats = {	      #- マイグレーションなのでゼロからスタート

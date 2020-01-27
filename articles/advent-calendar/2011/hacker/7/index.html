@@ -25,7 +25,7 @@
 <div class="section">
     <h5>24時以降のTime::Pieceオブジェクトを作っちゃう</h5>
     
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use Time::Piece::Over24;
 
@@ -46,7 +46,7 @@ print $t2-&gt;datetime;
     <p>こちらは少し面倒です。<br />
 切り替わりの時間を指定してあげて使うようにしました。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use Time::Piece::Over24;
 
@@ -64,7 +64,7 @@ print $t3-&gt;over24_datetime;
     <h5>注意事項</h5>
     <p>この切り替わり時間なんですけれど、現在以下のような感じになっていますのでご注意ください…。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use Time::Piece::Over24;
 
@@ -79,7 +79,7 @@ print $t5-&gt;over24_offset;
 </pre>
 <p>だので、切り替わりの時間を別々にしたいときは…。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use Time::Piece::Over24;
 
@@ -105,7 +105,7 @@ print $t4-&gt;over24_offset;
     <p>Aの時間とBの時間の間であるかチェックする機能もつけてみました。<br />
 SQLではBETWEENなんですけれど、今回はis_duringとかいうメソッド名にしてしまいました。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use Test::MockTime qw/:all/;
 use Time::Piece::Over24;

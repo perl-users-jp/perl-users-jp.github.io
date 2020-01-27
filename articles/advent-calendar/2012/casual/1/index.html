@@ -28,7 +28,7 @@
     <h4>quickrun.vimでPerl用に便利な設定</h4>
     <p><a href="https://github.com/thinca/vim-quickrun">quickrun.vim</a> は編集中のファイルをVimを起動した状態のまま実行できるVimプラグインです。かなり浸透してるので解説の必要はなさそうですが、それにしても毎度毎度Vimを抜けてシェルに戻る手間が省けるのはたいへん楽ですね。</p><p>で、なんですが、編集中の.pmや.tファイルをquickrunしたら、プロジェクトの lib/ や t/lib にパスが通ってなくて「Can't locate...」と怒られてた経験は誰にでもあると思います。そういうときは .vimrc の設定に以下を書き足すと良いです。</p>
 
-    <pre class="code lang-vim">let g:quickrun_config = {}
+    <pre class="code prettyprint lang-vim">let g:quickrun_config = {}
 let g:quickrun_config.perl = {&#39;command&#39; : &#39;perl&#39;, &#39;cmdopt&#39;: &#39;-MProject::Libs&#39; }</pre>
 <p>Project::Libsはプロジェクトの lib/ や t/lib/ を探しだして実行パスに含めるモジュールです。こいつをquickrun実行時にuseしてやればいいというわけです。</p><p><a href="http://cside.hatenadiary.com/entry/2012/09/02/155055">quickrun.vim + Project::Libs &#x306E;&#x7D44;&#x307F;&#x5408;&#x308F;&#x305B;&#x304C;&#x4FBF;&#x5229; - Cside::Weblog</a></p><p></p>
 

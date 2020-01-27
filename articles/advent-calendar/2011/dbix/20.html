@@ -24,7 +24,7 @@
     <h4>つかいかた</h4>
     <p>とくにクエリに意味はないですが、こういうクエリを投げると</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use DBI;
 use DBIx::QueryLog;
@@ -45,7 +45,7 @@ my $rows = $dbh-&gt;selectall_arrayref(
     48,
 );</pre>
 
-    <pre class="code">[2011-12-20T17:01:10] [main] [0.000581] SELECT * FROM akb48 a, akb48 k, akb48 b WHERE a.id = k.id AND k.id = b.id AND a.id = &#39;48&#39; at akb48.pl line 18
+    <pre class="code prettyprint">[2011-12-20T17:01:10] [main] [0.000581] SELECT * FROM akb48 a, akb48 k, akb48 b WHERE a.id = k.id AND k.id = b.id AND a.id = &#39;48&#39; at akb48.pl line 18
 .---------------------------------------------------------------------------------------------.
 | id | select_type | table | type  | possible_keys | key     | key_len | ref   | rows | Extra |
 +----+-------------+-------+-------+---------------+---------+---------+-------+------+-------+

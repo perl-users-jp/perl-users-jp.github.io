@@ -26,7 +26,7 @@
 <div class="section">
     <h3>install</h3>
     
-    <pre class="code">$ cpanm Jonk</pre>
+    <pre class="code prettyprint">$ cpanm Jonk</pre>
 <p>だけです。依存モジュールはTry::Tinyというモジュール一個だけなので、<br />
 全く問題無く入るでしょう。<br />
 依存モジュールが殆ど無いのがJonkの売りの一つです。<br />
@@ -51,7 +51,7 @@ database名などはご自由に。</p><p>以上でJonkを使う準備が整い�
     <h3>fetchしてくるurlをenqueueする</h3>
     <p>まずfetchしてくるURLを登録するクライアントを作成します。</p>
 
-    <pre class="code lang-perl">$ cat ./client.pl
+    <pre class="code prettyprint lang-perl">$ cat ./client.pl
 #! perl
 use strict;
 use warnings;
@@ -64,7 +64,7 @@ my $client = Jonk::Client-&gt;new($dbh);
 $client-&gt;enqueue(&#39;MyFetcher&#39;, $url);</pre>
 <p>クライアントスクリプトとしてはこんな感じで</p>
 
-    <pre class="code">$ perl ./client.pl http://example.com/</pre>
+    <pre class="code prettyprint">$ perl ./client.pl http://example.com/</pre>
 <p>とするだけで、<a href="http://example.com/">http://example.com/</a><br />
 をクロール対象とするJobをenqueueすることができます。</p>
 
@@ -74,7 +74,7 @@ $client-&gt;enqueue(&#39;MyFetcher&#39;, $url);</pre>
     <p>workerのモデルとしては、forkモデルで複数プロセスでfetchしてくる感じです。<br />
 forkでのプロセス管理でParallel::Preforkを利用します。</p>
 
-    <pre class="code lang-perl">$ cat ./worker.pl
+    <pre class="code prettyprint lang-perl">$ cat ./worker.pl
 use strict;
 use warnings;
 use Parallel::Prefork;
@@ -112,7 +112,7 @@ $pm-&gt;wait_all_children();</pre>
 これで１０子プロセスが生成され、１０人のworkerが随時Jonkからjobを取り出し<br />
 MyFetcherにJobの情報を渡して処理させます。</p><p>MyFetcherはこんなかんじでしょうか</p>
 
-    <pre class="code lang-perl">package MyFetcher;
+    <pre class="code prettyprint lang-perl">package MyFetcher;
 use strict;
 use warnings;
 use LWP::UserAgent;

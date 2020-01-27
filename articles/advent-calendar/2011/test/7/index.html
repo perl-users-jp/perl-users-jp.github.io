@@ -21,7 +21,7 @@
 <li>テストを実行するたびに経過時間が変動してtestが通ったりこけたりする</li>
 </ul><p>使い方は<a href="http://d.hatena.ne.jp/tsucchi1022/20090409/1239290637">&#x3053;&#x3061;&#x3089;&#x306E;&#x8A18;&#x4E8B;</a>でも説明されていますが、</p>
 
-    <pre class="code">$ cat ~/test.pl
+    <pre class="code prettyprint">$ cat ~/test.pl
 use feature qw( say );
 use Test::MockTime qw( :all );
 
@@ -42,7 +42,7 @@ say &#34;# ----- sleep(2); -----&#34;;
 sleep 2;
 say time;</pre>
 
-    <pre class="code">$ perl test.pl
+    <pre class="code prettyprint">$ perl test.pl
 1323183883
 # set_absolute_time(0);
 0

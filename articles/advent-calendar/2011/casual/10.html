@@ -23,7 +23,7 @@
     <h4>Containerのメリット</h4>
     <p>私がContainerを使っていて一番嬉しいなーと思うのが、「開発スピードの向上」です。早速コードを書いてみましょう。</p>
 
-    <pre class="code lang-perl">#まず、Containerのサブクラスを用意して、使いたいモジュールのコンストラクションコードを書きをしまくる
+    <pre class="code prettyprint lang-perl">#まず、Containerのサブクラスを用意して、使いたいモジュールのコンストラクションコードを書きをしまくる
 package MyContainer;
 use Object::Container &#39;-base&#39;;
 use WWW::Mechaniz;
@@ -57,7 +57,7 @@ register furl =&gt; sub {
 };
 1;</pre>
 
-    <pre class="code lang-perl">#メインコード。useするのは、MyContainerだけ、すっきり♪
+    <pre class="code prettyprint lang-perl">#メインコード。useするのは、MyContainerだけ、すっきり♪
 use MyContainer &#39;con&#39;;#conはキャッシュしたオブジェクトを呼び出す関数、任意の文字列をいれられる
 
 con(&#39;mech&#39;)-&gt;get(&#39;http://example.com&#39;);#newしなくていい

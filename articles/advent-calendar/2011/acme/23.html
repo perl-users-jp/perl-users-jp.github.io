@@ -47,7 +47,7 @@ Acme Track再登場のtoritori0318です。<br />
     <p>さて、ここまでの説明で（ry<br />
 今回もフォーゼに変身できるモジュール <a href="https://github.com/toritori0318/p5-Acme-KamenriderFourze">Acme::KamenriderFourze</a> を書いてみました。早速変身してみましょう。</p>
 
-    <pre class="code lang-perl">  use Acme::KamenriderFourze;
+    <pre class="code prettyprint lang-perl">  use Acme::KamenriderFourze;
 
   my $fourze = Acme::KamenriderFourze-&gt;new;
 
@@ -65,7 +65,7 @@ Acme Track再登場のtoritori0318です。<br />
 見事に変身できましたね！</p><br />
 <p>またスイッチの組み合わせによってはリミットブレイクが発生し、必殺技を繰り出すことが可能です。</p>
 
-    <pre class="code lang-perl">  ...
+    <pre class="code prettyprint lang-perl">  ...
   $fourze-&gt;henshin_switch_on;
 
   # ローケットー オン
@@ -88,7 +88,7 @@ Acme Track再登場のtoritori0318です。<br />
     <p>スイッチ情報／ステイツ情報／リミットブレイク情報を引くことも可能です。<br />
 勉強して友達に自慢しよう！</p>
 
-    <pre class="code lang-perl">  # スイッチ一覧
+    <pre class="code prettyprint lang-perl">  # スイッチ一覧
   my @switch = $fourze-&gt;select(&#39;switch&#39;);
   my @switch = $fourze-&gt;select(&#39;switch&#39;, {no=&gt;1});
   my @switch = $fourze-&gt;select(&#39;switch&#39;, {name=&gt;&#39;ドリル&#39;});
@@ -109,7 +109,7 @@ Acme Track再登場のtoritori0318です。<br />
 <p>さて、AcmeTrackももうすぐ完走ですね。<br />
 次回はどなたの記事になるのでしょうか？</p>
 
-</div>HASH(0x55c17659e088)
+</div>HASH(0x55809a8ff670)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

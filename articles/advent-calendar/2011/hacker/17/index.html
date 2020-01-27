@@ -25,11 +25,11 @@
     <h5>定義</h5>
     <p>FormValidator::Simple::Plugin::V8 は単体では何もできません。このモジュールを継承して FormValidator::Simple::Plugin を作るところからはじまります。</p>
 
-    <pre class="code lang-perl">package FormValidator::Simple::Plugin::MyRules;
+    <pre class="code prettyprint lang-perl">package FormValidator::Simple::Plugin::MyRules;
 use FormValidator::Simple::Plugin::V8 &#39;rules.js&#39;;</pre>
 <p>プラグインモジュール自体は以上のような簡素なものです。特になんもしてません。rules.js に実際のバリデーションルールを JavaScript で記述していきます。</p>
 
-    <pre class="code lang-javascript">// This is rules.js
+    <pre class="code prettyprint lang-javascript">// This is rules.js
 rule(&#34;NUMBER&#34;, function (str) {
 	str = String(str);
 	return (/^\d+$/).test(str);
@@ -41,7 +41,7 @@ rule(&#34;NUMBER&#34;, function (str) {
     <h5>使用</h5>
     <p>あとは、普通の FormValidator::Simple::Plugin と同じように使うだけです。</p>
 
-    <pre class="code lang-perl">use FormValidator::Simple qw/MyRules/;
+    <pre class="code prettyprint lang-perl">use FormValidator::Simple qw/MyRules/;
 
 my $result = FormValidator::Simple-&gt;check( ... );</pre>
 <p>簡単でしょ？</p>

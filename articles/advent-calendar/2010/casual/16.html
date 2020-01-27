@@ -19,7 +19,7 @@
     <h3>フォーム生成とバリデーション</h3>
     <p>よくあるログインフォームだと、こんな感じでフォームの生成の入力値のバリデーションが行えます。</p>
 
-    <pre class="code lang-perl">
+    <pre class="code prettyprint lang-perl">
 my $req = shift; # CGIとかPlack::Requestとか
 # フォームオブジェクトを作る
 my $form = HTML::Shakan-&gt;new(
@@ -68,7 +68,7 @@ say $form-&gt;render;
     <p>あらかじめフォーム定義を別で行っておくと使い回しやすくなります。パフォーマンス上もこちらのほうが高速だそうです。<br />
 複数の画面でフォームを共有したい場合などもこちらのほうが便利かと思います。</p>
 
-    <pre class="code lang-perl"># フォームを定義しておく
+    <pre class="code prettyprint lang-perl"># フォームを定義しておく
 package MyForm;
 use utf8;
 use Encode;
@@ -108,7 +108,7 @@ my $form = MyForm-&gt;get( &#39;post&#39;, request =&gt; $req );
     <h3>モデルと連携してみる</h3>
     <p>フォームオブジェクト作成時にmodelを指定すると、バリデーションした結果を使ったモデルの作成／更新が簡単に行えます。たとえばDBIx::Skinnyと連携する場合はこんな感じになります。</p>
 
-    <pre class="code lang-perl">
+    <pre class="code prettyprint lang-perl">
 # DBIx::Skinnyのモデル定義
 package MyModel;
 use DBIx::Skinny connect_info =&gt; {
@@ -166,7 +166,7 @@ if ( $form-&gt;submitted_and_valid) {
     <h3>表示をカスタマイズしてみる</h3>
     <p>$form->renderでタグを生成してくれますが必要最小限のためそのままだと見づらいので、Django Formsのas_pのようにpタグをつけてくれるようなRendererをつくってみます。</p>
 
-    <pre class="code lang-perl">package MyRenderer;
+    <pre class="code prettyprint lang-perl">package MyRenderer;
 use Any::Moose;
 use HTML::Shakan::Utils;
 
@@ -218,7 +218,7 @@ my $form = MyForm-&gt;get(
     <h3>サンプル作成でハマった・・・</h3>
     <p>ImageFieldのバリデーションが効かなくてハマってしまいました。CGIオブジェクトだとparamメソッドでファイル名が取れますが、Plack::Requestの場合$req->param('image')が取れないらしく、そのせいかtypeによるバリデーションが効かなかったので、以下のようなコードで誤魔化すことうまくいきました。<a href="#fn1" title="casualな私にはこれが精一杯でしたがここに書いておけばきっとHacker Trackなちゃんとした方法を教えてくれると信じています!">*1</a></p>
 
-    <pre class="code lang-perl">if ($req-&gt;upload(&#39;image&#39;)) {
+    <pre class="code prettyprint lang-perl">if ($req-&gt;upload(&#39;image&#39;)) {
     $req-&gt;parameters-&gt;add(&#39;image&#39;, $req-&gt;upload(&#39;image&#39;)-&gt;filename);
 }
 </pre>
@@ -240,7 +240,7 @@ my $form = MyForm-&gt;get(
     <h3>Next...</h3>
     <p>次は<a href="http://twitter.com/#!/dragon3">dragon3</a>さんです。お楽しみに！</p>
 
-</div>HASH(0x55c17658d668)
+</div>HASH(0x55809a8ce540)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

@@ -35,17 +35,17 @@
 </ul><p>ざっくばらんに言うとこの機能しか持っていません。そもそも最初は複数トラックも持てなかったのですが、今回のjperl advent calendar(豪華7本立てです)のために対応しました。対応したとはいっても、ディレクトリを掘るとtrackが増えるというシンプルなものです。</p><br />
 <p>方針が決まったので作り始めます。moduleやappの雛形作りの道具は色々ありますが、今回はyappoさんのModule::Setupを使うことにしました。appの名前はベタですがApp::AdventCalendarにしようと思います。</p>
 
-    <pre class="code lang-sh">module-setup App::AdventCalendar</pre>
+    <pre class="code prettyprint lang-sh">module-setup App::AdventCalendar</pre>
 <p>これだけで基本的なファイルが作られます。AdventCalendar.pmにhandlerメソッドを追加してみます。</p>
 
-    <pre class="code lang-perl">sub handler {
+    <pre class="code prettyprint lang-perl">sub handler {
     my $env = shift;
 
     return [ 200, [&#39;Content-Type&#39; =&gt; &#39;text/html&#39;], [ &#39;hello&#39; ] ];
 }</pre>
 <p>これを利用した app.psgi ファイルを作ります。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use utf8;
 use lib &#39;lib&#39;;
@@ -57,7 +57,7 @@ my $app = sub { App::AdventCalendar::handler(@_) }
 $app;</pre>
 <p>あとはplackupを実行すれば、<a href="http://localhost:5000/">http://localhost:5000/</a> で「hello」と出力されるのを確認できます。</p>
 
-    <pre class="code lang-sh">plackup -R . app.psgi</pre>
+    <pre class="code prettyprint lang-sh">plackup -R . app.psgi</pre>
 
 <ul>
 <li>Rオプションを使うとファイルを変更した時に自動でrestartがかかって便利ですね。</li>

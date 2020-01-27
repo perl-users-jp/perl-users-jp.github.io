@@ -20,7 +20,7 @@
     <p>例えば、<a href="http://blog.livedoor.jp/chihhylove/archives/3573873.html">&#x6607;&#x5929;&#x3059;&#x308B;&#x304F;&#x3089;&#x3044;&#x304B;&#x308F;&#x3044;&#x3044;&#x732B;&#x753B;&#x50CF;&#x304F;&#x3060;&#x3055;&#x3044; : &#x3042;&#x3058;&#x3083;&#x3058;&#x3083;&#x3057;&#x305F;&#x30FC;</a>の猫の画像が欲しいときにどうすればいいでしょうか<a href="#fn1" title="とくに深い意味はありません。">*1</a>。画像を1つずつ手作業で保存？面倒くさいですね。<br />
 そんなときのためのWebスクレイピングです。まずはじめは、<a href="https://metacpan.org/module/Web::Scraper">Web::Scraper</a>というモジュールを使ってみましょう。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use autodie;
 use File::Basename;
@@ -55,7 +55,7 @@ for my $image_url (@{$res-&gt;{images}}) {
 そんなときには、<a href="https://metacpan.org/module/Web::Query">Web::Query</a>がおすすめです。jQuery風にWebスクレイピングできるとても便利なモジュールです。<br />
 先ほどの例をWeb::Queryを使って書きなおしてみましょう。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use autodie;
 use File::Basename;
@@ -91,7 +91,7 @@ wq($url)
     
 </blockquote><p>ここで、Webスクレピングを使ってみます。ページの一覧を取ってきて、そこからブックマーク数を取得してみましょう。ブックマーク数を取得するには<a href="http://developer.hatena.ne.jp/ja/documents/bookmark/apis/getcount">&#x306F;&#x3066;&#x306A;&#x30D6;&#x30C3;&#x30AF;&#x30DE;&#x30FC;&#x30AF;&#x4EF6;&#x6570;&#x53D6;&#x5F97;API</a>を使います。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use Encode;
 use LWP::UserAgent;
@@ -125,7 +125,7 @@ Web::Scraperというモジュールも紹介しましたが、個人的にはWe
 みなさんもじゃんじゃんWebスクレピングしまくってみてください！ただし悪用厳禁で :)<br />
 次はotsuneさんです。</p>
 
-</div>HASH(0x55c1765d50e0)
+</div>HASH(0x55809a9845b0)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

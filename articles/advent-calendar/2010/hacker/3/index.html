@@ -15,7 +15,7 @@
         <p>メリクリ！ライヨロ！YAPC::Asia 2010でベストスピーカー賞の nekokak さんの次に書かせて頂きます。kazeburo です。</p><p>先月 Scope::Contaier というモジュールをリリースしましたが、<a href="http://search.cpan.org/dist/Scope-Container/">CPAN</a>、<a href="http://blog.nomadscafe.jp/2010/11/scopecontainer.html">&#x7D39;&#x4ECB;&#x3057;&#x305F;blog</a>はこちら。もともとこのモジュールを書いたのはMySQLに対する接続を制御するためでした。</p><br />
 <p>某日、某サービスのMySQLのPROCESSLISTを見た時に</p>
 
-    <pre class="code">mysql&gt; show processlist;
+    <pre class="code prettyprint">mysql&gt; show processlist;
 +-------------+-------------+-------------------+------+---------+----------+---------------------------------+------+
 | Id          | User        | Host              | db   | Command | Time     | State                           | Info |
 +-------------+-------------+-------------------+------+---------+----------+---------------------------------+------+
@@ -27,7 +27,7 @@
 811 rows in set (0.00 sec)</pre>
 <p>このように、idle時間が長いコネクションが800件以上、大量に存在しているのを見つけました。MySQLは1つの接続で1つのスレッドを占有するので多くの接続があることでそれだけリソースが消費されてしまいます。また競合をさけるため多くのlockが必要になり性能劣化の可能性もあります。また、idleが貯まることでMySQLに設定した同時接続数(max_connections)に達し、新しい接続ができないことがでてくると思います。</p><p>具体的な問題として、上記のMySQLサーバではSHOW INNODB STATUSが</p>
 
-    <pre class="code">TRANSACTIONS
+    <pre class="code prettyprint">TRANSACTIONS
 ------------
 Trx id counter 4 1686819906
 Purge done for trx&#39;s n:o &lt; 4 1686817408 undo n:o &lt; 0 0
@@ -39,7 +39,7 @@ MySQL thread id 31605374012, query id 140196889008 192.168.x.x myuser
 MySQL thread id 31605374014, query id 140196888993 192.168.x.x myuser</pre>
 <p>この「LIST OF TRANSACTIONS」で埋まり監視用のデータが取得できない情況になっていました。（実際はこれで気づいた）</p><p>そこでアクセス元を調べるとその多くはJob Queueサーバから来ている事がわかりました。そこでDBに接続を行う箇所のソースコードを確認すると</p>
 
-    <pre class="code">sub db {
+    <pre class="code prettyprint">sub db {
     my $dbh;
     if ($ENV{&#39;MOD_PERL&#39;} &amp;&amp; !$Apache::ServerStarting ) {
         $dbh = Apache-&gt;request()-&gt;pnotes($pnotes_key);
@@ -56,11 +56,11 @@ MySQL thread id 31605374014, query id 140196888993 192.168.x.x myuser</pre>
 }</pre>
 <p>このようになっていました。</p><p>pnotesはmod_perlが提供する機能でRequestが終了した時点で、自動的にそこにいれたデータを破棄してくれます。このpnotesにデータベースの接続情報をいれることで一度のリクエスト処理中に同じデータベースへの接続を１回だけにして効率をあげることができます。またpnotesはリクエストが完了したところで破棄されるので、データベースの接続もそこで終了し、コネクションが維持されたままになることもありません。</p><p>上記のコードでは、mod_perlでアプリケーションの場合にpnotesを使い、そうでない場合、DBIの接続維持機能である、connect_cached を利用するようになっています。DBIのconnect_cachedは接続情報のキャッシュがDBIクラスに紐付けられるのでプロセスが終了する、あるいは明示的にdisconnectをおこなうまで接続が維持されます。プロセスが短時間で終了するcronスクリプト、あるいはCGIなどではこれでかまわない(もしくはconnectでも問題ない性能)だと思いますが、JobQueue Workerなど１つのプロセスが長時間動作するものだと接続が残り、JobQueueのプロセスが分、MySQL側での接続数が増えてしまいます。</p><p>ちなみに、connect_cachedのキャッシュをクリアするには</p>
 
-    <pre class="code">my $CachedKids_hashref = $dbh-&gt;{Driver}-&gt;{CachedKids};
+    <pre class="code prettyprint">my $CachedKids_hashref = $dbh-&gt;{Driver}-&gt;{CachedKids};
 %$CachedKids_hashref = () if $CachedKids_hashref;</pre>
 <p>このようにDBIのCachedKidsをクリアすれば良いそうです。</p><p>Webアプリケーションでリクエストを受ける場合以外でも、MySQLへの接続を細かく管理するために、任意の範囲（スコープ）だけで接続維持を行い、スコープから外れたら自動で接続を切る事ができないかを考え、Scope::Containerを書きました。上のコードにScope::Containerを追加したの次になります</p>
 
-    <pre class="code">sub db_Main {
+    <pre class="code prettyprint">sub db_Main {
     my $dbh;
     if ($ENV{&#39;MOD_PERL&#39;} &amp;&amp; !$Apache::ServerStarting ) {
         $dbh = Apache-&gt;request()-&gt;pnotes($pnotes_key);
@@ -84,7 +84,7 @@ MySQL thread id 31605374014, query id 140196888993 192.168.x.x myuser</pre>
 <p>すでに大規模サービスで超利用されている部分なのでなるべくpnotesを弄らずScope::Containerを埋め込んでいます。in_scope_container()はScope::Conitanerが有効になっているかどうか確認し、データの取得、格納はscope_container()で行います。まずmod_perlの環境かどうか確認し、そうでない場合だけScope::Containerを用います。また、Scope::Containerが有効な場合はpnotesの時と同じく、connect_cachedを使わずに、キャッシュは自前で管理します。</p><br />
 <p>この上で、JobQueue側でScope::Conitanerを有効にします。</p>
 
-    <pre class="code">my $client = TheSchwartz-&gt;new( databases =&gt; ... );
+    <pre class="code prettyprint">my $client = TheSchwartz-&gt;new( databases =&gt; ... );
 $client-&gt;can_do(...);
 while($cnt &lt; $max){
     my $sc = start_scope_container();
@@ -95,7 +95,7 @@ while($cnt &lt; $max){
 <p>TheSchwartzでJobを実行する、work_onceの前にstart_scope_container()でScope::Conitanerを有効にします。$sc はScope::Containerオブジェクトでこれが破棄されるとそのスコープで保存されたデータも破棄されます。sleepの前に明示的に$snをundefしているのは、sleepしている時間にデータベースの接続を維持するのは無駄になるからですね。通常whileのスコープを抜けるとオブジェクトが破棄されるので明示的に何かを行う必要はないと思われます。</p><br />
 <p>もう一つ、例として、処理に長時間かかるcronスクリプトを挙げてみます。Webサービスなどで全てのユーザIDに対して何かしらの処理をしなければならない場合、WHERE句なしで全件SELECTするよりも、まずユーザIDのMAX値を調べ、1からインクリメントしながらMAXまで処理していく方が効率的な場合があります。</p>
 
-    <pre class="code">my $max;
+    <pre class="code prettyprint">my $max;
 {
     my $sc = start_scope_container();
     $max = MyService::User-&gt;get_max_id();

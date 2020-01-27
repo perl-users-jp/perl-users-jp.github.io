@@ -58,7 +58,7 @@
     <h5>too many memcach query</h5>
     <p>時たまキャッシュに入ってる事前提にして安心して</p>
 
-    <pre class="code">for my $id (@ids) {
+    <pre class="code prettyprint">for my $id (@ids) {
     my $row = $orm-&gt;lookup($id);
 }</pre>
 <p>とかしてて全部で2000クエリ位吐いてるページを見かけます。多分そのくらいのオーダーだと memcached でも問題でるんじゃねw<br />
@@ -74,7 +74,7 @@ ORM でも油断しないように JOIN を使ってクエリ削減はしたい�
     <h5>れーすこんでぃしょんもんだい</h5>
     <p>一度 has_a したらキャッシュして二度同じクエリを投げないようにしてる時に、時たま</p>
 
-    <pre class="code">my $row1 = $orm-&gt;lookup(1);
+    <pre class="code prettyprint">my $row1 = $orm-&gt;lookup(1);
 my $row2 = $orm-&gt;lookup(1);
 say $row2-&gt;has_a_table1-&gt;name;
 $row2-&gt;has_a_table2-&gt;name(&#39;new name&#39;);

@@ -20,26 +20,26 @@
     <p>というわけで適当な天気予報サイトを巡回します。今回は以下のURLを使います。<br />
 東京都以外の人は適宜自分の地域に置き換えて下さい。</p><p><a href="http://weather.yahoo.co.jp/weather/jp/expo/umbrella/13/4410.html">http://weather.yahoo.co.jp/weather/jp/expo/umbrella/13/4410.html</a></p><p>curlコマンドで情報を取得します。</p>
 
-    <pre class="code lang-shell">% curl http://weather.yahoo.co.jp/weather/jp/expo/umbrella/13/4410.html</pre>
+    <pre class="code prettyprint lang-shell">% curl http://weather.yahoo.co.jp/weather/jp/expo/umbrella/13/4410.html</pre>
 <p>そうすると一杯文字がでてくると思いますので必要なものだけを取得しましょう。パイプでつないで grep します。</p>
 
-    <pre class="code lang-shell">% curl http://weather.yahoo.co.jp/weather/jp/expo/umbrella/13/4410.html　| grep &#39;&lt;b&gt;指数&#39;
+    <pre class="code prettyprint lang-shell">% curl http://weather.yahoo.co.jp/weather/jp/expo/umbrella/13/4410.html　| grep &#39;&lt;b&gt;指数&#39;
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 101  5990    0  5990    0     0  13860      0 --:--:-- --:--:-- --:--:--  102k</pre>
 <p>んが。curlコマンドがエラー出力になんかしゃべってます。黙ってもらいましょうか。<br />
 2> /dev/null を追記してエラー出力を亜空間に向けてしまいます。</p>
 
-    <pre class="code lang-shell">% curl http://weather.yahoo.co.jp/weather/jp/expo/umbrella/13/4410.html 2&gt; /dev/null  | grep &#39;&lt;b&gt;指数&#39;
+    <pre class="code prettyprint lang-shell">% curl http://weather.yahoo.co.jp/weather/jp/expo/umbrella/13/4410.html 2&gt; /dev/null  | grep &#39;&lt;b&gt;指数&#39;
 &lt;b&gt;指数：0&lt;/b&gt;
 &lt;b&gt;指数：60&lt;/b&gt;</pre>
 <p>さっきよりもいい感じになりましたね。grep の結果が2件表示されていますが、これは今日と明日の予報です。必要なのは今日だけなので head コマンドにパイプしましょう。</p>
 
-    <pre class="code lang-shell">% curl http://weather.yahoo.co.jp/weather/jp/expo/umbrella/13/4410.html 2&gt; /dev/null  | grep &#39;&lt;b&gt;指数&#39; | head -n 1
+    <pre class="code prettyprint lang-shell">% curl http://weather.yahoo.co.jp/weather/jp/expo/umbrella/13/4410.html 2&gt; /dev/null  | grep &#39;&lt;b&gt;指数&#39; | head -n 1
 &lt;b&gt;指数：0&lt;/b&gt;</pre>
 <p>このあたりで正規表現の出番です。よかった Perl でてきたよ。</p>
 
-    <pre class="code lang-shell">% curl http://weather.yahoo.co.jp/weather/jp/expo/umbrella/13/4410.html 2&gt; /dev/null  | grep &#39;&lt;b&gt;指数&#39; | head -n 1 | perl -ne &#39;if(/&lt;b&gt;(.*)&lt;\/b&gt;/) { print &#34;傘&#34;, $1, &#34;\n&#34;; }&#39;
+    <pre class="code prettyprint lang-shell">% curl http://weather.yahoo.co.jp/weather/jp/expo/umbrella/13/4410.html 2&gt; /dev/null  | grep &#39;&lt;b&gt;指数&#39; | head -n 1 | perl -ne &#39;if(/&lt;b&gt;(.*)&lt;\/b&gt;/) { print &#34;傘&#34;, $1, &#34;\n&#34;; }&#39;
 傘指数：0</pre>
 
 </div>
@@ -47,22 +47,22 @@
     <h4>growlnotify を使う</h4>
     <p>インストール方法は省略しますが growl をコマンドラインから呼び出す事ができるので以下のように growl にパイプします。</p>
 
-    <pre class="code lang-shell">% curl http://weather.yahoo.co.jp/weather/jp/expo/umbrella/13/4410.html 2&gt; /dev/null  | grep &#39;&lt;b&gt;指数&#39; | head -n 1 | perl -ne &#39;if(/&lt;b&gt;(.*)&lt;\/b&gt;/) { print &#34;傘&#34;, $1, &#34;\n&#34;; }&#39; | growlnotify --sticky -t &#39;傘指数&#39;</pre>
+    <pre class="code prettyprint lang-shell">% curl http://weather.yahoo.co.jp/weather/jp/expo/umbrella/13/4410.html 2&gt; /dev/null  | grep &#39;&lt;b&gt;指数&#39; | head -n 1 | perl -ne &#39;if(/&lt;b&gt;(.*)&lt;\/b&gt;/) { print &#34;傘&#34;, $1, &#34;\n&#34;; }&#39; | growlnotify --sticky -t &#39;傘指数&#39;</pre>
 <p>オプションに --sticky を指定すると自動的に消えるのを防げます。<br />
 これを ~/script/weather.sh として保存しておきましょう。</p>
 
-    <pre class="code lang-shell">% cat ~/script/weather.sh
+    <pre class="code prettyprint lang-shell">% cat ~/script/weather.sh
 curl http://weather.yahoo.co.jp/weather/jp/expo/umbrella/13/4410.html 2&gt; /dev/null  | grep &#39;&lt;b&gt;指数&#39; | head -n 1 | perl -ne &#39;if(/&lt;b&gt;(.*)&lt;\/b&gt;/) { print &#34;傘&#34;, $1, &#34;\n&#34;; }&#39; | growlnotify --sticky -t &#39;傘指数&#39;</pre>
 <p>一応言っておくと chmod +x で実行権限をつけておきましょう。</p>
 
-    <pre class="code lang-shell">% chmod +x ~/script/weather.sh</pre>
+    <pre class="code prettyprint lang-shell">% chmod +x ~/script/weather.sh</pre>
 
 </div>
 <div class="section">
     <h4>cron</h4>
     <p>さきほどのシェルスクリプトをcronに登録します。まあこんな感じでいいんじゃないですかね。</p>
 
-    <pre class="code lang-shell">% crontab -l | grep weather.sh
+    <pre class="code prettyprint lang-shell">% crontab -l | grep weather.sh
 0 7 * * * /Users/okamura/script/weather.sh &gt;&gt;/tmp/cron.log 2&gt;&gt;/tmp/cron-err.log</pre>
 <p>ということで毎朝7時にMacを見ると傘が必要かどうかを知ることができると思います。</p>
 

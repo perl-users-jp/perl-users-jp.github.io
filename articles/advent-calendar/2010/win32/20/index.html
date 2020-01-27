@@ -18,14 +18,14 @@
 どうやるか...</p><p>電卓を起動して、ボタンを押しちゃえばいいのです。<br />
 Win32::API を使って FindWindow でウィンドウを探し、数字ボタンのウィンドウ探し、SendMessage でボタンクリックのイベントを送り、最後に GetWindowText でテキストを取得してしまえばいいのです。</p><p>Win32::API は各 DLL と関数名、引数シグネチャ、戻り値シグネチャを指定すればエクスポートされている関数が取り出せます。</p>
 
-    <pre class="code lang-perl">use Win32::API;
+    <pre class="code prettyprint lang-perl">use Win32::API;
 $function = Win32::API-&gt;new(
     &#39;mydll, &#39;int sum_integers(int a, int b)&#39;,
 );
 $return = $function-&gt;Call(3, 2);</pre>
 <p>簡単ですね。シグネチャはPerldocによると</p>
 
-    <pre class="code lang-perl">&#34;I&#34;: value is an integer (int)
+    <pre class="code prettyprint lang-perl">&#34;I&#34;: value is an integer (int)
 &#34;N&#34;: value is a number (long)
 &#34;F&#34;: value is a floating point number (float)
 &#34;D&#34;: value is a double precision number (double)
@@ -35,7 +35,7 @@ $return = $function-&gt;Call(3, 2);</pre>
 &#34;K&#34;: value is a Win32::API::Callback object (see Win32::API::Callback)</pre>
 <p>となっているので頑張ればコールバックも呼び出せますね。今日は FindWindow(FindWindowEx) と SendMessage 、GetWindowText だけ使うので</p>
 
-    <pre class="code lang-perl">my $FindWindow    = Win32::API-&gt;new( &#34;user32&#34;, &#34;FindWindowA&#34;,    &#39;PP&#39;,   &#39;N&#39; );
+    <pre class="code prettyprint lang-perl">my $FindWindow    = Win32::API-&gt;new( &#34;user32&#34;, &#34;FindWindowA&#34;,    &#39;PP&#39;,   &#39;N&#39; );
 my $FindWindowEx  = Win32::API-&gt;new( &#34;user32&#34;, &#34;FindWindowExA&#34;,  &#39;NNPP&#39;, &#39;N&#39; );
 my $SendMessage   = Win32::API-&gt;new( &#34;user32&#34;, &#34;SendMessageA&#34;,   &#39;NNNP&#39;, &#39;N&#39; );
 my $GetWindowText = Win32::API-&gt;new( &#34;user32&#34;, &#34;GetWindowTextA&#34;, &#39;NPN&#39;,  &#39;N&#39; );</pre>
@@ -43,7 +43,7 @@ my $GetWindowText = Win32::API-&gt;new( &#34;user32&#34;, &#34;GetWindowTextA&#3
 起動は system を使いますが、ウィンドウが現れるまで FindWindow を投げても失敗してしまいます。<br />
 そこで</p>
 
-    <pre class="code lang-perl">my $window;
+    <pre class="code prettyprint lang-perl">my $window;
 my $timeout = 100;
 while ( $timeout-- &amp;&amp; !$window ) {
     $window = $FindWindow-&gt;Call( 0, &#39;電卓&#39; );
@@ -52,12 +52,12 @@ while ( $timeout-- &amp;&amp; !$window ) {
 die &#39;404 電卓 Not Found&#39; unless $window;</pre>
 <p>こうやって待機してあげましょう。そうですね！かっこ悪いですね。Window が見つかったら次は子ウィンドウハンドルを取得しましょう。</p>
 
-    <pre class="code lang-perl">my $button = $FindWindowEx-&gt;Call( $window, 0, 0, &#39;7&#39; );
+    <pre class="code prettyprint lang-perl">my $button = $FindWindowEx-&gt;Call( $window, 0, 0, &#39;7&#39; );
 $SendMessage-&gt;Call( $button, BM_CLICK, 0, 0 );</pre>
 <p>これで「7」のボタンが押せました。<br />
 あとはこれをスクリプトに仕上げて</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use Win32::API;
 
@@ -106,7 +106,7 @@ $SendMessage-&gt;Call( $window, WM_CLOSE, 0, 0 );
 warn $result if defined $result;</pre>
 <p>こうですね。簡単ですね。これならば</p>
 
-    <pre class="code">C:\&gt; perl calc.pl 1+2+3+4+5+6+7+8+9+10
+    <pre class="code prettyprint">C:\&gt; perl calc.pl 1+2+3+4+5+6+7+8+9+10
 55</pre>
 <p>なんて事も出来ますよね。一見中で calc.exe を使ってるなんて誰も気付かないですよね！<br />
 さて、このスクリプトを実行するよい子とのお約束</p>

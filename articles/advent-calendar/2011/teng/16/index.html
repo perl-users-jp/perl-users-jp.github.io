@@ -19,14 +19,14 @@ TengではDBIx::TransactionManagerに処理をデリゲーションしていま�
 他のモジュールでも使われているのを始め、他のDB関連モジュールなどでも<br />
 多く利用されるようになってきました。</p><p>Tengでトランザクションをかけるには以下のように行います。</p>
 
-    <pre class="code">$teng-&gt;txn_begin;
+    <pre class="code prettyprint">$teng-&gt;txn_begin;
 my $row = $teng-&gt;insert(&#39;user&#39;, +{id =&gt; 1, name =&gt; &#39;nekokak&#39;});
 $teng-&gt;txn_commit;</pre>
 <p>txn_beginからtxn_commitまでの間がトランザクションとして処理されます。</p><p>このようなトランザクションのかけかただけでなく、RAIIなトランザクションのかけ方も出来ます<br />
 いわゆるguardオブジェクトを利用したトランザクションのかけ方です。<br />
 RAIIについては <a href="http://ja.wikipedia.org/wiki/RAII">http://ja.wikipedia.org/wiki/RAII</a> を参考にしてください。</p>
 
-    <pre class="code">my $txn = $teng-&gt;txn_scope
+    <pre class="code prettyprint">my $txn = $teng-&gt;txn_scope
 my $row = $teng-&gt;insert(&#39;user&#39;, +{id =&gt; 1, name =&gt; &#39;nekokak&#39;});
 $txn-&gt;commit;</pre>
 <p><br />

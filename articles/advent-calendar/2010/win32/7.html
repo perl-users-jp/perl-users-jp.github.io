@@ -22,7 +22,7 @@ Perl で解決しましょう！</p><p>「管理ツール」の「イベント�
 これ、日別で開始時刻と終了時刻まとめたら勤務時間になるじゃんとか悪い事を考えてるのは誰ですか！</p><p>やりましょう！</p><p>Windows のイベントログを操作するには <a href="http://search.cpan.org/dist/Win32-EventLog/" class="external" target="_blank">Win32::EventLog</a> を使います。<br />
 基本的な使い方は perldoc を見る限りです。</p>
 
-    <pre class="code lang-perl">Example 1
+    <pre class="code prettyprint lang-perl">Example 1
     The following example illustrates the way in which the EventLog module
     can be used. It opens the System EventLog and reads through it from
     oldest to newest records. For each record from the Source EventLog it
@@ -51,7 +51,7 @@ Perl で解決しましょう！</p><p>「管理ツール」の「イベント�
      }</pre>
 <p>ここで得られる hashRef の EventID と TimeGenerated を使います。EventID の下位WORDが 6005 の場合は「イベントログサービスの開始」を意味し、6006 の場合は「イベントログサービスの停止」を意味します。このイベントが発生した最初の時刻と、最終の時刻をまとめれば勤務時間になりますね。</p>
 
-    <pre class="code lang-perl">#!perl
+    <pre class="code prettyprint lang-perl">#!perl
 use strict;
 use warnings;
 use Win32::EventLog;
@@ -140,7 +140,7 @@ for ( sort keys %sched ) {
 }</pre>
 <p>全体ソースだとこんな感じでしょうか。<br />
 ただ、勤務時間が24時を超えたり、PCを付けっぱなしで帰ると酷い勤務表が出来上がります。十分注意しましょう。</p><p>「おい、お前金曜朝から月曜夜までぶっ通しで働いてるぞ！」なんて上司に言われないようにしましょう。</p><p>といいますか、ちゃんと勤務表は毎日更新しましょう。</p>
-HASH(0x55c1765aff70)
+HASH(0x55809a8ef948)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

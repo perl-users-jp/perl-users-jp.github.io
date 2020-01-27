@@ -20,7 +20,7 @@
     <h3>インストールする</h3>
     <p>どちらもCPANにあがっているので、cpanmで一発です。</p>
 
-    <pre class="code">$ cpanm Acme::Code::Police
+    <pre class="code prettyprint">$ cpanm Acme::Code::Police
 $ cpanm Acme::Code::FreedomFighter</pre>
 
 </div>
@@ -31,7 +31,7 @@ $ cpanm Acme::Code::FreedomFighter</pre>
     <h4>Acme::Code::Police</h4>
     <p>Acme::Code::Police は、useしたモジュールが use strict していない場合そのファイルを unlink するというモジュールです。恐ろしいですね。</p>
 
-    <pre class="code lang-perl">$ vim acme.pl 
+    <pre class="code prettyprint lang-perl">$ vim acme.pl 
 use Acme::Code::Police;
 print &#34;no Acme, no Life.\n&#34;;
 $ ls
@@ -48,7 +48,7 @@ $ ls
     <p>そんな恐ろしいモジュールに敢然と立ち向かう戦士が Acme::Code::FreedomFighter です。<br />
 どんなモジュールかは<a href="http://cpansearch.perl.org/src/GMCCAR/Acme-Code-FreedomFighter-3.1416/FreedomFighter.pm">ソース</a>を見ればわかると思います。</p><p>このモジュールをuseすると、 Acme::Code::Police がファイルを unlink しようとしたときに現れ、逆に Acme::Code::Police を unlink しようとします。</p>
 
-    <pre class="code lang-perl">$ vim acme.pl
+    <pre class="code prettyprint lang-perl">$ vim acme.pl
 use Acme::Code::Police;
 use Acme::Code::FreedomFighter;
 print &#34;no Acme, no Life.\n&#34;;

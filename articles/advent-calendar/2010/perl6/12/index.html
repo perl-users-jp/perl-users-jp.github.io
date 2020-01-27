@@ -17,7 +17,7 @@
 <div class="section">
     <h3>とりあえず#perl6で聞いてみた</h3>
     
-    <pre class="code">13:10:05 &gt;#perl6@freenode:lopnor&lt; is there any way to fork a process?
+    <pre class="code prettyprint">13:10:05 &gt;#perl6@freenode:lopnor&lt; is there any way to fork a process?
 13:11:41 &lt;#perl6@freenode:TiMBuS&gt; yes, if you use zavolaj you can call fork
 13:11:56 &lt;#perl6@freenode:TiMBuS&gt; https://github.com/jnthn/zavolaj
 13:12:02 &gt;#perl6@freenode:lopnor&lt; is it core in rakudo star?
@@ -54,7 +54,7 @@
     <h3>使ってみよう</h3>
     <p>いま個人的に進めている<a href="http://github.com/lopnor/p6-plackdo">plackdo</a>というプロジェクトの中で書いたテストです。ソースは<a href="https://github.com/lopnor/p6-plackdo/blob/master/t/Handler-Standalone/fork.t">&#x3053;&#x3061;&#x3089;</a>です。</p>
 
-    <pre class="code">use Test;
+    <pre class="code prettyprint">use Test;
 use NativeCall;
 use LWP::Simple;
 use Plackdo::Handler::Standalone;
@@ -86,11 +86,11 @@ done_testing;
 # vim: ft=perl6 :</pre>
 <p>zavolajはrakudo-star-2010-11に同梱されていたので、追加のインストールは不要でした。</p>
 
-    <pre class="code">use NativeCall;
+    <pre class="code prettyprint">use NativeCall;
 sub fork returns Int is native&lt;libc&gt; { ... }</pre>
 <p>これでfork()するとlibcのforkが呼ばれるようになります。実運用的にはこのsub forkを記述したモジュールを書いて使い回すのが現実的だと思います。そして、呼び出す側は</p>
 
-    <pre class="code">
+    <pre class="code prettyprint">
 my $pid = fork();
 if ($pid) {
 # parent process

@@ -23,7 +23,7 @@
 <li>アクセス順を表現するリストから一切参照されていないエントリをハッシュから削除する</li>
 </ul><p>という処理を実装することになります。</p><p>Cache::LRU では、Perl の GC を使ってこの処理を自動化することで、高速化を実現しています。ハッシュに格納する値を weak reference とすることで、アクセス順を表現するリストから押し出されたエントリを、自動的に削除するようにしているわけです。</p><p>Cache::LRU に、以下のような一見奇妙なコードが含まれるのはそのためです。</p>
 
-    <pre class="code lang-perl">package Cache::LRU;
+    <pre class="code prettyprint lang-perl">package Cache::LRU;
 ...
 
 sub get {

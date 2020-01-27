@@ -28,7 +28,7 @@
     <h4>データの偏りを考慮したデータ増幅を行うには？</h4>
     <p>例えば、引き続き、RDBMSのテーブルとして音楽CDを例にします。CDのジャンルを管理する genre テーブルがあって、</p>
 
-    <pre class="code lang-sql">mysql&gt; desc genre;
+    <pre class="code prettyprint lang-sql">mysql&gt; desc genre;
 +------------+------------------+------+-----+---------+-------+
 | Field      | Type             | Null | Key | Default | Extra |
 +------------+------------------+------+-----+---------+-------+
@@ -37,7 +37,7 @@
 +------------+------------------+------+-----+---------+-------+</pre>
 <p>のような構造で、</p>
 
-    <pre class="code lang-sql">mysql&gt; select * from genre;
+    <pre class="code prettyprint lang-sql">mysql&gt; select * from genre;
 +----------+------------------+
 | genre_id | genre_name       |
 +----------+------------------+
@@ -53,7 +53,7 @@
 +----------+------------------+</pre>
 <p>というようなデータが並んでいるとします。CDとジャンルの紐付けを行うリレーショナルエンティティがcd_genreテーブルで、</p>
 
-    <pre class="code lang-sql">mysql&gt; desc cd_genre;
+    <pre class="code prettyprint lang-sql">mysql&gt; desc cd_genre;
 +----------+------------------+------+-----+---------+-------+
 | Field    | Type             | Null | Key | Default | Extra |
 +----------+------------------+------+-----+---------+-------+
@@ -68,7 +68,7 @@
     <p>このような場合、自分の経験では以下のようにやってきました。<br />
 まず、現状のリレーション量を２つの別の時点でキャプチャする。例えば10月のcd_genreテーブルのデータ量が、</p>
 
-    <pre class="code lang-sql">mysql&gt; select g.genre_id, g.genre_name, count(*)  from genre g, cd_genre cg
+    <pre class="code prettyprint lang-sql">mysql&gt; select g.genre_id, g.genre_name, count(*)  from genre g, cd_genre cg
 where g.genre_id = cg.genre_id group by g.genre_id;
 +----------+------------------+----------+
 | genre_id | genre_name       | count(*) |
@@ -85,7 +85,7 @@ where g.genre_id = cg.genre_id group by g.genre_id;
 +----------+------------------+----------+</pre>
 <p>で、ちょうど一ヶ月後の11月にカウントした結果が、</p>
 
-    <pre class="code lang-sql">mysql&gt; select g.genre_id, g.genre_name, count(*)  from genre g, cd_genre cg
+    <pre class="code prettyprint lang-sql">mysql&gt; select g.genre_id, g.genre_name, count(*)  from genre g, cd_genre cg
 where g.genre_id = cg.genre_id group by g.genre_id;
 +----------+------------------+----------+
 | genre_id | genre_name       | count(*) |
@@ -102,7 +102,7 @@ where g.genre_id = cg.genre_id group by g.genre_id;
 +----------+------------------+----------+</pre>
 <p>単純に増加トレンドを「11月のデータ量÷10月のデータ量」で求めて、リニアにその増加傾向がしばらく１年後まで続くと仮定して、perlを書いてデータを増幅する（前回同様、OracleのSQL*Loaderに渡すためのTSVを出力する）。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use POSIX qw(ceil);
 use IO::File;

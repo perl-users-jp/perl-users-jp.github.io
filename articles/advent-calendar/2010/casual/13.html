@@ -27,7 +27,7 @@ Perlで例外処理ができるなんて、なんか渋くないですか。</p>
     <h3>Perlにおけるベーシックな例外処理</h3>
     <p>冗談はさておき、初めてのPerlというハレンチな本を読んだりすると、多分書いてあるのは以下のような方法による例外処理です。実際に初めてのPerlに書いてあるかどうかは忘れました。</p>
 
-    <pre class="code lang-perl">eval {
+    <pre class="code prettyprint lang-perl">eval {
   die &#39;I will never die.&#39;;
 };
 
@@ -41,7 +41,7 @@ if ($@) {
     <h3>Try::Tiny</h3>
     <p>eval/if にまつわる諸々の面倒なことをアプリを書くときにいちいち処理するのは面倒なので、「よしそれじゃあ便利モジュールを書いてその中でよしなにしちゃえばいいよね！」というのは誰もが思いつくことだと思います。面倒なハンドリングはライブラリ内でやって、ユーザ側からはストレスなく使える、というのは理想的なコードの再利用ですね。</p><p>eval/if に落とし穴があることは昔から知られていたので、Perlには多くの例外処理用モジュールがあります。僕が数えただけでも108個あります。その中でも最近よく使われている（といっても僕はどちらかといえば最近Perlを始めたので最近のこと以外は知らないのですが）モジュールがTry::Tinyです。</p><p>Try::Tinyは、余計なことをせずシンプルなtry/catch構文もどきを実現してくれるモジュールです。使い方はこんな感じです。</p>
 
-    <pre class="code lang-perl"># handle errors with a catch handler
+    <pre class="code prettyprint lang-perl"># handle errors with a catch handler
 try {
   die &#34;foo&#34;;
 } catch {
@@ -53,7 +53,7 @@ try {
     <h4>Internal of Try::Tiny</h4>
     <p>Perlをちょろっと勉強したことのある人なら誰でも、「Try::Tinyの導入してくれるtry/catch構文もどきは一体どうやって実現されているのかな？」と疑問に思うことでしょう。tryという関数にはコードブロックが渡されているように見えますが、Perlでコードブロックを渡すといえばサブルーチンリファレンスを渡すことで、そしたら try(sub { ... }) になるはずだよね、とかとか。</p><p>種明かしをしてしまうと、これを実現するにはプロトタイプ宣言を使います。</p>
 
-    <pre class="code lang-perl">sub do_block(&amp;) {
+    <pre class="code prettyprint lang-perl">sub do_block(&amp;) {
   my $block = shift;
   $block-&gt;();
 }
@@ -63,7 +63,7 @@ do_block {
 };</pre>
 <p>プロトタイプ宣言で、「一つめの引数はサブルーチンリファレンスだよ！」と教えてあげた場合にのみ、本来ならばdo_block sub { ... } と書かなければいけないところをdo_block { ... }と書けるような関数が書けるんですね。ちなみにこれが可能なのは、第一引数のみです。</p><p>この機能に併せてdo_block(&@)のように書くことで、例えば組み込みの map { ... } @aryや grep { ... } @ary のような挙動をする関数を定義できます。こういったDSLっぽい記述は人によって好みが分かれるところですが、知らないよりは知ってる方がいいよね、という感じです。</p><p>これでtryのような関数の書き方はわかりますが、catchはどうなっているのでしょうか？Try::Tinyの中身を見れば分かるのですが、catchもまたプロトタイプ宣言のなされた普通の関数で、中身はこうなっています。</p>
 
-    <pre class="code lang-perl">sub catch (&amp;;@) {
+    <pre class="code prettyprint lang-perl">sub catch (&amp;;@) {
   my ( $block, @rest ) = @_;
 
   return (
@@ -82,14 +82,14 @@ do_block {
     <h4>Try::Tinyの落とし穴</h4>
     <p>なんだか本筋からずれちゃいましたが、要はtryもcatchもfinallyも単なる関数です。なので、本物のtry/catch構文であるかのような気分で以下のようなコードを書いてしまうと</p>
 
-    <pre class="code lang-perl">try {
+    <pre class="code prettyprint lang-perl">try {
   die &#34;foo&#34;;
 } catch {
   warn &#34;caught error: $_&#34;; # not $@
 } # (セミコロンがない！)</pre>
 <p>あばばばばばばば、となってしまいますし、catch { ... } の中身は関数なので、本物のtry/catch構文であるかのような気分で外側の関数からのreturnを図っても</p>
 
-    <pre class="code lang-perl">sub foobar {
+    <pre class="code prettyprint lang-perl">sub foobar {
   try {
     die &#34;foo&#34;;
   } catch {

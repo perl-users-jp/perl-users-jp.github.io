@@ -28,20 +28,20 @@
     <h4>利用例</h4>
     <p>ざっくりSTFの使用の流れを追ってみましょう。</p><p>まずバケットを作成します</p>
 
-    <pre class="code">    PUT /lestrrat-bucket HTTP/1.0</pre>
+    <pre class="code prettyprint">    PUT /lestrrat-bucket HTTP/1.0</pre>
 <p>その後、オブジェクトを作成します</p>
 
-    <pre class="code">    PUT /lestrrat-bucket/photos/super-secret-photo.jpg HTTP/1.0
+    <pre class="code prettyprint">    PUT /lestrrat-bucket/photos/super-secret-photo.jpg HTTP/1.0
     X-STF-Consistency: 2
     X-STF-Replication-Count: 3
 
     ... ファイルの中身 ...</pre>
 <p>X-STF-Consistencyはオブジェクト作成時に作られるエンティティの数を指定します。PUTリクエストが成功を返すと、最低これだけのエンティティが作成されたことが保証されます。X-STF-Replication-CountはPUTの後、ワーカーの処理が終わった時点で作成されるエンティティの総数です。このリクエストの場合は最終的に3個のエンティティが作成されます。</p><p>これでオブジェクトが作成されたのであとは取得するだけですね</p>
 
-    <pre class="code">    GET /lestrrat-bucket/photos/super-secret-photo.jpg HTTP/1.0</pre>
+    <pre class="code prettyprint">    GET /lestrrat-bucket/photos/super-secret-photo.jpg HTTP/1.0</pre>
 <p>秘密の写真を消したくなったらDELETEを発効します</p>
 
-    <pre class="code">    DELETE /lestrrat-bucket/photos/super-secret-photo.jpg HTTP/1.0</pre>
+    <pre class="code prettyprint">    DELETE /lestrrat-bucket/photos/super-secret-photo.jpg HTTP/1.0</pre>
 <p>簡単ですね！</p><p>なおこの辺りの処理をまとめた<a href="http://metacpan.org/release/Net-STF-Client">Net::STF::Client</a>もCPANにアップされていますのでそちらもご覧下さい。</p>
 
 </div>

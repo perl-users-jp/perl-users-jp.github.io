@@ -19,7 +19,7 @@ TengのSchemaクラスを構築しましたが、Dumperはdatabaseから読み�
 Teng::Schea::Declare形式で出力し、ファイルに保存して利用することを目的としています。</p><p>多くのテーブル定義がある場合、手でSchemaクラスを書くのは大変なので、<br />
 ある程度処理を自動化デキルようになっているのです。</p><p>Teng::Schema::Dumperは以下のように利用します。</p>
 
-    <pre class="code">#! perl
+    <pre class="code prettyprint">#! perl
 use strict;
 use warnings;
 use DBI;
@@ -32,7 +32,7 @@ print Teng::Schema::Dumper-&gt;dump(
 ), &#34;\n&#34;;</pre>
 <p>このようなスクリプトを書き実行すると、</p>
 
-    <pre class="code">package Proj::DB::Schema;
+    <pre class="code prettyprint">package Proj::DB::Schema;
 use Teng::Schema::Declare;
 table {
     name &#39;user&#39;;
@@ -48,7 +48,7 @@ table {
 1;</pre>
 <p>Teng::Schema::Declareをつかった構成のテキストが出力されるので、それをファイルに保存するだけです。</p><p>またtable毎にinflate/deflateの定義を挿し込みたい場合は以下のようにします。</p>
 
-    <pre class="code">#! perl
+    <pre class="code prettyprint">#! perl
 use strict;
 use warnings;
 use DBI;
@@ -69,7 +69,7 @@ print Teng::Schema::Dumper-&gt;dump(
 ), &#34;\n&#34;;</pre>
 <p>こうすると、tableに対応したinfalte/deflateを埋め込むことができます。</p>
 
-    <pre class="code">package Proj::DB::Schema;
+    <pre class="code prettyprint">package Proj::DB::Schema;
 use Teng::Schema::Declare;
 table {
     name &#39;user&#39;;

@@ -28,7 +28,7 @@ schemaの管理方法は、プロジェクトによって色々あるかと思�
     <h3>DBIx::Migration</h3>
     <p>検索すると、名前がまさにそれなので、まずこれをみんな試すんじゃないかなと思います。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use DBIx::Migration;
 
@@ -39,7 +39,7 @@ my $m = DBIx::Migration-&gt;new({
 
 $m-&gt;migrate();</pre>
 
-    <pre class="code lang-sh">$ touch migration.db
+    <pre class="code prettyprint lang-sh">$ touch migration.db
 $ mkdir migration/
 $  cat migration/schema_1_up.sql                                                                                                                   [ ~/project/perl/migrate  ]
 create table user (
@@ -49,7 +49,7 @@ create table user (
 $ perl migration.pl</pre>
 <p>こんな感じでプログラムを実行してやると、最新バージョンにupdateします</p>
 
-    <pre class="code lang-sh">$ sqlite3 migration.db
+    <pre class="code prettyprint lang-sh">$ sqlite3 migration.db
 sqlite&gt; .tables
 dbix_migration  user 
 sqlite&gt; select * from dbix_migration;

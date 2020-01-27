@@ -20,10 +20,10 @@
     <p>CGI::Expandという名前がついていますが、CGI.pmやCommonGatewayInterfaceとはそんなに関係がありません。<br />
 このモジュールの使いどころですが、httpのリクエストにおけるパラメータの受け渡しは</p>
 
-    <pre class="code">key=value&amp;key2=value</pre>
+    <pre class="code prettyprint">key=value&amp;key2=value</pre>
 <p>といった、フラットなハッシュデータなわけです。ただしよく配列を表すのに</p>
 
-    <pre class="code">key=value&amp;key=value2&amp;key=value3</pre>
+    <pre class="code prettyprint">key=value&amp;key=value2&amp;key=value3</pre>
 <p>といったデータで受け渡しを行うことがあります。こういったデータに対してしてCGI.pmの->paramはArrayRefを返すようになっていますし、Plack::RequestではHash::MultiValueを使っているので->get_allを使うことにより配列として取得できます。</p><p>しかし、ネストしたハッシュデータを扱う術は提供されていません。例えば</p><p>    <form method="post"><br />
         <table><br />
             <tr><br />
@@ -50,7 +50,7 @@
         <input type="submit" value="post" /><br />
     </form></p><p>このようなフォームがあったときにデータの扱いが面倒になります。そこでCGI::Expandの出番になります。</p>
 
-    <pre class="code lang-html">    &lt;form method=&#34;post&#34;&gt;
+    <pre class="code prettyprint lang-html">    &lt;form method=&#34;post&#34;&gt;
         &lt;table&gt;
             &lt;tr&gt;
                 &lt;th&gt;no.&lt;/th&gt;
@@ -77,7 +77,7 @@
     &lt;/form&gt;</pre>
 <p>上記のフォームのソースがこのようになっていたとして</p><p></p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use Plack::Request;
 use CGI::Expand qw/expand_hash/;
 use Data::Dumper;
@@ -90,7 +90,7 @@ my $app = sub {
 }</pre>
 <p>このようなPOST実行先をPSGIアプリを実行すると、</p>
 
-    <pre class="code">$VAR1 = {
+    <pre class="code prettyprint">$VAR1 = {
           &#39;user&#39; =&gt; [
                       {
                         &#39;name&#39; =&gt; &#39;千葉&#39;,

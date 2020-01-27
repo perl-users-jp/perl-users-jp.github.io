@@ -25,7 +25,7 @@
     <h5>Config モジュールを書く</h5>
     <p>とりあえず簡単な使い方を紹介します。まずは以下のように設定を保持するモジュール (MyApp::Config) を作ります。</p>
 
-    <pre class="code lang-perl">package MyApp::Config;
+    <pre class="code prettyprint lang-perl">package MyApp::Config;
 
 use Config::ENV &#39;PLACK_ENV&#39;; # (1)
 
@@ -53,17 +53,17 @@ config production =&gt; +{
     <h5>Config モジュールを使う</h5>
     <p>作った MyApp::Config は以下のように使うことができます。</p>
 
-    <pre class="code lang-perl">use MyApp::Config;
+    <pre class="code prettyprint lang-perl">use MyApp::Config;
 
 warn MyApp::Config-&gt;param(&#39;dsn_user&#39;);</pre>
 <p>param を呼ぶだけです。簡単ですね。環境変数 (この場合 PLACK_ENV) を変えれば値も当然変わってくれます。</p><p>MyApp::Config を毎回書くのが面倒なときは、適当な名前で export させるようにすることができます。以下のように Config モジュールで Config::ENV を use するときに export オプションを渡してあげます。</p>
 
-    <pre class="code lang-perl">package MyApp::Config;
+    <pre class="code prettyprint lang-perl">package MyApp::Config;
 
 use Config::ENV &#39;PLACK_ENV&#39;, export =&gt; &#39;config&#39;;</pre>
 <p>そうすると、MyApp::Config を use したときに、export オプションに指定した名前で、Config モジュール名を export します。</p>
 
-    <pre class="code lang-perl">use MyApp::Config;
+    <pre class="code prettyprint lang-perl">use MyApp::Config;
 
 config-&gt;param(&#39;dns_user&#39;);</pre>
 <p>少し簡単に使えるようになって嬉しいですね。</p>
@@ -78,7 +78,7 @@ config-&gt;param(&#39;dns_user&#39;);</pre>
     <h5>別の設定を継承する</h5>
     <p>ほぼ同じだけど、ちょっとだけ違う設定を定義したいときというのもよくあることだと思いますが、Config::ENV では parent() を使うことで簡単に別の設定を継承することができます。</p>
 
-    <pre class="code lang-perl">package MyApp::Config;
+    <pre class="code prettyprint lang-perl">package MyApp::Config;
 
 use Config::ENV &#39;PLACK_ENV&#39;, export =&gt; &#39;config&#39;;
 
@@ -97,7 +97,7 @@ config production_batch =&gt; +{
     <h5>github フレンドリに</h5>
     <p>レポジトリにコミットできない設定は、load() を使うことで別のファイルに分けることが簡単にできます。</p>
 
-    <pre class="code lang-perl">package MyApp::Config;
+    <pre class="code prettyprint lang-perl">package MyApp::Config;
 
 use Config::ENV &#39;PLACK_ENV&#39;, export =&gt; &#39;config&#39;;
 
@@ -106,13 +106,13 @@ common +{
     load(&#39;myconf.pl&#39;),
 };</pre>
 
-    <pre class="code lang-perl"># myconf.pl
+    <pre class="code prettyprint lang-perl"># myconf.pl
 +{
     api_key =&gt; &#39;bcde38cfe99fe5dbb6318371120752697110aaa2&#39;
 }</pre>
 <p>load() の引数にはファイル名を渡します。load() は実際のところ do しているだけ (エラー処理や返り値が親切) で、最終的に HashRef を返せばなんでも書けます。</p><p>load() 自体はコンテキストに応じてリストかハッシュリファレンスいずれかを返すので、以下のようにも書けます。</p>
 
-    <pre class="code lang-perl">package MyApp::Config;
+    <pre class="code prettyprint lang-perl">package MyApp::Config;
 
 use Config::ENV &#39;PLACK_ENV&#39;, export =&gt; &#39;config&#39;;
 
@@ -124,7 +124,7 @@ common load(&#39;myconf.pl&#39;);</pre>
     <h5>一時的に設定を変更する</h5>
     <p>特にテストを書いているときなどでは、一時的に設定を変更したケースがでてきます。Config::ENV は特定のスコープ内でだけ設定を変更して実行する機能があります。</p>
 
-    <pre class="code lang-perl">{
+    <pre class="code prettyprint lang-perl">{
     my $guard = config-&gt;local(limit =&gt; 3);
     is ...;
 }</pre>

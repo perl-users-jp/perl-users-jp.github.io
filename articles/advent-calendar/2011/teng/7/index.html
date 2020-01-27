@@ -18,7 +18,7 @@
     <h3>next</h3>
     <p>nextメソッドをつかうことで取得したrow情報をイテレーションしながら取得することができます。</p>
 
-    <pre class="code">while (my $row = $itr-&gt;next) {
+    <pre class="code prettyprint">while (my $row = $itr-&gt;next) {
     $row-&gt;id;
 }</pre>
 
@@ -27,7 +27,7 @@
     <h3>all</h3>
     <p>allメソッドを使うとrow情報をまとめて取得することができます</p>
 
-    <pre class="code">my @rows = $itr-&gt;all;</pre>
+    <pre class="code prettyprint">my @rows = $itr-&gt;all;</pre>
 
 </div>
 <div class="section">
@@ -36,7 +36,7 @@
 単なるhasrefを取得したい場合にsuppress_object_creationメソッドに真の値をセットすることで<br />
 Rowオブジェクトの生成をストップすることができます。</p>
 
-    <pre class="code">$itr-&gt;suppress_object_creation(1);
+    <pre class="code prettyprint">$itr-&gt;suppress_object_creation(1);
 while (my $row = $itr-&gt;next) {
     $row-&gt;{id}; # ただのhashrefでありRowオブジェクトのメソッドはcallできない
 }</pre>
@@ -45,7 +45,7 @@ while (my $row = $itr-&gt;next) {
 Tengにも同じメソッドがあり、そちらで設定するとデフォルトでRowオブジェクトを生成しないモードに<br />
 変えることも出来ます。</p>
 
-    <pre class="code">my $teng = Teng-&gt;new(suppress_object_creation =&gt; 1, ....);
+    <pre class="code prettyprint">my $teng = Teng-&gt;new(suppress_object_creation =&gt; 1, ....);
 # もしくは
 $teng-&gt;suppress_object_creation(1);
 my $itr = $teng-&gt;search_by_sql(&#39;SELECT * FROM user&#39;);

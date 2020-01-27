@@ -21,7 +21,7 @@
 <li>パッケージ名を変えたのにpmファイルを動かしてなかった。もしくはファイル名が小文字だった。</li>
 </ul><p>って所ですがこれを極力抑制するべく、<a href="https://github.com/mattn/perlvalidate-vim">perlvalidate-vim</a> というのを書きました。これを使うと、ファイルが保存されたタイミングで上記の項目をチェックし、エラー表示してくれます。</p><p>あと僕はPerlを書いていて、useしてるパッケージのソースを検索しながら別の事を考えたいことが多く、出来れば非同期でgrepして欲しいなぁと思っていたので <a href="https://github.com/mattn/asyncgrep-vim">asyncgrep-vim</a> というのも書きました。これを使うと、これを使うと非同期にgrepが始まり、quickfixウィンドウにどんどん追加されていきます。中ではPerlを使っています。残念ながらUNIXの場合はXが起動していないと使えません。</p><p>そしてよくWindowsユーザが困るのがワンライナー。ブログ等ではUNIXを前提に書かれたワンライナーが殆どで、そのままコマンドプロンプトに貼り付けるともちろん死ねる訳ですが、これをWindowsで実行しようと思うとcygwinやmsysの様なシェル環境が必要になります。でも実行する度にそれを起動するのは若干おっくうですよね。</p><p>そこで良く僕が使っているのが</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use Getopt::Long;
 use Text::ParseWords &#39;shellwords&#39;;
@@ -67,28 +67,28 @@ if ($print_line) {
 }</pre>
 <p>こんなスクリプト。p1.pl というファイルです。だいたいのWindows向けPerlディストリビューションでは pl2bat というコマンドが配布されているので</p>
 
-    <pre class="code lang-sh">pl2bat p1.pl</pre>
+    <pre class="code prettyprint lang-sh">pl2bat p1.pl</pre>
 <p>とやってバッチファイル化(p1.batになります)してしまうのが便利です。</p><p>この p1 を起動して、ブログ等に書かれたワンライナーコマンドをコピペします。コマンドプロンプトだと CTRL-Z して終了します。するとWindowsで扱える様に引数を解釈して実行してくれます。-p オプションを付けて起動するとそのコマンドを表示だけして終了します。表示された内容をバッチファイルに貼り付けても良いですね。</p><p>試しに<del>全裸</del>ワンライナーでおなじみのsugyanさんのページから幾つか試します。</p>
 
 <div class="section">
     <h4>閏年判定ワンライナー</h4>
     <p><a href="http://d.hatena.ne.jp/sugyan/20090411/1239379343">http://d.hatena.ne.jp/sugyan/20090411/1239379343</a></p>
 
-    <pre class="code lang-sh">C:\&gt;p1
+    <pre class="code prettyprint lang-sh">C:\&gt;p1
 perl -lne &#39;print $_ % 4 || !($_ % 100) &amp;&amp; $_ % 400 ? 0 : 1&#39;
 ^Z
 2008
 1</pre>
 <p>いいですね。-p オプションだとこうなります。</p>
 
-    <pre class="code lang-sh">perl -lne &#34;print $_ % 4 || !($_ % 100) &amp;&amp; $_ % 400 ? 0 : 1&#34;</pre>
+    <pre class="code prettyprint lang-sh">perl -lne &#34;print $_ % 4 || !($_ % 100) &amp;&amp; $_ % 400 ? 0 : 1&#34;</pre>
 
 </div>
 <div class="section">
     <h4>16進数のテーブルを表示するワンライナー</h4>
     <p><a href="http://d.hatena.ne.jp/sugyan/20090326/1238007478">http://d.hatena.ne.jp/sugyan/20090326/1238007478</a></p>
 
-    <pre class="code lang-sh">perl -le&#39;$i=$_,print map&#34;$i$_ &#34;,@!for@!=(0..9,A..F)&#39;
+    <pre class="code prettyprint lang-sh">perl -le&#39;$i=$_,print map&#34;$i$_ &#34;,@!for@!=(0..9,A..F)&#39;
 ^Z
 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F
 10 11 12 13 14 15 16 17 18 19 1A 1B 1C 1D 1E 1F
@@ -108,31 +108,31 @@ E0 E1 E2 E3 E4 E5 E6 E7 E8 E9 EA EB EC ED EE EF
 F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 FA FB FC FD FE FF</pre>
 <p>オプション -p だと</p>
 
-    <pre class="code lang-sh">perl &#34;-le$i=$_,print map&#34;&#34;&#34;$i$_ &#34;&#34;&#34;,@!for@!=(0..9,A..F)&#34;</pre>
+    <pre class="code prettyprint lang-sh">perl &#34;-le$i=$_,print map&#34;&#34;&#34;$i$_ &#34;&#34;&#34;,@!for@!=(0..9,A..F)&#34;</pre>
 
 </div>
 <div class="section">
     <h4>年齢確認ワンライナー</h4>
     <p><a href="http://d.hatena.ne.jp/sugyan/20090422/1240367849">http://d.hatena.ne.jp/sugyan/20090422/1240367849</a></p>
 
-    <pre class="code lang-sh">perl -MDateTime -le &#39;print+(DateTime-&gt;now - DateTime-&gt;new(day,pop,month,pop,year,pop))-&gt;years&#39; 1982 12 10
+    <pre class="code prettyprint lang-sh">perl -MDateTime -le &#39;print+(DateTime-&gt;now - DateTime-&gt;new(day,pop,month,pop,year,pop))-&gt;years&#39; 1982 12 10
 ^Z
 28</pre>
 <p>sugyanさん28歳なんですね。-p オプションだと</p>
 
-    <pre class="code lang-sh">perl -MDateTime -le &#34;print+(DateTime-&gt;now - DateTime-&gt;new(day,pop,month,pop,year,pop))-&gt;years&#34; 1982 12 10</pre>
+    <pre class="code prettyprint lang-sh">perl -MDateTime -le &#34;print+(DateTime-&gt;now - DateTime-&gt;new(day,pop,month,pop,year,pop))-&gt;years&#34; 1982 12 10</pre>
 
 </div>
 <div class="section">
     <h4>svn diff をカラフルに表示させるワンライナー</h4>
     <p><a href="http://d.hatena.ne.jp/sugyan/20090702/1246522768">http://d.hatena.ne.jp/sugyan/20090702/1246522768</a></p><p>これはパイプに渡されるコマンドなので -p で実行して部分的にコピペします。</p>
 
-    <pre class="code lang-sh">perl -pe &#39;s/^([-+]).*$/&#34;\e[&#34;.($1eq&#34;+&#34;?32:31).&#34;m$&amp;\e[&#34;/e&#39;
+    <pre class="code prettyprint lang-sh">perl -pe &#39;s/^([-+]).*$/&#34;\e[&#34;.($1eq&#34;+&#34;?32:31).&#34;m$&amp;\e[&#34;/e&#39;
 ^Z
 perl -pe &#34;s/^([-+]).*$/&#34;&#34;&#34;&#34;\e[&#34;&#34;&#34;&#34;.($1eq&#34;&#34;&#34;&#34;+&#34;&#34;&#34;&#34;?32:31).&#34;&#34;&#34;&#34;m$&amp;\e[&#34;&#34;&#34;&#34;/e&#34;</pre>
 <p>出力されたコマンドをバッチファイル colordiff.bat して以下の様に実行します。</p>
 
-    <pre class="code lang-sh">svn diff . | colordiff | lv</pre>
+    <pre class="code prettyprint lang-sh">svn diff . | colordiff | lv</pre>
 <p>Windows版のlessは色がおかしくなるので、<a href="https://github.com/mattn/lv421-windows">lvのWindows版</a>を使いましょう。</p><p><img src="https://github.com/perl-users-jp/perl-advent-calendar/raw/master/2011/casual/2011-12-01/image01.png" alt="oneliner" /></p><p>まぁ綺麗。</p>
 
 </div>
@@ -140,7 +140,7 @@ perl -pe &#34;s/^([-+]).*$/&#34;&#34;&#34;&#34;\e[&#34;&#34;&#34;&#34;.($1eq&#34
     <h4>記号ワンライナー</h4>
     <p><a href="http://d.hatena.ne.jp/sugyan/20100321/1269174230">http://d.hatena.ne.jp/sugyan/20100321/1269174230</a></p>
 
-    <pre class="code lang-sh">perl -e &#39;&#34;&#34;!~(&#34;(?{&#34;.(&#34;{^(?)!(?^{^^!){.^^~~?}{!~}^}^.(!~}!..^^!~}!~~.~^}&#34;^&#34;^}((~))~~^{.{^~?}^!^}(~{^)?()^)^!).^}!()){.^)(}.(&#34;^&#34;!~!{}(!(!~((}}!})!^^{^){(.?}{}!~{^~!)^?..(~)!~.?.&#34;^&#34;{{?}^(~)~^!..~)??){^.~){.~(!{.)}}^.}^~}?}.^}(^?{~&#34;^&#34;.)^!?^(.)!~!)~{^{(}){?!^.~)({?)(^.^!.^{((^!!^(^(!&#34;^&#34;!})^?}^(?^(~{.)(}})!.?^~!!{~))}({^^!..)^^~?{.?)..&#34;).&#34;})&#34;)&#39;
+    <pre class="code prettyprint lang-sh">perl -e &#39;&#34;&#34;!~(&#34;(?{&#34;.(&#34;{^(?)!(?^{^^!){.^^~~?}{!~}^}^.(!~}!..^^!~}!~~.~^}&#34;^&#34;^}((~))~~^{.{^~?}^!^}(~{^)?()^)^!).^}!()){.^)(}.(&#34;^&#34;!~!{}(!(!~((}}!})!^^{^){(.?}{}!~{^~!)^?..(~)!~.?.&#34;^&#34;{{?}^(~)~^!..~)??){^.~){.~(!{.)}}^.}^~}?}.^}(^?{~&#34;^&#34;.)^!?^(.)!~!)~{^{(}){?!^.~)({?)(^.^!.^{((^!!^(^(!&#34;^&#34;!})^?}^(?^(~{.)(}})!.?^~!!{~))}({^^!..)^^~?{.?)..&#34;).&#34;})&#34;)&#39;
 ^Z
 1
 2
@@ -164,7 +164,7 @@ Fizz
 Buzz</pre>
 <p>オプション -p だとこうなりました。</p>
 
-    <pre class="code lang-sh">perl -e &#34;&#34;&#34;&#34;&#34;&#34;&#34;!~(&#34;&#34;&#34;(?{&#34;&#34;&#34;.(&#34;&#34;&#34;{^(?)!(?^{^^!){.^^~~?}{!~}^}^.(!~}!..^^!~}!~~.~^}&#34;&#34;&#34;^&#34;&#34;&#34;^}((~))~~^{.{^~?}^!^}(~{^)?()^)^!).^}!()){.^)(}.(&#34;&#34;&#34;^&#34;&#34;&#34;!~!{}(!(!~((}}!})!^^{^){(.?}{}!~{^~!)^?..(~)!~.?.&#34;&#34;&#34;^&#34;&#34;&#34;{{?}^(~)~^!..~)??){^.~){.~(!{.)}}^.}^~}?}.^}(^?{~&#34;&#34;&#34;^&#34;&#34;&#34;.)^!?^(.)!~!)~{^{(}){?!^.~)({?)(^.^!.^{((^!!^(^(!&#34;&#34;&#34;^&#34;&#34;&#34;!})^?}^(?^(~{.)(}})!.?^~!!{~))}({^^!..)^^~?{.?)..&#34;&#34;&#34;).&#34;&#34;&#34;})&#34;&#34;&#34;)&#34;</pre>
+    <pre class="code prettyprint lang-sh">perl -e &#34;&#34;&#34;&#34;&#34;&#34;&#34;!~(&#34;&#34;&#34;(?{&#34;&#34;&#34;.(&#34;&#34;&#34;{^(?)!(?^{^^!){.^^~~?}{!~}^}^.(!~}!..^^!~}!~~.~^}&#34;&#34;&#34;^&#34;&#34;&#34;^}((~))~~^{.{^~?}^!^}(~{^)?()^)^!).^}!()){.^)(}.(&#34;&#34;&#34;^&#34;&#34;&#34;!~!{}(!(!~((}}!})!^^{^){(.?}{}!~{^~!)^?..(~)!~.?.&#34;&#34;&#34;^&#34;&#34;&#34;{{?}^(~)~^!..~)??){^.~){.~(!{.)}}^.}^~}?}.^}(^?{~&#34;&#34;&#34;^&#34;&#34;&#34;.)^!?^(.)!~!)~{^{(}){?!^.~)({?)(^.^!.^{((^!!^(^(!&#34;&#34;&#34;^&#34;&#34;&#34;!})^?}^(?^(~{.)(}})!.?^~!!{~))}({^^!..)^^~?{.?)..&#34;&#34;&#34;).&#34;&#34;&#34;})&#34;&#34;&#34;)&#34;</pre>
 <p>Text::ParseWords:shellwords の挙動を元に作ったスクリプトなので、厳密ではありませんが、適当なスクリプトなら動かせますよ。</p>
 
 </div>

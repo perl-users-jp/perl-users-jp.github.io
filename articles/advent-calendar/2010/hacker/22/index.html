@@ -19,7 +19,7 @@ DBIx::SkinnyでつかっていたTransaction管理の仕組みを外だしして
 <a href="http://search.cpan.org/dist/DBIx-TransactionManager/">DBIx::TransactionManager</a>です</p><br />
 <p>DBIx::TransactionManagerを使えば</p>
 
-    <pre class="code">use DBI;
+    <pre class="code prettyprint">use DBI;
 use DBIx::TransactionManager;
 my $dbh = DBI-&gt;connect(&#39;dbi:SQLite:&#39;);
 my $tm = DBIx::TransactionManager-&gt;new($dbh);

@@ -42,20 +42,20 @@
     <h4>スクリプトを保存したら実行する</h4>
     <p>例えば「foo.pl」というスクリプトを今書いていて、保存したら試しに動かしてみたいのですぐ実行したい、といった場合にはこのようにします。</p>
 
-    <pre class="code">observe-file -c ./foo.pl ./foo.pl</pre>
+    <pre class="code prettyprint">observe-file -c ./foo.pl ./foo.pl</pre>
 <p>実行時にオプションを指定したり、もうちょっと複雑なコマンドラインを実行したい場合は、-cの値をクォートで囲えばOKです。</p>
 
-    <pre class="code">observe-file -c &#39;perl -wc foo.pl &amp;&amp; ./foo.pl -v -c test.conf&#39; ./foo.pl</pre>
+    <pre class="code prettyprint">observe-file -c &#39;perl -wc foo.pl &amp;&amp; ./foo.pl -v -c test.conf&#39; ./foo.pl</pre>
 <p>ちなみに、最初の例のように監視対象がひとつのファイルでそれが実行するコマンドと同一の場合はこのようにも指定できます。</p>
 
-    <pre class="code">observe-file -x ./foo.pl</pre>
+    <pre class="code prettyprint">observe-file -x ./foo.pl</pre>
 
 </div>
 <div class="section">
     <h4>コンテンツファイルに変更があったらブラウザをリロードする</h4>
     <p>Firefoxに<a href="https://github.com/bard/mozrepl/wiki" title="MozRepl">MozRepl</a>をインストールすると、ブラウザ外から(許可すれば別ホストからでも)JavaScriptでブラウザを操作できるようになります。</p><p>このMozReplを使えば、こんなスクリプトを用意しておくことで、</p>
 
-    <pre class="code">#!/bin/sh
+    <pre class="code prettyprint">#!/bin/sh
 # ~/bin/reload-firefox
 
 [ $# -eq 1 -o $# -eq 2 ] || { echo &#39;usage: reload-firefox HOST [PORT]&#39;; exit 1; }
@@ -73,13 +73,13 @@ echo</pre>
 <ul>
 <li>ホストcoupeで動いているFirefoxのカレントタブをリロードする例</li>
 </ul>
-    <pre class="code">$ reload-firefox coupe</pre>
+    <pre class="code prettyprint">$ reload-firefox coupe</pre>
 <p>さてこのreload-firefoxとobserve-fileを組み合わせれば、webappのコードやHTML、CSS、JavaScriptのファイルに変更があったら自動でブラウザをリロードすることもできます。</p>
 
 <ul>
 <li>ディレクトリapp/の下のスクリプトファイルや、static/下にあるHTMLやCSS、tmpl/下にあるテンプレートに変更があったら、ホストcoupeのFirefoxをリロードする例</li>
 </ul>
-    <pre class="code">observe-file -c &#39;reload-firefox coupe&#39; app/ static/ tmpl/</pre>
+    <pre class="code prettyprint">observe-file -c &#39;reload-firefox coupe&#39; app/ static/ tmpl/</pre>
 
 </div>
 </div>
@@ -87,7 +87,7 @@ echo</pre>
     <h3>注意点</h3>
     <p>MacでMac::FSEventsが使える場合に、配下に大量のファイル/ディレクトリがあるディレクトリを監視対象として指定した場合や、監視対象としてファイルを指定したときにその親ディレクトリ配下の大量のファイル/ディレクトリがあると、場合によってはまともに使えないほどに動作に時間がかかる可能性があります。</p><p>例えば、ホームディレクトリ直下の t.pl を自動実行しようと</p>
 
-    <pre class="code">$ observe-file -x ~/t.pl</pre>
+    <pre class="code prettyprint">$ observe-file -x ~/t.pl</pre>
 <p>とした場合に、ホームディレクトリ配下に多くのファイルなどがある(と思います)ようなケースです。このような場合は、新しくサブディレクトリを作ってその下に監視対象のファイルやディレクトリを置いて、observe-fileを使うようにしてください。</p><p>ちなみにこれは、MacのFSEventがディレクトリ単位でしか監視対象にできないという仕様に起因するものです。ですので、LinuxでInotifyの場合は、Inotifyはファイル単位でも監視できるので全く問題ないです。</p>
 
 </div>

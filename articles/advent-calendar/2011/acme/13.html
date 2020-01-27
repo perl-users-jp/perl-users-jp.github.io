@@ -15,11 +15,11 @@
         <p>さあ、このページをご覧の貴方！　本日のAcmeな記事を書いてみませんか！？<br />
 <a href="http://atnd.org/events/22670">いらっしゃい！</a></p><p>↑って書いたけど結局自分で書いてます！</p><p>「の」なので<a href="http://search.cpan.org/dist/Acme-No">Acme::No</a>。</p>
 
-    <pre class="code">use Acme::No;
+    <pre class="code prettyprint">use Acme::No;
 no CGI 3.56;</pre>
 <p>普通 no Module; で Module->unimport されるところを、指定したバージョン以上のモジュールを呼び出すとdieさせるようにするモジュールです。</p>
 
-    <pre class="code">use Acme::No;
+    <pre class="code prettyprint">use Acme::No;
 use 5.014;
 no  6.0;</pre>
 <p>Perlのバージョン指定もできますね。</p>

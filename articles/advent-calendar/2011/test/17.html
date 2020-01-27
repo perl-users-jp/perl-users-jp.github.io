@@ -26,7 +26,7 @@
     <h5><a href="https://metacpan.org/module/Test::More::Behaviours">Test::More::Behaviours</a></h5>
     <p>こんな感じに書けますが、Test::More に subtest がある今となっては不要ですね。</p>
 
-    <pre class="code lang-perl">test &#39;Foo cleation&#39; =&gt; sub {
+    <pre class="code prettyprint lang-perl">test &#39;Foo cleation&#39; =&gt; sub {
     ok Foo-&gt;new;
 };</pre>
 
@@ -35,7 +35,7 @@
     <h5><a href="https://metacpan.org/module/Test::Behaviour::Spec">Test::Behaviour::Spec</a></h5>
     <p>describe, it でのコメントを記憶しておき spec で読んでアサーションのメッセージにするわけですが、Test::More::note で十分です。</p>
 
-    <pre class="code lang-perl">describe &#39;Foo&#39;;
+    <pre class="code prettyprint lang-perl">describe &#39;Foo&#39;;
 it &#39;should create an instance&#39;;
 ok Foo-&gt;new, spec;</pre>
 
@@ -49,7 +49,7 @@ ok Foo-&gt;new, spec;</pre>
     <h5><a href="https://metacpan.org/module/Test::Declare">Test::Declare</a></h5>
     <p>個人的には init と cleanup があるのでほぼ RSpec-1.x 互換で結構好きですが、作者が<del>キモいアイコン</del>Test::More に subtest が出来たんでもう更新しないよ、と言っていたので残念です。</p>
 
-    <pre class="code lang-perl">describe &#39;Foo&#39; =&gt; run {
+    <pre class="code prettyprint lang-perl">describe &#39;Foo&#39; =&gt; run {
     init { ... };
     test &#39;should create an instance&#39; =&gt; run {
         ok Foo-&gt;new;
@@ -62,7 +62,7 @@ ok Foo-&gt;new, spec;</pre>
     <h5><a href="https://metacpan.org/module/Test::Spec">Test::Spec</a></h5>
     <p>RSpec-1.x の完コピで、rspec-mocks に相当する独自のモック機構まで持つというフルスペックぶりを発揮。さすがに 2.x には追随してないけど Test::More を使わない本気っぷりで、重厚かもしれないけど一番よさげ。</p>
 
-    <pre class="code lang-perl">describe &#39;Foo&#39; =&gt; sub {
+    <pre class="code prettyprint lang-perl">describe &#39;Foo&#39; =&gt; sub {
     it &#39;should create an instance&#39; =&gt; sub {
         ok Foo-&gt;new;
     };
@@ -74,7 +74,7 @@ ok Foo-&gt;new, spec;</pre>
     <h4>カジュアルに気分だけ味わう</h4>
     <p>ここまで各種モジュールを簡単に紹介してきましたが、describe とか context とか it とか書きたいだけの感じであれば、こんな方法でカジュアルに使えます。</p>
 
-    <pre class="code lang-perl">use Test::More;
+    <pre class="code prettyprint lang-perl">use Test::More;
 
 BEGIN {
     *describe = *context = *it = \&amp;Test::More::subtest;

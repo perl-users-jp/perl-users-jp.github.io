@@ -18,7 +18,7 @@
     <h4>junctive</h4>
     <p>Perl6のJunctionのような動作をするユーティリティ群です。</p><p>any, all, none, oneが該当します。</p>
 
-    <pre class="code lang-perl">use 5.010;
+    <pre class="code prettyprint lang-perl">use 5.010;
 use strict;
 use warnings;
 Smart::Match qw/:junctive :number positive negative/;
@@ -50,7 +50,7 @@ given (1) {
     <h4>definite</h4>
     <p>必ずマッチするか、必ずマッチしない比較関数を提供するユーティリティ群です。</p><p>always, neverが該当します。</p>
 
-    <pre class="code lang-perl">use 5.010;
+    <pre class="code prettyprint lang-perl">use 5.010;
 use strict;
 use warnings;
 Smart::Match qw/:definite/;
@@ -76,7 +76,7 @@ given (undef) {
     <h4>boolean</h4>
     <p>真偽値になるかどうかを判定する時に使えるユーティリティ群です。</p><p>true, falseが該当します。</p>
 
-    <pre class="code lang-perl">use 5.010;
+    <pre class="code prettyprint lang-perl">use 5.010;
 use strict;
 use warnings;
 Smart::Match qw/:boolean/;
@@ -102,7 +102,7 @@ given (&#39;&#39;) {
     <h4>numeric</h4>
     <p>数に関する判定に使えるユーティリティ群です。</p><p>number, integer, even, odd, more_than, less_than, at_least, at_mostが該当します。</p>
 
-    <pre class="code lang-perl">use 5.010;
+    <pre class="code prettyprint lang-perl">use 5.010;
 use strict;
 use warnings;
 Smart::Match qw/:numeric all/;
@@ -155,7 +155,7 @@ given (-1) {
     <h4>compare</h4>
     <p>値の比較に使えるユーティリティ群です。</p><p>numwise, stringwise, hashwiseが該当します。</p>
 
-    <pre class="code lang-perl">use 5.010;
+    <pre class="code prettyprint lang-perl">use 5.010;
 use strict;
 use warnings;
 Smart::Match qw/:compare/;
@@ -180,7 +180,7 @@ given ({ foo =&gt; 1, bar =&gt; 2}) {
     <h4>meta</h4>
     <p>Smart::Match自身を拡張するユーティリティ群です。</p><p>match, delegateが該当します。</p>
 
-    <pre class="code lang-perl">use 5.010;
+    <pre class="code prettyprint lang-perl">use 5.010;
 use strict;
 use warnings;
 use Smart::Match qw/:meta integer odd always/;
@@ -219,7 +219,7 @@ say_nabeatsu;</pre>
     <h4>string</h4>
     <p>文字列に関するユーティリティ群です。</p><p>string, string_lengthが該当します。</p>
 
-    <pre class="code lang-perl">use 5.010;
+    <pre class="code prettyprint lang-perl">use 5.010;
 use strict;
 use warnings;
 use Smart::Match qw/:string/;
@@ -239,7 +239,7 @@ given (&#39;foo&#39;) {
     <h4>refs</h4>
     <p>オブジェクトの比較に使えるユーティリティ群です。</p><p>object, instance_of, ref_typeが該当します。</p>
 
-    <pre class="code lang-perl">use 5.010;
+    <pre class="code prettyprint lang-perl">use 5.010;
 use strict;
 use warnings;
 use Smart::Match qw/:refs/;
@@ -264,7 +264,7 @@ given ([]) {
     <h4>arrays</h4>
     <p>配列に関するユーティリティ群です。</p><p>array, array_length, tuple, head, sequence, contains, sortedが該当します。</p>
 
-    <pre class="code lang-perl">use 5.010;
+    <pre class="code prettyprint lang-perl">use 5.010;
 use strict;
 use warnings;
 use Smart::Match qw/:arrays positive negative/;
@@ -309,7 +309,7 @@ given ([1,3,2]) {
     <h4>hashes</h4>
     <p>ハッシュに関するユーティリティ群です。</p><p>hash, hash_keys, hash_values, sub_hashが該当します。</p>
 
-    <pre class="code lang-perl">use 5.010;
+    <pre class="code prettyprint lang-perl">use 5.010;
 use strict;
 use warnings;
 use Smart::Match qw/:hashes contains/;
@@ -339,7 +339,7 @@ given ({ foo =&gt; 1, bar =&gt; 2 }) {
     <h4>direct</h4>
     <p>値の比較とポインタの比較の関数を持ったユーティリティ群です。</p><p>address, valueが該当します。</p>
 
-    <pre class="code lang-perl">use 5.010;
+    <pre class="code prettyprint lang-perl">use 5.010;
 use strict;
 use warnings;
 use Smart::Match qw/:direct/;

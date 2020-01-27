@@ -25,7 +25,7 @@
     <p>従来のモジュールの問題点を解決するために、Perl::Metrics::SimpleとPerl::Metricsのいいとこどりをして、測定項目をプラガブルに追加できるPerl::Metrics::Simpleのような使い勝手のいいモジュールを作ってみました。<br />
 <a href="http://github.com/dann/p5-perl-metrics-lite">http://github.com/dann/p5-perl-metrics-lite</a></p><p>使い方はPerl::Metrics::Simpleと殆ど同じで、以下のように使います。</p>
 
-    <pre class="code lang-perl">use Perl::Metrics::Lite;
+    <pre class="code prettyprint lang-perl">use Perl::Metrics::Lite;
 my $analzyer   = Perl::Metrics::Lite-&gt;new;
 my $analysis   = $analzyer-&gt;analyze_files(@ARGV);
 my $file_stats = $analysis-&gt;file_stats;

@@ -15,7 +15,7 @@
         <p>こんにちわ。<a href="http://mattn.kaoriya.net/">mattn</a> です。<br />
 先日、<a href="http://twitter.com/Maki_Daisuke">Maki_Daisuke</a> さんからお題を頂いた件の回答です。</p><p><a href="https://gist.github.com/742977">https://gist.github.com/742977</a></p>
 
-    <pre class="code lang-perl">use AnyEvent::Handle;
+    <pre class="code prettyprint lang-perl">use AnyEvent::Handle;
 
 my $c = AE::cv;
 
@@ -36,7 +36,7 @@ $c-&gt;recv;</pre>
 またコンソールはデフォルトでライン入力になっているので、そのあたりのオプションも変えながら読み取らないといけません。<br />
 まずここまでをコードで</p>
 
-    <pre class="code lang-perl">sub STD_INPUT_HANDLE ()     { 0xfffffff6 }
+    <pre class="code prettyprint lang-perl">sub STD_INPUT_HANDLE ()     { 0xfffffff6 }
 sub FILE_TYPE_CHAR ()       { 0x0002 }
 sub FILE_TYPE_PIPE ()       { 0x0003 }
 sub ENABLE_PROCESS_INPUT () { 0x0001 }
@@ -94,7 +94,7 @@ if ($GetFileType-&gt;Call($handle) eq FILE_TYPE_CHAR) {
 }</pre>
 <p>こうなります。ただ自前でポーリングをしなければなりませんので厄介ですね。こんな時は</p><p><em>「使うと Marc Lehmann 先生に DIS られる」</em></p><p>という噂の threads を使いましょう。</p>
 
-    <pre class="code lang-perl">async {
+    <pre class="code prettyprint lang-perl">async {
     while (1) {
         if ($_kbhit-&gt;Call()) {
             my ($buf, $num) = (&#39; &#39;, 0);
@@ -107,7 +107,7 @@ if ($GetFileType-&gt;Call($handle) eq FILE_TYPE_CHAR) {
 <p>さぁこれを後はメインスレッド側で使えるようにしたいのですが、何を使うかでハマりました。結果でいうと、AnyEvent::Handle は fileno を使って処理するので tie や capture 的な物を使っても実現出来ませんでした。実際 tie して GETC もしくは READ にフックしてみましたが、いっこうに呼ばれませんでした。<br />
 せっかくここまで解析したのでもったいないと思ったので getc だけでも使えるようにしましょう。</p>
 
-    <pre class="code lang-perl">package Win32::Async::Stdin;
+    <pre class="code prettyprint lang-perl">package Win32::Async::Stdin;
 
 use strict;
 use warnings;
@@ -195,7 +195,7 @@ sub GETC {
 1;</pre>
 <p>こんな感じに配列のリファレンスをスレッド間共有してみました。使う側は</p>
 
-    <pre class="code lang-perl">use Win32::Async::Stdin;
+    <pre class="code prettyprint lang-perl">use Win32::Async::Stdin;
 
 while () {
     my $a = getc(STDIN);

@@ -37,7 +37,7 @@
     <h4>画面を出す</h4>
     <p>　何はともあれ、まずは OpenGL を使ったプログラムを動かしてみましょう。以下に、最小限の OpenGL プログラムを書いてみました。これを Perl で実行してやると、ウィンドウが一個出て、中が黒く消去されます。黒く消去するのに OpenGL を使いました。よく目を凝らさないと分からないと思うのですが、 CPU で画面を消去するのと比べると数十倍の速さでウィンドウの内容が消去されています。ウィンドウを高速に真っ黒にしたいと思ったら OpenGL しかないという事です。 OpenGL 万歳！</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use OpenGL &#39;:all&#39;;                       # OpenGLを使いますよー
 
 # GLを使って絵を作る関数
@@ -66,7 +66,7 @@ glutMainLoop();                          # メッセージループに入る</pr
     <h4>三角形を一つ描く</h4>
     <p>　OpenGL の達人になるとフレームバッファが秒間1000回もクリアされているところを想像するだけで御飯三杯はイケルという噂ですが、そうでない我々にとっては何も描かれないウィンドウ（巨大な鯨と言い張る事も可能ですが）を見ても面白くありませんから、とりあえず何か描いてみましょうか。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use OpenGL &#39;:all&#39;;                       # OpenGLを使いますよー
 
 # GLを使って絵を作る関数
@@ -96,7 +96,7 @@ glutMainLoop();                          # メッセージループに入る</pr
     <h4>色を付けてみる</h4>
     <p>　次は、三角形に色を付けてみます。もう面倒臭いっていうか displayFunc 関数以外は全部同じなので、この先は displayFunc 以外はサクッと省略します。Perlのプログラムとして実行するときは、use OpenGL...までの二行と、glutInit()...以降の部分を、前後にくっつけてください。 DIY の精神でお願いします。</p>
 
-    <pre class="code lang-perl">sub displayFunc
+    <pre class="code prettyprint lang-perl">sub displayFunc
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 	
@@ -127,7 +127,7 @@ glutMainLoop();                          # メッセージループに入る</pr
     <h4>動かしてみる</h4>
     <p>　次は、図形を移動させるアニメーションをやってみます。移動したまま帰ってきませんけど。ここでは、描画されるたびに違う絵が描かれるよう、 $start_time を用意してやって、最初に記録した時刻との差分を使って図形を移動します。図形を移動させるのには、 glTranslatef() という、座標変換をおこなう関数を使ってみます。 glVertex2f() の引数に直接 $x を加算しても良いんですが、まとめて移動できて便利なので。とりあえず以下のコードを見てみてください。</p>
 
-    <pre class="code lang-perl">use Time::Hires;
+    <pre class="code prettyprint lang-perl">use Time::Hires;
 my $start_time = Time::HiRes::gettimeofday;
 
 sub displayFunc
@@ -155,7 +155,7 @@ sub displayFunc
     <h4>複数の座標変換を組み合わせる</h4>
     <p>　glTranslatef() による並行移動の他によく使われるのは、 glScalef() による拡大縮小、 glRotatef() による回転、などでしょうか。それらを組み合わせた座標変換をやってみましょう。</p>
 
-    <pre class="code lang-perl">use Time::Hires;
+    <pre class="code prettyprint lang-perl">use Time::Hires;
 my $start_time = Time::HiRes::gettimeofday;
 
 # 三角形を一つ描く関数
@@ -219,7 +219,7 @@ glRotatef(angle, x, y, z);
     <h4>キー入力の受け取り方</h4>
     <p>　GLUT でキー入力を受け取るためには、入力を受け取る関数を事前に用意して、それを glutKeyboardFunc() で登録してやります。そうするとキーボードが押された時に、登録した関数が呼び出されて、押されたキーの情報が渡されます。たとえば以下のような感じです。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use OpenGL &#39;:all&#39;;
 my $win;
 
@@ -260,7 +260,7 @@ glutMainLoop();                   # メッセージループに入る（決し�
     <h4>主要なイベントに対応</h4>
     <p>　GLUT のことをいちいち調べるのが面倒な方のために、主要なコールバック関数を登録するサンプルプログラムを用意しました。コールバック関数の中では、 GLUT から渡された情報とともに関数名を表示しているので、どのようなタイミングでどの関数がコールバックされるのか分かりやすいと思います。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use OpenGL &#39;:all&#39;;
 
 my $win;
@@ -367,7 +367,7 @@ glutMainLoop();                                # メッセージループに入�
 <div class="section">
     <h4>スカッシュゲーム</h4>
     
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use OpenGL &#39;:all&#39;;
 use Time::HiRes;
 
@@ -618,7 +618,7 @@ glutMainLoop();                                # メッセージループに入�
 <div class="section">
     <h3>時計</h3>
     
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use OpenGL &#39;:all&#39;;
 use Time::HiRes;
 

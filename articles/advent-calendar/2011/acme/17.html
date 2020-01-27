@@ -14,7 +14,7 @@
 
         <p>こんばんは、そろそろ本気をだしたいけれど、出せる本気を持ちあわせていなかった<a href="http://twitter.com/maka2_donzoko">makamaka</a>です。</p><p>先日、墓場のアイドル「墓ドル」というネタを思いつきました。　猫娘とか砂かけ婆とか？　ちなみに「墓ドル」で検索すると結構出ますね。というわけで今日はAcmeモジュールで捗るはなしです。</p><p>ご存知の方も多いと思いますが、CPANにあがってる捗るAcmeモジュールといえば<a href="http://search.cpan.org/dist/Acme-speeed/">Acme::speeed</a>でしょう。例えば下記のようなコードがあるとします。</p>
 
-    <pre class="code">
+    <pre class="code prettyprint">
 use 5.014;
 use strict;
 use warnings;
@@ -25,11 +25,11 @@ sleep(1000);
 say &#34;completed.&#34;;</pre>
 <p>実行してみます。待つこと1000秒。</p>
 
-    <pre class="code">$ perl exmaple.pl
+    <pre class="code prettyprint">$ perl exmaple.pl
 completed.</pre>
 <p>んー時間がかかりますね。そこで Acme::speeedです。</p>
 
-    <pre class="code">
+    <pre class="code prettyprint">
 use 5.014;
 use strict;
 use warnings;
@@ -42,11 +42,11 @@ sleep(1000);
 say &#34;completed.&#34;;</pre>
 <p>すると</p>
 
-    <pre class="code">$ perl exmaple.pl
+    <pre class="code prettyprint">$ perl exmaple.pl
 Fasten your seat belt! Let&#39;s go speeedy!</pre>
 <p>なんと一瞬でプログラム終了しました！　どうです、墓ドルでしょう！？</p><p>このモジュールのすごさはこれだけじゃないですよ。今度は逆にno Acme::speeedしてみましょう。捗りませんよぉ。</p>
 
-    <pre class="code">
+    <pre class="code prettyprint">
 use 5.014;
 use strict;
 use warnings;
@@ -58,7 +58,7 @@ sleep(1000);
 
 say &#34;completed.&#34;;</pre>
 
-    <pre class="code">$ perl exmaple.pl
+    <pre class="code prettyprint">$ perl exmaple.pl
 
 </pre>
 <p>……どんなに待っても終了しませんね？</p><p>というわけで、Acmeモジュールではかどるは　なし　でした。<br />

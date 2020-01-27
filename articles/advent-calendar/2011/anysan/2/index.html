@@ -15,7 +15,7 @@
         <p>こんばんわ！今日もれっつえにーさん！</p><p>参加したい人は <a href="http://atnd.org/events/22890">http://atnd.org/events/22890</a> からどしどし頼むぜ！</p><p>昨日は AnySan を使うと簡単に irc bot をかけるって話をしたね。<br />
 じゃぁ、 AnyEvent::IRC::Client 生と比べてどう違うか？ってのを yusukebe 作の<a href="http://web.archive.org/web/20101202214658/http://yusukebe.com/archives/10/11/17/121307.html">IRC 版全裸 bot</a>との比較をしてみましょう。</p><p>元のページが消えてて archive.org にしか残ってなくて、ページ開くのが遅いので元ノーコードをリファクタリングしつつ抜粋すると以下のようになります。</p>
 
-    <pre class="code">use strict;
+    <pre class="code prettyprint">use strict;
 use warnings;
 use utf8;
 use Acme::Zenra;
@@ -47,7 +47,7 @@ $irc-&gt;send_srv( &#34;JOIN&#34;, $channel );
 $c-&gt;recv;</pre>
 <p>良くある感じの AnyEvent::IRC::Client を使ったコードですね。</p><p>以下は AnySan 版です。</p>
 
-    <pre class="code">use strict;
+    <pre class="code prettyprint">use strict;
 use warnings;
 use utf8;
 use Encode;

@@ -23,7 +23,7 @@
     <h4>使い方</h4>
     <p>各パラメータをコンストラクタに与えるだけです. コンストラクタのキーは '麺', '固さ', '野菜', '背脂', 'タレ', 'にんにく'です.</p>
 
-    <pre class="code lang-perl">#!perl
+    <pre class="code prettyprint lang-perl">#!perl
 use strict;
 use warnings;
 
@@ -42,7 +42,7 @@ my $jiro = Acme::Jiro-&gt;new(
 print $jiro-&gt;magic, &#34;\n&#34;; # カラメニンニクマシチョモランマ</pre>
 <p>私を含めそもそもどのパラメータにどんな値をいいかわからないので, そういう方のために promptメソッドがあります. こうすると各パラメータについて選択肢が表示されます.</p>
 
-    <pre class="code lang-perl">#!perl
+    <pre class="code prettyprint lang-perl">#!perl
 use strict;
 use warnings;
 
@@ -56,7 +56,7 @@ print $jiro-&gt;magic, &#34;\n&#34;;</pre>
 <p><br />
 以下のようなプログラムを書いて, 呪文をみんなで当て合いっこするのも楽しいかもしれません.</p>
 
-    <pre class="code lang-perl">#!perl
+    <pre class="code prettyprint lang-perl">#!perl
 use strict;
 use warnings;
 

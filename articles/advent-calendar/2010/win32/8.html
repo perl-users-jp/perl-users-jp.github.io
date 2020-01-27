@@ -18,7 +18,7 @@
 しかし、これのインターフェースってまぁ当然のことながら GUI なんですよね。で、GUI ってめんどくさいじゃないですか（ぇ<br />
 というわけで、YAML ファイルからタイトルや楽曲名を取ってきて、この GUI にテロテロと突っ込んでくれるやつを試しに書いてみました。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use utf8;
 use Win32::GuiTest &#39;:ALL&#39;;
@@ -122,7 +122,7 @@ sub get_next_component {
 }</pre>
 <p>ソースはこんなんで、</p>
 
-    <pre class="code lang-yaml">---
+    <pre class="code prettyprint lang-yaml">---
 title: Last Song
 artist: Girls Dead Monster starring marina
 tracks:
@@ -132,7 +132,7 @@ tracks:
 <p>みたいな YAML を食わせます。</p><p>これを X-Application を起動して、以下の画面の時に実行します。<br />
 <img width="420px" src="https://github.com/perl-users-jp/perl-advent-calendar/raw/master/2010/win32/2010-12-08/dialog1.png" /></p>
 
-    <pre class="code">$ insert_gracenote.pl track_list.yaml</pre>
+    <pre class="code prettyprint">$ insert_gracenote.pl track_list.yaml</pre>
 <p>そうすると、タイトルとアーティストが入力されて、以下のようにダイアログが出るので、適当にジャンルを選んであげます。<br />
 <img width="420px" src="https://github.com/perl-users-jp/perl-advent-calendar/raw/master/2010/win32/2010-12-08/dialog2.png" /></p><p>選び終わってダイアログを閉じると、トラックリストの入力になるので、あとは入力が終わるまで待てばOKです！<br />
 最終的に以下のような感じになってめでたしめでたし。<br />

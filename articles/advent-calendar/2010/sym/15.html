@@ -18,12 +18,12 @@
 任意の文字を作り出すということで、最初に思いつくのは String.fromCharCode ですが、記号だけで大文字 C を生成するのはなかなか難しいため、もう少し簡単な方法を考えます。<br />
 JavaScriptでは、"\101" のような表記で8進数を使って文字列定数を表現することができますので、これを利用して記号と数値だけで任意の文字を作り出します。</p>
 
-    <pre class="code">functoin (){
+    <pre class="code prettyprint">functoin (){
     return &#34;\101&#34;; // 文字 &#39;A&#39; を返す関数 
 }</pre>
 <p>関数は、前回同様 Number.constructor.constructor すなわち Function コンストラクタを利用し、また "return" という文字は "true" と "undefined" から生成します。これらを組み合わせることで、任意の文字を生成する関数を記号だけで作ることができました。</p>
 
-    <pre class="code">(0)[ &#34;constructor&#34; ][ &#34;constructor&#34; ] (
+    <pre class="code prettyprint">(0)[ &#34;constructor&#34; ][ &#34;constructor&#34; ] (
 	(!!{}+&#34;&#34;)[ 1 ]   + // &#39;r&#39; : &#34;true&#34;[ 1 ]
 	(!!{}+&#34;&#34;)[ 3 ]   + // &#39;e&#39; : &#34;true&#34;[ 3 ]
 	(!!{}+&#34;&#34;)[ 0 ]   + // &#39;t&#39; : &#34;true&#34;[ 0 ]
@@ -39,7 +39,7 @@ JavaScriptでは、"\101" のような表記で8進数を使って文字列定�
 );</pre>
 <p>8進数で表現できない文字は、\uXXXX という形式で表現します。</p>
 
-    <pre class="code">$ = +[];          // $ = 0
+    <pre class="code prettyprint">$ = +[];          // $ = 0
 $ = {
      ___ : $++,  // 0
      __$ : $++,  // 1

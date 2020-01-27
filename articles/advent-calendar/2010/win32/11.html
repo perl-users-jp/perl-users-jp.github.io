@@ -19,7 +19,7 @@
 <li>新しい perl をインスコするときは、最近入れた perl を {ionstall_path}-{version} にしておく</li>
 </ul><p>そんでもって以下のスクリプトを実行します。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use version;
 use File::Spec;
@@ -128,14 +128,14 @@ USAGE
     exit 1;
 }</pre>
 
-    <pre class="code">C:\&gt; psw.pl -l
+    <pre class="code prettyprint">C:\&gt; psw.pl -l
 * v5.12.1
   v5.10.1
   v5.12.0</pre>
 <p>とか出て、今使ってるのが、perl 5.12.1 だとわかりますね！<br />
 switch したいときは、</p>
 
-    <pre class="code">C:\&gt; psw.pl 5.12.0
+    <pre class="code prettyprint">C:\&gt; psw.pl 5.12.0
 switched
 
 C:\&gt; psw.pl -l
@@ -145,7 +145,7 @@ C:\&gt; psw.pl -l
 <p>とかなって 5.12.0 になりました。<br />
 やってることは、ディレクトリを rename してるだけですね。</p>
 
-    <pre class="code">C:/strawberry -&gt; C:/strawberry-5.12.1
+    <pre class="code prettyprint">C:/strawberry -&gt; C:/strawberry-5.12.1
 C:/strawberry-5.12.0 -&gt; C:/strawberry</pre>
 <p>としてるだけです。<br />
 こんな感じで簡単に perl を switch できてとっても便利です。</p><p>ただし、ActivePerl との共存の時は、PATH を書き換える bat を書いてます。<br />

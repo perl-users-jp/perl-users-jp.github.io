@@ -21,13 +21,13 @@
 複雑なクエリ担ってきた場合、クエリビルダーをつかってSQLを生成すると問題が発生することがあります。</p><p>JOINするようなクエリをクエリビルダで生成する場合、<br />
 実際のPerlのロジックからどういうSQLが生成されるかを考えるのが以外に面倒だったりします。</p><p>まぁちょっと込み入ったクエリを発行したい場合は生のSQLを使うのが一番だと懐います。</p><p>そういった場合にTengではsearch_by_sqlメソッドを利用します。</p>
 
-    <pre class="code">my $itr = $teng-&gt;search_by_sql(&#39;select * from user where id = ?&#39;, [qw/1/]);</pre>
+    <pre class="code prettyprint">my $itr = $teng-&gt;search_by_sql(&#39;select * from user where id = ?&#39;, [qw/1/]);</pre>
 <p>search_by_sqlの返却値はTeng::Iteratorのオブジェクトとなっていますので<br />
 イテレータ経由でRowオブジェクトを取得し、データにアクセスすることになります。</p><p>イテレータの使い方についての詳細は明日説明します。</p><p>search_by_sqlではJOINしたクエリを実行することがあると思います。<br />
 その場合複数テーブルにまたがったクエリになることがおおく、イテレータから取得されるRowオブジェクトを<br />
 どのtableに紐付けるかがむずかしくなります。</p><p>その場合search_by_sqlの第三引数にRowオブジェクトに紐付けしたいtable名を指定することで解決できます。</p>
 
-    <pre class="code">my $itr = $teng-&gt;search_by_sql(&#39;SELECT * FROM user WHERE id = ?&#39;, [qw/1/], &#39;user&#39;);</pre>
+    <pre class="code prettyprint">my $itr = $teng-&gt;search_by_sql(&#39;SELECT * FROM user WHERE id = ?&#39;, [qw/1/], &#39;user&#39;);</pre>
 <p>今回の例のような単純なSELECTクエリの場合は、Tengが自動で対応付けるtableをみつけだすので<br />
 特別指定する必要はありません。</p><p>なぜRowオブジェクトに対応するtableを指定する必要があるかは後日説明します。</p>
 
@@ -36,11 +36,11 @@
     <h3>search_named</h3>
     <p>search_by_sqlでは</p>
 
-    <pre class="code">my $itr = $teng-&gt;search_by_sql(&#39;SELECT * FROM user WHERE id = ?&#39;, [qw/1/]);</pre>
+    <pre class="code prettyprint">my $itr = $teng-&gt;search_by_sql(&#39;SELECT * FROM user WHERE id = ?&#39;, [qw/1/]);</pre>
 <p>プレスホルダーとして?を指定することになりますが、?での指定だとbindする値の順番を厳密に守る必要があります。<br />
 また同じ値をbindの値として指定したい場合にも若干面倒なのでそういった場合にsearch_namedメソッドを利用するとよいでしょう。</p>
 
-    <pre class="code">my $itr = $teng-&gt;search_named(&#39;SELECT * FROM user WHERE id = :user_id&#39;, +{user_id =&gt; 1});</pre>
+    <pre class="code prettyprint">my $itr = $teng-&gt;search_named(&#39;SELECT * FROM user WHERE id = :user_id&#39;, +{user_id =&gt; 1});</pre>
 <p>search_namedメソッドを利用すればプレスホルダーの指定の部分を?ではなく:{key_name}として指定します。<br />
 この場合は:user_idですね。<br />
 これに対応するhashrefを第二引数で指定してあげればあとはTengが自動的に?に置き換え、bindの値も生成してくれます。</p><p>search_namedの第三引数にはsearch_by_sqlと同じようにRowオブジェクトに対応するtable名を指定することができます。</p><br />

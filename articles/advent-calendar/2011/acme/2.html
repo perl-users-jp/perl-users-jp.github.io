@@ -14,14 +14,14 @@
 
         <p>こんにちは、アイドルマスターのアニメが最終回を迎えてしまい半分くらい魂が抜けているkanです。大遅刻申し訳ありません。makamakaさんの素敵なリリーフテキストは消すには偲びなかったので巻末に残しておきました! makamakaさんありがとうございます! そしてごめんなさい＞＜</p><p>Acme::PrettyCureがどんなものかは[/articles/advent-calendar/2010/acme/6:title=去年のエントリ]を読んで頂けると良いかと思います。</p><p>プリキュアシリーズも無事に8年目を迎え(ありがたいことに9年目も確定しているようです)、Acme::PrettyCureも更新されています。</p>
 
-    <pre class="code lang-perl">use Acme::PrettyCure;
+    <pre class="code prettyprint lang-perl">use Acme::PrettyCure;
 
 my ($hibi, $kana, $eren, $ako) = Acme::PrettyCure-&gt;girls(&#39;Suite&#39;);
 
 $hibi-&gt;transform($kana);</pre>
 <p>今年はSplashStar以来の<s>百合</s>パートナーが居ないと変身できない仕様なので、当然モジュールの挙動も対応しています。</p>
 
-    <pre class="code lang-perl">$hibi-&gt;transform;
+    <pre class="code prettyprint lang-perl">$hibi-&gt;transform;
 # =&gt; 奏がいないと変身できないニャ!</pre>
 <p>プリキュアも遂に総勢23名、今後も継続的にモジュールをアップデート出来るよう、内部的にはMouse(Moose)のRoleの仕組みを使って実装を共通化して記述をコンパクトにしたりと無駄に最適化を続けています。来年は画像とかをFurlで取ってこられるようにしたいですね。</p><p>今年はスイートプリキュアの全メンバーが正式に確定するまでモジュールのアップデートが遅れてしまいましたが、来年は放映初日に更新することをお約束してエントリを〆めさせて頂きます。</p>
 

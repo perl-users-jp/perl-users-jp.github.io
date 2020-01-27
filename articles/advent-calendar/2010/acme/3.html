@@ -14,10 +14,10 @@
 
         <p>こんにちは<a href="http://e8y.net/blog/">トミール</a>です。</p><p><a href="http://search.cpan.org/perldoc?Acme::JavaTrace">Acme::JavaTrace</a>はエラーのスタックトレースをJava風の出し方で出してくれるっていうモジュールです。</p>
 
-    <pre class="code">perl -wMAcme::JavaTrace script.pl</pre>
+    <pre class="code prettyprint">perl -wMAcme::JavaTrace script.pl</pre>
 <p>というようにして実行すると、エラーがあった場合は</p>
 
-    <pre class="code">Exception: event not implemented
+    <pre class="code prettyprint">Exception: event not implemented
             at MyEvents::generic_event_handler(workshop/events.pl:26)
             at MyEvents::__ANON__(workshop/events.pl:11)
             at MyEvents::dispatch_event(workshop/events.pl:22)
@@ -25,7 +25,7 @@
             at main::(workshop/events.pl:30)</pre>
 <p>とかいう感じで出るみたいです。目がJavaに慣れてる人も安心！！</p><p>おもしろいのは、これに影響を受けて<a href="http://search.cpan.org/perldoc?Carp::Always">Carp::Always</a>っていうジョークじゃないモジュールができたっていうところです。嘘から出た真というか、こういうパターンもあるんですね。</p><p>ちなみに利用しているモジュール内でちゃんと利用者目線のエラーについてCarpが使われている場合は、以下のように外からCarpのモードをverboseにしてやることで、carp()やcroak()をスタックトレース付きで吐かせることができます。</p>
 
-    <pre class="code">perl -MCarp=verbose script.pl</pre>
+    <pre class="code prettyprint">perl -MCarp=verbose script.pl</pre>
 
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>

@@ -18,20 +18,20 @@
 ということで名前だけ思いついて、勢いで作った<a href="https://github.com/hideo55/p5-Acme-Tsu">Acme::Tsu</a>を紹介させて頂きます。<br />
 あ、ちなみにこれが僕の初Acmeです。</p><p>まず、インストール。</p>
 
-    <pre class="code">git clone git://github.com/hideo55/p5-Acme-Tsu.git
+    <pre class="code prettyprint">git clone git://github.com/hideo55/p5-Acme-Tsu.git
 cd p5-Acme-Tsu
 perl Makefile.PL
 make &amp;&amp; make install</pre>
 <p>次に使い方</p>
 
-    <pre class="code lang-perl">use Acme::Tsu;
+    <pre class="code prettyprint lang-perl">use Acme::Tsu;
 
 print &#34;Hello world\n&#34;;</pre>
 <p>これだけです。<br />
 これでどうなるかというと、Acme::Tsuをuseしたスクリプトがアクメツになります。<br />
 こんな感じです↓</p>
 
-    <pre class="code lang-perl">$ perl helloworld.pl
+    <pre class="code prettyprint lang-perl">$ perl helloworld.pl
 $ cat helloworld.pl
 use Acme::Tsu;
 
@@ -75,7 +75,7 @@ use Acme::Tsu;
                                 )                                </pre>
 <p> これを再び実行すると、以下のようになります。</p>
 
-    <pre class="code">$ perl helloworld.pl
+    <pre class="code prettyprint">$ perl helloworld.pl
 Hello world</pre>
 <p>Acmeモジュールに造詣の深い諸兄ならばお分かりになると思いますが、これは<a href="http://search.cpan.org/dist/Acme-EyeDrops/lib/Acme/EyeDrops.pm">Acme::EyeDrops</a>と<a href="http://search.cpan.org/~dconway/Acme-Bleach-1.12/lib/Acme/Bleach.pm">Acme::Bleach</a>に代表されるソース書き換えテクニックの合せ技です。</p><p>Acmeモジュールは黒魔術的なものを学ぶには最高の教材ですので、みなさんも是非 Acme モジュールで遊んでみて下さい。<br />
 Enjoy Acme life!</p><p>明日は、Win32 TrackとHacker Trackでも書いてるxaicronさんです。お楽しみに！</p>

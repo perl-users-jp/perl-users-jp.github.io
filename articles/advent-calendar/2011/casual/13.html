@@ -53,7 +53,7 @@
 <li><a href="http://search.cpan.org/dist/Net-Google-AuthSub/">Simon Wistow / Net-Google-AuthSub - search.cpan.org</a></li>
 </ul><p>コードにするとこんな感じです：</p>
 
-    <pre class="code lang-Perl">my $analytics = Net::Google::Analytics-&gt;new;
+    <pre class="code prettyprint lang-Perl">my $analytics = Net::Google::Analytics-&gt;new;
 my $auth      = Net::Google::AuthSub-&gt;new(service =&gt; &#39;analytics&#39;);
 $auth-&gt;login($email, $password);
 $analytics-&gt;auth_params($auth-&gt;auth_params);</pre>
@@ -63,7 +63,7 @@ $analytics-&gt;auth_params($auth-&gt;auth_params);</pre>
     <h5>各種オブジェクト</h5>
     <p>おもに使用するオブジェクトです：</p>
 
-    <pre class="code lang-Perl">my $data_feed = $analytics-&gt;data_feed;       # データフィード
+    <pre class="code prettyprint lang-Perl">my $data_feed = $analytics-&gt;data_feed;       # データフィード
 my $req       = $data_feed-&gt;new_request;     # APIリクエスト
 my $res       = $data_feed-&gt;retrieve($req);  # APIレスポンス</pre>
 
@@ -76,17 +76,17 @@ my $res       = $data_feed-&gt;retrieve($req);  # APIレスポンス</pre>
 <li><a href="http://support.google.com/googleanalytics/bin/answer.py?hl=ja&answer=97705">&#x30D7;&#x30ED;&#x30D5;&#x30A1;&#x30A4;&#x30EB; ID - &#x30A2;&#x30CA;&#x30EA;&#x30C6;&#x30A3;&#x30AF;&#x30B9; &#x30D8;&#x30EB;&#x30D7;</a></li>
 </ul><p>ところが，最近Google Analyticsにおけるアップデートがあり，URLの書式にも変更がありました．例えば次のような感じです（個人的にしか確認していないため，他に異なる書式が存在しているかもしれません）：</p>
 
-    <pre class="code">https://www.google.com/analytics/web/#report/visitors-overview/aXXXXXXXXwYYYYYYYYpZZZZZZZZ/</pre>
+    <pre class="code prettyprint">https://www.google.com/analytics/web/#report/visitors-overview/aXXXXXXXXwYYYYYYYYpZZZZZZZZ/</pre>
 <p>「XXXXXXXX」「YYYYYYYY」「ZZZZZZZZ」の部分にはそれぞれ数値があてはまるのですが（桁数は8桁固定ではない），これらのうちの「ZZZZZZZZ」がプロファイルIDとなります．</p><p>プロファイルIDがわかったら，その値をセットします．「ga:」というプリフィックスが必要です：</p>
 
-    <pre class="code lang-Perl">$req-&gt;ids(&#34;ga:${profile_id}&#34;);</pre>
+    <pre class="code prettyprint lang-Perl">$req-&gt;ids(&#34;ga:${profile_id}&#34;);</pre>
 
 </div>
 <div class="section">
     <h5>集計期間</h5>
     <p>集計期間の両端の日付を，YYYY-MM-DD な書式で指定します：</p>
 
-    <pre class="code lang-Perl">my ($start_date, $end_date) = (&#39;2011-12-01&#39;, &#39;2011-12-12&#39;);
+    <pre class="code prettyprint lang-Perl">my ($start_date, $end_date) = (&#39;2011-12-01&#39;, &#39;2011-12-12&#39;);
 $req-&gt;start_date($start_date);
 $req-&gt;end_date($end_date);</pre>
 
@@ -111,7 +111,7 @@ $req-&gt;end_date($end_date);</pre>
 </blockquote><p><br />
 例えば，「日ごとの訪問者数とページビュー数がほしい！」ということであれば次のように指定できます：</p>
 
-    <pre class="code lang-Perl">$req-&gt;dimensions(&#39;ga:date&#39;);
+    <pre class="code prettyprint lang-Perl">$req-&gt;dimensions(&#39;ga:date&#39;);
 $req-&gt;metrics(&#39;ga:visits,ga:pageviews&#39;);</pre>
 <p><br />
 ディメンションと指標に関する詳細については，次あたりをご確認ください：</p>
@@ -125,7 +125,7 @@ $req-&gt;metrics(&#39;ga:visits,ga:pageviews&#39;);</pre>
     <h5>データの取得</h5>
     <p>こんな感じで，取得したデータをごにょごにょすることができます：</p>
 
-    <pre class="code lang-Perl">$res = $data_feed-&gt;retrieve($req);
+    <pre class="code prettyprint lang-Perl">$res = $data_feed-&gt;retrieve($req);
 for my $e ( @{$res-&gt;entries} ) {
     my ($date)           = map $_-&gt;value, @{$e-&gt;dimensions};
     my ($visits, $views) = map $_-&gt;value, @{$e-&gt;metrics};
@@ -139,7 +139,7 @@ for my $e ( @{$res-&gt;entries} ) {
     <h4>サンプル</h4>
     <p>個人的に作ったWebサービス <a href="http://www.nicograph.jp">&#x306B;&#x3053;&#x3050;&#x3089;&#x3075;</a> における，今月の昨日までの12日間の検索キーワード別訪問者数について調べてみます．</p><p>主なコードは次のような感じ：</p>
 
-    <pre class="code lang-Perl">use Encode;
+    <pre class="code prettyprint lang-Perl">use Encode;
 
 ...
 
@@ -162,7 +162,7 @@ for my $e ( @{$res-&gt;entries} ) {
 }</pre>
 <p>このスクリプトの出力結果は次のようになりました：</p>
 
-    <pre class="code">  78	(not set)
+    <pre class="code prettyprint">  78	(not set)
    4	にこぐらふ
    2	evan様
    2	ぐらふ

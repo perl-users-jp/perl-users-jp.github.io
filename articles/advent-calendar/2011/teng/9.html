@@ -15,19 +15,19 @@
         <p>Teng::Rowの説明でupdate / deleteの説明はしたのですが、update / deleteメソッドはTeng::Rowからだけでなく、<br />
 Teng自体からも実行可能なので軽く説明します。</p>
 
-    <pre class="code">$teng-&gt;update(&#39;user&#39;, +{name =&gt; &#39;inukaku&#39;}, +{id =&gt; 1});
+    <pre class="code prettyprint">$teng-&gt;update(&#39;user&#39;, +{name =&gt; &#39;inukaku&#39;}, +{id =&gt; 1});
 # UPDATE user SET name = &#39;inukaku&#39; WHERE id = 1;</pre>
 <p>このようにRowオブジェクト以外からもupdate文を実行することが可能です。<br />
 Rowオブジェクト経由だと、Rowオブジェクトが持っているPRIMARY KEYを使ったupdateしかできませんでしたが、<br />
 Tengオブジェクト経由だとupdateする条件を自分で指定することが可能です。</p><p>例えば以下のように条件を指定しなければ</p>
 
-    <pre class="code">my $update_count = $teng-&gt;updte(&#39;user&#39;, +{name =&gt; &#39;inukaku&#39;});
+    <pre class="code prettyprint">my $update_count = $teng-&gt;updte(&#39;user&#39;, +{name =&gt; &#39;inukaku&#39;});
 # UPDATE user SET name = &#39;inukaku&#39;;</pre>
 <p>となり全レコードのnameがinukakuにupdateされます。</p><br />
 <p>deleteも同様でRowオブジェクト経由でdeleteを実行すると、Rowオブジェクトが持っているPRIMARY KEYを使ったdeleteしかできませんが、<br />
 Tengオブジェクト経由でdeleteを実行することで、条件を好きに指定することができます。</p>
 
-    <pre class="code">my $delete_count = $teng-&gt;delete(&#39;user&#39;, +{name =&gt; &#39;inukaku&#39;});</pre>
+    <pre class="code prettyprint">my $delete_count = $teng-&gt;delete(&#39;user&#39;, +{name =&gt; &#39;inukaku&#39;});</pre>
 <p><br />
 なお、update / deleteの返却値は<br />
 updateの場合は、実際に更新したレコード数が返され、<br />

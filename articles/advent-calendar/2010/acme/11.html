@@ -18,7 +18,7 @@ CPANモジュールって便利ですよね！　ところで、皆さんはCPAN
 <p>それが<a href="http://search.cpan.org/dist/Love-Match-Calc/">Love::Match::Calc</a>です。</p><br />
 <p>このモジュールに二人の名前を渡すと相性度を教えてくれます！　まあ素敵。</p><p></p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use Love::Match::Calc;
 
 my $first  = &#34;Nagisa&#34;;
@@ -37,7 +37,7 @@ print &#34;$first と $second の相性は…… $m％\n&#34;;</pre>
     
 </blockquote><p></p><p>冒頭のPerlでなくてCというのは、このモジュールが<a href="http://search.cpan.org/dist/Math-Cephes/">Math::Cephes</a>という数値計算用Cライブラリのモジュールに依存していることを指してるようです。ただし、その計算は</p>
 
-    <pre class="code lang-perl">my $lettermitte = ceil($anzletter/2);</pre>
+    <pre class="code prettyprint lang-perl">my $lettermitte = ceil($anzletter/2);</pre>
 <p>というただ1カ所でのみ使われてますが。贅沢な依存関係ですね。<a href="http://search.cpan.org/search?query=posix&mode=module">POSIX</a>じゃだめだったのかしら？</p><br />
 <p><h2>Lesson4 Acmeじゃなくても油断しない<a href="#fn1" title="Lesson1-3は1日目の記事を参照ください">*1</a></h2></p><p>Acmeの名前を持たなくてもAcme臭あふれるCPANモジュールもありますよと。というわけで、このお正月はCPAN上でAcmeがつかないAcmeモジュールを探す旅に出てみては如何でしょうか。</p><br />
 <br />
@@ -48,7 +48,7 @@ TITLE: CPAN Love module - A stroy not started from Acme</p><p>Hello everyone. I'
 Yes, there is a Love namespace module.</p><br />
 <p>That is <a href="http://search.cpan.org/dist/Love-Match-Calc/">Love::Match::Calc</a>.</p><p>It calculates the love factor between two names. Sounds cool!</p><p></p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use Love::Match::Calc;
 
 my $first  = &#34;Nagisa&#34;;
@@ -67,11 +67,11 @@ the functions needlessly enforce prototyping. Also, this has nothing to do with 
 </blockquote><p>'c in perl clothing' means that this module requires <a href="http://search.cpan.org/dist/Math-Cephes/">Math::Cephes</a> which is C math library interface module.<br />
 Though it uses the function at the one line....</p>
 
-    <pre class="code lang-perl">my $lettermitte = ceil($anzletter/2);</pre>
+    <pre class="code prettyprint lang-perl">my $lettermitte = ceil($anzletter/2);</pre>
 <p>Is <a href="http://search.cpan.org/search?query=posix&mode=module">POSIX</a> no good?</p><br />
 <p><h2>Lesson4 Be on your guard against no Acme name module <a href="#fn2" title="See to the first day article for Lesson1-3">*2</a></h2></p><p>There are CPAN modules that have no Acme name but emmit Acme smell. Well, in this winter vacation, would you like to travel to explore them.</p>
-HASH(0x55c17654f480)
-HASH(0x55c17658db48)
+HASH(0x55809a91aec8)
+HASH(0x55809a902f70)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

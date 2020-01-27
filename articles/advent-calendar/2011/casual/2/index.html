@@ -19,7 +19,7 @@
 <p>それでは、その環境のターミナルのエンコーディングに合わせてencode/decodeするにはどうすれば良いでしょう。Encode::Guessで頑張るというテもありますが、我らがCPANにはそこをうまく抽象化してくれるEncode::Localeというモジュールが存在するので、これを使えばOKです。</p><br />
 <p>Encode::Localeは、そのターミナルで使われているエンコーディングを返すconsole_in/console_outというエンコーディング名を提供します。</p>
 
-    <pre class="code lang-perl">#!perl
+    <pre class="code prettyprint lang-perl">#!perl
 use strict;
 use warnings;
 use Encode::Locale;
@@ -38,7 +38,7 @@ print STDERR $in;  # 上に同じ</pre>
 <p>さて、標準入出力・エラー出力はこれでよさそうですが、コマンドライン引数も自動でエンコーディングを判定してデコードしてほしいですね。<br />
 Encode::Localeにはこれをやってくれるdecode_argvなるfunctionが存在します。使い方は、コマンドライン引数を受けとる処理の前で呼ぶだけです。</p>
 
-    <pre class="code lang-perl">#!perl
+    <pre class="code prettyprint lang-perl">#!perl
 use strict;
 use warnings;
 use utf8;
@@ -58,7 +58,7 @@ print &#34;送信者：$from\n&#34;;
 print &#34;件名：$subject\n&#34;;
 print &#34;本文：$body\n&#34;;</pre>
 
-    <pre class="code lang-sh">$ perl script.pl --from Cside --subject けんめい ほんぶん
+    <pre class="code prettyprint lang-sh">$ perl script.pl --from Cside --subject けんめい ほんぶん
 
 送信者：Cside
 件名：けんめい
@@ -69,7 +69,7 @@ print &#34;本文：$body\n&#34;;</pre>
     <h4>オマケ</h4>
     <p>ちなみに上のテクニックは、テスト出力で日本語を扱う場合（滅多ないと思いますが）にも使えます。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use utf8;
 use Test::More;
 use Encode::Locale;

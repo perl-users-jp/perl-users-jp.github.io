@@ -36,7 +36,7 @@
     <h4>例1) 自社内の Web API をテストする</h4>
     <p>Web API みたいなものを作っている場合、テストは HTTP クライアントを使ったものになります。8日めの記事 <a href="/articles/advent-calendar/2011/test/8">HTTP通信を含むモジュールのテスト</a>を参考にどうぞ。</p><p>基本的には、Web サービスに対応するクライアントを書いて、それを使ってテストをすることになります。</p><p>MyProj::SuperCoolWebService の add というサービスが、引数を足し算した答えを返してくれるサービスだとしたら、こんな感じになります。(こんな感じでテストできるようにクライアントを書く、というほうが正確かもしれません)</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use utf8;
 use MyProj::SuperCoolWebService::Client;
@@ -61,7 +61,7 @@ done_testing();</pre>
     <h4>例2) ストアドルーチンをテストする</h4>
     <p>ストアドルーチンの場合は、クライアントを書く必要はありませんが、ラッパーのようなものを容易しておくと楽にテストできます。<a href="#fn2" title="この例は MySQL を前提としています">*2</a>また、このラッパーに SQL::Maker や SQL::Abstract をラップして、SQL を直接投げれるものを用意しておくと、データの準備やゴミデータの削除や値の照合などに使えて便利です。</p>
 
-    <pre class="code lang-perl">package MyProj::SQLUtil;
+    <pre class="code prettyprint lang-perl">package MyProj::SQLUtil;
 use strict;
 use warnings;
 use utf8;
@@ -108,7 +108,7 @@ sub select {
 1;</pre>
 <p>テストコード側はこんな感じになります。例はいつもの引数を足し算するストアドファンクションです。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use utf8;
 use Test::More;
@@ -123,7 +123,7 @@ subtest &#39;add&#39;, sub {
 done_testing();</pre>
 <p>ストアドプロシージャの場合だと、ストアド実行の副作用をテストしないといけないので、ちょっと面倒くさいです。「何かのデータを save するとフラグが変わる」というストアドとします。</p>
 
-    <pre class="code lang-perl">subtest &#39;save&#39;, sub {
+    <pre class="code prettyprint lang-perl">subtest &#39;save&#39;, sub {
     my $dbh  = prepare_dbh();
     my $util = MyProj::SQLUtil-&gt;new($dbh);
 
@@ -149,8 +149,8 @@ done_testing();</pre>
     <h4>まとめ</h4>
     <p>サービスに対応するクライアントを書くことで、Perl 以外のものをテストする方法を紹介しました。もうすぐクリスマスですね！</p>
 
-</div>HASH(0x55c17659e3b8)
-HASH(0x55c1765c4d90)
+</div>HASH(0x55809a90ed90)
+HASH(0x55809a8ff4f0)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

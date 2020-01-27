@@ -18,12 +18,12 @@
     <h4>ディレクトリ構成について前置き</h4>
     <p>次のようなディレクトリ構成を想定して記事を書いて行きます。</p>
 
-    <pre class="code">groonga/
+    <pre class="code prettyprint">groonga/
 groonga/db/
 script/</pre>
 <p>さくっと作ってしまいましょう。</p>
 
-    <pre class="code">% mkdir -p groonga/db/
+    <pre class="code prettyprint">% mkdir -p groonga/db/
 % mkdir script/</pre>
 
 </div>
@@ -37,7 +37,7 @@ script/</pre>
 <li>Terms(語彙表)</li>
 </ul><p>それでは次のようなschemaファイルをカジュアルに作成してださい。</p>
 
-    <pre class="code"># groonga/schema.grn
+    <pre class="code prettyprint"># groonga/schema.grn
 table_create Keyword TABLE_HASH_KEY ShortText
 column_create Keyword name COLUMN_SCALAR ShortText
 column_create Keyword display_fg COLUMN_SCALAR Bool
@@ -57,14 +57,14 @@ column_create --table Terms --name article_keywords --flags COLUMN_INDEX|WITH_PO
 column_create --table Terms --name keyword_name --flags COLUMN_INDEX|WITH_POSITION --type Keyword --source namecolumn_create --table Terms --name article_content --flags COLUMN_INDEX|WITH_POSITION --type Article --source content</pre>
 <p>次のコマンドを実行するとDBファイルとテーブルがカジュアルにできあがります。</p>
 
-    <pre class="code">% groonga -n groonga/db/test.db &lt; groonga/schema.grn</pre>
+    <pre class="code prettyprint">% groonga -n groonga/db/test.db &lt; groonga/schema.grn</pre>
 
 </div>
 <div class="section">
     <h4>初期データを作成</h4>
     <p>つぎにサンプルとなるデータファイルを作成して下さい。</p>
 
-    <pre class="code"># groonga/data.grn
+    <pre class="code prettyprint"># groonga/data.grn
 load --table Keyword
 [
   {
@@ -112,7 +112,7 @@ load --table Article
 ]</pre>
 <p>カジュアルを装いつつ、次のコマンドでデータをloadします。</p>
 
-    <pre class="code">% groonga groonga/db/test.db &lt; groonga/data.grn </pre>
+    <pre class="code prettyprint">% groonga groonga/db/test.db &lt; groonga/data.grn </pre>
 <p>先ほどと違って-nという引数が指定されていないのは-nはdbファイルが存在していない時に使用するからです。</p>
 
 </div>
@@ -120,10 +120,10 @@ load --table Article
     <h4>httpモードで起動する</h4>
     <p>カジュアルな面持ちで次のコマンドを実行して下さい。</p>
 
-    <pre class="code">% groonga -s --default-command-version 2 --port 10041 --protocol http groonga/db/test.db</pre>
+    <pre class="code prettyprint">% groonga -s --default-command-version 2 --port 10041 --protocol http groonga/db/test.db</pre>
 <p>次に以下のURLをブラウジングして下さい。</p>
 
-    <pre class="code">http://localhost:10041/</pre>
+    <pre class="code prettyprint">http://localhost:10041/</pre>
 <p>Groongaは管理画面が最初から実装されています。テーブル一覧にサマリー,Article,Keyword,Termsが表示されていて、レコードを追加、編集、削除する事ができますので後で試して見て下さい。</p>
 
 </div>
@@ -135,7 +135,7 @@ load --table Article
     <h5>データをinsert</h5>
     <p>RDBのようにcreateとupdateのコマンドが存在しますが、Groongaではloadしか存在しません。まずはloadコマンドを試してみます。script/load.plを作成してください。</p>
 
-    <pre class="code lang-perl">#!/usr/bin/env perl
+    <pre class="code prettyprint lang-perl">#!/usr/bin/env perl
 use strict;
 use warnings;
 use URI;
@@ -165,7 +165,7 @@ my $res = $ua-&gt;get($uri);
 print $res-&gt;content if $res-&gt;is_success;</pre>
 <p>実行結果がjsonで返ってきました。[[リターンコード, 処理開始時間, 処理時間], 登録件数]となっています。</p>
 
-    <pre class="code">% perl script/load.pl
+    <pre class="code prettyprint">% perl script/load.pl
 [[0,1322889076.15943,0.056639],1]</pre>
 
 </div>
@@ -173,10 +173,10 @@ print $res-&gt;content if $res-&gt;is_success;</pre>
     <h5>ifexistsオプション</h5>
     <p>さて、Groongaではcreateもupdateも区別せずにloadのみとなっていますが、もし既存のレコードが存在しているとは知らずにloadすると上書きしてしまう事になります。それをさける為にはifexistsオプションを使います。</p><p>先ほどのscript/load.plをコピーします。</p>
 
-    <pre class="code">% cp script/load.pl script/create.pl</pre>
+    <pre class="code prettyprint">% cp script/load.pl script/create.pl</pre>
 <p>次のようにscript/load.plに1行を追加してください。</p>
 
-    <pre class="code">% diff -c script/load.pl script/create.pl  
+    <pre class="code prettyprint">% diff -c script/load.pl script/create.pl  
 *** script/load.pl      2011-12-03 13:28:30.000000000 +0900
 --- script/create.pl    2011-12-03 14:00:21.000000000 +0900
 ***************
@@ -191,7 +191,7 @@ print $res-&gt;content if $res-&gt;is_success;</pre>
               {  </pre>
 <p>実行します。ここで登録件数が0である事から既にレコードが存在していたため、登録をしないで処理を終えています。ひとまず上書き問題は回避できたのでカジュアル度が増したと思います。</p>
 
-    <pre class="code">% perl script/create.pl
+    <pre class="code prettyprint">% perl script/create.pl
 [[0,1322889691.12119,0.000299],0]</pre>
 
 </div>
@@ -199,7 +199,7 @@ print $res-&gt;content if $res-&gt;is_success;</pre>
     <h5>単純なselect</h5>
     <p>とりあえずKeywordテーブルのデータを全部欲しい場合は次のようにします。次のようなscript/select.plを作成します。</p>
 
-    <pre class="code lang-perl">#!/usr/bin/env perl
+    <pre class="code prettyprint lang-perl">#!/usr/bin/env perl
 use strict;
 use warnings;
 use URI;
@@ -216,7 +216,7 @@ my $res = $ua-&gt;get($uri);
 print $res-&gt;content if $res-&gt;is_success;</pre>
 <p>結果は次のようになります。</p>
 
-    <pre class="code">% perl script/select.pl
+    <pre class="code prettyprint">% perl script/select.pl
 [[0,1322889965.12739,0.005888],[[[5],[[&#34;_id&#34;,&#34;UInt32&#34;],[&#34;_key&#34;,&#34;ShortText&#34;],[&#34;name&#34;,&#34;ShortText&#34;],[&#34;display_fg&#34;,&#34;Bool&#34;]],[1,&#34;perl&#34;,&#34;Perl&#34;,true],[2,&#34;html5&#34;,&#34;HTML5&#34;,false],[3,&#34;javascript&#34;,&#34;javascript&#34;,true],[4,&#34;php&#34;,&#34;PHP&#34;,true],[5,&#34;hoge&#34;,&#34;hogehoge&#34;,true]]]]</pre>
 
 </div>
@@ -224,7 +224,7 @@ print $res-&gt;content if $res-&gt;is_success;</pre>
     <h5>検索条件を指定してselect</h5>
     <p>主キーである_keyをつかって1レコード取得したい場合は次のようにします。script/select2.plとしてファイルを作成して下さい。</p>
 
-    <pre class="code lang-perl">#!/usr/bin/env perl
+    <pre class="code prettyprint lang-perl">#!/usr/bin/env perl
 use strict;
 use warnings;
 use URI;
@@ -241,7 +241,7 @@ my $res = $ua-&gt;get($uri);
 print $res-&gt;content if $res-&gt;is_success;</pre>
 <p>実行します。</p>
 
-    <pre class="code">:!perl script/select2.pl
+    <pre class="code prettyprint">:!perl script/select2.pl
 [[0,1322889965.14106,0.000735],[[[1],[[&#34;_id&#34;,&#34;UInt32&#34;],[&#34;_key&#34;,&#34;ShortText&#34;],[&#34;name&#34;,&#34;ShortText&#34;],[&#34;display_fg&#34;,&#34;Bool&#34;]],[1,&#34;perl&#34;,&#34;Perl&#34;,true]]]]</pre>
 
 </div>
@@ -249,7 +249,7 @@ print $res-&gt;content if $res-&gt;is_success;</pre>
     <h5>検索語句を指定してselect</h5>
     <p>script/select3.plとしてファイルを作成して下さい。</p>
 
-    <pre class="code lang-perl">#!/usr/bin/env perl
+    <pre class="code prettyprint lang-perl">#!/usr/bin/env perl
 use strict;
 use warnings;
 use URI;
@@ -271,7 +271,7 @@ my $res = $ua-&gt;get($uri);
 print $res-&gt;content if $res-&gt;is_success;</pre>
 <p>実行結果を確認します。</p>
 
-    <pre class="code">% perl script/select3.pl
+    <pre class="code prettyprint">% perl script/select3.pl
 [[0,1322889965.15333,0.005095],[[[2],[[&#34;_id&#34;,&#34;UInt32&#34;],[&#34;_key&#34;,&#34;ShortText&#34;],[&#34;updated_at&#34;,&#34;Time&#34;],[&#34;title&#34;,&#34;ShortText&#34;],[&#34;published_at&#34;,&#34;Time&#34;],[&#34;keywords&#34;,&#34;Keyword&#34;],[&#34;display_fg&#34;,&#34;Bool&#34;],[&#34;created_at&#34;,&#34;Time&#34;],[&#34;content&#34;,&#34;Text&#34;]],[1,&#34;key1&#34;,0.0,&#34;perl&#34;,0.0,[&#34;perl&#34;,&#34;php&#34;],true,0.0,&#34;content1&#34;],[2,&#34;key2&#34;,0.0,&#34;title2&#34;,0.0,[&#34;perl&#34;,&#34;php&#34;,&#34;javascript&#34;],true,0.0,&#34;perl&#34;]]]]</pre>
 <p>検索語句の指定はTermテーブルを正しく作成していないと動作しませんのでカジュアルといえども抜かりなく作成しておく必要があります。</p>
 
@@ -280,7 +280,7 @@ print $res-&gt;content if $res-&gt;is_success;</pre>
     <h5>関連テーブルのカラムを指定してselect</h5>
     <p>Article.keywords.nameを検索語句として検索したい場合。script/select4.plとしてファイルを作成して下さい。</p>
 
-    <pre class="code lang-perl">#!/usr/bin/env perl
+    <pre class="code prettyprint lang-perl">#!/usr/bin/env perl
 use strict;
 use warnings;
 use URI;
@@ -300,7 +300,7 @@ my $res = $ua-&gt;get($uri);
 print $res-&gt;content if $res-&gt;is_success;</pre>
 <p>実行結果を確認します。</p>
 
-    <pre class="code">:!perl script/select4.pl
+    <pre class="code prettyprint">:!perl script/select4.pl
 [[0,1322889965.16729,0.003763],[[[1],[[&#34;_id&#34;,&#34;UInt32&#34;],[&#34;_key&#34;,&#34;ShortText&#34;],[&#34;updated_at&#34;,&#34;Time&#34;],[&#34;title&#34;,&#34;ShortText&#34;],[&#34;published_at&#34;,&#34;Time&#34;],[&#34;keywords&#34;,&#34;Keyword&#34;],[&#34;display_fg&#34;,&#34;Bool&#34;],[&#34;created_at&#34;,&#34;Time&#34;],[&#34;content&#34;,&#34;Text&#34;]],[3,&#34;key3&#34;,0.0,&#34;title2&#34;,0.0,[&#34;hoge&#34;],true,0.0,&#34;fuga fuga fuga&#34;]]]]</pre>
 
 </div>

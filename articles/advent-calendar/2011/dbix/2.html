@@ -36,7 +36,7 @@
     <p>「千里の道も一歩から」という言葉がありますが、オレオレDBIxもまずは一歩を踏み出さないと始まらないと思います。<br />
 ということで、下記が最小のオレオレDBIxです。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use version;
 our $VERSION = &#39;0.03&#39;;
 
@@ -53,12 +53,12 @@ use parent qw(DBI::st);
 <p>たったこれだけです。<br />
 use して使いたい場合</p>
 
-    <pre class="code lang-perl">use DBIx::OreOre;
+    <pre class="code prettyprint lang-perl">use DBIx::OreOre;
 
 $oreore_dbh = DBIx::OreOre-&gt;connect($data_source, $username, $auth, \%attrs) or die;</pre>
 <p>でもよいのですが、</p>
 
-    <pre class="code lang-perl">use DBIx::OreOre;
+    <pre class="code prettyprint lang-perl">use DBIx::OreOre;
 
 my @dsn = (
   &#39;dbi:mysql:host=localhost;database=mysql;mysql_socket=/tmp/mysql.sock;&#39;,
@@ -80,7 +80,7 @@ DSN は config ファイルなどに別途定義することも多いと思い�
     <p>DBI が提供する枠組みでは DBI, DBI::db, DBI::st それぞれのサブクラスを定義するわけなので、当然各フェーズで実行される関数に処理をかぶせる事が可能です。<br />
 例えば connect した時に何がしかの前処理をしたい場合</p>
 
-    <pre class="code lang-perl">〜
+    <pre class="code prettyprint lang-perl">〜
 package DBIx::OreOre;
 use parent qw(DBI);
 
@@ -107,7 +107,7 @@ sub connect {
 <p>という形で connect 直前に処理を挟むことができます。<br />
 connect 直後に何かしたい場合、connected という関数が呼ばれる事になっているので connect 時同様</p>
 
-    <pre class="code lang-perl">〜
+    <pre class="code prettyprint lang-perl">〜
 package DBIx::OreOre::db;
 use parent qw(DBI::db);
 
@@ -122,7 +122,7 @@ sub connected {
 また、独自のアトリビュートをつけることで、処理時の挙動を変更するなども容易です。<br />
 やり方は簡単で、DSN に1行追加するだけです。</p>
 
-    <pre class="code lang-perl">use DBIx::OreOre;
+    <pre class="code prettyprint lang-perl">use DBIx::OreOre;
 
 my @dsn = (
   &#39;dbi:mysql:host=localhost;database=mysql;mysql_socket=/tmp/mysql.sock;&#39;,
@@ -137,7 +137,7 @@ my @dsn = (
 my $dbh = DBI-&gt;connect(@dsn) or die;</pre>
 <p>というような形で追加すると</p>
 
-    <pre class="code lang-perl">〜
+    <pre class="code prettyprint lang-perl">〜
 sub connect {
   my $self = shift;
   my ($dsn, $user, $pass, $attrs) = @_;
@@ -151,14 +151,14 @@ sub connect {
 <p>渡した内容で処理を分岐するなども可能です。<br />
 foo を DBI::OreOre::st 側でも使いたい場合</p>
 
-    <pre class="code lang-perl">sub connected {
+    <pre class="code prettyprint lang-perl">sub connected {
   my $self = shift;
   my ($dsn, $user, $credential, $attrs) = @_;
   $self-&gt;{private_dbix_oreore} = { &#39;foo&#39; =&gt; $attrs-&gt;{foo} };
 }</pre>
 <p>として値を入れておくことで</p>
 
-    <pre class="code lang-perl">〜
+    <pre class="code prettyprint lang-perl">〜
 package DBIx::OreOre::st;
 use parent qw(DBI::st);
 

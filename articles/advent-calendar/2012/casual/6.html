@@ -21,7 +21,7 @@
 以下のコードのように同じスクリプト内で宣言されたパッケージをuseすると Can't locate Foo.pm in @INC と怒られますね。<br />
 これを可能にするのがthanksです。ちゃんとuseできるようになり、->importも呼ばれるようになっています。</p>
 
-    <pre class="code lang-perl">package Foo;
+    <pre class="code prettyprint lang-perl">package Foo;
 # no thanks;
 
 sub new { ... }
@@ -36,7 +36,7 @@ use Foo;</pre>
     <p><a href="https://metacpan.org/module/Keyword::Simple">https://metacpan.org/module/Keyword::Simple</a></p><p>自分で新しいキーワードを追加することができるようになります。<br />
 以下のコードはifと同じ機能を持つoopsキーワードを追加します。</p>
 
-    <pre class="code lang-perl">BEGIN {
+    <pre class="code prettyprint lang-perl">BEGIN {
     use Keyword::Simple;
     Keyword::Simple::define &#39;oops&#39; =&gt; sub {
         my ($ref) = @_;
@@ -58,7 +58,7 @@ oops (1) {
     <h4>JSONY - JSONにYAMLをちょこっと加えまして</h4>
     <p><a href="https://metacpan.org/module/JSONY">https://metacpan.org/module/JSONY</a></p><p>JSONをYAMLっぽく書けるようにしたもので、Pegexで実装されています。</p>
 
-    <pre class="code">plugin Server {
+    <pre class="code prettyprint">plugin Server {
   host example.com
   port 8080
 }
@@ -66,7 +66,7 @@ dsn &#34;dbi:SQLite:filename=my.db&#34;
 allow hosts [ jules sherlock kitty ]</pre>
 <p>JSONに変換するとこんな感じ。</p>
 
-    <pre class="code">[
+    <pre class="code prettyprint">[
   &#34;plugin&#34;, &#34;Server&#34;, {
     &#34;host&#34;: &#34;example.com&#34;,
     &#34;port&#34;: 8080

@@ -23,7 +23,7 @@
     <h3>どうやって?</h3>
     <p>たとえば以下のように、foo というテーブルに foo_idx というインデックスがあり、それを FORCE INDEX したい場合。</p>
 
-    <pre class="code lang-sql">CREATE TABLE `foo` (
+    <pre class="code prettyprint lang-sql">CREATE TABLE `foo` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `hoge` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -31,7 +31,7 @@
 );</pre>
 <p>search メソッドの attributes で from を指定し、「空文字列の key に対して FROM 句を value にした hashref」を渡します。いやはや、BK のニオイがプンプンしますね。</p>
 
-    <pre class="code lang-perl">my $schema = MySchema-&gt;connect(...);
+    <pre class="code prettyprint lang-perl">my $schema = MySchema-&gt;connect(...);
 my $rs = $schema-&gt;resultset(&#34;Foo&#34;);
 
 @foo = $rs-&gt;search(
@@ -44,7 +44,7 @@ my $rs = $schema-&gt;resultset(&#34;Foo&#34;);
 )-&gt;all;</pre>
 <p>これで、以下のような SQL が発行されます。</p>
 
-    <pre class="code lang-sql">SELECT me.id, me.hoge
+    <pre class="code prettyprint lang-sql">SELECT me.id, me.hoge
   FROM foo me FORCE INDEX(`foo_idx`)
   WHERE ( hoge = ? )</pre>
 <p>やった！</p>

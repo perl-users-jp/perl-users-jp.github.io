@@ -37,7 +37,7 @@
     <h3>echoサーバーを書こう</h3>
     <p>さて、今日はネットワークプログラミングに挑戦です。先日twitterのタイムラインを読んでくるスクリプトがありましたが、やっぱり今時ネットワーク経由でデータをやり取りしてナンボ、というところがあります。前回はクライアントでしたが、今回はサーバーをつくってみようと思います。というとまずはechoサーバーを書かないといけないですね。</p><p>echoサーバーの動作イメージはこんな感じです。</p>
 
-    <pre class="code">
+    <pre class="code prettyprint">
 $ perl6 echo_server.pl 5000 &amp;
 [1] 4980
 
@@ -55,7 +55,7 @@ Connection closed.
 </pre>
 <p>echo_server.plはこんな感じ。</p>
 
-    <pre class="code">#!/usr/bin/env perl6
+    <pre class="code prettyprint">#!/usr/bin/env perl6
 use v6;
 
 # constants
@@ -84,7 +84,7 @@ sub MAIN ($port = &#39;5000&#39;, :$host = &#39;0.0.0.0&#39;) {
     <h3>ベンチマーク</h3>
     <p>さて、このサーバーとperl5で書いたサーバーを比較してみました。</p>
 
-    <pre class="code">#!perl
+    <pre class="code prettyprint">#!perl
 use strict;
 use warnings;
 
@@ -107,10 +107,10 @@ $server-&gt;close;
 # from http://d.hatena.ne.jp/naoya/20070311/1173629378</pre>
 <p>こんなの。これを、別のマシンから</p>
 
-    <pre class="code">$ time (for i in `seq 1 1000`; do echo $i | nc 10.0.87.6 5000 &gt; /dev/null;done)</pre>
+    <pre class="code prettyprint">$ time (for i in `seq 1 1000`; do echo $i | nc 10.0.87.6 5000 &gt; /dev/null;done)</pre>
 <p>としてみました。</p>
 
-    <pre class="code"># perl6
+    <pre class="code prettyprint"># perl6
 $ time (for i in `seq 1 1000`; do echo $i | nc 10.0.87.6 5000 &gt; /dev/null;done)
 (; for i in `seq 1 1000`; do; echo $i | nc 10.0.87.6 5000 &gt; /dev/null; done; ) 
 0.68s user 2.78s system 19% cpu 17.548 total

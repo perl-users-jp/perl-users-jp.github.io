@@ -15,7 +15,7 @@
         <p>はい、<a href="http://twitter.com/k12u">kawamoto</a>です</p><p>CPANにモジュールをupしたことはありませんが、ちょっとモジュール作ってみました。<br />
 <a href="https://github.com/k12u/p5-acme-numericalarugment">Acme::NumericalArgument</a>です。</p><p>使い方は<a href="https://github.com/k12u/p5-acme-numericalarugment/blob/master/t/01-base.t">test</a>に書いてあるまんまです。</p>
 
-    <pre class="code">package MyPackage;
+    <pre class="code prettyprint">package MyPackage;
 
 use parent &#39;Acme::NumericalArgument&#39;;
 sub hello {
@@ -37,17 +37,17 @@ dies_ok { MyPackage-&gt;new-&gt;noooo };
 done_testing;</pre>
 <p>Acme::NumericalArgument のサブクラスMyPackageで</p>
 
-    <pre class="code">MyPackage-&gt;new-&gt;helloooooooooooooooooo(&#34; World&#34;)</pre>
+    <pre class="code prettyprint">MyPackage-&gt;new-&gt;helloooooooooooooooooo(&#34; World&#34;)</pre>
 <p>などとメソッドを呼び出すと、</p>
 
-    <pre class="code">sub hello {
+    <pre class="code prettyprint">sub hello {
     my ($self, $count, $arg) = @_;
     return(&#34;Hello&#34; x $count . $arg);
     # HelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHello World
 }</pre>
 <p>といった具合にメソッド名の "o" の数 (18) が第1引数として渡されます。</p><p>実用性はもちろんありませんが、退屈な作業の時でも</p>
 
-    <pre class="code">shutdownnnnnnnnnnnn</pre>
+    <pre class="code prettyprint">shutdownnnnnnnnnnnn</pre>
 <p>こんなコマンドでサーバがたくさんshutdownしたりするとまあまあ気持いいと思います。</p>
 
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>

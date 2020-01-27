@@ -22,11 +22,11 @@
     <p>使い方は至極簡単で、どっかで適当に use するだけです。ほかには何もいりません。<br />
 そうすると、以下のような感じで STDERR に SQL が出力されます。</p>
 
-    <pre class="code lang-perl">use DBIx::QueryLog;
+    <pre class="code prettyprint lang-perl">use DBIx::QueryLog;
 
 my $row = $dbh-&gt;selectrow_hashref(&#39;SELECT * FROM dis_comments WHERE name = ?&#39;, undef, &#39;nekokak&#39;);</pre>
 
-    <pre class="code">[2011-12-07T23:51:30] [main] [0.000164] SELECT * FROM dis_comments WHERE name = &#39;nekokak&#39; at neko.pl line 10</pre>
+    <pre class="code prettyprint">[2011-12-07T23:51:30] [main] [0.000164] SELECT * FROM dis_comments WHERE name = &#39;nekokak&#39; at neko.pl line 10</pre>
 <p>みたいな感じです。超簡単ですね。ちゃんとバインド済みの値になっているのがミソです。</p>
 
 </div>
@@ -35,13 +35,13 @@ my $row = $dbh-&gt;selectrow_hashref(&#39;SELECT * FROM dis_comments WHERE name 
     <p>デフォは STDERR なんですが、当然ファイルに出したい欲求とかあると思いますので、変えられます。<br />
 Log::Minimal みたいな感じで、$DBIx::QueryLog::OUTPUT を書き換えます。</p>
 
-    <pre class="code lang-perl">use DBIx::QueryLog;
+    <pre class="code prettyprint lang-perl">use DBIx::QueryLog;
 
 open my $fh, &#39;&gt;&gt;&#39;, &#39;query.log&#39; or die $!;
 $DBIx::QueryLog::OUTPUT = $fh;</pre>
 <p>のようにファイルハンドルを指定するか、または</p>
 
-    <pre class="code lang-perl">use DBIx::QueryLog;
+    <pre class="code prettyprint lang-perl">use DBIx::QueryLog;
 
 $DBIx::QueryLog::OUTPUT = sub {
     my %args = @_;
@@ -54,7 +54,7 @@ $DBIx::QueryLog::OUTPUT = sub {
     <h4>全部じゃなくてさぁ、一部だけ適用したいんだけど？</h4>
     <p>そんな時は、</p>
 
-    <pre class="code lang-perl">reuqire DBIx::QueryLog; # or use DBIx::QueryLog ();
+    <pre class="code prettyprint lang-perl">reuqire DBIx::QueryLog; # or use DBIx::QueryLog ();
 DBIx::QueryLog-&gt;enable;
 # 適用したい範囲
 DBIx::QueryLog-&gt;disable;</pre>
@@ -107,7 +107,7 @@ DBIx::QueryLog のメリットとしては</p>
 開発中に、このへんの SQL ってどうなってたかにゃ〜んって思ったときに使うのがよいと思います。<br />
 本番環境とかはあれですね、tpcdump がよいかと思います。MySQL とかはせっかくのテキストプロトコルですし！！</p><p>というわけで明日は、生DBI界のドン、zigorou さんです！！</p>
 
-</div>HASH(0x55c17657c708)
+</div>HASH(0x55809a9968e8)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

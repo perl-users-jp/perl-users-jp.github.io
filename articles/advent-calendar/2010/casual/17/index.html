@@ -21,7 +21,7 @@
     <p>ファイルをアップロードやダウンロードするために、<br />
 まずは接続するためのクライアントオブジェクトを準備します。</p>
 
-    <pre class="code lang-perl">use Net::Amazon::S3;
+    <pre class="code prettyprint lang-perl">use Net::Amazon::S3;
 
 my $aws_access_key_id     = &#39;XXXXXXXXXXXXXXXXXXXX&#39;;
 my $aws_secret_access_key = &#39;WwWwWwWwWwWwWwWwWwWw&#39;;
@@ -43,7 +43,7 @@ PODを見ると、Net::Amazon::S3::Client を使うのがいいみたいです</
     <p>次にファイルを入れるための バケット を作ります。<br />
 以下の例ではバケット名として "ore-no-backet" を指定しています。</p>
 
-    <pre class="code lang-perl">my $bucket = $client-&gt;create_bucket(
+    <pre class="code prettyprint lang-perl">my $bucket = $client-&gt;create_bucket(
     name                =&gt; &#34;ore-no-backet&#34;,
     acl_short           =&gt; &#39;private&#39;,
     location_constraint =&gt; &#39;US&#39;,
@@ -66,7 +66,7 @@ PODを見ると、Net::Amazon::S3::Client を使うのがいいみたいです</
     <h3>バケットの一覧</h3>
     <p>バケットの一覧を取得してその名前を出力する例が以下です。</p>
 
-    <pre class="code lang-perl">my @buckets = $client-&gt;buckets;
+    <pre class="code prettyprint lang-perl">my @buckets = $client-&gt;buckets;
 foreach my $bucket (@buckets) {
   print $bucket-&gt;name . &#34;\n&#34;;
 }</pre>
@@ -76,7 +76,7 @@ foreach my $bucket (@buckets) {
     <h3>バケットへファイルをアップロード</h3>
     <p>たとえば、手元にある ore.jpg という画像ファイルをバケット内の images/ore.jpg というパスにアップロードするには、次のようにします。</p>
 
-    <pre class="code lang-perl">my $object = $bucket-&gt;object(
+    <pre class="code prettyprint lang-perl">my $object = $bucket-&gt;object(
   key          =&gt; &#39;images/ore.jpg&#39;,
   content_type =&gt; &#39;image/jpeg&#39;, 
 );
@@ -89,7 +89,7 @@ $object-&gt;put_filename(&#39;ore.jpg&#39;);</pre>
     <p>バケットの中身を取得するには、list メソッドを使い、<br />
 その戻り値から以下のようにして取得します。</p>
 
-    <pre class="code lang-perl">my $stream = $bucket-&gt;list;
+    <pre class="code prettyprint lang-perl">my $stream = $bucket-&gt;list;
 until ( $stream-&gt;is_done ) {
   foreach my $object ( $stream-&gt;items ) {
     print &#34;key  : &#34; . $object-&gt;key  . &#34;\n&#34;;  # キー (バケット内のパス)
@@ -99,11 +99,11 @@ until ( $stream-&gt;is_done ) {
 }</pre>
 <p>ファイルをダウンロードして手元に保存するには、次のようにします。</p>
 
-    <pre class="code lang-perl">my $object = $bucket-&gt;object( key =&gt; &#39;images/motsunabe.jpg&#39; );
+    <pre class="code prettyprint lang-perl">my $object = $bucket-&gt;object( key =&gt; &#39;images/motsunabe.jpg&#39; );
 $object-&gt;get_filename(&#39;motsunabe.jpg&#39;);</pre>
 <p>ファイルを消すの delete します。簡単ですね。</p>
 
-    <pre class="code lang-perl">$object-&gt;delete;</pre>
+    <pre class="code prettyprint lang-perl">$object-&gt;delete;</pre>
 <p>ファイルを更新アップードするには、上のアップロードと同じで put_filename すればOKです。簡単ですん!</p><p></p>
 
 </div>
@@ -117,7 +117,7 @@ $object-&gt;get_filename(&#39;motsunabe.jpg&#39;);</pre>
     <p>パフォーマンスのため、静的コンテンツは積極的にブラウザにキャッシュさせたいですよね？<br />
 そんな時は expire を付けて S3 にアップしておくと、HTTPレスポンスヘッダにも付けてくれるのでうれしくなります。</p>
 
-    <pre class="code lang-perl">my $object = $bucket-&gt;object(
+    <pre class="code prettyprint lang-perl">my $object = $bucket-&gt;object(
   key          =&gt; &#39;images/motsunabe.jpg&#39;,
   acl_short    =&gt; &#39;public-read&#39;,
   content_type =&gt; &#39;image/jpeg&#39;,
@@ -126,7 +126,7 @@ $object-&gt;get_filename(&#39;motsunabe.jpg&#39;);</pre>
 $object-&gt;put_filename(&#39;motsunabe.jpg&#39;);</pre>
 <p>こうすると、このJPEGファイルをHTTPで取得すると次のようなヘッダが付きますよ！</p>
 
-    <pre class="code">Expires: Mon, 1 Jan 2011 00:00:00 GMT</pre>
+    <pre class="code prettyprint">Expires: Mon, 1 Jan 2011 00:00:00 GMT</pre>
 
 </div>
 <div class="section">
@@ -134,7 +134,7 @@ $object-&gt;put_filename(&#39;motsunabe.jpg&#39;);</pre>
     <p>さらにパフォーマンスのため、CSSやJSファイルはgzip圧縮転送したいですよね？<br />
 そんな時は、ファイルをあらかじめ gzip圧縮した状態で、次のようにアップロードすると、gzip圧縮転送されてうれしくなります。</p>
 
-    <pre class="code lang-perl">use IO::Compress::Gzip qw(gzip $GzipError);
+    <pre class="code prettyprint lang-perl">use IO::Compress::Gzip qw(gzip $GzipError);
 
 my $object = $bucket-&gt;object(
   key              =&gt; &#39;images/motsunabe.css&#39;,
@@ -157,7 +157,7 @@ Amazon には <a href="http://aws.amazon.com/jp/cloudfront/">CloudFront</a> と�
     <h3>バケットを消す</h3>
     <p>いらなくなったバケット ore-no-bucket を消しちゃいます。</p>
 
-    <pre class="code lang-perl">my @buckets = $client-&gt;buckets;
+    <pre class="code prettyprint lang-perl">my @buckets = $client-&gt;buckets;
 foreach my $bucket (@buckets) {
   if ($bucket-&gt;name eq &#39;ore-no-bucket&#39;) {
     $bucket-&gt;delete;

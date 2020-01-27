@@ -16,7 +16,7 @@
 なお、今回はProj::DBというnamespaceで統一して記述していきます。<br />
 コードは特記しない限りSQLiteを前提としています。</p><p>以下のようなテーブルがあるとし、</p>
 
-    <pre class="code">create table user (
+    <pre class="code prettyprint">create table user (
     id integer,
     name text,
     primary key ( id )
@@ -29,7 +29,7 @@ create table status (
 );</pre>
 <p>コレに対応するTengのSchemaは以下の様に書きます。</p>
 
-    <pre class="code">package Proj::DB::Schema;
+    <pre class="code prettyprint">package Proj::DB::Schema;
 use strict;
 use warnings;
 use Teng::Schema::Declare;
@@ -50,7 +50,7 @@ table {
 <p>table毎にtableブロックを作成し、table名、pk、columnsなどを設定します。<br />
 Teng::Schema::Declareの実装はなかなかhackishなので、興味のある人は見てみるといいと思います。</p><p>Schemaクラスを作成したら次にTengを継承したクラスを作成します。</p>
 
-    <pre class="code">package Proj::DB;
+    <pre class="code prettyprint">package Proj::DB;
 use parent &#39;Teng&#39;;
 1;</pre>
 <p>通常はTengを継承するだけでOKです。</p><p>Tengでは利用者が独自に拡張するコード置き場としてTeng::Plugin::というnamespaceがありますが<br />
@@ -62,7 +62,7 @@ Pluginの詳細については後々紹介します。</p><br />
 <p>これでTengを使ってdb操作する準備は完了です。<br />
 明日以降はこれをベースに話をすすめます。</p><p>なお定義したProj::DBは以下のようにしてインスタンス化します。</p>
 
-    <pre class="code">use strict;
+    <pre class="code prettyprint">use strict;
 use warnings;
 use Proj::DB;
  

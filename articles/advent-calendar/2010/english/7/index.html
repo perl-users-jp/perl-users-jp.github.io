@@ -14,22 +14,22 @@
 
         <p>Here is a string `"Hello, world!^["' that containing escape character. How can I remove escape character from this string? Let's get start it.</p><p>Note: raw escape char cannot see in web browser, so in this article I use two-bytes string `^[' as a single-byte escape char.</p><p>First way, put escape char literally in regexp.</p>
 
-    <pre class="code lang-perl">    my $str = &#34;Hello, world!^[&#34;;
+    <pre class="code prettyprint lang-perl">    my $str = &#34;Hello, world!^[&#34;;
     $str =~ s/^[//;</pre>
 <p>This is ok, but this way isn't copy-and-paste friendly.</p><p>Second way, use octal/hex char instead of raw escape sequence.</p>
 
-    <pre class="code lang-perl">    my $str = &#34;Hello, world!^[&#34;;
+    <pre class="code prettyprint lang-perl">    my $str = &#34;Hello, world!^[&#34;;
     $str =~ s/\x1B//;            # \x1B is escape char</pre>
 
-    <pre class="code lang-perl">    my $str = &#34;Hello, world!^[&#34;;
+    <pre class="code prettyprint lang-perl">    my $str = &#34;Hello, world!^[&#34;;
     $str =~ s/\033//;            # \033 is escape char</pre>
 <p>These are also ok, but I think `\x1B' and `\033' are bit unreadable.</p><p>Third way, use POSIX character class `[[:print:]]'.</p>
 
-    <pre class="code lang-perl">    my $str = &#34;Hello, world!^[&#34;;
+    <pre class="code prettyprint lang-perl">    my $str = &#34;Hello, world!^[&#34;;
     $str =~ s/[^[:print:]]//;</pre>
 <p>Good. This is more readable than second way.</p><p>POSIX character classes looks like `[:name:]'. `[:' and `:]' are delimiter. `name' is self-descriptive. POSIX character classes are only available in bracketed character class. So valid regexp has continuous brackets looks like `[[:print:]]'.</p><p>POSIX character classes are just sets of characters, similar to a bracketed character class like `[aiueo]'. You can use POSIX character classes with any other parts of normal characters and meta characters.</p>
 
-    <pre class="code lang-perl">    /[[:alpha:]]/;      # matches all of alphabet characters, same as [a-zA-Z].
+    <pre class="code prettyprint lang-perl">    /[[:alpha:]]/;      # matches all of alphabet characters, same as [a-zA-Z].
     /[cntrl[:cntrl:]]/; # matches control characters and five lower case alphabets `c&#39;, `n&#39;, `t&#39;, `r&#39;, `l&#39;.
     /[^[:print:]]/;     # negation of [[:print:]], matches all non-printable characters.</pre>
 <p>For more details, see <a href="http://perldoc.perl.org/perlre.html">perlre</a> and <a href="http://perldoc.perl.org/perlrecharclass.html">perlrecharclass</a>.</p><p>Kensuke Kaneko (<a href="http://twitter.com/kyanny">@kyanny</a>)</p>

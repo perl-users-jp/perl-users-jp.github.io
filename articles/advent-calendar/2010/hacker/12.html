@@ -33,7 +33,7 @@ loopでそのメソッドを呼び出しまくるとその分<a href="http://sea
 型の指定はいらない。<br />
 hashrefで渡した引数をhashrefで受け取るようにし、初心者が混乱するようなマジカルな事をしない。</p><p>というのを前提でつくりました。</p><p>こんな感じでつかいます。</p>
 
-    <pre class="code">package Proj::Api::User;
+    <pre class="code prettyprint">package Proj::Api::User;
 use Sub::Args;
 
 sub new { bless {}, +shift }

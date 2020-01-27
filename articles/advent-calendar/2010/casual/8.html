@@ -17,7 +17,7 @@
 <div class="section">
     <h4>Perlコード側</h4>
     
-    <pre class="code lang-perl">
+    <pre class="code prettyprint lang-perl">
 use Text::Xslate;
 use Hash::MultiValue;
 my $tx = Text::Xslate-&gt;new();
@@ -38,9 +38,9 @@ $tx-&gt;render(&#39;foo.tx&#39;, $var);
     <h4>基本</h4>
     <p>Kolonのコードはテンプレート中に以下の二種類の方法によって記述できます。</p>
 
-    <pre class="code lang-perl">&lt;: kolon-code :&gt;</pre>
+    <pre class="code prettyprint lang-perl">&lt;: kolon-code :&gt;</pre>
 
-    <pre class="code lang-perl">: kolon-code</pre>
+    <pre class="code prettyprint lang-perl">: kolon-code</pre>
 <p>前者は&lt;:と:&gt;の間にコードが書けます。後者は:から行を始めることによってその行全体がコードになります。この書き方ができるのはTTerseに対するメリットですね!</p><p></p>
 
 </div>
@@ -48,7 +48,7 @@ $tx-&gt;render(&#39;foo.tx&#39;, $var);
     <h4>変数の出力</h4>
     <p>ハッシュ、配列の要素へのアクセスやオブジェクトのメソッド呼び出しが当然のように可能です。</p>
 
-    <pre class="code lang-perl">
+    <pre class="code prettyprint lang-perl">
 &lt;: $foo :&gt; &lt;!-- xslate --&gt;
 &lt;: $bar.baz :&gt; &lt;!-- 111 --&gt;
 &lt;: $bar[bazbaz] :&gt; &lt;!-- 112 --&gt;
@@ -59,7 +59,7 @@ $tx-&gt;render(&#39;foo.tx&#39;, $var);
 <p>こんな感じですね。Kolon特有の話ではないですがXslateではデフォルトで<br />
 出力される値はhtml-escapeされます。メールなどに使う場合でescapeしたくない場合は</p>
 
-    <pre class="code lang-perl">my $tx = Text::Xslate-&gt;new(type =&gt; &#39;text&#39;);</pre>
+    <pre class="code prettyprint lang-perl">my $tx = Text::Xslate-&gt;new(type =&gt; &#39;text&#39;);</pre>
 <p>のようにするとよいです。</p><p></p>
 
 </div>
@@ -67,7 +67,7 @@ $tx-&gt;render(&#39;foo.tx&#39;, $var);
     <h4>条件制御</h4>
     <p>if-elsif-elseとgiven-whenが使えます。</p>
 
-    <pre class="code lang-perl">
+    <pre class="code prettyprint lang-perl">
 : if $foo == &#39;xslate&#39; {
     xslate!
 : } elsif $bar.baz == &#39;111&#39; {
@@ -88,7 +88,7 @@ $tx-&gt;render(&#39;foo.tx&#39;, $var);
     <h4>ループ制御</h4>
     <p>forとwhileが使えます。</p>
 
-    <pre class="code lang-perl">: for $bar -&gt; $item {
+    <pre class="code prettyprint lang-perl">: for $bar -&gt; $item {
     &lt;: $item :&gt;
 :
 : while $itr.next() -&gt; $item {
@@ -96,15 +96,15 @@ $tx-&gt;render(&#39;foo.tx&#39;, $var);
 :</pre>
 <p>for文では</p>
 
-    <pre class="code lang-perl">&lt;: $~item.index :&gt;</pre>
+    <pre class="code prettyprint lang-perl">&lt;: $~item.index :&gt;</pre>
 <p>のように書くことによってループインデックスが取得できます。他にはcycleというのがあってこれが結構便利です。</p>
 
-    <pre class="code lang-perl">: for $baz -&gt; $item {
+    <pre class="code prettyprint lang-perl">: for $baz -&gt; $item {
     &lt;tr class=&#34;&lt;: $~item.cycle(&#39;even&#39;, &#39;odd&#39;) :&gt;&#34;&gt;&lt;td&gt;&lt;: $item :&gt;&lt;/td&gt;&lt;/tr&gt;
 : }</pre>
 <p>のように書くと</p>
 
-    <pre class="code lang-perl">&lt;tr class=&#34;even&#34;&gt;&lt;td&gt;5&lt;/td&gt;&lt;/tr&gt;
+    <pre class="code prettyprint lang-perl">&lt;tr class=&#34;even&#34;&gt;&lt;td&gt;5&lt;/td&gt;&lt;/tr&gt;
 &lt;tr class=&#34;odd&#34;&gt;&lt;td&gt;6&lt;/td&gt;&lt;/tr&gt;
 &lt;tr class=&#34;even&#34;&gt;&lt;td&gt;7&lt;/td&gt;&lt;/tr&gt;</pre>
 <p>のように出力されます。よくあるtableの1行毎に色を変える等の処理に使えます。</p>
@@ -114,18 +114,18 @@ $tx-&gt;render(&#39;foo.tx&#39;, $var);
     <h4>カスケード</h4>
     <p>Kolonの特徴のひとつであるカスケードです。テンプレートを継承して、定義されている一部を書き換えて表示することができます。</p><p>base.txという継承元を作成し</p>
 
-    <pre class="code lang-perl">head
+    <pre class="code prettyprint lang-perl">head
 : block main -&gt; {}
 foot</pre>
 <p>以下のようにfoot.txでbase.txを継承した上でmain blockの部分に挿し込みができます。</p>
 
-    <pre class="code lang-perl">: cascade base
+    <pre class="code prettyprint lang-perl">: cascade base
 : around main -&gt; {
     content!
 : }</pre>
 <p>上記の出力は以下のようになります。</p>
 
-    <pre class="code lang-perl">head
+    <pre class="code prettyprint lang-perl">head
     content!
 foot</pre>
 <p>12月9日になってしまいそうなのでここらへんにしておきます。<br />
@@ -142,7 +142,7 @@ foot</pre>
     <h4>おまけ</h4>
     <p>Kolon限定の話ではなく、Text::Xslateの話なのですがちょっとしたtipsを紹介します。</p><p>production環境においてのXslateのcacheはみなさん2にしておられると思うのですが、その際preforkなアプリケーションサーバを使っている場合に以下のall_cache_txのようなメソッドにfork前に$txを渡しておくとよいです。</p>
 
-    <pre class="code lang-perl">sub all_cache_tx {
+    <pre class="code prettyprint lang-perl">sub all_cache_tx {
     my $tx = shift;
     my $env = $ENV{PLACK_ENV} || &#39;development&#39;;
 
@@ -173,7 +173,7 @@ sub all_cache_remove_tx {
 }</pre>
 <p>all_cache_txは$txで読み込まれる可能性のあるテンプレートファイルをすべてキャッシュにロードします。その後forkするとCopy On Write的にうれしい感じになると思います。</p><p>また、_all_cache_remove_txは、すべてのコンパイル済みファイルを削除しています。cache => 2でコンパイル済みファイルがあるとインスタンス生成後1回目の呼び出しであっても無条件にコンパイル済みファイルを使用してしまうためこのように最初にすべて削除しています。</p><p>更新のあったファイルに関連するテンプレートのコンパイル済みファイルのみを削除するほうがスマートだと思いますが面倒なのですべてけしているという感じす。</p>
 
-</div>HASH(0x55c176590be0)
+</div>HASH(0x55809a8efd08)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

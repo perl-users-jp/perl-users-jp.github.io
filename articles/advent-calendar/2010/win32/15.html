@@ -14,7 +14,7 @@
 
         <p>こんにちはこんにちは、1日仕事を休んだらすっかり土曜日気分になってしまった<a href="http://twitter.com/turugina">turugina</a>です。</p><p>さて、今回は、Windowsにおいて、記憶デバイス(HDDやCDROM等)の制御を行ってくれるAPIのwrapperを提供してくれる<a href="http://search.cpan.org/dist/Win32API-File">Win32API::File</a>を使ったサンプルを紹介したいと思います。</p><p>というわけで、いきなりコードですが</p>
 
-    <pre class="code lang-perl"># eject.pl
+    <pre class="code prettyprint lang-perl"># eject.pl
 use strict;
 use warnings;
 
@@ -63,7 +63,7 @@ for my $d ( @cddrives ) {
 <p>こんな感じで、引数に何も指定せずに実行すると全ての光学ドライブを、引数でドライブを指定するとそれが光学ドライブであればイジェクトしてまわります。</p><p>このスクリプトの使い道ですが、日常使いの他、ちょっとコードを書き足して<a href="http://0xcc.net/cdbiff/">メールを受信したらトレイを排出する</a>とかTwitterでmentions_timelineやdirect messagesに新しいメッセージが来たらトレイを排出するとか、トレイの前にピタゴラ装置的な物をこしらえて楽しむとか、色々考えられますね！</p><p>ちなみに、Unix系OSにはejectコマンドというものがあって、これで光学ドライブやフロッピーなどのイジェクトを行えるようになっています。もし↑のスクリプトで光学ドライブ以外にイジェクトしたいものがあれば、<a href="http://msdn.microsoft.com/ja-jp/library/cc429310.aspx">GetDriveType API</a>の戻り値チェックでDRIVE_REMOVABLEも候補に入れてあげれば良いでしょう。(多分(ぇ</p><br />
 <p><hr /></p><p>と、ここまで書いてきましたが、実は上記のスクリプト相当のものは<a href="http://search.cpan.org/dist/SDL/">SDL</a>というモジュールをインストールすれば、</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 
 use SDL;

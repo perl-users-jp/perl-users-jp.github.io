@@ -21,7 +21,7 @@
 <br />
 <p><h2>Lesson1 ドキュメントやバージョンに着目する</h2></p><p>例えば<a href="http://search.cpan.org/dist/Acme-Pr0n/">Acme::Pr0n</a>について見てみましょう。pr0nってporn（ポルノ）の隠語ですね。このモジュールは他のモジュールの中身を露わにしようというものなんです。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use MyFunnyModule;
 use Acme::Pr0n qw( MyFunnyModule );
 
@@ -38,11 +38,11 @@ hello(); # ←MyFunnyModuleの関数が晒された！</pre>
 <br />
 <p><h2>Lesson2 コード内で使われてる名前に着目する</h2></p><p>さて、何しろAcmeのことですから、内部だけで使用されているサブルーチンの名前なども面白いものがあったりします。例えば<a href="http://search.cpan.org/dist/Acme-Phlegethoth/">Acme::Phlegethoth</a>。下記はドキュメントのSYNOPSISからの引用です。</p>
 
-    <pre class="code lang-perl">use Acme::Phlegethoth;
+    <pre class="code prettyprint lang-perl">use Acme::Phlegethoth;
 print &#34;goodbye, world!\n&#34;;</pre>
 <p>すると</p>
 
-    <pre class="code lang-perl">use Acme&#39;Phlegethoth;
+    <pre class="code prettyprint lang-perl">use Acme&#39;Phlegethoth;
 ia ia!  mnahN&#39; NAflHriI R&#39;LuHnyTh BUgoR SLl&#39;HAog gOf&#39;NN Hai ron
 gOf&#39;nn Nnn&#39;aIog FHTagN LlLL YHlIRgHOG GoF&#39;Nn naCh&#39;!  nNNvuLgtlAGlN
 thROD!  PhLeGetH StelL&#39;BsNaoth sll&#39;Ha!  aH NAfL&#39;AIyAR H&#39;EbUMna
@@ -50,16 +50,16 @@ HliRGHog eHYeOG nnnSgn&#39;WAhL fm&#39;laTgh ah ILYaA h&#39;zHRO iLYaa
 H&#39;gnaIihNYtH EBumnA s&#39;Uhnor [Text ends abruptly.]</pre>
 <p>とまあ、宇宙的恐怖に苛まれるコードに変換してくれる<a href="http://search.cpan.org/dist/Acme-Bleach/">Acme::Bleach</a>系モジュールなのですが、このモジュールのコードを覗いてみると、</p>
 
-    <pre class="code lang-perl">sub roll_sanity_check { &amp;see }</pre>
+    <pre class="code prettyprint lang-perl">sub roll_sanity_check { &amp;see }</pre>
 <p>という具合になっています。これは「<a href="http://ja.wikipedia.org/wiki/%E3%82%AF%E3%83%88%E3%82%A5%E3%83%AB%E3%83%95%E3%81%AE%E5%91%BC%E3%81%B3%E5%A3%B0">クトゥルフの呼び声</a>」というTRPGで有名なSANチェック（恐ろしいモノに遭遇した時にサイコロを振って正気度をチェックする）を表してます。この手のゲームが好きな人はニヤリとなるわけです（クトゥルゥーを知らない方、ごめんんさい）。変数名の方も</p>
 
-    <pre class="code lang-perl">my $hear_me   = &#34;ia ia! &#34;;</pre>
+    <pre class="code prettyprint lang-perl">my $hear_me   = &#34;ia ia! &#34;;</pre>
 <p>になってたり。</p><p>もちろん、Acmeモジュールにはこういった表には出てこない面白い関数名や変数名がまだまだたくさんあります！</p><p>このお正月は自分だけのお気に入りの名前を探してみては如何でしょうか。</p><br />
 <br />
 <br />
 <p><h2>Lesson3 モジュールの返り値に着目する</h2></p><p>賢明な視聴者の皆様の中には、Lesson2から導き出される結論として、モジュールの返り値も何かあるんじゃないの？　と感づかれた方もいらっしゃるのではないでしょうか？</p><p>そうなんです！　モジュールファイルの最後の行に通常書かれている</p>
 
-    <pre class="code lang-perl">1;</pre>
+    <pre class="code prettyprint lang-perl">1;</pre>
 <p>は、真値なら何でもいいわけですから、当然、Acme的なモノがあるはずです！</p><p>でもどんな値があったか覚えていないんです！　今これを書いてるのが1日の夜の2時で調べる気力もないんです！</p><p>どうしよう！？<br />
 ・<br />
 ・<br />
@@ -75,7 +75,7 @@ H&#39;gnaIihNYtH EBumnA s&#39;Uhnor [Text ends abruptly.]</pre>
 <br />
 <p></p>
 
-    <pre class="code lang-perl">use 5.010;
+    <pre class="code prettyprint lang-perl">use 5.010;
 use Acme::ReturnValue;
 my $arv = Acme::ReturnValue-&gt;new;
 
@@ -110,7 +110,7 @@ Ok, this is the Japan Perl advent calendar for Acme. It's show time!</p><p>Today
 <p><h2>Lesson1 Check Acme documents and versions</h2></p><p>For example, let's see <a href="http://search.cpan.org/dist/Acme-Pr0n/">Acme::Pr0n</a>.<br />
 pr0n is a leet word. This module exposes other modules contents.</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use MyFunnyModule;
 use Acme::Pr0n qw( MyFunnyModule );
 
@@ -136,11 +136,11 @@ Ah, I forgot to say... Acme::Pr0n version is 0.04. Oh terrible!</p><br />
 <p><h2>Lesson2 Check the names using in code</h2></p><p>Because Acmes are so interesting that they hold interesting subroutin names and variables.<br />
 <a href="http://search.cpan.org/dist/Acme-Phlegethoth/">Acme::Phlegethoth</a> for example (Below codes are from SYNOPSIS.)</p>
 
-    <pre class="code lang-perl">use Acme::Phlegethoth;
+    <pre class="code prettyprint lang-perl">use Acme::Phlegethoth;
 print &#34;goodbye, world!\n&#34;;</pre>
 <p>then</p>
 
-    <pre class="code lang-perl">use Acme&#39;Phlegethoth;
+    <pre class="code prettyprint lang-perl">use Acme&#39;Phlegethoth;
 ia ia!  mnahN&#39; NAflHriI R&#39;LuHnyTh BUgoR SLl&#39;HAog gOf&#39;NN Hai ron
 gOf&#39;nn Nnn&#39;aIog FHTagN LlLL YHlIRgHOG GoF&#39;Nn naCh&#39;!  nNNvuLgtlAGlN
 thROD!  PhLeGetH StelL&#39;BsNaoth sll&#39;Ha!  aH NAfL&#39;AIyAR H&#39;EbUMna
@@ -148,18 +148,18 @@ HliRGHog eHYeOG nnnSgn&#39;WAhL fm&#39;laTgh ah ILYaA h&#39;zHRO iLYaa
 H&#39;gnaIihNYtH EBumnA s&#39;Uhnor [Text ends abruptly.]</pre>
 <p>What a cosmic horror code!! Help me! ... yes it's an <a href="http://search.cpan.org/dist/Acme-Bleach/">Acme::Bleach</a> like module.</p><p>Look into the module code...</p>
 
-    <pre class="code lang-perl">sub roll_sanity_check { &amp;see }</pre>
+    <pre class="code prettyprint lang-perl">sub roll_sanity_check { &amp;see }</pre>
 <p>Ok, this is the "roll sanity check" in RPG game "Call of Cthulhu". <br />
 And a variable is</p>
 
-    <pre class="code lang-perl">my $hear_me   = &#34;ia ia! &#34;;</pre>
+    <pre class="code prettyprint lang-perl">my $hear_me   = &#34;ia ia! &#34;;</pre>
 <p>There are of cause a lot of nice name inner functions and variables!</p><p>Well, in this winter vacation, would you like to seek your own favorite names?</p><br />
 <br />
 <br />
 <p><h2>Lesson3 Check a return value from a module</h2></p><p>Now, we arrive at one conclusion by Lesson2.<br />
 Ummm....perhaps, return values are interesting too?</p><p>Yes! the return value</p>
 
-    <pre class="code lang-perl">1;</pre>
+    <pre class="code prettyprint lang-perl">1;</pre>
 <p>written in last script line is anyting good if it is true value.<br />
 So Acme values exist!</p><p>However I don't remember them... and I'm so sleepy!</p><p>What do I do?<br />
 .</p>
@@ -174,7 +174,7 @@ A famous word in ancient Rome.</p><br />
 <br />
 <p></p>
 
-    <pre class="code lang-perl">use 5.010;
+    <pre class="code prettyprint lang-perl">use 5.010;
 use Acme::ReturnValue;
 my $arv = Acme::ReturnValue-&gt;new;
 

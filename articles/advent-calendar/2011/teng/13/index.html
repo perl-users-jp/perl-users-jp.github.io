@@ -34,7 +34,7 @@ table/primary_keys/columns/row_classなどのアクセサでtable名/プライ�
 Tengではtable毎にinflate/deflateの定義を書く必要があり、若干めんどくさかったりもします。<br />
 ここではそれを解消する一例を載せておきたいと思います。</p>
 
-    <pre class="code">for my $table_name (keys %{$teng-&gt;schema-&gt;tables}) {
+    <pre class="code prettyprint">for my $table_name (keys %{$teng-&gt;schema-&gt;tables}) {
     my $table = $teng-&gt;schema-&gt;get_table($table_name);
     $table-&gt;add_inflator(&#39;name&#39; =&gt; sub { warn Dumper \@_; });
     $table-&gt;add_deflator(&#39;name&#39; =&gt; sub { warn Dumper \@_; });

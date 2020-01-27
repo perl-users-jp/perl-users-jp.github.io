@@ -14,7 +14,7 @@
 
         <p>諸事情あって日曜日に喫茶店でこの記事を書いてる(あれ?)kanです。この喫茶店は談笑するおばちゃんが多いので下手すると一般的なマックより騒がしいです……。</p><p>昨日までで、URLにアクセスするとそれに応じたページを表示することが出来るようになりました。そこで、trackのURL(/2010/sample/ のような)にアクセスすると、12月の25日までの日を表示するようにしてみます。</p><p>perlでの日付処理は、Time::Piece、もしくはDateTimeが一般的です。今回はDateTimeの出番になりそうな複雑な処理は登場しないだろうと思うので、Time::Pieceを使います。</p>
 
-    <pre class="code lang-perl">my $t = Time::Piece-&gt;strptime(&#34;$year/12/01&#34;, &#39;%Y/%m/%d&#39;);
+    <pre class="code prettyprint lang-perl">my $t = Time::Piece-&gt;strptime(&#34;$year/12/01&#34;, &#39;%Y/%m/%d&#39;);
 
 while ( $t-&gt;mday &lt;= 25 ) {
     push @entries, Time::Piece-&gt;new($t);
@@ -22,11 +22,11 @@ while ( $t-&gt;mday &lt;= 25 ) {
 }</pre>
 <p>これで、@entriesには12/1〜12/25までのTime::Pieceのオブジェクトが入ります。Time::Piece->new($t)してるのは、値の同じな別のオブジェクトを作るためですね。そのまま$tをpushしてると全部が12/26の日付のオブジェクトになってしまいます。</p><p>日付の一覧では、「記事が存在している」「記事の日付が過去(あるいは当日)のもの」のみにリンクを張るよにします(アドベントカレンダーなので!!)。これを満たすコードは以下のような感じになります。</p>
 
-    <pre class="code lang-perl">my $exists = (-e file($root, $t-&gt;ymd . &#39;.txt&#39;)) &amp;&amp;
+    <pre class="code prettyprint lang-perl">my $exists = (-e file($root, $t-&gt;ymd . &#39;.txt&#39;)) &amp;&amp;
              ($now-&gt;year &gt; $year || $t-&gt;year &lt;= $now-&gt;yday) ? 1 : 0;</pre>
 <p>$existsが1の時のみ、リンクを張れば良いことになります。$nowには現在時刻のTime::Pieceオブジェクトが入ると思ってください。</p><p>一覧が出来たら、各記事を表示する処理を作ります。日付が分かればファイルの位置も分かるので、ファイルを読み出してみます。Path::Classを使うとファイルの操作周りの処理が簡単なので利用します。</p>
 
-    <pre class="code lang-perl">my $file = file($root, $t-&gt;ymd . &#39;.txt&#39;);
+    <pre class="code prettyprint lang-perl">my $file = file($root, $t-&gt;ymd . &#39;.txt&#39;);
 if (-e $file) {
     my $text = $file-&gt;slurp(iomode =&gt; &#39;&lt;:utf8&#39;);
     my ($title, $body) = split(&#34;\n\n&#34;, $text, 2);

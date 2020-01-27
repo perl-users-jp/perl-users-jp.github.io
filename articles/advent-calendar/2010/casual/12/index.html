@@ -23,7 +23,7 @@
 <li><a href="http://www.webcreatorbox.com/tech/css-sprite/" title="CSSスプライトで画像を円滑に表示させる | Webクリエイターボックス">CSSスプライトで画像を円滑に表示させる | Webクリエイターボックス</a></li>
 </ul><p>私もナビゲーション・メニュー画像（言い方古い？）をはじめ，マウスオーバーで変化するような画像なんかで，この手法を使っています．</p><p>しかしまぁ，この「CSS Sprite」，素材画像をまとめるための作業（デザイナさんから渡された「デザイン重視」なデータを「素材重視」に加工したり云々）や，各画像のサイズの把握，そして次のようなCSSの記述，中でも，画像のサイズから <code>background-position</code> の計算，などなど，けっこうメンドクサイです．</p>
 
-    <pre class="code lang-css">#navi ul li {
+    <pre class="code prettyprint lang-css">#navi ul li {
   width: ...;
   height: ...;
 }
@@ -66,7 +66,7 @@
     <h5>Image::Size</h5>
     <p>画像の幅・高さを取得してくれます．</p>
 
-    <pre class="code lang-perl">use Image::Size;
+    <pre class="code prettyprint lang-perl">use Image::Size;
 
 my ($width, $height) = imgsize(&#39;/path/to/image.png&#39;);</pre>
 
@@ -75,7 +75,7 @@ my ($width, $height) = imgsize(&#39;/path/to/image.png&#39;);</pre>
     <h5>Image::Imlib2</h5>
     <p>画像をいろいろ加工してくれます．</p>
 
-    <pre class="code lang-perl">use Image::Imlib2;
+    <pre class="code prettyprint lang-perl">use Image::Imlib2;
 
 my $img_base = Image::Imlib2-&gt;new(100, 100);
 my $img_load = Image::Imlib2-&gt;load(&#39;/path/to/image.png&#39;);
@@ -101,7 +101,7 @@ $img_base-&gt;save(&#39;/path/to/image_saved.png&#39;);  # 保存</pre>
     <h5>HTML</h5>
     <p>よくある<code>ul</code>表記でのナビゲーションを考えます．</p>
 
-    <pre class="code lang-html">&lt;div id=&#34;navi&#34;&gt;
+    <pre class="code prettyprint lang-html">&lt;div id=&#34;navi&#34;&gt;
   &lt;ul&gt;
     &lt;li id=&#34;a1&#34;&gt;&lt;a href=&#34;#&#34;&gt;acme&lt;/a&gt;&lt;/li&gt;
     &lt;li id=&#34;b1&#34;&gt;&lt;a href=&#34;#&#34;&gt;casual&lt;/a&gt;&lt;/li&gt;
@@ -130,7 +130,7 @@ $img_base-&gt;save(&#39;/path/to/image_saved.png&#39;);  # 保存</pre>
 <li>どの画像をどのCSSセレクタに対応させるか</li>
 </ul><p>のような情報を定義します．</p><p>試行錯誤の結果，次のようにすると多少汎用的にできそうな予感です．</p>
 
-    <pre class="code lang-perl">my $m = {
+    <pre class="code prettyprint lang-perl">my $m = {
     # background-image プロパティを共有する部分の定義
     base =&gt; {
         selector =&gt; &#39;#navi ul li% a%&#39;,
@@ -184,7 +184,7 @@ $img_base-&gt;save(&#39;/path/to/image_saved.png&#39;);  # 保存</pre>
 <div class="section">
     <h5>前提</h5>
     
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use Image::Size;
 use Image::Imlib2;
@@ -198,7 +198,7 @@ my @css;       # CSS</pre>
 <div class="section">
     <h5>マニフェストファイルを読み込む</h5>
     
-    <pre class="code lang-perl">$manifest = do &#34;${target}/_manifest.pl&#34;  or die $!;</pre>
+    <pre class="code prettyprint lang-perl">$manifest = do &#34;${target}/_manifest.pl&#34;  or die $!;</pre>
 <p>な感じで読み込みます．</p><p>ちなみにこの手法，このエントリを書いたり動作確認したりするためにcloneした <a href="https://github.com/p5-app-adventcalendar">App::AdventCalendar</a>の中を見て初めて知りました．</p><br />
 <p></p>
 
@@ -207,7 +207,7 @@ my @css;       # CSS</pre>
     <h5>対象画像を走査する</h5>
     <p>マニフェストで対象になっている画像について，順に見ていきます．この段階で，各「段」における画像の幅の合計値や最大高さを基に，連結画像のサイズを計算したりします．</p>
 
-    <pre class="code lang-perl">my ($sprite_width, $sprite_height) = (0, 0);  # 連結画像の幅・高さ
+    <pre class="code prettyprint lang-perl">my ($sprite_width, $sprite_height) = (0, 0);  # 連結画像の幅・高さ
 my ($x, $y) = (0, 0);
 
 my $w_sum_max = 0;  # 各「段」の画像幅合計値のうち最大の物
@@ -253,7 +253,7 @@ for my $l (@{ $manifest-&gt;{images} }) {
     <h5>画像を連結する</h5>
     <p>連結画像のサイズや，連結対象の各画像をどのように連結するかの情報が揃ったので，これらを基に，実際に画像処理を行い，最後に出力します．</p>
 
-    <pre class="code lang-perl">my $img_sprite = Image::Imlib2-&gt;new($sprite_width, $sprite_height);
+    <pre class="code prettyprint lang-perl">my $img_sprite = Image::Imlib2-&gt;new($sprite_width, $sprite_height);
 
 for my $i (@image) {
     # 対象画像1つ1つを，連結画像に合成していく
@@ -271,7 +271,7 @@ for my $i (@image) {
     <h5>連結画像を出力する</h5>
     <p>あとはできあがった画像を出力するだけ．</p>
 
-    <pre class="code lang-perl">$img_sprite-&gt;save(&#39;/path/to/csssprite.png&#39;);</pre>
+    <pre class="code prettyprint lang-perl">$img_sprite-&gt;save(&#39;/path/to/csssprite.png&#39;);</pre>
 <p>今回定義したマニフェストの下では，次のように生成されます．</p><p><a href="http://www.flickr.com/photos/issm/5253898840/" title="2010-12-12-02 by issm, on Flickr"><img src="http://farm6.static.flickr.com/5204/5253898840_101c2dcb71.jpg" width="485" height="151" alt="2010-12-12-02" /></a></p><br />
 <p></p>
 
@@ -280,7 +280,7 @@ for my $i (@image) {
     <h5>CSSを生成・出力する</h5>
     <p>残るはCSSです．</p>
 
-    <pre class="code lang-perl">if (defined $manifest-&gt;{base}) {
+    <pre class="code prettyprint lang-perl">if (defined $manifest-&gt;{base}) {
    # $manifest-&gt;{base}{selector}, $manifest-&gt;{base}{props}
    # を基にCSSの書式に整形する
    my $css = ...
@@ -294,7 +294,7 @@ print $fh, $css_out;
 close $fh;</pre>
 <p>一部，というかけっこう端折りましたが，今回のマニフェストの下では，次のように生成されます．</p>
 
-    <pre class="code lang-css">#navi ul li a {
+    <pre class="code prettyprint lang-css">#navi ul li a {
   background-image: url(./csssprite.png);
   display: block;
   width: 160px;
@@ -335,13 +335,13 @@ close $fh;</pre>
 <li><a href="https://github.com/issm/p5-Image-CSSSprite" title="issm/p5-Image-CSSSprite - GitHub">issm/p5-Image-CSSSprite - GitHub</a></li>
 </ul><p>Image::CSSSpriteを使ったスクリプトの例です．</p>
 
-    <pre class="code lang-zsh"># /path/to/img/_manifest.pl を読む
+    <pre class="code prettyprint lang-zsh"># /path/to/img/_manifest.pl を読む
 % /path/to/script.pl --target /path/to/imgs --img csssprite.png --css csssprite.css
 # 任意のマニフェストを読む
 % /path/to/script.pl --target /path/to/imgs --manifest /path/to/manifest.pl --img csssprite.png --css csssprite.css</pre>
 <p>といった感じで，コマンドラインでCSS Spriteできます．</p>
 
-    <pre class="code lang-perl">#!/usr/bin/env perl
+    <pre class="code prettyprint lang-perl">#!/usr/bin/env perl
 use strict;
 use warnings;
 use FindBin;

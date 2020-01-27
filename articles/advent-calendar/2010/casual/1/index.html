@@ -24,7 +24,7 @@ Windowsの場合はわかりません。きっとWin32トラックの人が書�
 バージョンの切り替えもできるので、複数のバージョンが混在する環境でモジュールを評価したいときにも便利です。<br />
 また、いろいろ試している途中で設定状況がよくわからなくなってしまった場合はディレクトリを丸ごと削除すればそれでなかったことにできるので、Perlの学習をするにも最適なのではと思います。</p><p>セットアップ方法は簡単</p>
 
-    <pre class="code">$ curl -LO http://xrl.us/perlbrew
+    <pre class="code prettyprint">$ curl -LO http://xrl.us/perlbrew
 $ perl perlbrew install
 $ rm perlbrew
 $ ~/perl5/perlbrew/bin/perlbrew init
@@ -33,7 +33,7 @@ $ source ~/.bashrc</pre>
 <p>ここまでで、perlbrewを使うお膳立ては整いました。<br />
 現時点でのPerlの最新安定版は5.12.2なので、それをインストールしてみます。</p>
 
-    <pre class="code">$ perlbrew install perl-5.12.2
+    <pre class="code prettyprint">$ perlbrew install perl-5.12.2
 $ perlbrew switch perl-5.12.2
 $ perl -v
 
@@ -57,18 +57,18 @@ Internet, point your browser at http://www.perl.org/, the Perl Home Page.</pre>
     <h4>cpanm</h4>
     <p>perlをswitchすると、付随するcpanコマンドも下記のようにperlbrewでインストールしたものが使われます。</p>
 
-    <pre class="code">$ which cpan 
+    <pre class="code prettyprint">$ which cpan 
 ~/perl5/perlbrew/perls/perl-5.12.2/bin/cpan</pre>
 <p>が、貧弱なサーバ環境の場合cpanコマンドが重たすぎたり、そもそも実行が遅いなどあまりいい事がありません。<br />
 2010年代には軽量版のcpanmがありますので、そちらを使いましょう。</p><p>インストールは簡単</p>
 
-    <pre class="code">$ curl -L http://cpanmin.us | perl - App::cpanminus
+    <pre class="code prettyprint">$ curl -L http://cpanmin.us | perl - App::cpanminus
 $ which cpanm
 ~/perl5/perlbrew/perls/perl-5.12.2/bin/cpanm</pre>
 <p>これだけで、上記のようにcpnamコマンドが入ります。<br />
 使い方も簡単</p>
 
-    <pre class="code">$ cpanm Acme
+    <pre class="code prettyprint">$ cpanm Acme
 $ ls ~/perl5/perlbrew/perls/perl-5.12.2/lib/site_perl/5.12.2/
 Acme.pm  App  Bundle  File  HTML  HTTP  LWP  LWP.pm  Net  Spiffy.pm  URI URI.pm  WWW  lwpcook.pod  lwptut.pod  x86_64-linux</pre>
 <p>これだけで、perlbrewで仕立てたperlの中にモジュールが入ってくれます。</p>
@@ -80,13 +80,13 @@ Acme.pm  App  Bundle  File  HTML  HTTP  LWP  LWP.pm  Net  Spiffy.pm  URI URI.pm 
 それがpm-uninstallです。</p><p>pm-uninstallを入れると、コマンド一発でモジュールを消せるのでとってもお手軽ですね。<br />
 インストールはcpanmで一発</p>
 
-    <pre class="code">$ cpanm App::pmuninstall
+    <pre class="code prettyprint">$ cpanm App::pmuninstall
 $ which pm-uninstall
 ~/perl5/perlbrew/perls/perl-5.12.2/bin/pm-uninstall</pre>
 <p>だけ。<br />
 使い方も簡単。</p>
 
-    <pre class="code">$ pm-uninstall Acme
+    <pre class="code prettyprint">$ pm-uninstall Acme
 Acme is included in the distribution Acme and contains:
 
   /home/somei/perl5/perlbrew/perls/perl-5.12.2/lib/site_perl/5.12.2/Acme.pm
@@ -103,12 +103,12 @@ App  Bundle  CPAN  File  HTML  HTTP  LWP  LWP.pm  Net  POD2  Spiffy.pm  Test URI
     <p>CPANモジュールは日々改善されているので、最新に簡単に追随できるようにしたいところです。<br />
 そんなときにはcpan-outdatedを使います。</p>
 
-    <pre class="code">$ cpanm App::cpanoutdated
+    <pre class="code prettyprint">$ cpanm App::cpanoutdated
 $ which cpan-outdated
 ~/perl5/perlbrew/perls/perl-5.12.2/bin/cpan-outdated</pre>
 <p>cpan-outdatedコマンドを実行すると、新しいバージョンがあるものについて表示してくれます。</p>
 
-    <pre class="code">$ cpan-outdated
+    <pre class="code prettyprint">$ cpan-outdated
 A/AN/ANDYA/Test-Harness-3.22.tar.gz
 B/BI/BINGOS/Archive-Extract-0.46.tar.gz
 B/BI/BINGOS/Archive-Tar-1.72.tar.gz
@@ -117,7 +117,7 @@ B/BI/BINGOS/Archive-Tar-1.72.tar.gz
 「え、この一覧から手でcpanmしないといけないの！？」と思った人は安心してください。<br />
 下記のようにやれば一発で全部アップデートされます。</p>
 
-    <pre class="code">$ cpan-outdated | cpanm</pre>
+    <pre class="code prettyprint">$ cpan-outdated | cpanm</pre>
 <p>お手軽ですね。</p>
 
 </div>

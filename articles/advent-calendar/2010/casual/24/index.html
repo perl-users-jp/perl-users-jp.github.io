@@ -24,14 +24,14 @@
 <div class="section">
     <h4>Smart::Args のインストール</h4>
     
-    <pre class="code">    cpanm Smart::Args</pre>
+    <pre class="code prettyprint">    cpanm Smart::Args</pre>
 <p>CPANにも上がってるので簡単ですね！</p>
 
 </div>
 <div class="section">
     <h4>Smart::Args の使い方</h4>
     
-    <pre class="code lang-perl">use Smart::Args;
+    <pre class="code prettyprint lang-perl">use Smart::Args;
 sub foo {    
     args my $p =&gt; &#39;Int&#39;,
          my $q =&gt; { isa =&gt; &#39;Int&#39;, optional =&gt; 1 };
@@ -42,7 +42,7 @@ foo(p =&gt; 1); # 1
 foo(p =&gt; 1, q =&gt; 2); # 1, 2</pre>
 <p>これまた簡単！</p><p>例えば、以下のようにすると</p>
 
-    <pre class="code lang-perl">foo(p =&gt; &#39;str&#39;);</pre>
+    <pre class="code prettyprint lang-perl">foo(p =&gt; &#39;str&#39;);</pre>
 <p>以下のように怒られます。</p>
 
 <blockquote >
@@ -57,7 +57,7 @@ isaは、Mouseのtype constraint名か任意のtype constraintオブジェクト
 <a href="http://search.cpan.org/dist/Mouse/lib/Mouse/Util/TypeConstraints.pm#Default_Type_Constraints">Mouse::Util::TypeConstraintsのDefault Type Constraints</a>とかですね。<br />
 URIかどうか確かめたい！という時はこうします。</p>
 
-    <pre class="code lang-perl">use Smart::Args;
+    <pre class="code prettyprint lang-perl">use Smart::Args;
 use MouseX::Types::URI;
 use URI;
 
@@ -68,7 +68,7 @@ sub foo {
 foo(uri =&gt; &#39;http://example.com/&#39;);</pre>
 <p>あらまあ、簡単。</p>
 
-    <pre class="code">use Smart::Args;
+    <pre class="code prettyprint">use Smart::Args;
 use Mouse::Util::TypeConstraints;
 
 my $MyHash = subtype &#39;MyHash&#39;, as &#39;HashRef&#39;;
@@ -88,11 +88,11 @@ foo(p =&gt; [ a =&gt; 42 ] );</pre>
     <h4>バリデーターとして必要な事</h4>
     <p>既存の良く有るバリデータは</p>
 
-    <pre class="code lang-perl">my %args = foo(@_, argname1 =&gt; { ... config ... }, argname2 =&gt; { ...  config... });</pre>
+    <pre class="code prettyprint lang-perl">my %args = foo(@_, argname1 =&gt; { ... config ... }, argname2 =&gt; { ...  config... });</pre>
 <p>のように使う事が良く有るんですが、例えば上の例で argname1 を取ろうとしていて $args{agrnaem1} とか typo してしまうと、 undef の値を使おうとして諸々不都合があります。<br />
 それに対する対策としては <a href="http://blog.nekokak.org/show?guid=xsl-73YN4BGMelT8MCAp_g">Sub::Argsで存在しないキーにアクセスしたらエラーに</a> のように %args に read only のフラグを付けて、存在しない key へのアクセスを抑制するという解決方法も取られていますが、そもそも</p>
 
-    <pre class="code lang-perl">my $argname1 = $args{argname1};</pre>
+    <pre class="code prettyprint lang-perl">my $argname1 = $args{argname1};</pre>
 <p>の用にして使うケースが多数なので、最初っから変数を作った方がよりスマートに書ける。<br />
 その辺はモジュール名で主張してますね。</p>
 

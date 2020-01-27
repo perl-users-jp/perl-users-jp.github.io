@@ -28,7 +28,7 @@
 <li>既存の API と同一のドメインを利用する必要がある</li>
 </ul><p>同時接続 1000 程度の HTTP リクエストなら、社内に転がっている 1U サーバ<a href="#fn1" title="Core2Duo 3GH/Memory 2G 程度">*1</a>一台で十分捌けるだろうし、機器故障に備えて二重化しても二台で十分だろうという予測の元、下記の構成でシステム設計を行いました。</p>
 
-    <pre class="code">[様々な HTTP クライアント] &lt;-&gt; [Apache * N台] &lt;-&gt; [RabbitMQ * 2台] &lt;-&gt; [Perl 製の Worker * 2台]</pre>
+    <pre class="code prettyprint">[様々な HTTP クライアント] &lt;-&gt; [Apache * N台] &lt;-&gt; [RabbitMQ * 2台] &lt;-&gt; [Perl 製の Worker * 2台]</pre>
 <p>Apache と Worker の間の RabbitMQ の役割は、<a href="http://www.rabbitmq.com/getstarted.html">&#x3053;&#x3053;</a>の 6.RPC の図の通りです。</p>
 
 <div class="section">
@@ -56,7 +56,7 @@
     <h4>やっと本題</h4>
     <p>Perl で記述した HTTPD Worker の例は、下記の通りです。 まずは、ソースコード全体を俯瞰してください。</p>
 
-    <pre class="code lang-perl">#!/usr/bin/env perl
+    <pre class="code prettyprint lang-perl">#!/usr/bin/env perl
 
 use strict;
 use warnings;
@@ -240,11 +240,11 @@ sub make_http_response {
     <p>国内外の AMQP と RabbitMQ の認知度の都合上、AnyEvent::RabbitMQ に対する意見や要望、機能追加や障害対応のパッチは、全て日本国外から頂いており、日本国内では、多分、全く利用されていません。</p><p>今回、例として扱った案件は、オープンソースだけで対応できる仮想の案件となりますが、クレジットカード決済のサービスを提供する際に発生した実案件が元となっています。故に AnyEvent::RabbitMQ や Net::RabbitFoot は、実際にミッションクリティカルな現場で利用されているものであり、日本国内のみなさんにとっても有益なモジュールであるという確信をもって紹介させて頂きました。</p><p>もしよろしければ、RabbitMQ 共々、ご利用頂ければ幸いです。</p><p>ちなみに、実案件で構築したシステムは、他にも多くの CPAN モジュールに依存した形で構築されており、この場をお借りして、Perl コミュニティにお礼申し上げます。いつも、良質なコードを提供してくれて、ありがとうございます。みなさんが良いクリスマスを迎えられますように！</p>
 
 </div>
-</div>HASH(0x55c1765b1068)
-HASH(0x55c176605a48)
-HASH(0x55c17657c168)
-HASH(0x55c176605a30)
-HASH(0x55c17663c140)
+</div>HASH(0x55809a8efbe8)
+HASH(0x55809a8ff1f0)
+HASH(0x55809a8fef68)
+HASH(0x55809a938a18)
+HASH(0x55809a90fd60)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

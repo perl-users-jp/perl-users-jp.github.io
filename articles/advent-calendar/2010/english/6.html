@@ -17,7 +17,7 @@
     <h3>use opts;</h3>
     <p><code>opts</code> is a command-line options parser written by Fushihara, Kan.</p><p>Getopt::Long is not bad but opts is very simple and feeling nice.</p>
 
-    <pre class="code lang-perl">use opts;
+    <pre class="code prettyprint lang-perl">use opts;
 
 opts (
 	my $force  =&gt; &#39;Bool&#39;,
@@ -32,7 +32,7 @@ $foobar;</pre>
     <h3>use Config::Pit;</h3>
     <p><code>Config::Pit</code> is a management module of configurations written by me.</p><p>This module provides get or set global configuration by easy way, mainly for public scripts which access web services with authentication.</p>
 
-    <pre class="code lang-perl">use Config::Pit;
+    <pre class="code prettyprint lang-perl">use Config::Pit;
 
 ## If the fields are not set, open setting by $EDITOR automatically.
 my $config = pit_get(&#34;example.com&#34;, require =&gt; {
@@ -52,7 +52,7 @@ my $client = Example::API-&gt;new(
     <h3>use Script::State;</h3>
     <p><code>Script::State</code> is a useful hack for saving script states written by Motemen.</p>
 
-    <pre class="code lang-perl">use Script::State;
+    <pre class="code prettyprint lang-perl">use Script::State;
 
 ## Define state variable
 script_state my $last_timestamp = 0;

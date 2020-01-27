@@ -18,7 +18,7 @@
     <h3>Closure</h3>
     <p>What are <em>closures</em>? A closure is a subroutine that consists of <em>binding (or external) data</em> and <em>code</em>, which allows us to create subroutines dynamically without compilation, used especially in class builders. The following example is a simplest closure that create a counter, which consists of <em>$i</em> and the increment operator (++):</p>
 
-    <pre class="code lang-perl">my $i       = 42;           # binding data
+    <pre class="code prettyprint lang-perl">my $i       = 42;           # binding data
 my $closure = sub { $i++ }; # data + code</pre>
 <p>Although this is a technique to make subroutines dynamically, the dynamic part is only the binding <em>data</em>, while the code part is statically defined. Thus, this technique can be applied to XSUBs.</p><p>An XSUB is a Perl subroutine which has a C function, and a subroutine is a type of SV. In Perl internal world, any SVs are able to have struct MAGIC, which can have other SVs. That is, we can bind SVs to XSUBs. However, Perl API doesn't support closures directly, so I call this technique <strong>pseudo closures</strong>.</p>
 
@@ -28,7 +28,7 @@ my $closure = sub { $i++ }; # data + code</pre>
     <p>The actual implementation explained here is taken from Mouse, which is a Moose<br />
 compatible class builder with an XS implementation. The accessors Mouse provides are implemented in XS with this pseudo closure technique. Its basic idea is the same as Perl's: defining XSUBs statically, then binding Perl data to these XSUBs in run-time.</p><p>Take the rw accessor from <a href="http://git.shadowcat.co.uk/gitweb/gitweb.cgi?p=gitmo/Mouse.git;a=blob_plain;f=xs-src/MouseAccessor.xs;hb=master">Mouse/xs-src/MouseAccessors.xs</a> for example:</p>
 
-    <pre class="code lang-xs">/* snip */
+    <pre class="code prettyprint lang-xs">/* snip */
 #define dMOUSE_self  SV* const self = \
         mouse_accessor_get_self(aTHX_ ax, items, cv)
 /* snip */
@@ -56,7 +56,7 @@ XS(XS_Mouse_accessor)
 }</pre>
 <p>This is the prototype of all the rw accessor (and of course, other accessors are defined in the file). The data part is attached as a MAGIC, but available from <em>XSANY.any_ptr</em> for convenience.</p><p>The following function is an XSUB generator which creates an XSUB and bind data to the XSUB:</p>
 
-    <pre class="code lang-xs">CV*
+    <pre class="code prettyprint lang-xs">CV*
 mouse_accessor_generate(pTHX_ SV* const attr, XSUBADDR_t const accessor_impl){
     AV* const xa = mouse_get_xa(aTHX_ attr);
     CV* xsub;

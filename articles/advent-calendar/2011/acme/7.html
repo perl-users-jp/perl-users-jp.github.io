@@ -43,7 +43,7 @@ Acme Drugということでゆるい感じで書きたいと思います。</p><
 そこでオーズに変身できるモジュール <a href="https://github.com/toritori0318/p5-Acme-KamenriderOOO">Acme::KamenriderOOO</a> を書いてみました。<a href="#fn2" title="Acme::Momoirocloverを参考にさせて頂きました">*2</a><br />
 早速変身してみましょう。</p>
 
-    <pre class="code lang-perl">  use Acme::KamenriderOOO;
+    <pre class="code prettyprint lang-perl">  use Acme::KamenriderOOO;
 
   my $ooo = Acme::KamenriderOOO-&gt;new;
 
@@ -59,7 +59,7 @@ Acme Drugということでゆるい感じで書きたいと思います。</p><
 <p><a href="http://www35.atwiki.jp/sentai-hero/pages/437.html">&#x4E9C;&#x7A2E;</a>もすべて対応済みです。</p><br />
 <p>また不正な組み合わせで変身しようとすると怒られるので気をつけましょう。</p>
 
-    <pre class="code lang-perl">  # オーズドライバーにメダルをセット！
+    <pre class="code prettyprint lang-perl">  # オーズドライバーにメダルをセット！
   $ooo-&gt;ooo_driver( &#39;ライオン&#39;,&#39;タカ&#39;,&#39;ウナギ&#39; );
 
   # 変身!
@@ -71,7 +71,7 @@ Acme Drugということでゆるい感じで書きたいと思います。</p><
     <p>メダル情報やコンボ情報を引くことも可能です。<br />
 勉強して友達に差をつけよう！</p>
 
-    <pre class="code lang-perl">  # コンボ一覧
+    <pre class="code prettyprint lang-perl">  # コンボ一覧
   my @combo = $ooo-&gt;select(&#39;combo&#39;);
   my @combo = $ooo-&gt;select(&#39;combo&#39;, {name=&gt;&#39;タジャドル&#39;});
 
@@ -84,8 +84,8 @@ Acme Drugということでゆるい感じで書きたいと思います。</p><
     <h4>Acme::KamenriderFourze</h4>
     <p>今のところ書く予定は全くないのですが、もしかしたらAcme Trackに再登場するかもしれませんね！</p>
 
-</div>HASH(0x55c1765d6bc0)
-HASH(0x55c1765bdd28)
+</div>HASH(0x55809a90f0b8)
+HASH(0x55809a984490)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

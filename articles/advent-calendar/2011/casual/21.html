@@ -21,10 +21,10 @@
 コマンドライン引数はすべて@ARGVに入ることは知っていてもいざオプションを１つ１つ解析しようと思うと意外と面倒です。</p><p>その時に使う便利モジュールが<a href="http://search.cpan.org/~jv/Getopt-Long-2.38/lib/Getopt/Long.pm">Getopt::Long</a>です。<br />
 GetOptions()という関数で、コマンドラインオプションを定義してあげます。</p><p>例えば、</p>
 
-    <pre class="code">$ ./sample.pl --user=torii --env=dev --times=2 --verbose hoge.dat</pre>
+    <pre class="code prettyprint">$ ./sample.pl --user=torii --env=dev --times=2 --verbose hoge.dat</pre>
 <p>というようなオプションを取りたい場合は、</p>
 
-    <pre class="code lang-perl"># sample.pl
+    <pre class="code prettyprint lang-perl"># sample.pl
 use Getopt::Long;
 
 my %opts;
@@ -35,7 +35,7 @@ Getopt::Long::GetOptions(\%opts, qw( user=s env=s times=i verbose) );
 @ARGV =&gt; ( &#39;hoge.dat&#39; )</pre>
 <p>としてあげると、$opts{user}に"torii"、$opts{env}に"dev"という文字列が入り、timesに2、varboseに1という数値が入ります。</p><p>GetOptions()には、第一引数にオプションを格納したいハッシュリファレンスを指定します。オプションは 「オプション名=TYPE」の形式で第２引数に定義します。sが文字列、iが数値、何もなければ論理値です。</p><p>この時、 %opts で使われたオプション以外のコマンドラインから指定されたものは @ARGS に残ります。</p><p>もし、--timesや--verboseが指定されていなかった場合を考えてデフォルト値を指定しておきましょう。</p>
 
-    <pre class="code lang-perl"># sample2.pl
+    <pre class="code prettyprint lang-perl"># sample2.pl
 use Getopt::Long;
 
 my %opts = ( tag =&gt; &#34;master&#34;, times =&gt; 1, verbose =&gt; 0);   # デフォルト値を指定
@@ -55,7 +55,7 @@ foreach my $field ( qw( user env ) ){
 <p>最後に、短縮形のオプションの撮り方も以下のようにすると簡単にできます。<br />
 例えば、 --userは -u でよく使いますよね。sample2.plの例の場合は、</p>
 
-    <pre class="code">$ ./sample2.pl -u root --env=dev -v
+    <pre class="code prettyprint">$ ./sample2.pl -u root --env=dev -v
 
 ### result   (timesとtagはデフォルト値)
 %opts =&gt; ( user =&gt; &#34;root&#34;, env =&gt; &#34;dev&#34;, verbose =&gt; 1, times =&gt; 1, tag =&gt; &#34;master&#34; )</pre>

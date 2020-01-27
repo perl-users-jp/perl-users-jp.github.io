@@ -44,7 +44,7 @@
     <h3>DBIx::DBSchema</h3>
     <p>ちょっとサボろうかと思ってぐぐってみたのですが、このモジュール、全く言及されていません。早くも不安がよぎります・・・</p><p>こんなコードを書いてみました。</p>
 
-    <pre class="code">use strict;
+    <pre class="code prettyprint">use strict;
 
 use DBI;
 use Data::Dumper;
@@ -67,22 +67,22 @@ print $actor2-&gt;sql_alter_table($actor1, $dbh1);
 print $actor2-&gt;sql_create_table($dbh1);</pre>
 <p>使い方はそこまで難しくありません。</p>
 
-    <pre class="code">my $schema1 = new_native DBIx::DBSchema $dbh1;</pre>
+    <pre class="code prettyprint">my $schema1 = new_native DBIx::DBSchema $dbh1;</pre>
 <p>これでスキーマの情報を $dbh1 から吸い出します。</p>
 
-    <pre class="code">$schema1-&gt;save(&#39;/tmp/test_kawamoto&#39;);</pre>
+    <pre class="code prettyprint">$schema1-&gt;save(&#39;/tmp/test_kawamoto&#39;);</pre>
 <p>とやればStorable形式でデータを出力します。</p>
 
-    <pre class="code">print $actor2-&gt;sql_alter_table($actor1, $dbh1);</pre>
+    <pre class="code prettyprint">print $actor2-&gt;sql_alter_table($actor1, $dbh1);</pre>
 <p>とすると以下のような出力を得ます。CREATE INDEX 書いてくれた!</p>
 
-    <pre class="code">CREATE  INDEX idx_actor_first_name ON actor2 ( first_name )</pre>
+    <pre class="code prettyprint">CREATE  INDEX idx_actor_first_name ON actor2 ( first_name )</pre>
 <p>続いて</p>
 
-    <pre class="code">print $actor2-&gt;sql_create_table($dbh1);</pre>
+    <pre class="code prettyprint">print $actor2-&gt;sql_create_table($dbh1);</pre>
 <p>とやると以下のような出力を得ます。CREATE文ももちろん書ける!</p>
 
-    <pre class="code">CREATE TABLE actor2 (
+    <pre class="code prettyprint">CREATE TABLE actor2 (
   PRIMARY KEY (actor_id)
 )
 CREATE  INDEX idx_actor_last_name ON actor2 ( last_name )</pre>

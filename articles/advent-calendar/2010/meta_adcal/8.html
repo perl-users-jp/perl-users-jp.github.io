@@ -18,7 +18,7 @@
 カレンダは、まずその月の1日が何曜日で始まっているかを見て、そこまで空を表示する必要があります。<br />
 何個空白を入れれば良いかは、週の何曜日かで取得出来ますので Time::Piece の day_of_week を使います。</p>
 
-    <pre class="code lang-perl">@cols = ();
+    <pre class="code prettyprint lang-perl">@cols = ();
 push @cols, {
     date   =&gt; undef,
     exists =&gt; 0,
@@ -26,7 +26,7 @@ push @cols, {
 } for 1 .. $t-&gt;day_of_week;</pre>
 <p>あとは Time::Piece に1日ずつ足しながら、その日の記事タイトルを収集し cols に格納して行きます。ただしその日の day_of_week が 0 つまり日曜になった場合には、格納していた cols を rows に追加し、次回から次の cols へ追加を行う様にする必要があります。</p>
 
-    <pre class="code lang-perl">while ( $t-&gt;mday &lt;= 25 ) {
+    <pre class="code prettyprint lang-perl">while ( $t-&gt;mday &lt;= 25 ) {
     my $title;
     my $exists = ( -e $root-&gt;file( $t-&gt;ymd . &#39;.txt&#39; ) )
       &amp;&amp; ( $now-&gt;year &gt; $vars-&gt;{year}
@@ -63,7 +63,7 @@ push @cols, {
 <p>あとは最後に途中まで追加されていた cols を rows に足し、rows 自体を calendar に格納すれば準備okです。<br />
 テンプレートとしてはカレンダ表示用に以下 HTML を指定します。</p>
 
-    <pre class="code lang-html">&lt;table border=&#34;1&#34; class=&#34;calendar&#34;&gt;
+    <pre class="code prettyprint lang-html">&lt;table border=&#34;1&#34; class=&#34;calendar&#34;&gt;
     &lt;tr&gt;[% FOR week IN [&#34;日&#34;, &#34;月&#34;, &#34;火&#34;, &#34;水&#34;, &#34;木&#34;, &#34;金&#34;, &#34;土&#34;] %]&lt;th&gt;[% week %]&lt;/th&gt;[% END %]&lt;/tr&gt;
 [% FOR row IN calendar.rows %]
     &lt;tr&gt;
@@ -81,7 +81,7 @@ push @cols, {
 &lt;/table&gt;</pre>
 <p>このままだとタイトルが折り曲げられず、長いタイトルでカレンダの表示が崩れるので CSS で調整します。</p>
 
-    <pre class="code lang-css">.article-title {
+    <pre class="code prettyprint lang-css">.article-title {
     overflow: hidden;
 }
 .calendar th {

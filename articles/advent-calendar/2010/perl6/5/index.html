@@ -14,7 +14,7 @@
 
         <p>昨日は既存のモジュールを使ってみました。今日は自分で新しいモジュールを書いてみましょう。例が思いつかなかったので、こんなスクリプトを実行すると'foo'と帰ってくる、そんなFoo.pmを書いてみましょう。</p>
 
-    <pre class="code">#!/usr/bin/env perl6
+    <pre class="code prettyprint">#!/usr/bin/env perl6
 use v6;
 use Foo;
 
@@ -25,7 +25,7 @@ say $f.foo;</pre>
     <h3>コードを書く</h3>
     <p>まずfooディレクトリにtとlibディレクトリを切ります。</p>
 
-    <pre class="code">$ cd ~/tmp
+    <pre class="code prettyprint">$ cd ~/tmp
 $ mkdir foo
 $ cd foo
 $ mkdir lib t
@@ -33,7 +33,7 @@ $ ls
 lib  t</pre>
 <p>ではt/01-usage.tとしてテストを書きましょう。</p>
 
-    <pre class="code">use v6;
+    <pre class="code prettyprint">use v6;
 use Test;
 use Foo;
 
@@ -46,7 +46,7 @@ done_testing;
 # vim: set ft=perl6</pre>
 <p>こんな感じでしょうか。perl 5 とおんなじ感じですね。lib/Foo.pmも書いてみます。</p>
 
-    <pre class="code">use v6;
+    <pre class="code prettyprint">use v6;
 
 class Foo {
     method foo {
@@ -62,13 +62,13 @@ class Foo {
     <h3>ビルドする</h3>
     <p>さて、Perl 5 ではMakefile.PLというのを書いて、以下のようにしてビルドするのがよくある手順でした。</p>
 
-    <pre class="code">$ perl Makefile.PL
+    <pre class="code prettyprint">$ perl Makefile.PL
 $ make
 $ make test
 $ make install</pre>
 <p>Perl 6 ではどうなんでしょう？Makefile.PLは書きません。そしてperl Makefile.PLするかわりにufoコマンドというのを実行します。実際にインストールの手順を行ってみると、こんな出力が得られます。</p>
 
-    <pre class="code">$ ufo
+    <pre class="code prettyprint">$ ufo
 
 $ make
 mkdir -p `dirname &#39;blib/lib/Foo.pir&#39;`
@@ -91,7 +91,7 @@ install blib/lib/Foo.pir /home/danjou/.perl6/lib/Foo.pir
 </pre>
 <p>これからわかることは、</p>
 
-    <pre class="code">env PERL6LIB=/home/danjou/tmp/foo/blib/lib:/home/danjou/tmp/foo/lib: \
+    <pre class="code prettyprint">env PERL6LIB=/home/danjou/tmp/foo/blib/lib:/home/danjou/tmp/foo/lib: \
     perl6 \
         --target-pir \
         --output=blib/lib/Foo.pir lib/Foo.pm</pre>
@@ -101,14 +101,14 @@ install blib/lib/Foo.pir /home/danjou/.perl6/lib/Foo.pir
 <li>PERL6LIBというのがPerl 5でのPERL5LIBのように@INCにパスを追加する環境変数</li>
 <li>Foo.pmをFoo.pirに、perl6のコードをparrotのコードにコンパイルしている</li>
 </ul>
-    <pre class="code">env PERL6LIB=/home/danjou/tmp/foo/blib/lib:/Users/danjou/tmp/foo/lib: \
+    <pre class="code prettyprint">env PERL6LIB=/home/danjou/tmp/foo/blib/lib:/Users/danjou/tmp/foo/lib: \
     prove -e &#39;perl6&#39; -r t/</pre>
 <p>というところで、</p>
 
 <ul>
 <li>テストはPERL6LIBにlibとblibを追加してprove -e 'perl6'で実行している</li>
 </ul>
-    <pre class="code">mkdir -p `dirname &#39;/home/danjou/.perl6/lib/Foo.pm&#39;`
+    <pre class="code prettyprint">mkdir -p `dirname &#39;/home/danjou/.perl6/lib/Foo.pm&#39;`
 install lib/Foo.pm /home/danjou/.perl6/lib/Foo.pm
 mkdir -p `dirname &#39;/home/danjou/.perl6/lib/Foo.pir&#39;`
 install blib/lib/Foo.pir /home/danjou/.perl6/lib/Foo.pir</pre>

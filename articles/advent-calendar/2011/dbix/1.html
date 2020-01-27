@@ -24,7 +24,7 @@ forkした場合に処理がおかしくなるの！<br />
 とか<br />
 一切かんがえなくてよくなる。</p><p>以下使い方である</p>
 
-    <pre class="code">use strict;
+    <pre class="code prettyprint">use strict;
 use warnings;
 use DBIx::Handler;
 
@@ -36,7 +36,7 @@ while (1) {
 このメソッドを呼び出すと、その時点でデータベースに接続可能なhandleが取得することができる。</p><p>また複数回dbhメソッドを呼び出すと自分で明示的にdisconnectを実行するもしくはデータベース側から切断されない限り<br />
 同一の接続済handleがかえされることになる。</p><p>次によくハマるforkする場合の例であるが、</p>
 
-    <pre class="code">use strict;
+    <pre class="code prettyprint">use strict;
 use warnings;
 use DBIx::Handler;
 
@@ -52,7 +52,7 @@ if (fork) {
 子プロセス側は新しくDB接続をおこなったdb handleを取得し、親プロセスと子プロセスで<br />
 socketの通信内容が混ざるといったようなことをふせいでくれる。</p><p>つぎにtransactionだ</p>
 
-    <pre class="code">use strict;
+    <pre class="code prettyprint">use strict;
 use warnings;
 use DBIx::Handler;
 

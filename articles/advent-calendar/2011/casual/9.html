@@ -17,13 +17,13 @@
 というわけで、日報を軽く自動化しましょう！</p><p>なんかしらコードを書いたらコミットすると思います。コミットのログ=行った業務のログですね！！！！！！！<br />
 つまりgit logで全部解決するわけです。会社でsvnを使ってる場合でも、git-svn使えば解決です。</p>
 
-    <pre class="code lang-sh">$ git log --since=yesterday --author=hisaichi5518 --pretty=format:&#34;- %s&#34;</pre>
+    <pre class="code prettyprint lang-sh">$ git log --since=yesterday --author=hisaichi5518 --pretty=format:&#34;- %s&#34;</pre>
 <p>こんなの毎回打つのだるいので、.bashrcにaliasを書きます。</p>
 
-    <pre class="code">alias nippou_=&#39;git log --since=yesterday --author=hisada --pretty=format:&#34;- %s&#34;&#39;</pre>
+    <pre class="code prettyprint">alias nippou_=&#39;git log --since=yesterday --author=hisada --pretty=format:&#34;- %s&#34;&#39;</pre>
 <p>.git/があるところでnippou_を行うと良い感じに表示されるようになりました。</p>
 
-    <pre class="code lang-sh">$ nippou_
+    <pre class="code prettyprint lang-sh">$ nippou_
 - hogehogeメソッドを追加 refs #11111
 - piyopiyoメソッドを追加 refs #9999
 ...</pre>
@@ -32,7 +32,7 @@
 まず日報のひな形を作成します。タイトル通りDist::Makerを使います！cpanmしといてください。<br />
 # 実際のものは多少違います。</p>
 
-    <pre class="code lang-perl">package Dist::Maker::Template::Nippou;
+    <pre class="code prettyprint lang-perl">package Dist::Maker::Template::Nippou;
 use Mouse;
 use MouseX::StrictConstructor;
 use utf8;
@@ -79,14 +79,14 @@ __END__</pre>
 <p>簡単ですね！これも毎回dimなんとかって打つのだるいので、nippouコマンドを作ります。<br />
 .bashrcに書きます。</p>
 
-    <pre class="code lang-sh">function nippou() {
+    <pre class="code prettyprint lang-sh">function nippou() {
     cd $HOME/nippou
     TIME=`date +%Y-%m-%d`
     dim new $TIME.txt Nippou
 }</pre>
 <p>nippou/ディレクトリを作って実行します！</p>
 
-    <pre class="code lang-sh">mkdir $HOME/nippou
+    <pre class="code prettyprint lang-sh">mkdir $HOME/nippou
 $ nippou
 &gt;&gt; Command::new: running with 2011-12-09.txt Nippou in nippou
 &gt;&gt; Command::new: create 2011-12-09.txt from 2011-12-09.txt

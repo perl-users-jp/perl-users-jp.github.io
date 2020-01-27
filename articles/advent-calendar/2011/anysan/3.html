@@ -14,7 +14,7 @@
 
         <p>お兄さんじゃないよ、えにいさんだよ。</p><p>このトラックに参加したい人は <a href="http://atnd.org/events/22890">http://atnd.org/events/22890</a> からどしどし頼むぜ！</p><p>初日に AnySan は Twitter や FriendFeed にも対応していると言いましたね、実際これらは IRC と同じくらいシンプル&同じインターフェィスで使えるんだ。</p><p>今日はシンプルに Twitter を使って、自分宛に @ を飛ばされた時に返事を返すコードを紹介しますね。</p>
 
-    <pre class="code">use strict;
+    <pre class="code prettyprint">use strict;
 use warnings;
 use utf8;
 
@@ -53,11 +53,11 @@ AnySan-&gt;register_listener(
 AnySan-&gt;run;</pre>
 <p>このスクリプトを response.pl として保存した場合は</p>
 
-    <pre class="code">$ perl response.pl Yappo</pre>
+    <pre class="code prettyprint">$ perl response.pl Yappo</pre>
 <p>などとして実行します。</p><p>consumer_key, consumer_secret, token, token_secret などは Twitter の OAuth する時に必要な情報を入れて下さいね。<br />
 これらの情報はスクリプト中に直接書いておくと大変な事になるから Config::Pit を使って別の場所に保存しています。</p>
 
-    <pre class="code">my $twitter = twitter
+    <pre class="code prettyprint">my $twitter = twitter
     %{ $config },
     method          =&gt; &#39;userstream&#39;,
     ;</pre>
@@ -65,7 +65,7 @@ AnySan-&gt;run;</pre>
 また、具体的な設定例等は今後紹介するね。</p><p>以下の設定を追加しないと、動かないので注意して欲しいです。<br />
  </p>
 
-    <pre class="code">        event =&gt; &#39;timeline&#39;,</pre>
+    <pre class="code prettyprint">        event =&gt; &#39;timeline&#39;,</pre>
 <p>将来的に tweet 一覧以外のイベントに対応する時に別の値を入れて hook させる用になる予定です。</p><p>OAuth の為の API Key 等を保存する為に Config::Pit を使って少々ややこしいとは思いますが、昨日の IRC の時と同じように関心ごとに集中してコードが書けると思います。</p>
 
 <div class="section">

@@ -23,7 +23,7 @@
     <h4>データサンプル</h4>
     <p>DBMSを考慮せず、以下のようなデータサンプルがあったと考えてみましょう。</p>
 
-    <pre class="code">+----+-----------------------+
+    <pre class="code prettyprint">+----+-----------------------+
 | id | url                   |
 +----+-----------------------+
 |  1 | http://www.google.com |
@@ -41,11 +41,11 @@
     <p>MySQLにも標準で実装されているMD5関数を利用すると、このデータをもう少しインデックス効率のよいデータに変えることができます。<br />
 SQLで書くと以下のような形です。</p>
 
-    <pre class="code lang-SQL">INSERT INTO urls (url, digest) 
+    <pre class="code prettyprint lang-SQL">INSERT INTO urls (url, digest) 
 VALUES (&#39;http://www.google.com&#39;, LEFT(MD5(&#39;http://www.google.com&#39;), 8));</pre>
 <p>こうすることで、インデックス効率のよいデータに変わりました。</p>
 
-    <pre class="code lang-SQL">+----+-----------------------+----------+
+    <pre class="code prettyprint lang-SQL">+----+-----------------------+----------+
 | id | url                   | digest   |
 +----+-----------------------+----------+
 |  1 | http://www.google.com | ed646a33 |
@@ -57,7 +57,7 @@ VALUES (&#39;http://www.google.com&#39;, LEFT(MD5(&#39;http://www.google.com&#39
 +----+-----------------------+----------+</pre>
 <p>検索する際には以下のようなSQLを書くとよいですね。</p>
 
-    <pre class="code lang-SQL">SELECT * FROM urls 
+    <pre class="code prettyprint lang-SQL">SELECT * FROM urls 
  WHERE digest = LEFT(MD5(&#39;http://www.google.com&#39;), 8) AND url = &#39;http://www.google.com&#39;;</pre>
 <p>urlではなく、digestにインデックスをはることで、効率よく分散しデータ量的にもコンパクトなインデックスを生成することができます。<br />
 ※MD5は安全ではないので、SHA1を使うべきだということをおっしゃる方がいるかもしれません。しかしながら、ここで重要なのはハッシュ関数のセキュリティではなく、ハッシュ関数の計算コストと一様性(ハッシュ関数の出力が出力範囲全体に渡り一様に分布するという性質)であり、よりパフォーマンスのよいMD5がチョイスとしては適切と考えています。</p>
@@ -68,11 +68,11 @@ VALUES (&#39;http://www.google.com&#39;, LEFT(MD5(&#39;http://www.google.com&#39
     <p>インデックスデータはメモリ効率が重要ですから、データ件数が増えてくると、上記のようなchar(8byte)のインデックスは少しメモリ効率が悪いように感じるケースがでてきます。そういった場合は、int型(4byte)に変換して入れるのが望ましいです。<br />
 ※binary型も考えられますが、メンテナンス効率の面で、ここではint型を推奨します。</p>
 
-    <pre class="code lang-SQL">INSERT INTO urls (url, digest)
+    <pre class="code prettyprint lang-SQL">INSERT INTO urls (url, digest)
 VALUES (&#39;http://www.google.com&#39;, CONV(LEFT(MD5(&#39;http://www.google.com&#39;), 8), 16, 10));</pre>
 <p>検索する際には以下のようなSQLを書くとよいですね。</p>
 
-    <pre class="code lang-SQL">SELECT * FROM urls 
+    <pre class="code prettyprint lang-SQL">SELECT * FROM urls 
  WHERE digest = CONV(LEFT(MD5(&#39;http://www.google.com&#39;), 8), 16, 10) AND url = &#39;http://www.google.com&#39;;</pre>
 <p>しかしながら、ここまで来ると、ちょっとSQLにアレルギーを感じる人も増えてくるでしょう。ここまでの演算をDBサーバーに委ねてしまってよいのかと少し心配にもなりますし、perlハッカーやcasualなperlerならperlでなんとかしたいとも感じるはずです。</p>
 
@@ -83,7 +83,7 @@ VALUES (&#39;http://www.google.com&#39;, CONV(LEFT(MD5(&#39;http://www.google.co
 MurmurHashはToru Maesaka氏によりPerlのXSモジュールDigest::MurmurHashとして公開されており、カジュアルに利用することができます。<br />
 上記のようなINSERTをPerlを用いて行うと以下のような形になります。すっきりしますね。</p>
 
-    <pre class="code lang-perl">use DBI;
+    <pre class="code prettyprint lang-perl">use DBI;
 use Digest::MurmurHash qw(murmur_hash);
 my $url = &#39;http://www.google.com&#39;;
 my $dbh = DBI-&gt;connect(&#39;dbi:mysql:test&#39;);

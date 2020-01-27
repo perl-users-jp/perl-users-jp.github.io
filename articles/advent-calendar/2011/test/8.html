@@ -18,7 +18,7 @@
     <h4>サンプルモジュール WWW::Foo8</h4>
     <p>具体的に説明するために、<a href="https://github.com/perl-users-jp/perl-advent-calendar/tree/master/2011/test/2011-12-08/WWW-Foo8" target="_blank">WWW::Foo8</a> というモジュールを書きました！</p>
 
-    <pre class="code lang-perl">package WWW::Foo8;
+    <pre class="code prettyprint lang-perl">package WWW::Foo8;
 use strict;
 use warnings;
 
@@ -59,7 +59,7 @@ __END__</pre>
 <p>簡単ですね！<br />
 以下のように get でどっかのページを取ってくるだけです。サンプルなので実用性とかありません。</p>
 
-    <pre class="code lang-perl">use WWW::Foo8;
+    <pre class="code prettyprint lang-perl">use WWW::Foo8;
 
 my $foo = WWW::Foo8-&gt;new;
 my $res = $foo-&gt;get(&#39;http://example.org&#39;);</pre>
@@ -80,7 +80,7 @@ my $res = $foo-&gt;get(&#39;http://example.org&#39;);</pre>
     <h5>シンプルにアクセスして結果を見る</h5>
     <p>最初に行うのは、一番簡単な方法です。以下のようになります。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use LWP::Online &#39;:skip_all&#39;; # skip all test unless online
 use Test::More 0.88;
@@ -101,7 +101,7 @@ done_testing;</pre>
     <h5>普段はコメントアウト</h5>
     <p>というわけで、じゃあ、まあ自分の必要なときだけ走るように、コメントアウトすればいいんじゃないかと思いますね。</p>
 
-    <pre class="code lang-perl"># real access, however comment out
+    <pre class="code prettyprint lang-perl"># real access, however comment out
 {
     my $res = WWW::Foo8-&gt;new-&gt;get(&#39;http://example.org/&#39;);
     #like $res, qr{&lt;title&gt;IANA[^&lt;]+&lt;/title&gt;}, &#39;example.org&#39;;
@@ -114,7 +114,7 @@ done_testing;</pre>
     <h5>条件付でアクセスするようにする</h5>
     <p>それならば、条件付でテストを走らせるのはどうだろうとなります。</p>
 
-    <pre class="code lang-perl"># need env
+    <pre class="code prettyprint lang-perl"># need env
 if ($ENV{WWW_FOO8_DO_TEST}) {
     my $res = WWW::Foo8-&gt;new-&gt;get(&#39;http://example.org/&#39;);
     like $res, qr{&lt;title&gt;IANA[^&lt;]+&lt;/title&gt;}, &#39;example.org&#39;;
@@ -128,7 +128,7 @@ SKIP: {
 }</pre>
 <p>上の例は if で囲っただけですが、下の例は Test::More で用意されている skip を活用しています。後者のほうが理由も書けて良いですね。このやり方なら、以下のようにした時だけ、実際にアクセスするテストが走りますね。</p>
 
-    <pre class="code">$ env WWW_FOO8_DO_TEST=1 perl -Ilib t/03_get.t</pre>
+    <pre class="code prettyprint">$ env WWW_FOO8_DO_TEST=1 perl -Ilib t/03_get.t</pre>
 <p>これで、迷惑と言われることは防げそうです。</p><p>しかし、これだと、例えば先方のサイトが落ちていたりするとテストができなかったり、テストドリブンなコーディングは難しくなります。また、先方のサイトがエラーのときの処理を書こうとしても、第三者のサイトで、そんなレスポンスを自由にしてもらうことはできないですね。当たり前です。</p><p>そうなると、ああ、手元に自分でコントロールできる対象サイトのフェイクがあればいいのに！ねえドラえもん！</p>
 
 </div>
@@ -136,7 +136,7 @@ SKIP: {
     <h5>フェイク HTTPD</h5>
     <p>やっぱり頼るのは CPAN で、<a href="https://metacpan.org/module/Test::Fake::HTTPD">Test::Fake::HTTPD</a> を使えばその願いがかなえられそうです！</p>
 
-    <pre class="code lang-perl"># use fake HTTPD
+    <pre class="code prettyprint lang-perl"># use fake HTTPD
 {
     use Test::Fake::HTTPD;
     {

@@ -38,7 +38,7 @@ CPANで配布されているモジュールたちは、Perlスクリプト内で
 <li><a href="http://search.cpan.org/~cornelius/App-gh-0.28/lib/App/gh.pm">gh</a></li>
 </ul><p>ackは"better than grep"と謳われるソースコード検索に最適な検索コマンドです。指定ディレクトリから再帰的にファイルを検索し、パターンにマッチしたファイル、マッチ箇所をハイライトして表示してくれます。デフォルトで".svn"や".git"などvcsで使うディレクトリを無視してくれて、また使い慣れているperlの正規表現をパターンとして使うことができます。例えば</p>
 
-    <pre class="code">$ ack &#39;=\s*\d+&#39; lib</pre>
+    <pre class="code prettyprint">$ ack &#39;=\s*\d+&#39; lib</pre>
 <p>で、libディレクトリ以下のソースコードからマジックナンバーをハードコードしてしまっている部分を簡単に探し出せるかもしれません。その他にも多くのオプションがあり、また $HOME/.ackrcに設定を記述しておくことで自分好みにカスタマイズして使用することもできます。<br />
 ghは<a href="https://github.com/">github</a>を使いこなすのに便利なコマンドラインツールです。"gh search hogehoge"でgithub上で公開されているリポジトリを検索したり、"gh list hogehoge"で気になるあの人の公開リポジトリを眺めたり、また当然"gh clone"や"gh fork"などでcloneしたりforkしたりもできます。</p>
 
@@ -51,10 +51,10 @@ ghは<a href="https://github.com/">github</a>を使いこなすのに便利な�
 <li><a href="http://search.cpan.org/~gaas/libwww-perl-5.837/bin/lwp-request">lwp-request</a></li>
 </ul><p>plackupは現在Perlでwebアプリを作る際に必須のコマンドと言えるでしょう。psgiファイルを読み込んでアプリケーションを起動します。詳しくは<a href="http://plackperl.org/">http://plackperl.org/</a>などを参照して下さい。psgiファイルを指定せずに"-e"オプションを使用してワンライナーで実行することもでき、</p>
 
-    <pre class="code">$ plackup -e &#39;sub { return [200, [], [&#34;hello&#34;]] }&#39;</pre>
+    <pre class="code prettyprint">$ plackup -e &#39;sub { return [200, [], [&#34;hello&#34;]] }&#39;</pre>
 <p>と実行するだけで <a href="http://localhost:5000">http://localhost:5000</a> で動くwebサーバーが出来上がります。オススメは<a href="http://search.cpan.org/~miyagawa/Plack-0.9952/lib/Plack/App/Directory.pm">Plack::App::Directory</a>を使用したローカルディレクトリのhttp配信で、</p>
 
-    <pre class="code">$ plackup -MPlack::App::Directory -e &#39;Plack::App::Directory-&gt;new({ root =&gt; &#34;.&#34; })&#39;</pre>
+    <pre class="code prettyprint">$ plackup -MPlack::App::Directory -e &#39;Plack::App::Directory-&gt;new({ root =&gt; &#34;.&#34; })&#39;</pre>
 <p>とやると、カレントディレクトリをrootとしてローカルファイルをhttp経由で見ることができるようになります。ローカルにある静的コンテンツをhttp経由で確認したいときなどに重宝すると思います。<br />
 lwp-requestはちょっとしたHTTPリクエストを送信してみるときに便利かもしれません。"lwp-request <a href="http://search.cpan.org/">http://search.cpan.org/</a> "などで指定したURLのhtmlを取得できる他、標準入力から読み取ったデータをPOSTしたりなど、色々できるようです。とは言えwgetやcurlといったコマンドを既に使いこなしていれば、わざわざこれを使う必要は無いですね。</p>
 
@@ -67,18 +67,18 @@ lwp-requestはちょっとしたHTTPリクエストを送信してみるとき�
 <li><a href="http://search.cpan.org/~mlehmann/JSON-XS-2.3/bin/json_xs">json_xs</a></li>
 </ul><p>xslateはテンプレートエンジン<a href="http://search.cpan.org/dist/Text-Xslate/lib/Text/Xslate.pm">Text::Xslate</a>に付属するコマンドで、Xslateでのテキスト処理の結果をコマンドライン上で確かめることができます。これもテンプレートファイルを指定せずに"-e"オプションを使用してワンライナーで実行することもできます。</p>
 
-    <pre class="code">$ cat hoge.tx
+    <pre class="code prettyprint">$ cat hoge.tx
 foo: &lt;: $foo :&gt;
 bar: &lt;: $bar :&gt;
 $ xslate hoge.tx -D foo=fuga -D bar=piyo
 foo: fuga
 bar: piyo</pre>
 
-    <pre class="code">$ xslate -e &#39;baz: &lt;: $ARGV[0] :&gt;&#39; hogefugapiyo
+    <pre class="code prettyprint">$ xslate -e &#39;baz: &lt;: $ARGV[0] :&gt;&#39; hogefugapiyo
 baz: hogefugapiyo$ </pre>
 <p>json_xsは<a href="http://search.cpan.org/~mlehmann/JSON-XS-2.3/XS.pm">JSON::XS</a>に付属するコマンドです。jsonの文字列を他の形式に変換したりできますが、実はjsonの文字列だけでなくyamlやperlコードで記述されたデータ構造も扱うことができる非常に便利なコマンドです。例えば<a href="https://github.com/p5-app-adventcalendar/p5-app-adventcalendar/blob/master/config.pl.sample">config.pl</a>のような設定ファイルに対し</p>
 
-    <pre class="code">$ json_xs -f eval -t yaml &lt; config.pl.sample 2&gt; /dev/null
+    <pre class="code prettyprint">$ json_xs -f eval -t yaml &lt; config.pl.sample 2&gt; /dev/null
 ---
 assets_path: assets
 base_path: /articles/advent-calendar
@@ -96,7 +96,7 @@ title: JPerl Advent Calendar 2010</pre>
     <h3>■あわせ技</h3>
     <p>例えば「Twitterから'#jpac2010'が含まれるtweetを検索して、呟き日時とユーザー名と内容だけを一覧して見たい!」ってときに、こんなコマンドである程度実現することができちゃいますね。わざわざコードを書く必要がありません!</p>
 
-    <pre class="code">$ lwp-request &#39;http://search.twitter.com/search.json?q=%23jpac2010&#39; | json_xs -t yaml 2&gt; /dev/null | ack --nocolor &#39;(created_at|text|from_user):.*&#39;
+    <pre class="code prettyprint">$ lwp-request &#39;http://search.twitter.com/search.json?q=%23jpac2010&#39; | json_xs -t yaml 2&gt; /dev/null | ack --nocolor &#39;(created_at|text|from_user):.*&#39;
   - created_at: &#39;Fri, 03 Dec 2010 05:43:30 +0000&#39;
     from_user: riywo
     text: &#39;RT @kazeburo: 書きました #jpac2010 / Scope::Container でリソース管理を行う - JPerl advent calendar 2010 hacker Track http://htn.to/qLa1KC&#39;
@@ -116,7 +116,7 @@ title: JPerl Advent Calendar 2010</pre>
     <h3>■最後に</h3>
     <p>以上、僕が知っている限りで幾つか紹介してみました。きっとまだまだ他にも便利なコマンドラインツールがあると思います。意外と知らないうちにインストールされているコマンドなんかもあるようで、</p>
 
-    <pre class="code">$ ls $HOME/perl5/perlbrew/perls/current/bin</pre>
+    <pre class="code prettyprint">$ ls $HOME/perl5/perlbrew/perls/current/bin</pre>
 <p>で見てみたら沢山コマンドがあってビックリしました。<br />
 皆さんが普段つかっている便利コマンドで「こんなのもあるから使ってみなよ！」というのがあれば是非教えて下さい！ ＞＜</p><br />
 <p>明日はジロリアンさんです。お楽しみに!!</p>

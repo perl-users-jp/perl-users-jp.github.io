@@ -20,7 +20,7 @@
     <p><img src="http://www.growlforwindows.com/gfw/images/growl4windows.jpg" /></p><p><a href="http://www.growlforwindows.com/gfw/">http://www.growlforwindows.com/gfw/</a></p><p>そんな僕らはある日 Growl を得た。リッチな UI そして変更出来るデザイン。アイコンも表示出来る。さらにはプロトコルが公開されている。</p><p><a href="http://www.growlforwindows.com/gfw/help/gntp.aspx">http://www.growlforwindows.com/gfw/help/gntp.aspx</a></p><p>僕は Growl For Windows がリリースされてまもなく Perl インタフェースライブラリ、Growl::GNTP を書いた。<br />
 勢いで書いたが、一応殆どの機能を操作出来るライブラリになっている。</p><p>使い方は簡単。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use Growl::GNTP;
 
@@ -38,7 +38,7 @@ $growl-&gt;notify(
 これだけで</p><p><img src="https://github.com/perl-users-jp/perl-advent-calendar/raw/master/2010/win32/2010-12-12/growl1.png" /></p><p>こんな通知アプリケーションが書けます。Callback は URL 指定でブラウザを起動する事ができます。<br />
 またコールバックの指定方法を</p>
 
-    <pre class="code lang-perl">$growl-&gt;notify(
+    <pre class="code prettyprint lang-perl">$growl-&gt;notify(
     Event          =&gt; &#39;記号プログラミング&#39;,
     Title          =&gt; &#39;ライター募集のお知らせ&#39;,
     Message        =&gt; &#39;君も記号プログラミングしてみないか？ ｳﾎｯ&#39;,
@@ -54,7 +54,7 @@ $growl-&gt;notify(
 $growl-&gt;wait(1);</pre>
 <p>この様にして wait で待つと、自分専用のコールバック関数が定義出来ます。Growl をクリックした瞬間に処理が走らせられるので、例えば家族からの「お腹すいた」のネットワーク Growl をトリガーに <a href="http://e8y.net/blog/2006/07/25/p126.html">Plagger でピザを注文する</a>なんて事も出来るのです。</p><p>さて今日はシンプルに Twitter Stream を Growl に垂れ流すアプリケーションを書きましょう。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use Config::Pit;
 use AnyEvent::Twitter::Stream;
@@ -98,7 +98,7 @@ $cv-&gt;recv;</pre>
 <p>いろんなブログで A::T::Stream なコードは既出なので誰でも書けるかと思います。<br />
 ちなみに、twitter という検索語でフィルタを実行したら、画面がとんでもない事になりました。</p><p><img src="https://github.com/perl-users-jp/perl-advent-calendar/raw/master/2010/win32/2010-12-12/growl2.png" width="400" /></p><p>ぜひ皆さんもやってみて下さい！</p><p>その他 Perl と Growl の組み合わせとしては、Gearman を使いサーバ側で</p>
 
-    <pre class="code lang-perl">#!/usr/bin/perl
+    <pre class="code prettyprint lang-perl">#!/usr/bin/perl
 use strict;
 use warnings;
 
@@ -126,7 +126,7 @@ $worker-&gt;register_function(
 $worker-&gt;work while 1;</pre>
 <p>みたいな処理を走らせ、ジョブをを流す側から</p>
 
-    <pre class="code lang-perl">#!/usr/bin/perl
+    <pre class="code prettyprint lang-perl">#!/usr/bin/perl
 use strict;
 use warnings;
 

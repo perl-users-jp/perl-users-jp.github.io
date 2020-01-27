@@ -31,7 +31,7 @@
     <h3>Erlangのインストール</h3>
     <p>Ubuntuではapt-getで簡単にインストールできます。</p>
 
-    <pre class="code">$ sudo apt-get install erlang</pre>
+    <pre class="code prettyprint">$ sudo apt-get install erlang</pre>
 <p>Windows環境では<a href="http://www.erlang.org/download.html">http://www.erlang.org/download.html</a>のバイナリをダウンロードできます。</p>
 
 </div>
@@ -40,7 +40,7 @@
     <p>Erlangシェルを起動するにはerlコマンドを実行します。<br />
 （Pが抜けたPerlコマンド＝erlコマンドと覚えておけばよいでしょう）</p>
 
-    <pre class="code">$ erl
+    <pre class="code prettyprint">$ erl
 Erlang (BEAM) emulator version 5.6.5 
 
 Eshell V5.6.5  (abort with ^G)
@@ -55,7 +55,7 @@ a</pre>
     <h3>Erlangシェルでこんにちは！</h3>
     <p>Erlangシェルを起動して、[1].を入力すると[1]が返りますが、[11]を入力すると文字列"\v"が返ります。</p>
 
-    <pre class="code">$ erl
+    <pre class="code prettyprint">$ erl
 Erlang (BEAM) emulator version 5.6.5
 
 Eshell V5.6.5  (abort with ^G)
@@ -65,7 +65,7 @@ Eshell V5.6.5  (abort with ^G)
 &#34;\v&#34;</pre>
 <p>怪しいですね。これは一体どういう仕様なのでしょうか？</p><p>なぜだかわかりませんが、リストの要素に表示可能文字に該当するASCIIコードの数値が指定されている場合、Erlangシェル上では文字列として表示されるようです。</p>
 
-    <pre class="code">3&gt; [111].
+    <pre class="code prettyprint">3&gt; [111].
 &#34;o&#34;
 4&gt; [111,112,113].
 &#34;opq&#34;</pre>
@@ -78,7 +78,7 @@ Eshell V5.6.5  (abort with ^G)
 ということは、$の右側に記号も書くことができて「$!」と書くと'!'のASCIIコード33が返るのです。これらのASCIIコードは普通に数値として解釈されるため「$!+$!」のように足し算を行うことができ66の数値が生成できます。<br />
 これを応用して足し算や引き算を組み合わせると、すべての数値を記号だけで表現することができます。</p>
 
-    <pre class="code">NUL: ($!-$!) == 0
+    <pre class="code prettyprint">NUL: ($!-$!) == 0
 SOH: ($&#34;-$!) == 1
 STX: ($#-$!) == 2
 ETX: ($$-$!) == 3
@@ -213,11 +213,11 @@ DEL: ($!+$^) == 127</pre>
     <h3>記号だけで「Hello, world!\n」</h3>
     <p>あとは「Hello, world!\n」の文字列をASCIIコードの数値リストに変換してあげます。</p>
 
-    <pre class="code">5&gt; [72,101,108,108,111,44,32,119,111,114,108,100,33,10].
+    <pre class="code prettyprint">5&gt; [72,101,108,108,111,44,32,119,111,114,108,100,33,10].
 &#34;Hello, world!\n&#34;</pre>
 <p>これを記号だけで書き直すと以下になります。</p>
 
-    <pre class="code">6&gt; [$!+$&#39;,$%+$@,$,+$@,$,+$@,$/+$@,$,,$[-$;,$:+$=,$/+$@,$!+$&#34;+$/,$,+$@,$$+$@,$!,$+-$!].
+    <pre class="code prettyprint">6&gt; [$!+$&#39;,$%+$@,$,+$@,$,+$@,$/+$@,$,,$[-$;,$:+$=,$/+$@,$!+$&#34;+$/,$,+$@,$$+$@,$!,$+-$!].
 &#34;Hello, world!\n&#34;</pre>
 <p>ね、簡単でしょ？</p>
 

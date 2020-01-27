@@ -18,7 +18,7 @@
     <h4>使いどころ</h4>
     <p>DBIx::ConnectorにしろDBIx::Handlerにしろ、DBIの面倒くさいところを簡単にしてくれるツールですよね。でも僕のスタンスとしては「どちらにしろ帯に短したすきに長しじゃねーの？」と思ってます。もちろん便利なんだけど、別に全てのかゆいところまで手が届くわけじゃないし・・・やってほしくないことをする事もあるし・・・というわけで本当に本当にコントロールが必要な部分では今でも自分で制御できるように自分で細かい所まで書く事にしています。</p><p>じゃあDBIx::Connectorをどこで使ってるかというと、「DBへの接続が切れるかもしれないぐらい長く走るスクリプトで、気にせずにSQL発効したい」時に使ってます。まぁ具体的に言えばでっけぇバッチとかですよね。</p><p>（最初に言っておきますが、mysqlならDBD::mysqlmysql_auto_reconnect使えばいいじゃん、は無しです。AutoCommitがオフだと動かないとかそういう条件覚えたくないので、「繋ぎ直して！」ってところだけ注目してます）</p><p>以下のようなスクリプトがあったとしましょう。特定の条件の行のPKをとってきて、それのPKを使ってHTTP通信をして、その結果を使ってUPDATEをかける、と。こんな感じです。</p>
 
-    <pre class="code lang-perl">    my $dbh = DBI-&gt;connect( ... );
+    <pre class="code prettyprint lang-perl">    my $dbh = DBI-&gt;connect( ... );
 
     my $lwp = LWP::UserAgent-&gt;new;
     my $last_pk = 0;
@@ -45,13 +45,13 @@
     }</pre>
 <p>まぁ数十万件くらいだったらわりとすぐおわるかもしれませんが、HTTP通信にそれなりに時間がかかって、なおかつ数千万件とかあるとそれなりに時間かかります。そうなってくるとまれにですが"mysql has gone away" とか言われたりしちゃいますよね。もう一回やりなおせばいいんですが、それはいかにも面倒くさいです。</p><p>かといって、毎回</p>
 
-    <pre class="code lang-perl">    if (! $dbh-&gt;ping) {
+    <pre class="code prettyprint lang-perl">    if (! $dbh-&gt;ping) {
         $dbh-&gt;disconnect;
         $dbh = DBI-&gt;connect( ... );
     }</pre>
 <p>とかするのはいくらなんでもですよね。というわけでDBIx::Connectorつかっちゃいましょう、と。</p>
 
-    <pre class="code lang-perl">    my $conn = DBIx::Connector-&gt;new( $dsn, $username, $password, \%attr );
+    <pre class="code prettyprint lang-perl">    my $conn = DBIx::Connector-&gt;new( $dsn, $username, $password, \%attr );
     $conn-&gt;mode(&#39;fixup&#39;);
 
     my $lwp = LWP::UserAgent-&gt;new;
@@ -92,7 +92,7 @@
     <h4>蛇足</h4>
     <p>最後に蛇足。</p><p>これがベストプラクティスかと聞かれると僕も自信がないのですが、本気でトランザクション管理したい場合はスマートに書こうなんて思わないで、トランザクションの明示的な指示はトップレベルでしかしない、という暗黙的なルールをつけてガリガリとベタ書きしてevalでくくってます。</p>
 
-    <pre class="code lang-perl">    eval {
+    <pre class="code prettyprint lang-perl">    eval {
         $dbh-&gt;do( ... );
         ...
         ... 他のコードたくさん ...
@@ -105,7 +105,7 @@
     }</pre>
 <p>でもevalでトラップって結構細かい事を気にしなきゃいけなかったりするので、最近はもうガードオブジェクトでお茶を濁してます</p>
 
-    <pre class="code lang-perl">    use Scope::Guard qw(guard);
+    <pre class="code prettyprint lang-perl">    use Scope::Guard qw(guard);
 
     my $dbh = DBI-&gt;connect(...);
     my $guard = guard { $dbh-&gt;rollback };

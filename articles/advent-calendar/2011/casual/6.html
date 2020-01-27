@@ -18,7 +18,7 @@
     <h3>どちらが良いコード？</h3>
     <p>さて、いきなりですが、以下のふたつのコードを比べてみてください。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 
 my @shugo_charas = qw/ran miki suu dia/;
@@ -28,7 +28,7 @@ foreach my $shugo_chara (@shugo_charas) {
     push @shugo_charas_uc, uc $shugo_chara;
 }</pre>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 
 my @shugo_charas = qw/ran miki suu dia/;
@@ -36,7 +36,7 @@ my @shugo_charas = qw/ran miki suu dia/;
 my @shugo_charas_uc = map { uc $_ } @shugo_charas;</pre>
 <p>どちらのコードも、@shugo_charasに入った各要素を大文字に変換しているコードですが、どちらが「良いコード」でしょう？　私は、下のmapを使ったコードのほうが良いコードだと考えます。なぜなら、後者のほうが「配列を変換したい」という"意図"が汲み取りやすいからです。前者はforeachの中身を精査しなければ「古い配列を変換して新しい配列を作っている」という意図が汲み取れませんが、mapが使ってあればコードを読んだ瞬間に、「あ、配列を変換してるんだな」と気づくことができます。</p><p>なにが言いたいかというと、適切な配列操作関数を使うことで、自分が楽をできるだけではなく、コードの意図を読み手に伝えることもできるので捗りますねということが言いたいのです。</p><p>perlでよく使われる配列操作の関数はmapの他にgrepがあり、これは配列の中から条件に一致するような要素だけを抜き出すのに使います。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 
 my @gardians = (
@@ -61,7 +61,7 @@ my @jacks_chairs = grep { $_-&gt;{chair} eq &#39;Jack&#39; } @gardians;</pre>
     <h4>first</h4>
     <p>条件に一致した最初の要素を取り出します。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use List::Util qw/first/;
 
@@ -84,7 +84,7 @@ warn $first_jacks_chair-&gt;{name}; #Kuukai</pre>
     <h4>max</h4>
     <p>配列の中で、数値コンテクストで最もおおきな要素を返します。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use List::Util qw/max/;
 
@@ -95,7 +95,7 @@ max 1..10; # 10</pre>
     <h4>maxstr</h4>
     <p>配列の中で、文字列コンテクストで比較して最も大きな要素を返します。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use List::Util qw/maxstr/;
 
@@ -117,7 +117,7 @@ maxstr @gardians; # &#39;Yaya&#39;</pre>
     <h4>min</h4>
     <p>maxの逆に数値コンテクストで最も小さいものを返します</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use List::Util qw/min/;
 
@@ -128,7 +128,7 @@ min 1..10; # 1</pre>
     <h4>minstr</h4>
     <p>maxstrの逆で、配列の中で、文字列コンテクストで比較して最も小さな要素を返します。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use List::Util qw/minstr/;
 
@@ -150,7 +150,7 @@ minstr @gardians; # &#39;Amu&#39;</pre>
     <h4>shuffle</h4>
     <p>配列をシャッフルします。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use List::Util qw/shuffle/;
 
@@ -172,21 +172,21 @@ my @shuffled = shuffle @gardians;</pre>
     <h4>sum</h4>
     <p>足し算して合計を出します。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use List::Util qw/sum/;
 
 sum 1..10; # 55</pre>
 <p>配列が空の場合はundefを返してしまうので、空の配列が渡されたときに0を返してほしい場合は0を最初に書いてあげると良いでしょう。</p>
 
-    <pre class="code lang-perl">sum 0, @list;</pre>
+    <pre class="code prettyprint lang-perl">sum 0, @list;</pre>
 
 </div>
 <div class="section">
     <h4>reduce</h4>
     <p>まず配列の最初のふたつの要素を取り出してブロックの $a, $bに適用します。そのブロックの返り値を$a,配列の次の値を$bに再度適応します。最後に評価された値を返り値とします。配列が空の場合undef,要素がひとつの場合その要素をそのまま返します。ちょっと説明が難しいので例を見たほうが早いかもです。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use List::Util qw/reduce/;
 

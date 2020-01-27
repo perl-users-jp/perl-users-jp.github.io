@@ -22,7 +22,7 @@
     <h4>prove のよく使うオプション</h4>
     <p>prove にはいっぱいオプションがあるんですが、ここではよく使いそうなやつをピックアップして紹介しちゃいますよ！</p>
 
-    <pre class="code">-v, --verbose    # いっぱい出力する
+    <pre class="code prettyprint">-v, --verbose    # いっぱい出力する
 -l, --lib        # lib を INC についかする perl -Ilib 相当
 -b, --blib       # blib/lib とか blib/arch を INC につかする -Mblib 相当
 -c, --color      # カラフルになる！ MSWin32 だと意味ないぜ！
@@ -47,7 +47,7 @@
     <h4>おすすめオプション</h4>
     <p>しょうがないのでこれを指定しといたほうが捗る！ってやつを指定しときましょう</p>
 
-    <pre class="code">$ prove -lcfrm --timer --trap</pre>
+    <pre class="code prettyprint">$ prove -lcfrm --timer --trap</pre>
 <p>詳細に観たい場合は、-v 、シャッフルしたいばあいは -s を一緒に追加します。</p>
 
 </div>
@@ -55,7 +55,7 @@
     <h4>毎回打つのがだるい</h4>
     <p>オプション長すぎて毎回打つのがだいぶだるいですね。そこで .proverc です！これに</p>
 
-    <pre class="code">$ cat .proverc
+    <pre class="code prettyprint">$ cat .proverc
 --lib
 --color
 --failures
@@ -66,7 +66,7 @@
 <p>とか書いておくと、prove とするだけでこのオプションが全部有効になります！<br />
 .proverc を読み込み体育ない場合は、--norc すれば OK です。</p><p>ちなみに、自分は .proverc に</p>
 
-    <pre class="code">--exec &#34;perl -Ilib -MTest:Flatten -MTest::Name::FromLine&#34;</pre>
+    <pre class="code prettyprint">--exec &#34;perl -Ilib -MTest:Flatten -MTest::Name::FromLine&#34;</pre>
 <p>っていうのを最近はよく入れてます。Test::Flatten は自分で書いたんですが、subtest の出力をフラットにしてくれるモジュールです。ちょこっとテストが見やすくなるのでオススメ。<br />
 あと、Test::Name::FromLine は cho45 先生が書いたやつで、マジおすすめというかこれなんで Test::More のデフォじゃないの馬鹿なの死ぬのって感じなのでぜひ使いましょう。どっちも use するだけで動くんだぜ！！</p><p>ただし、こういう書き方してるといまいち動かないケースもあるらしいですね。</p><p>.proverc とかを駆使して良い感じにテストする方法については、lestrrat さんが [/articles/advent-calendar/2011/test/18:title=テストのためにデーモンを自動的に起動するやりかた2011年版] で詳しく書いているので、そちらを御覧くださいまし。</p>
 
@@ -75,7 +75,7 @@
     <h4>出力形式を変更する</h4>
     <p> --formatter を指定すると変えられます。例えば、JUnit 形式にしたければ、</p>
 
-    <pre class="code">$ prove -lvc --formatter TAP::Formatter::JUnit t</pre>
+    <pre class="code prettyprint">$ prove -lvc --formatter TAP::Formatter::JUnit t</pre>
 <p>とかするといいです！簡単ですね！</p>
 
 </div>
@@ -84,7 +84,7 @@
     <p> --state っていうオプションがあるわけですが、オプションと挙動が多くてまぁ基本的に覚えられません。<br />
 まず、state が受け付ける引数の一覧を出しときましょう。</p>
 
-    <pre class="code">save   # テストの結果を .prove に保存
+    <pre class="code prettyprint">save   # テストの結果を .prove に保存
 last   # 前回実行したテストを実行
 failed # 前回失敗したテストのみ実行
 passed # 前回成功したテストのみ実行
@@ -98,16 +98,16 @@ old    # タイムスタンプが古いものから実行
 fresh  # 前回の実行以降に変更されているもののみ実行</pre>
 <p>多すぎですね。もう絶望感漂って来ました。指定するときは , 区切りにするか、--state をいっぱい連ねます。</p><p>まず、--state を使うにあたって --state=save をつけてテストを実行します。そうしないと他のオプションはなにも使えません。しょっぱなからむずいですね。</p>
 
-    <pre class="code">$ prove -lcrmf --state=save t</pre>
+    <pre class="code prettyprint">$ prove -lcrmf --state=save t</pre>
 <p>とかやると、.prove というファイルができています。中身は YAML になっていて、割と詳細な情報が出てるので、テストが終わったあとにこいつをパースして結果を IRC に出すとかやると捗るかもですね！</p><p>で、これ以降はターゲットを指定するとまたそのテストも走っちゃうので</p>
 
-    <pre class="code">$ prove -lcrmf --state=save</pre>
+    <pre class="code prettyprint">$ prove -lcrmf --state=save</pre>
 <p>としてやります。t を指定しないでねっことですね。難しいですね。</p><p>次にオプションの指定ですが、これは左結合になっています。どういうことかというと、指定した順番に適用されるってことです。前回失敗したテストだけ実行したい場合は、</p>
 
-    <pre class="code">$ prove -lcrmf --state=failed,save</pre>
+    <pre class="code prettyprint">$ prove -lcrmf --state=failed,save</pre>
 <p>とかしてやると、失敗したテストだけ実行されて、かつその結果がセーブされます。コケたテストだけ実行できるので便利ですね！でもマジむずいですね！</p><p>オプションがいっぱいあるので全部は説明できないんですが、ここではとりあえず必殺技だけ伝授しときます！詳しい使い方は頑張って習得してください。</p>
 
-    <pre class="code">$ prove -lcrmf --state=adrian</pre>
+    <pre class="code prettyprint">$ prove -lcrmf --state=adrian</pre>
 <p>ってやると、hot,all,save とおんなじ効果になります！すごい！！エイドリアン！！</p><p>ちなみに、あんまり state ばっかり使ってると、壊れたテストばっかり直してていままで動いてたテストが実は動かなくなってました〜みたいなことも起こりうるので注意が必要です。</p><p>そんなときは、--state を付けずに実行すればいいですね。</p>
 
 </div>

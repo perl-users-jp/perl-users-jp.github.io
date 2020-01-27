@@ -25,7 +25,7 @@ epicやPadreといったIDEでデバッグしたいよね、<br />
 <div class="section">
     <h4>デバッガの起動</h4>
     
-    <pre class="code">perl -d &lt;perlスクリプト&gt;</pre>
+    <pre class="code prettyprint">perl -d &lt;perlスクリプト&gt;</pre>
 <p>簡単ですね！</p><p></p>
 
 </div>
@@ -102,7 +102,7 @@ epicやPadreといったIDEでデバッグしたいよね、<br />
     <h5>ブレークポイントの設定</h5>
     <p>以下のソースコード内に書いておくと、その行がブレークポイントになります。</p>
 
-    <pre class="code">$DB::single = 1;</pre>
+    <pre class="code prettyprint">$DB::single = 1;</pre>
 <p>ifで条件設定したり、warnやdieなどシグナル検知して設定することも<br />
 もちろん可能です。</p><br />
 <br />
@@ -121,7 +121,7 @@ epicやPadreといったIDEでデバッグしたいよね、<br />
 そこでユーザホームディレクトリに .perldb というファイルを用意してあげると<br />
 デバッガのデフォルトの挙動を変更することができます。</p><p>たとえば上記の周辺ソースコード表示を行いたい場合は .perldb にこんなコードを書いておきます。<a href="#fn2" title="その他 .perldb の便利そうな記述については[https://gist.github.com/1455777:title=こちら]">*2</a></p>
 
-    <pre class="code lang-perl"># デバッガの初期化終了後に呼び出されるサブルーチン
+    <pre class="code prettyprint lang-perl"># デバッガの初期化終了後に呼び出されるサブルーチン
 sub afterinit {
     # @DB::typeaheadにpushしておくと、TTY出力を模倣してくれる
     push @DB::typeahead, &#34;{{ v&#34;;
@@ -138,7 +138,7 @@ sub afterinit {
 そして、コピーしたファイルを適当にいじいじして<br />
 PERL5DB環境変数にカスタマイズスクリプトをロードする記述を入れてあげるだけです。</p>
 
-    <pre class="code">export PERL5DB=&#39;BEGIN { require &#34;myperl5db.pl&#34; }&#39;</pre>
+    <pre class="code prettyprint">export PERL5DB=&#39;BEGIN { require &#34;myperl5db.pl&#34; }&#39;</pre>
 <p>今回はデモということで以下のようなお遊びプロンプトを作ってみました＼(^o^)／<br />
 <img src="https://github.com/perl-users-jp/perl-advent-calendar/raw/master/2011/casual/2011-12-12/image01.png" /><br />
 パッチは<a href="https://gist.github.com/1460861">&#x3053;&#x3061;&#x3089;</a>に置いておきますね。</p><p></p>
@@ -156,7 +156,7 @@ PERL5DB環境変数にカスタマイズスクリプトをロードする記述�
     <p>perlでインタラクティブ実行したい時には<a href="http://search.cpan.org/~doy/Devel-REPL-1.003012/">Devel::REPL</a>のようなモジュールもありますが、<br />
 perl標準デバッガでも簡易的に実行できます。十分ですね。</p>
 
-    <pre class="code">perl -de 0</pre>
+    <pre class="code prettyprint">perl -de 0</pre>
 
 </div>
 <div class="section">
@@ -164,7 +164,7 @@ perl標準デバッガでも簡易的に実行できます。十分ですね。<
     <p>たとえばplack/psgiなアプリをデバッガ実行したい場合があるでしょう。<br />
 そんな時 「-S」 オプションを使うとplackupコマンドをフルパス指定する必要がなくなり、少しだけ捗りますね。<a href="#fn4" title="-Sオプション、実はさっき知りました＞＜">*4</a></p>
 
-    <pre class="code">perl -Sd plackup MyApp.psgi</pre>
+    <pre class="code prettyprint">perl -Sd plackup MyApp.psgi</pre>
 
 </div>
 <div class="section">
@@ -178,10 +178,10 @@ perl標準デバッガでも簡易的に実行できます。十分ですね。<
 <br />
 <p>次はissmさんです！</p>
 
-</div>HASH(0x55c17659dcc8)
-HASH(0x55c17663b558)
-HASH(0x55c17659e1d8)
-HASH(0x55c176605070)
+</div>HASH(0x55809a918e98)
+HASH(0x55809a9839f8)
+HASH(0x55809a996588)
+HASH(0x55809a9968b8)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

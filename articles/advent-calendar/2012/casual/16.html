@@ -18,7 +18,7 @@
     <h4>bless</h4>
     <p>#8で扱ったのは「モジュール定義入門」ということで、Perlでクラス定義とかオブジェクトの生成とかどうやるの？って内容で開催しました。</p>
 
-    <pre class="code lang-perl">package Foo;
+    <pre class="code prettyprint lang-perl">package Foo;
 use strict;
 use warnings;
 
@@ -56,7 +56,7 @@ say ref $hoge;  # main</pre>
     <h4>オブジェクトは単なるリファレンス</h4>
     <p><a href="http://perldoc.jp/docs/perl/5.14.1/perlobj.pod">Perl &#x306E;&#x30AA;&#x30D6;&#x30B8;&#x30A7;&#x30AF;&#x30C8;</a>からタイトルを拝借した訳ですが、blessの第1引数にはリファレンスを渡します。なので、オブジェクトに他の言語でいうメンバ変数を持たせたい場合は、以下のように書きます。</p>
 
-    <pre class="code lang-perl">package Foo;
+    <pre class="code prettyprint lang-perl">package Foo;
 use strict;
 use warnings;
 
@@ -74,7 +74,7 @@ my $foo = Foo-&gt;new();
 say $foo-&gt;{a}; # 5</pre>
 <p>ちなみにメソッドを定義して呼び出す手順はこんな感じ。</p>
 
-    <pre class="code lang-perl">package Bar;
+    <pre class="code prettyprint lang-perl">package Bar;
 use strict;
 use warnings;
 
@@ -100,7 +100,7 @@ say $bar-&gt;hoge(); # hello.</pre>
     <h4>メソッドからメンバ変数を参照する</h4>
     <p>newを呼び出したときの引数をメンバ変数として確保して、それをメソッドから参照するにはこんな感じ。</p>
 
-    <pre class="code lang-perl">package Foo;
+    <pre class="code prettyprint lang-perl">package Foo;
 use strict;
 use warnings;
 
@@ -128,7 +128,7 @@ say $foo-&gt;hoge(); # hello.</pre>
     <h4>refを使って正体を確かめる</h4>
     <p>組み込み関数のrefを使うとこんなことが出来ます。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use feature &#39;say&#39;;
 
@@ -146,7 +146,7 @@ say ref $obj;       # MyClass</pre>
     <h4>blessされたものとそうじゃないものを区別するには？</h4>
     <p>Scalar::Utilの出番ですね！</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use feature &#39;say&#39;;
 
@@ -169,7 +169,7 @@ say blessed($obj)       ? blessed($obj)       : &#39;undef&#39;; # MyClass</pre>
     <h5>blessできるのはハッシュリファレンスだけじゃない</h5>
     <p>blessの第1引数にはリファレンスを渡すことになっていますが、もちろんハッシュリファレンス以外も渡せます。（Thanks! akiymさん）</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use feature &#39;say&#39;;
 
@@ -187,7 +187,7 @@ say ${$bar};    # hello.</pre>
     <h5>corelistコマンド</h5>
     <p>Scalar::Utilってコアモジュールなの？っていうときに便利なのが、corelistコマンド。Module::CoreListを入れると使えるそうです。（Thanks! aloelightさん）</p>
 
-    <pre class="code lang-shell">$ corelist Scalar::Util
+    <pre class="code prettyprint lang-shell">$ corelist Scalar::Util
 
 Scalar::Util was first released with perl v5.7.3
 $ corelist Module::CoreList

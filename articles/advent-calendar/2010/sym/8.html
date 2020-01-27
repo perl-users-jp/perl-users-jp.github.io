@@ -16,16 +16,16 @@
 <a href="http://haskell.org/ghc/">HaskellというかGHC</a>固有なのですが、実はGHCってcppオプションを使う事によってプリプロセッサを展開してくれます。(発見者はid:ranhaさんです)<br />
 なので、これを利用して記号プログラミングで"HELLO WORD!"を出力してみます。</p>
 
-    <pre class="code">#define _ 1
+    <pre class="code prettyprint">#define _ 1
 #define __ main=print</pre>
 <p>１の定義とプリプロセッサを通す上でmain関数を呼ばなきゃいけないのでこうしました。</p><p>数値を文字列に変換するためにData.Charモジュールのchr関数を使いたいので、次の様にしました。</p>
 
-    <pre class="code">import Data.Char(chr)
+    <pre class="code prettyprint">import Data.Char(chr)
 (%%) = chr</pre>
 <p>これで(%%)を使ってASCIIコードを文字に変換できます。<br />
 ここまでくるともう簡単ですねHelloWorldの本文を書いてみたいと思います</p>
 
-    <pre class="code">(&amp;&amp;&amp;)   = (_+_+_+_) ^ (_+_+_)               -- 64
+    <pre class="code prettyprint">(&amp;&amp;&amp;)   = (_+_+_+_) ^ (_+_+_)               -- 64
 (@@)   = (&amp;&amp;&amp;) + (_+_) ^(_+_+_)             -- H
 (@@@)  = (&amp;&amp;&amp;) + (_+_+_+_+_)                -- E
 (@@@@) = (&amp;&amp;&amp;) + (_+_+_+_) * (_+_+_)        -- L
@@ -41,10 +41,10 @@ __ [(%%)(@@), (%%)(@@@),(%%)(@@@@),(%%)(@@@@),(%%)(@@@@@),(%%)(@@@@@@),(%%)(@@@@
 __は上で定義したmain = printですね。<br />
 つまり、このコードは次のコードと等価です。</p>
 
-    <pre class="code">main = print &#34;HELLO WORLD!&#34;</pre>
+    <pre class="code prettyprint">main = print &#34;HELLO WORLD!&#34;</pre>
 <p>このように -cppオプションを付けて実行してみてください。</p>
 
-    <pre class="code">ghc -cpp symbolic.hs &amp;&amp; ./a.out</pre>
+    <pre class="code prettyprint">ghc -cpp symbolic.hs &amp;&amp; ./a.out</pre>
 <p>ね、簡単でしょ。</p><br />
 <p>ArrowやApplicativeを組み合わせるともっと記号記号したいろんなプログラミングが書けると思います。腕に自信のあるHaskellerは挑戦してみてください。<br />
 仕事でHaskellを使う機会があったら、みなさんもぜひ今回紹介したテクニックを使ってみてください。</p>

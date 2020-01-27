@@ -22,10 +22,10 @@
     <h4>何をするモジュール？</h4>
     <p>App::Rolling は、標準入力を世代管理されたファイルに書き出す目的で作っています。例えば、いつ起きるかわからない適当な通信のTCPダンプを取得したい場合、ひとつのファイルにひたすら書き出して捉えるのは、なんとなく気が引けますよね。そんなとき、App::Rolling に同梱される roll コマンドを使えば、好きな間隔で、好きな世代だけローテートさせながら、ファイルに書き出すことができるようになります。</p><p>通常、以下のようにダンプとったりしますね。</p>
 
-    <pre class="code lang-bash">$ /usr/sbin/tcpdump | tee &gt; /tmp/dump.log</pre>
+    <pre class="code prettyprint lang-bash">$ /usr/sbin/tcpdump | tee &gt; /tmp/dump.log</pre>
 <p>roll コマンドで、以下のようにすると、`dump.log.1230` `dump.log.1231` `dump.log.1232` `dump.log.1233` `dump.log.1234` というように、自動的にファイルが世代管理(デフォルト5世代)されて書き出されます。</p>
 
-    <pre class="code lang-bash">$ /usr/sbin/tcpdump | roll -t /tmp/dump.log</pre>
+    <pre class="code prettyprint lang-bash">$ /usr/sbin/tcpdump | roll -t /tmp/dump.log</pre>
 <p>だから、放置しても、安心★ｷﾗｯ</p><p></p>
 
 </div>
@@ -33,7 +33,7 @@
     <h4>オプション</h4>
     <p>次のようなオプションがあります。</p>
 
-    <pre class="code">-f --file        書き出すファイルを指定します *必須*
+    <pre class="code prettyprint">-f --file        書き出すファイルを指定します *必須*
 -a --age         ローテートする世代数 [デフォルト:5]
 -i --interval    1世代に書き出す時間(秒) [デフォルト:60]
 -t --through     ファイルに書き出しつつ、標準出力にもアウトプットします
@@ -42,7 +42,7 @@
 -v --version     バージョンを表示します</pre>
 <p>例えば以下のように書くと、10世代でローテーションして、1世代が180秒間の出力を確保します。あわせて、`-t` オプションで dump出力を STDIN に垂れ流して、リアルタイムで観察したりもできます。</p>
 
-    <pre class="code lang-bash">$ /usr/sbin/tcpdump | roll -f /tmp/dump -a 10 -i 180 -t</pre>
+    <pre class="code prettyprint lang-bash">$ /usr/sbin/tcpdump | roll -f /tmp/dump -a 10 -i 180 -t</pre>
 <p>内緒だけど、ファイル指定は -f で指定しなくてもいけるみたいよ♪</p><p></p>
 
 </div>
@@ -50,7 +50,7 @@
     <h4>設定</h4>
     <p>オプションで指定する値は、規定のファイルに記述しておけば、毎度指定する必要がありません。</p><p>デフォルトでは `~/.rolling/config` が読まれます。$ENV{'ROLLING_DIR'} で任意のディレクトリの config ファイルを指定することも可能です。</p><p>config ファイルの中身は、例えば以下のようになります。</p>
 
-    <pre class="code">file: /tmp/roll.log
+    <pre class="code prettyprint">file: /tmp/roll.log
 age: 3
 interval: 180
 through: 1</pre>

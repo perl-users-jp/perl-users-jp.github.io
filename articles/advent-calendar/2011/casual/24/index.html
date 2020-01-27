@@ -19,7 +19,7 @@
     <h4>__DATA__</h4>
     <p>「ヒアドキュメント」って知ってますよね？</p>
 
-    <pre class="code lang-perl">my $html = &lt;&lt;&#34;EOM&#34;;
+    <pre class="code prettyprint lang-perl">my $html = &lt;&lt;&#34;EOM&#34;;
 &lt;html&gt;
 &lt;head&gt;&lt;title&gt;タイトル&lt;/title&gt;&lt;/head&gt;
 &lt;body&gt;ボディ&lt;/body&gt;
@@ -30,7 +30,7 @@ EOM</pre>
 思いますよね。<br />
 そんな時には「__DATA__」を使うと簡単にコードが見やすくなります。</p>
 
-    <pre class="code lang-perl">#!/usr/local/bin/perl
+    <pre class="code prettyprint lang-perl">#!/usr/local/bin/perl
 use utf8;
 use 5.008001;
 use strict;
@@ -63,7 +63,7 @@ __DATA__
     <h4>Data::Section::Simple</h4>
     <p>Data::Section::Simple を使うと、ヒアドキュメントを沢山使っている場合でも「__DATA__」を使ってコードを見やすく出来ます。</p>
 
-    <pre class="code lang-perl">#!/usr/local/bin/perl
+    <pre class="code prettyprint lang-perl">#!/usr/local/bin/perl
 use utf8;
 use 5.008001;
 use strict;
@@ -104,7 +104,7 @@ __DATA__
     <p>Text::MicroTemplate::DataSection を使うと、さらにカジュアルに「__DATA__」を使える感じです。<br />
 このモジュールは、テンプレート機能（Text::MicroTemplate）とData::Section::Simpleを組み合わせて、簡単に使えるようにしたモジュールです。</p>
 
-    <pre class="code lang-perl">#!/usr/local/bin/perl
+    <pre class="code prettyprint lang-perl">#!/usr/local/bin/perl
 use utf8;
 use 5.008001;
 use strict;
@@ -141,7 +141,7 @@ __DATA__
     <h4>ウェブ・アプリケーション・フレームワーク</h4>
     <p>本格的なウェブ・アプリケーション・フレームワークでなくても、例えばMojolicious::Liteのような小さなフレームワークを使うと、useするモジュールの数が劇的に減って、かつ「__DATA__」も一層カジュアルに使えます。</p>
 
-    <pre class="code lang-perl">#!/usr/local/bin/perl
+    <pre class="code prettyprint lang-perl">#!/usr/local/bin/perl
 use utf8;
 use Mojolicious::Lite;
 

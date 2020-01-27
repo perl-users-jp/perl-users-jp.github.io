@@ -27,7 +27,7 @@
 </blockquote><p>だそうなので、さっそくperlをスクリプト エンジンとしたwsfを書いちゃいましょう。</p><br />
 <p>まずは、いつもの。</p>
 
-    <pre class="code">&lt;job&gt;
+    <pre class="code prettyprint">&lt;job&gt;
 &lt;script language=&#34;PerlScript&#34;&gt;
 
 $WScript-&gt;Echo(&#34;hello world.&#34;);
@@ -39,7 +39,7 @@ $WScript-&gt;Echo(&#34;hello world.&#34;);
 ダブルクリックすると、スクリプトが実行されて、メッセージボックスが表示されます。</p><p><br /><br />
 さらに、複数のファイルをドラッグ＆ドロップして処理する場合はこんな感じ。</p>
 
-    <pre class="code">&lt;job&gt;
+    <pre class="code prettyprint">&lt;job&gt;
 &lt;script language=&#34;PerlScript&#34;&gt;
 
 my $args = $WScript-&gt;Arguments;
@@ -63,7 +63,7 @@ BATファイル(*.bat)を書くまでもない場合は非常に便利です。<
     <h3>ですが、次はオススメしない理由です。</h3>
     <p>結論から言うと、日本語のコメントを入れると、意味不明なエラーが出ます。</p>
 
-    <pre class="code">&lt;job&gt;
+    <pre class="code prettyprint">&lt;job&gt;
 &lt;script language=&#34;PerlScript&#34;&gt;
 
 # メッセージボックスを表示！
@@ -74,7 +74,7 @@ $WScript-&gt;Echo(&#34;hello world.&#34;);
 <p><br /><br />
 こんな感じで、ファイルの先頭で文字コード指定したり、</p>
 
-    <pre class="code">&lt;?XML version=&#34;1.0&#34; standalone=&#34;yes&#34; encoding=&#34;euc-jp&#34; ?&gt;</pre>
+    <pre class="code prettyprint">&lt;?XML version=&#34;1.0&#34; standalone=&#34;yes&#34; encoding=&#34;euc-jp&#34; ?&gt;</pre>
 <p>可能な限りいろいろ試してもダメでした。<br />
 これが許容できるなら使えそうなもんですが、私はperlスクリプトファイル(*.pl)をJScriptファイル(*.js)から呼び出す方法をオススメしています。<br />
 理由は、コマンド プロンプトから呼び出してデバッグが出来るからです。</p><p>という訳で、オススメしないよ！っていうMSWin32Tipsでした！！</p><p>次は、 @songmu さんデス！</p>

@@ -16,7 +16,7 @@
 koji**とかkoji*とかkoji--とか名前を適当に付けすぎて涙が止まらないです。</p><p>さて、今回は空気を読まない系でいいらしいので、こんなAcmeをご用意しました。</p><p><a href="https://github.com/koji--/p5-acme-airread">Acme::AirRead</a></p><p>中身は何の変哲も無いアクセサです。<a href="https://metacpan.org/module/Class::Accessor::Lite">Class::Accessor::Lite</a>とか見てなんとなく作りました。<br />
 ただし、空気読めない系です。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use Acme::AirRead;
 
@@ -37,7 +37,7 @@ my $yometa  = read_air(&#39;yomeru&#39;);  # kuuki yome</pre>
 他の言語は<del>めんどくさかったので</del>未対応です。</p><p>ただ、このまま空気が読めないと悔しい気持ちでいっぱいになりそうなので<br />
 適当に空気読めるようにできます。</p>
 
-    <pre class="code lang-perl">write_air(
+    <pre class="code prettyprint lang-perl">write_air(
     air   =&gt; &#39;yomeru&#39;,
     tokyo =&gt; &#39;kowai&#39;
 );
@@ -47,7 +47,7 @@ my $air   = read_air(&#39;air&#39;);     # yomeru
 my $tokyo = read_air(&#39;tokyo&#39;);   # undef</pre>
 <p>汚した空気を綺麗にする機能も付けました。エコって大事ですね。</p>
 
-    <pre class="code lang-perl">write_air( air =&gt; &#39;kieru&#39; );
+    <pre class="code prettyprint lang-perl">write_air( air =&gt; &#39;kieru&#39; );
 empty_air();
 my $air = read_air(&#39;air&#39;); # undef</pre>
 <p>自分が空気読めない系なので、そんな不条理でもにょもにょした何かをAcmeで表現してみました。<br />

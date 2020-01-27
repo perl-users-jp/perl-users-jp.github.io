@@ -24,7 +24,7 @@ Proj::DB::Schemaクラスを作らなくてもよいです。<br />
 またProj::DBクラス自体も特別必要ではありません。</p><p>teng_loader.plというファイルに以下のようなコードを書くだけで<br />
 今までと同じような操作を行うことが可能です。</p>
 
-    <pre class="code">#! perl
+    <pre class="code prettyprint">#! perl
 use strict;
 use warnings;
 use Teng::Schema::Loader;
@@ -39,7 +39,7 @@ my $row = $teng-&gt;single(&#39;user&#39; =&gt; +{id =&gt; 1});
 warn $row-&gt;name;</pre>
 <p>またTeng::Schema::LoaderはDBHを受け取ることも可能なので以下のように書くことも可能です。</p>
 
-    <pre class="code">#! perl
+    <pre class="code prettyprint">#! perl
 use strict;
 use warnings;
 use Teng::Schema::Loader;

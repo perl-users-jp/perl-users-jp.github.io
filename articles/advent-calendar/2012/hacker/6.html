@@ -14,7 +14,7 @@
 
         <p>やぁみんな！！今というライフをエンジョイしているかーい！？私は普通です。</p><p>今日は、みんなにとってもクールでハッピーなモジュールを紹介してやるぜ！あ、こんにちは xaicron です。</p><p>それはこいつだ！ iOS に通知を送るためのモジュール、その名も Net::APNs::Extended っつーんだ。よろしくな！！昔、typester さんが AnyEvent::Net::APNS って言うモジュールを出してますけど、できることは大体一緒です。</p><p>使い方はベリィイージー！！まずは、にっくき Apple に諸々とアプリの申請をだしたりして紆余曲折の末にクライアント証明書を手に入れてくれ！！もちろんそのためにはプッシュ通知を受け取る iOS アプリが必要なので頑張って書いてください。</p><p>証明書とアプリができたらあとは送るだけ！！！と見せかけて、まずは端末から device token っつーのを取得する必要があるんだ！！ちゃんとアプリをつくればできてるはずですね。</p><p>これで準備は完了だ。慣れてる人なら1時間ぐらいで出来るはずだぜ！！私はできません。</p><p>そしたらおもむろに以下のような感じで使うんだ！！</p>
 
-    <pre class="code">use Net::APNs::Extended;
+    <pre class="code prettyprint">use Net::APNs::Extended;
 
 my $apns = Net::APNs::Extended-&gt;new(
     is_sandbox =&gt; 1,
@@ -35,7 +35,7 @@ if (my $error = $apns-&gt;retrieve_error) {
 }</pre>
 <p>このモジュールの利点は、retrieve_error っつーメソッドでエラー情報を取得できることなんだぜ！</p><p>実際に、使うときはインスタンスを生成してそれを使いまわすので、以下の様な感じにするとモアベターですね。</p>
 
-    <pre class="code">use Cache::Memory::Simple;
+    <pre class="code prettyprint">use Cache::Memory::Simple;
 use Net::APNs::Extended;
 
 my $cache = Cache::Memory::Simple-&gt;new;

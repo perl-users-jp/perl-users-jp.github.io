@@ -27,7 +27,7 @@
     <h4>PODをHTML化</h4>
     <p>PODを整形化してHTML化するモジュールはたくさんあります。今回僕が使うのは、Pod::Simple::XHTMLというモジュールです。XHTMLを出力してくれるので後々POD内のPerlコードの部分を指定しやすいです。</p>
 
-    <pre class="code lang-perl">use Pod::Simple::XHTML;
+    <pre class="code prettyprint lang-perl">use Pod::Simple::XHTML;
 
 my $source = &#39;...Perl code including POD...&#39;;
 my $parser = Pod::Simple::XHTML-&gt;new();
@@ -44,7 +44,7 @@ $parser-&gt;parse_string_document($source);</pre>
     <h4>preタグをハイライトシンタックスする</h4>
     <p>preタグでくくられた文字列を取得して、その部分をハイライトシンタックスしていく方針でいきます。HTMLのパースにはHTML::TreeBuilder::XPathを使いました。XPathでpreを指定します。</p><p>ハイライトシンタックスにはText::VimColorを使いました。このモジュールはハイライトすべき文字列にクラス属性付きのspanタグを付けて、CSSで色づけするという物です。今回はそのspanのタグ付けをとりあえずこのモジュールでやってもらっています。</p>
 
-    <pre class="code lang-perl">my $tree = HTML::TreeBuilder::XPath-&gt;new;
+    <pre class="code prettyprint lang-perl">my $tree = HTML::TreeBuilder::XPath-&gt;new;
 $tree-&gt;parse($pod);
 
 for my $code ( $tree-&gt;findnodes(&#39;//pre&#39;) ) {
@@ -63,7 +63,7 @@ for my $code ( $tree-&gt;findnodes(&#39;//pre&#39;) ) {
     <h4>CSS付きでHTMLを書き出す</h4>
     <p>あとは、Text::VimColorのソースコードタグ付けに合わせてCSSを揃えてHTMLを出力するだけです。</p>
 
-    <pre class="code lang-perl">my $output = &lt;&lt;EOH;
+    <pre class="code prettyprint lang-perl">my $output = &lt;&lt;EOH;
 &lt;html&gt;&lt;head&gt;
 &lt;style type=&#34;text/css&#34;&gt;
 pre, pre code { font-family: &#34;Monaco&#34;, monospace; }

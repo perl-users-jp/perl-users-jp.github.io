@@ -18,12 +18,12 @@
     <h3>MarkdownをPerlで扱う</h3>
     <p>Markdown文章をHTML化するといった処理をPerlで行うにはその名も「Text::Markdown」を使っています。</p>
 
-    <pre class="code lang-perl">
+    <pre class="code prettyprint lang-perl">
 use Text::Markdown qw/markdown/;
 </pre>
 <p>とすると、「markdown」メソッドが使えるようになるので、Markdown記法で書かれた文字列「$text」をHTML化して「$html」に入れるには</p>
 
-    <pre class="code lang-perl">
+    <pre class="code prettyprint lang-perl">
 my $html = markdown($text);
 </pre>
 <p>とすればOKです。</p>
@@ -47,7 +47,7 @@ my $html = markdown($text);
     <h3>サンプルアプリより抜粋</h3>
     <p>で、上記の技術をまとめると「Dropbox上のMarkdownテキストをブラウザでプレビューする」アプリが出来ますね。元々紹介したかったのはこれだったわけです。</p><p>例えば、「Dropdown」という名前を付けて、Mojoliciousでアプリを組む場合、Markdownを含むDropbox内のコンテンツを表示させるコントローラはこのような具合になります。</p>
 
-    <pre class="code lang-perl">package Dropdown::Dropbox;
+    <pre class="code prettyprint lang-perl">package Dropdown::Dropbox;
 use Mojo::Base &#39;Mojolicious::Controller&#39;;
 use Text::Markdown qw/markdown/;
 use Encode;

@@ -15,7 +15,7 @@
         <p>昨日Perl6をインストールしました。「さて何をしよう。特にすることがない！」というのがPerl6に限らず言語を勉強する際の最大の障害だと思います。題材重要ですね。<br />
 今回は「12月25日まであと何日?」というのを調べるスクリプトを書いてみましょうか。</p>
 
-    <pre class="code">#!/usr/bin/env perl6
+    <pre class="code prettyprint">#!/usr/bin/env perl6
 # days_till_christmas.pl
 use v6;
 
@@ -25,7 +25,7 @@ sub MAIN (:$date = Date.today) {
 }</pre>
 <p>あれ。こんだけだ。できちゃいましたね。実行してみましょう。</p>
 
-    <pre class="code">$ perl6 days_till_christmas.pl
+    <pre class="code prettyprint">$ perl6 days_till_christmas.pl
 15 days till christmas
 
 $ perl6 days_till_christmas.pl --date &#39;2010-12-02&#39;

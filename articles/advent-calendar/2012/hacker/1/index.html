@@ -23,7 +23,7 @@
     <h4>使い方</h4>
     <p>基本的な使い方は以下のような感じになります。</p>
 
-    <pre class="code lang-perl">#!/usr/bin/env perl
+    <pre class="code prettyprint lang-perl">#!/usr/bin/env perl
 use strict;
 use warnings;
 
@@ -63,7 +63,7 @@ my $graph = graph {
 $graph-&gt;save(path =&gt; &#39;sample&#39;, type =&gt; &#39;png&#39;);</pre>
 <p>これで以下のような dotファイルと画像ファイルが生成されます。</p>
 
-    <pre class="code">digraph &#34;G&#34; {
+    <pre class="code prettyprint">digraph &#34;G&#34; {
   subgraph &#34;cluster_0&#34; {
     style=&#34;filled&#34;;
     color=&#34;lightgrey&#34;;
@@ -112,7 +112,7 @@ $graph-&gt;save(path =&gt; &#39;sample&#39;, type =&gt; &#39;png&#39;);</pre>
     <h4>応用</h4>
     <p>上記の例は DOTファイルを Perlで置き換えたという程度ですが、graphのコードブロックの中では Perl構文も当然使えますのでより複雑なことを行うことも可能です。以下は大阪市営地下鉄をグラフ化した例です。</p>
 
-    <pre class="code lang-perl">#!perl
+    <pre class="code prettyprint lang-perl">#!perl
 use strict;
 use warnings;
 

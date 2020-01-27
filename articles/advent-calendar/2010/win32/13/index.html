@@ -58,7 +58,7 @@
     <h3>とりあえずCGIで動かす</h3>
     <p>ということでもっとも基本的なCGIでPerl アプリケーションを動かす為の設定をしてみます。CGIの設定方法は割とWebに転がっているのでざっくりと説明します。</p><p>とりあえず簡単なCGIスクリプトを用意します。以下のような内容でindex.cgiとして保存しておきます。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use CGI;
 
 my $q = CGI-&gt;new;
@@ -91,7 +91,7 @@ print &#34;初春かわいい&#34;;</pre>
 </dl><p> <br />
 というわけで設定したらOKを押して閉じましょう。OKを押すと</p>
 
-    <pre class="code">この ISAPI 拡張機能を有効にしますか? [はい] をクリックすると、[ISAPI および CGI の制限] の一覧の &#34;許可済み&#34; の項目に、拡張機能が追加されます。[ISAPI および CGI の制限] の一覧に拡張機能の項目が既に存在する場合は、&#34;許可済み&#34; に更新されます。</pre>
+    <pre class="code prettyprint">この ISAPI 拡張機能を有効にしますか? [はい] をクリックすると、[ISAPI および CGI の制限] の一覧の &#34;許可済み&#34; の項目に、拡張機能が追加されます。[ISAPI および CGI の制限] の一覧に拡張機能の項目が既に存在する場合は、&#34;許可済み&#34; に更新されます。</pre>
 <p>とか言われますので「はい」を押します。</p><p>では早速ブラウザで <a href="http://localhost/Perl/index.cgi">http://localhost/Perl/index.cgi</a> にアクセスしてみましょう。無事表示されましたか?ここまでで動かなかった人は次のトラブルシュートをご覧ください。</p><p>こんな感じで普通のCGIなアプリケーションも設定すれば動くでしょう。</p>
 
 </div>
@@ -108,11 +108,11 @@ print &#34;初春かわいい&#34;;</pre>
     <h4>"502 - Web サーバーがゲートウェイまたはプロキシ サーバーとして動作しているときに、無効な応答を受信しました。"</h4>
     <p>このメッセージは何らかの理由でCGIが死んだりしたときに出てきます。Apacheで動かしたときの500相当ですね。</p><p>まずはPerl.exeで直接実行してみましょう。そもそもモジュールが足りなくて死んだりする場合はすぐわかります。</p><p>動かしてみて大丈夫そうだったけどやっぱりIISで動かない…。そういうときはスクリプトの頭に</p>
 
-    <pre class="code lang-perl">BEGIN { print &#34;Content-Type: text/html\n\n&#34;; }</pre>
+    <pre class="code prettyprint lang-perl">BEGIN { print &#34;Content-Type: text/html\n\n&#34;; }</pre>
 <p>とか書いて実行してみましょう。こうすると大体動作して、何かwarningが頭についていたりするのが見えたりするようになります。</p><p>IIS7にはFREBという失敗した要求のナントカカントカというログ機構が備わっていますが、CGIのエラーはろくに情報がないのでこのローテクで回避するのが楽です。IISでCGIを動かすときにはおぼえてて損はないと思います。</p><p>で、warningが原因で502になるというのはどういうことかというと、どうやらIISのCgiModuleはSTDERRをSTDOUTと同様にクライアントへ出力しようとしてしまい途中でエラーとなるようです。<br />
 20世紀スクリプトを動かす場合などにこまったりしますね。</p><p>例えば先ほどのコードもこんな感じにするとすぐ動かなくなります。Apacheではerror.logにはなにやらでますが一応動きます。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 
 warn &#34;------\n\n&#34;;
 print &#34;Content-Type: text/html; charset=utf-8\n\n&#34;;
@@ -120,7 +120,7 @@ print &#34;Content-Type: text/html; charset=utf-8\n\n&#34;;
 print &#34;初春かわいい&#34;;</pre>
 <p>で、じゃあどうするのかという話なのですが手っ取り早い方法はスクリプトの頭に</p>
 
-    <pre class="code lang-perl">BEGIN { close(STDERR); }</pre>
+    <pre class="code prettyprint lang-perl">BEGIN { close(STDERR); }</pre>
 <p>とか書いてしまう方法です。これで忌まわしきWarningでエラーになることがなくなります。</p><p>本当のエラーが出たらCGIは死ぬし元々情報は残らないのでそこで調べればいいと思います。STDERRをどこかのファイルに出すなり、その辺はどうとでもやりようがありそうです。</p><p>ちなみにSTDERRに吐いてても処理しきってしまえれば動くことはあるので、知らないうちにヘッダーにwarningがでていることがあります。そういう意味でもSTDERRを何とかしておいた方が良いかもしれません。</p><p></p>
 
 </div>

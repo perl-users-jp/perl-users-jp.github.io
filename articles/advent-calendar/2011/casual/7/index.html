@@ -41,7 +41,7 @@ Perl Advent Calendar Japan 2011の7日目を書かせて頂きます！お手柔
 これはPerlスクリプト、あるいはモジュールがどのバージョン以上で動作するかなどを調べるためのモジュールです。<br />
 これをインストールするとperlverというコマンドもインストールされるので、それを使って簡単に試す事が出来ます。</p><p>以下のような結果が得られます。</p>
 
-    <pre class="code lang-sh">$ perlver lib
+    <pre class="code prettyprint lang-sh">$ perlver lib
    -----------------------------------------------------------  
  | file                         | explicit | syntax | external |
  | ----------------------------------------------------------- |
@@ -73,7 +73,7 @@ syntaxがこのコードの構文がどのバージョン以上でサポート�
 </dl><p><br />
 皆さんご存知Data::Dumperの出力を変数名を自動取得した上で吐いてくれるモジュールです。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 
 use Data::Dumper::Names;
@@ -88,7 +88,7 @@ print Dumper \%hoge;
 print Dumper $hogeref;</pre>
 <p>とかやると</p>
 
-    <pre class="code lang-perl">%hoge = (
+    <pre class="code prettyprint lang-perl">%hoge = (
           &#39;bar&#39; =&gt; 2,
           &#39;foo&#39; =&gt; 1
         );
@@ -123,13 +123,13 @@ $hogeref = {
 ベンチマークへ与える影響は無視出来る程度でしょう。<br />
 使い方は至って簡単で、</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 
 use Benchmark qw/cmpthese timethese/;</pre>
 <p>などとしていたところを</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 
 use Benchmark::ProgressBar qw/cmpthese timethese/;</pre>
@@ -156,7 +156,7 @@ use Benchmark::ProgressBar qw/cmpthese timethese/;</pre>
 以下は^/css/.+?\.css$にアクセスしてきたリクエストに対し、コンパイル済のファイルがあればそれを、<br />
 そうでなければ/raw_css/以下にある同じファイルをCSS Tidyで処理したものを返す例です。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 
 use MyApp;
@@ -225,7 +225,7 @@ Changesも用意されて無く、ずっとメンテナンスされてる様子�
 これを使うと例えば通常はutf-8でencodeしたコンテンツを返すが、<br />
 携帯端末からのアクセスからはshift-jisでencodeしたコンテンツ返す。といった処理が簡単に実装出来ます。</p><p>親Classを以下のようにしておけば</p>
 
-    <pre class="code lang-perl">package MyApp::Web;
+    <pre class="code prettyprint lang-perl">package MyApp::Web;
 use strict;
 use warnings;
 
@@ -237,7 +237,7 @@ __PACKAGE__-&gt;encoding(&#39;utf-8&#39;); # default
 1;</pre>
 <p>例えば以下のようにするだけで $c->req->is_mobile がtureのときだけ一時的にencodingを変更する事が出来ます。</p>
 
-    <pre class="code lang-perl">package MyApp::Web::C::Root;
+    <pre class="code prettyprint lang-perl">package MyApp::Web::C::Root;
 use strict;
 use warnings;
 

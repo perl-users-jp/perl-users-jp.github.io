@@ -18,18 +18,18 @@
 <div class="section">
     <h4>基本的な使い方</h4>
     
-    <pre class="code lang-sh">prove t/foo.t</pre>
+    <pre class="code prettyprint lang-sh">prove t/foo.t</pre>
 <p>のようにして使います．perlと同じように-lや-Idir，-v, -MModule::Nameなども使えます．</p>
 
-    <pre class="code lang-sh">prove -l -Ilib -v t/foo.t</pre>
+    <pre class="code prettyprint lang-sh">prove -l -Ilib -v t/foo.t</pre>
 <p>他にも，-Pオプションでプラグインを利用することもできます．<br />
 例えばmotemenさんの書いた<a href="https://github.com/motemen/App-Prove-Plugin-ProgressBar-Each">App::Prove::Plugin::ProgressBar::Each</a>は大量のテストを実行するときに便利です．</p>
 
-    <pre class="code lang-sh">cpanm https://github.com/motemen/App-Prove-Plugin-ProgressBar-Each/tarball/master
+    <pre class="code prettyprint lang-sh">cpanm https://github.com/motemen/App-Prove-Plugin-ProgressBar-Each/tarball/master
 prove -PProgressBar::Each t/*</pre>
 <p>またproveの機能ではないですが，Test::Classを使っていて特定のテストのみを実行したいときは</p>
 
-    <pre class="code lang-sh">TEST_METHOD=_foo prove t/foo.t</pre>
+    <pre class="code prettyprint lang-sh">TEST_METHOD=_foo prove t/foo.t</pre>
 <p>とすると_fooというテストのみ実行されます．</p><p></p>
 
 </div>
@@ -37,21 +37,21 @@ prove -PProgressBar::Each t/*</pre>
     <h4>stateオプション</h4>
     <p>テストをperlで実行する(perl t/foo.t)のとproveで実行する一番の違い(だと個人的に思っている)のがこのstateオプションです．</p>
 
-    <pre class="code lang-sh">prove --state=save t/**/*.t</pre>
+    <pre class="code prettyprint lang-sh">prove --state=save t/**/*.t</pre>
 <p>とするとテストの実行結果の色々(詳細は後述)を.proveに保存してくれます．そして</p>
 
-    <pre class="code lang-sh">prove --state=failed # ファイル名の指定はいらない!</pre>
+    <pre class="code prettyprint lang-sh">prove --state=failed # ファイル名の指定はいらない!</pre>
 <p>を実行すると，前回失敗したテストのみ<a href="#fn1" title="ファイル単位">*1</a>実行されます．<br />
 stateオプションは複数指定できるので，--state~failed,saveを指定すれば</p>
 
-    <pre class="code">edit ...
+    <pre class="code prettyprint">edit ...
 prove --state=failed,save
 edit ...
 prove --state=failed,save
 ...</pre>
 <p>のように編集→テストを繰り返せます．</p><p>なお，以上のオプションは毎回指定しなくても~/.provercに書いておけば毎回読んでくれます．</p>
 
-    <pre class="code">-v --state=failed,save -l -It/lib</pre>
+    <pre class="code prettyprint">-v --state=failed,save -l -It/lib</pre>
 
 </div>
 <div class="section">
@@ -59,7 +59,7 @@ prove --state=failed,save
     <p>これだけだとpodの翻訳でしかないのでちょっと追加を．<br />
 prove --state=saveのときのテスト結果は.proveに保存されます．これは以下のようにYAML形式で保存されています．</p>
 
-    <pre class="code lang-sh">$ less .prove
+    <pre class="code prettyprint lang-sh">$ less .prove
 ---
 generation: 4
 last_run_time: 1292740101.18576
@@ -91,7 +91,7 @@ version: 1
 <div class="section">
     <h4>.prove利用の例</h4>
     
-    <pre class="code lang-perl">#!/usr/bin/env perl
+    <pre class="code prettyprint lang-perl">#!/usr/bin/env perl
 use strict;
 use warnings;
 use Cwd;
@@ -115,7 +115,7 @@ if (-f $prove_file) {
 </pre>
 <p>このコードを適当な場所に保存し，~/.zshrcへ</p>
 
-    <pre class="code lang-sh">function precmd() {
+    <pre class="code prettyprint lang-sh">function precmd() {
     PROMPT+=&#34;$(perl ~/path/to/the/script.pl)&#34;
 }</pre>
 <p>を追記します(precmdが定義済みなら適当に追加してください)．すると，<br />
@@ -131,8 +131,8 @@ if (-f $prove_file) {
 proveを便利に使って，頑張ってテストを書きましょう!<a href="#fn2" title="自戒も込めて…">*2</a></p><br />
 <p>明日はkamipoさんです!お楽しみに:)</p>
 
-</div>HASH(0x55c17655c0d8)
-HASH(0x55c1765b0f00)
+</div>HASH(0x55809a902e08)
+HASH(0x55809a91b100)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

@@ -78,10 +78,10 @@ EBCDICは「Extended Binary Coded Decimal Interchange Code」の略で「エビ�
     <h3>ebcdic.js</h3>
     <p>以下のファイルをASCIIで1行書いてみます（ただし改行は除く）。</p>
 
-    <pre class="code lang-js">[~}}^[``^[`~``[\``[`[^</pre>
+    <pre class="code prettyprint lang-js">[~}}^[``^[`~``[\``[`[^</pre>
 <p>このファイルをcp500のEBCDIC文字コードで読み直すと以下になります。</p>
 
-    <pre class="code lang-js">$=&#39;&#39;;$--;$-=--$*--$-$;</pre>
+    <pre class="code prettyprint lang-js">$=&#39;&#39;;$--;$-=--$*--$-$;</pre>
 <p>変数$に-10を代入していることになります。</p>
 
 </div>
@@ -89,7 +89,7 @@ EBCDICは「Extended Binary Coded Decimal Interchange Code」の略で「エビ�
     <h3>ebcdic.html</h3>
     <p>以下のHTMLを作成し、cp500のEBCDIC文字コードでさきほどのJavaScriptファイルを読み込んで実行してみましょう。</p>
 
-    <pre class="code">&lt;!DOCTYPE html&gt;
+    <pre class="code prettyprint">&lt;!DOCTYPE html&gt;
 &lt;meta charset=&#34;cp819&#34;/&gt;
 &lt;script charset=&#34;cp500&#34; src=&#34;ebcdic.js&#34;&gt;&lt;/script&gt;
 &lt;script&gt;

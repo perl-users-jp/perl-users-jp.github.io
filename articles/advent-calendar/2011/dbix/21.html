@@ -24,7 +24,7 @@ for my $row (@line) {<br />
 }<br />
 </pre></p><p>いくら管理用のスクリプトでももうちょっとマシなものにしたいですね。生SQLを使いたいならやっぱり生DBIが気持ちいい様です。</p>
 
-    <pre class="code">use DBI;
+    <pre class="code prettyprint">use DBI;
 
 my $dbh = DBI-&gt;connect(&#34;dbi:mysql:database=hoge&#34;, &#39;user&#39;, &#39;pass&#39;);
 
@@ -43,7 +43,7 @@ for my $row (@$rows){
     <h3>SQL::Interpの簡単な使い方</h3>
     <p>最初POD読んでもあんまり意味わからなかったのですが、実際に使っている例を見るとイメージが湧くと思います。たとえばさっきの例はこんな感じで直感的に書けます。</p>
 
-    <pre class="code">use DBI;
+    <pre class="code prettyprint">use DBI;
 use SQL::Interp qw/sql_interp/;
 
 my $dbh = DBI-&gt;connect(&#34;dbi:mysql:database=hoge&#34;, &#39;user&#39;, &#39;pass&#39;);
@@ -62,7 +62,7 @@ for my $row (@$rows) {
     <h3>でも、やっぱりDBIってメンドクサイ</h3>
     <p>これでクエリはいい感じに組み立てられる様になったのですが、いくつか問題があります。上で見て分かる様に、sql_interp()関数は($sql, @bind)という返り値の形なので、selectall_hogehoge()に渡すにはattributeのハッシュリファレンス分だけ引数が一致しないので、一度変数で受け取ってから渡す必要があります。コードを書きたいけど最低限の時間しかないインフラエンジニアにとってはこうした時間が命取りです(嘘)。</p><p>というか、そもそもfetchrow_hogehoge()とかselectall_hogehoge()とか覚えられないから毎回ググッててダメすぎます。ORMを使うというのは1つのやり方なんですが、クエリは生がいい。。。</p><p>そんな感じで悶々としながらDBIx Trackを読んでいたら、tomi-ruさんが「[/articles/advent-calendar/2011/dbix/8:title=DBIx::Simple ふたたび - Perl Advent Calendar Japan 2011 Dbix Track]」というエントリを書かれていました。恥ずかしながらこれ知りませんでしたが、僕みたいなゆるふわにはとっても便利そうです。そして、よくドキュメントを読んでると、なんと<a href="http://search.cpan.org/~juerd/DBIx-Simple-1.35/lib/DBIx/Simple/Examples.pod#EXAMPLES_WITH_SQL::Interp">:SQL::Interpにも対応したメソッド</a>が生えているではありませんか！試しにnekokakさんの[/articles/advent-calendar/2011/dbix/1:title=DBIx::Handler]と組み合わせてみましょう！</p>
 
-    <pre class="code">use DBIx::Handler;
+    <pre class="code prettyprint">use DBIx::Handler;
 
 my $handler = DBIx::Handler-&gt;new(
     &#34;dbi:mysql:database=hoge&#34;, &#39;user&#39;, &#39;pass&#39;,
@@ -91,7 +91,7 @@ while (my $row = $rows-&gt;hash) {
     <h3>Amon2でも使いたいよね</h3>
     <p>ところで、最近CLIのアプリ書く時は将来WEB UIを付けるだろうという想定で、Amon2を使って最初から作ることが多いんですが、tomi-ruさんのDBIx::Simple::Injectを使えばAmon2::DBIにもDBIx::Simpleのメソッドを生やすことができるので、もうこれだけあれば僕は満足です！！！</p><p>ここでは、Lite Flavorで作ったapp.psgiに手を入れてみます。と言っても、DBI pluginを有効にしてちょっとconfigを入れるだけです。</p>
 
-    <pre class="code">use Plack::Builder;
+    <pre class="code prettyprint">use Plack::Builder;
 use Amon2::Lite;
 
 __PACKAGE__-&gt;load_plugins(

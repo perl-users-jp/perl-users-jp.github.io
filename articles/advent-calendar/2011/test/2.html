@@ -17,7 +17,7 @@
 そのテスト関数の中でTest::Moreのテスト関数を実行するんだけど、<br />
 そこでテストがコケたときに表示されるエラーメッセージがおかしなことになるんだ。</p><p>例えば</p>
 
-    <pre class="code">use strict;
+    <pre class="code prettyprint">use strict;
 use warnings;
 use Test::More;
 
@@ -42,7 +42,7 @@ done_testing;</pre>
 <p>こんなテストがあったとするよね。<br />
 これを./t/01_cute.tというファイル名として実行すると、</p>
 
-    <pre class="code">not ok 1
+    <pre class="code prettyprint">not ok 1
 #   Failed test at ./t/01_cute.t line 7.
 #          got: &#39;not cute&#39;
 #     expected: &#39;cute&#39;
@@ -53,10 +53,10 @@ Test::Moreのテスト関数はテストが失敗した行数を表示してく�
 テスト失敗箇所として表示されている７行目を見に行っても<br />
 test_cute_icon関数内の</p>
 
-    <pre class="code">is $icon-&gt;{state}, &#39;cute&#39;;</pre>
+    <pre class="code prettyprint">is $icon-&gt;{state}, &#39;cute&#39;;</pre>
 <p>の行数が表示されちゃうよね。</p><p>でも、実際に表示して欲しい行数って２２行目の</p>
 
-    <pre class="code">test_cute_icon($icon);</pre>
+    <pre class="code prettyprint">test_cute_icon($icon);</pre>
 <p>ココだと思うんだよ。<br />
 今回はtest_cute_icon関数を一回しか呼び出してないから、すぐに何が原因かは分かると思うんだけど、<br />
 便利関数を定義するくらいだから、何度も呼び出すよね？<br />
@@ -64,7 +64,7 @@ test_cute_icon関数内の</p>
 <p>Test::Moreには呼び出し改装を制御するしくみがあるんだ。<br />
 その仕組みを利用するとこんな感じになる。</p>
 
-    <pre class="code">use strict;
+    <pre class="code prettyprint">use strict;
 use warnings;
 use Test::More;
 
@@ -90,7 +90,7 @@ done_testing;</pre>
 <p>$Test::Builder::Levelをlocal定義して値を設定して上げる感じだね。<br />
 そうすると実行結果は</p>
 
-    <pre class="code">not ok 1
+    <pre class="code prettyprint">not ok 1
 #   Failed test at ./t/01_cute.t line 21.
 #          got: &#39;not cute&#39;
 #     expected: &#39;cute&#39;
@@ -99,11 +99,11 @@ done_testing;</pre>
 <p>って想定した行数がでるよね。<br />
 でもさ、</p>
 
-    <pre class="code">local $Test::Builder::Level = $Test::Builder::Level + 1;</pre>
+    <pre class="code prettyprint">local $Test::Builder::Level = $Test::Builder::Level + 1;</pre>
 <p>って書くのダサいよね？長いし。</p><p>ってことで作ったのがTest::Attribute::AutoLevelなんだ。<br />
 使い方は超簡単だよ。</p>
 
-    <pre class="code">use strict;
+    <pre class="code prettyprint">use strict;
 use warnings;
 use Test::More;
 use Test::Attribute::AutoLevel;
@@ -130,7 +130,7 @@ done_testing;</pre>
 Test::Attribute::AutoLevelをuseして、<br />
 便利テスト関数名のところに: AutoLevelっていうattributeをつけるだけだね。</p><p>そうすると、テスト実行結果はこんなかんじになる。</p>
 
-    <pre class="code">not ok 1
+    <pre class="code prettyprint">not ok 1
 #   Failed test at ./t/01_cute.t line 21.
 #          got: &#39;not cute&#39;
 #     expected: &#39;cute&#39;
@@ -140,7 +140,7 @@ Test::Attribute::AutoLevelをuseして、<br />
 <p>localとかよくわかんないことやらなくても簡単にleveを制御できたね♪</p><br />
 <p>最後にテストがコケたままだと隣の人に嫌味言われるかもしれないので、テストが通るようにしとくね。</p>
 
-    <pre class="code">use strict;
+    <pre class="code prettyprint">use strict;
 use warnings;
 use Test::More;
 use Test::Attribute::AutoLevel;
@@ -165,7 +165,7 @@ test_cute_icon($icon);
 done_testing;</pre>
 <p>実行結果はこうだよ</p>
 
-    <pre class="code">$ prove -lvc ./t/01_cute.t
+    <pre class="code prettyprint">$ prove -lvc ./t/01_cute.t
 ./t/01_cute.t .. 
 ok 1
 1..1

@@ -19,7 +19,7 @@
     <h3>そんなときは</h3>
     <p>Getopt::Long と Pod::Usage を組み合わせて使うと POD で Usage を書く事ができます。便利！</p>
 
-    <pre class="code lang-perl">use Getopt::Long;
+    <pre class="code prettyprint lang-perl">use Getopt::Long;
 use Pod::Usage;
 
 my $man = 0;
@@ -70,10 +70,10 @@ useful with the contents thereof.
     <h3>use common::sense;</h3>
     <p>common::sense という便利なモジュールを紹介したいと思います。</p>
 
-    <pre class="code lang-perl">use common::sense;</pre>
+    <pre class="code prettyprint lang-perl">use common::sense;</pre>
 <p>とすると</p>
 
-    <pre class="code lang-perl">use utf8;
+    <pre class="code prettyprint lang-perl">use utf8;
 use strict qw(vars subs);
 use feature qw(say state switch);
 no warnings;
@@ -88,10 +88,10 @@ no warnings qw(exec newline unopened);</pre>
 <div class="section">
     <h4>実装はどうなっているんだろう</h4>
     
-    <pre class="code">perldoc -m common::sense</pre>
+    <pre class="code prettyprint">perldoc -m common::sense</pre>
 <p>してソースを確認してみると</p>
 
-    <pre class="code lang-perl">package common::sense;
+    <pre class="code prettyprint lang-perl">package common::sense;
 
 our $VERSION = &#39;3.3&#39;;
 
@@ -111,7 +111,7 @@ sub import {
 1;</pre>
 <p>とあります。なんだこれは!</p>
 
-    <pre class="code">perldoc -v $^H</pre>
+    <pre class="code prettyprint">perldoc -v $^H</pre>
 <p>してもよく分からないのですが、 $^H は Perl parser への hints で、よくわからない場合は弄らない方が身のためだと(言う旨が) Programming Perl にかかれています。</p>
 
 </div>
@@ -119,7 +119,7 @@ sub import {
     <h4>どうやって生成しているのか</h4>
     <p>答えは<a href="http://cpansearch.perl.org/src/MLEHMANN/common-sense-3.3/sense.pm.PL"> インストール前の dist </a> をみるとわかります</p><p>__DATA__ 以下がテンプレートになっており、 printf() を使って sense.pm を出力しています。</p><p>これは、$^H の perldoc に</p>
 
-    <pre class="code">Its availability, behavior, and contents are subject to change without notice.</pre>
+    <pre class="code prettyprint">Its availability, behavior, and contents are subject to change without notice.</pre>
 <p>と記述があるので、バージョン 3.1 からこれへの対策が入ったようです。</p>
 
 </div>
@@ -129,7 +129,7 @@ sub import {
     <p>warnings プラグマは大量のカテゴリを持っているため、全て把握することは難しいと思います。<br />
 perllexwarn から抜粋するといっぱい！</p>
 
-    <pre class="code"> all
+    <pre class="code prettyprint"> all
  |
  +- closure
  +- deprecated
@@ -180,7 +180,7 @@ perllexwarn から抜粋するといっぱい！</p>
  +- void</pre>
 <p>とくに</p>
 
-    <pre class="code lang-perl">{
+    <pre class="code prettyprint lang-perl">{
     use common::sense;
 
     my $string = &#39;いろはにほへと&#39;;

@@ -18,7 +18,7 @@
     <h3>既存モジュールの AnyEvent 化について望ましいと思われるインタフェース</h3>
     <p>新しく AnyEvent に対応したモジュールを作成するならば、通常はイベントドリブン形式、つまりあるイベントが発生した場合にコールバック関数が呼び出される、という形にするのが自然だと思われます。一方で、既存モジュールを AnyEvent に対応させたい、という場合にはできるだけ既存と同じインタフェースにしたい、というのは自然な要求だと思われます。しかし、全く同じインタフェース(だけ)にする、というのは大抵不可能です。多くのメソッドには処理が完了した結果として戻ってくる戻り値があります。AnyEvent は非同期処理なので普通は処理の完了を待ちません。完了したらコールバック関数を呼ぶ、が基本です。ということで同じインタフェースを実現するためには処理の完了を待つ必要があります。これは通常、condition variable に対する recv として行われます。</p>
 
-    <pre class="code lang-perl">sub func
+    <pre class="code prettyprint lang-perl">sub func
 {
     my $cv = callee_async();
     # Maybe some processing ...
@@ -27,7 +27,7 @@
 }</pre>
 <p>このコードそのものには問題はありません。しかしこんなコードを書くと、</p>
 
-    <pre class="code lang-perl">use AnyEvent;
+    <pre class="code prettyprint lang-perl">use AnyEvent;
 
 sub callee_async
 {
@@ -55,7 +55,7 @@ AE::cv-&gt;recv;</pre>
 <li>既存モジュールと同じ引数、戻り値のインタフェースは残す</li>
 <li>非同期処理させたいメソッドについては、condition variable を返すインタフェースを追加する</li>
 </ul>
-    <pre class="code lang-perl">sub func       { ... return $ret; }
+    <pre class="code prettyprint lang-perl">sub func       { ... return $ret; }
 sub func_async { my $cv = AE::cv; ... $cv-&gt;send($ret); return $cv; }</pre>
 <p>後者には _async をメソッド名に付与し、async メソッドと勝手に呼んでいます。</p>
 
@@ -64,10 +64,10 @@ sub func_async { my $cv = AE::cv; ... $cv-&gt;send($ret); return $cv; }</pre>
     <h3>AnyEvent 化するためのコードの書き換え</h3>
     <p>さて、func() は func_async() で実装可能です。</p>
 
-    <pre class="code lang-perl">sub func { return func_async(@_)-&gt;recv; }</pre>
+    <pre class="code prettyprint lang-perl">sub func { return func_async(@_)-&gt;recv; }</pre>
 <p>また、func() を呼び出していたメソッドは func_async() を呼び出すように書き換えることで async 化が可能です。</p>
 
-    <pre class="code lang-perl">sub caller
+    <pre class="code prettyprint lang-perl">sub caller
 {
     my $ret = func();
     # some processing
@@ -86,7 +86,7 @@ sub caller_async
 }</pre>
 <p>つまり、my $cv = AE::cv; と return $cv; で囲み、func() 呼び出し部分を shift->recv に置き換えた上で以降のコードを全てコールバックに押し込む。return は send に置き換え、という形です。いちいち return を send に置き換えるのが面倒なので次のようにすることもできます。渡された引数をそのまま渡し、返ってきた値を send する closure で包んでいるだけです。</p>
 
-    <pre class="code lang-perl">sub caller_async
+    <pre class="code prettyprint lang-perl">sub caller_async
 {
     my $cv = AE::cv;
     func_async()-&gt;cb(sub { $cv-&gt;send(sub {
@@ -103,17 +103,17 @@ sub caller_async
     <h3>書き換えの自動化</h3>
     <p>Perl には source filter という機能があります。parser に渡る前の source に対して filter をかけられる機能です<a href="#fn2" title="Lisp のリーダーマクロみたいなもの、と言うと Lisper の方に怒られるかも">*2</a>。例えば↓の例では use Rot13; の後は <a href="http://ja.wikipedia.org/wiki/ROT13">ROT13</a> した結果が parser に渡されることになります。</p>
 
-    <pre class="code lang-perl"># see perldoc perlfilter
+    <pre class="code prettyprint lang-perl"># see perldoc perlfilter
 # print &#34;hello fred\n&#34;; is encrypted
 use Rot13;
 cevag &#34;uryyb serq\a&#34;;</pre>
 <p>filter では任意の変換を実施することができるのですが、普通、自分の書くコードに use して適用するものであって外部のコードに適用するものではありません。この外部コードに対する source filter の適用を実現したモジュールが拙作 filtered です。</p>
 
-    <pre class="code lang-perl">use filtered by =&gt; &#39;YourFilter&#39;, as =&gt; &#39;FilteredTarget&#39;, on =&gt; &#39;Target&#39;;
+    <pre class="code prettyprint lang-perl">use filtered by =&gt; &#39;YourFilter&#39;, as =&gt; &#39;FilteredTarget&#39;, on =&gt; &#39;Target&#39;;
 my $obj = FilteredTarget-&gt;new;</pre>
 <p>これで Target というモジュールに対して YourFilter という source filter を適用した結果を FilteredTarget というモジュール名で使用することが出来ます。</p><p>これは <a href="http://perldoc.perl.org/functions/require.html">perldoc -f require</a> に書かれている @INC hook という機能を使用しています。@INC はモジュール検索パスを指定するものですが、実はこれに code reference 等を設定することができ、それによってモジュール読み込み時の挙動を変更することができるのです。実際には、Target.pm を読み込む際にファイル先頭に use YourFilter; を埋め込み、かつモジュール名を置き換える(Target -> FilteredTarget)ことで実現しています。</p><p>さて、外部モジュールに対してコードの書き換えを行う手段ができましたので、既存モジュールの AnyEvent 化支援モジュールが書けるようになりました。これが Module::AnyEvent::Helper::Filter です<a href="#fn3" title="実際には上記コードだけではなくてネストした場合の対応や例外の処理なども追加しています">*3</a>。実際に <a href="http://search.cpan.org/perldoc?Net%3A%3AAmazon%3A%3AS3">Net::Amazon::S3</a> に対して適用したものが <a href="http://search.cpan.org/perldoc?AnyEvent%3A%3ANet%3A%3AAmazon%3A%3AS3">AnyEvent::Net::Amazon::S3</a> で例えば以下のようなコードになっています(use strict; 等、一部省略していますが基本これだけです)。</p>
 
-    <pre class="code lang-perl">package AnyEvent::Net::Amazon::S3;
+    <pre class="code prettyprint lang-perl">package AnyEvent::Net::Amazon::S3;
 
 sub list_bucket_all_async { ... }
 
@@ -129,7 +129,7 @@ use Module::AnyEvent::Helper::Filter -as =&gt; __PACKAGE__, -target =&gt; &#39;N
 自分のモジュール名だけではなく別のモジュール名も置き換える必要があるので、追加の変換モジュールを指定しています(-transformer => 'Net::Amazon::S3' とすると Module::AnyEvent::Helper::PPI::Transform::Net::Amazon::S3 が変換モジュールとして使用されます)。変換モジュールは <a href="http://search.cpan.org/perldoc?PPI%3A%3ATransform">PPI::Transfrom</a> のサブクラスです。もともと Net::Amazon::S3 は <a href="http://search.cpan.org/perldoc?LWP%3A%3AUserAgent">LWP::UserAgent</a> を使用していますので、これを <a href="http://search.cpan.org/perldoc?AnyEvent%3A%3AHTTP%3A%3ALWP%3A%3AUserAgent">AnyEvent::HTTP::LWP::UserAgent</a> に置き換えることで AnyEvent 化の第一歩が実現できます。</p><p>list_bucket_all については内部に単純に変換できないループがあるため list_bucket_all_async を別途記述した上でそこから list_bucket_all を生成しています。フィルタとしては元々の list_bucket_all の実装を削除すればよいので -remove_func で指定します。<br />
 Net::Amazon::S3 内のメソッド定義に対して前述のような _async への書き換えを行うメソッドを -translate_func で指定します(実際の置き換え処理は <a href="http://search.cpan.org/perldoc?PPI">PPI</a> を利用しています<a href="#fn4" title="回りくどい使い方になっていてもっといい使い方があると思うのですがどなたか参考情報でも良いので教えて欲しいです">*4</a>)。</p><p> -replace_func は AnyEvent::Net::S3 内のメソッドではないけれどもその呼び出しを _async への呼び出しに置き換えるメソッドを指定します。実際にはこれで LWP::UserAgent::request が AnyEvent::HTTP::LWP::UserAgent::request_async に置き換わることで AnyEvent 化の主要部分が完了しています。</p>
 
-    <pre class="code lang-perl">package AnyEvent::Net::Amazon::S3::Client::Bucket;
+    <pre class="code prettyprint lang-perl">package AnyEvent::Net::Amazon::S3::Client::Bucket;
 
 use Module::AnyEvent::Helper::Filter -as =&gt; __PACKAGE__, -target =&gt; &#39;Net::Amazon::S3::Client::Bucket&#39;,
         -transformer =&gt; &#39;Net::Amazon::S3::Client::Bucket&#39;,
@@ -147,10 +147,10 @@ use Module::AnyEvent::Helper::Filter -as =&gt; __PACKAGE__, -target =&gt; &#39;N
     <h3>まとめ</h3>
     <p>さて、正直、他人に使用を勧められる状態とは言えないのですが、こんなこともできるんだ、という例として Module::AnyEvent::Helper::Filter と filtered を紹介してみました。filtered の方はモジュールに対するパッチ的なものでも利用できたりするのではないでしょうか。</p><p>明日の担当は……どなたか参加しませんか？</p>
 
-</div>HASH(0x55c1765bded8)
-HASH(0x55c1765c4b08)
-HASH(0x55c1765c49b8)
-HASH(0x55c1765d9760)
+</div>HASH(0x55809a918f10)
+HASH(0x55809a939090)
+HASH(0x55809a912d48)
+HASH(0x55809a8fedb8)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

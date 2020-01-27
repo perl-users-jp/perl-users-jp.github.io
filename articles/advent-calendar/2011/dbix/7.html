@@ -20,7 +20,7 @@ SQLのチューニングであればいいのですが、ロジックのベン�
 そんなときに便利なのがTest::Mock::Guardです。（え</p><p>Testというnamespaceにありますが、やっていることはコードをさしかえることなので<br />
 これをつかって実際にデータベースにクエリなげるところとかをフガフガします。</p><p>例えばTengのベンチマークを取る時に試したコードは以下のようなものです。</p>
 
-    <pre class="code">#! /usr/bin/perl
+    <pre class="code prettyprint">#! /usr/bin/perl
 use strict;
 use warnings;
 use Benchmark qw(:all :hireswallclock);

@@ -35,7 +35,7 @@ rhythmbox は認識している曲一覧を返す DBus インタフェースを�
 設定ファイルを読み込むCPANモジュールは幾らかありますが、そんなに難しい読み込み方はしないので Config::Simple で充分です。<br />
 設定値内の $HOME を展開するなどの処理を入れて、おおよそ以下の様な処理になるかと思います。</p>
 
-    <pre class="code lang-perl">sub library_path {
+    <pre class="code prettyprint lang-perl">sub library_path {
     my $config = Config::Simple-&gt;new(
         catfile($ENV{HOME}, &#39;.config&#39;, &#39;user-dirs.dirs&#39;));
     my $path = $config-&gt;param(&#34;XDG_MUSIC_DIR&#34;);
@@ -44,7 +44,7 @@ rhythmbox は認識している曲一覧を返す DBus インタフェースを�
 }</pre>
 <p>さて次に音楽ライブラリフォルダ内を再帰的に検索して音楽ファイルを探しましょう。File::Find の finddepth が使えますね。</p>
 
-    <pre class="code lang-perl">finddepth(sub {
+    <pre class="code prettyprint lang-perl">finddepth(sub {
     return if $_ eq &#39;.&#39; || $_ eq &#39;..&#39; || $_ !~ /\.mp3$|\.ogg$/;
     # ここで Unite に曲一覧を渡す。
 }, library_path);</pre>
@@ -52,7 +52,7 @@ rhythmbox は認識している曲一覧を返す DBus インタフェースを�
 ところで Unite にはファイル名でなく、曲情報を表示したいですよね。Unite とのインタフェースはタブ文字区切りで「アーティスト名」「アルバム名」「曲名」を渡すこととし、rhythmbox の DBus インタフェースを使ってこの個々のファイルのプロパティを取得しましょう。<br />
 Perl で DBus を扱うには <a href="http://search.cpan.org/dist/Net-DBus/">Net::DBus</a> を使用します。</p>
 
-    <pre class="code lang-perl">use Net::DBus;
+    <pre class="code prettyprint lang-perl">use Net::DBus;
 
 my $bus = Net::DBus-&gt;find;
 my $rhythmbox = $bus-&gt;get_service(&#34;org.gnome.Rhythmbox&#34;);
@@ -70,7 +70,7 @@ finddepth(sub {
 <p>こんな感じですね。さぁ Unite と連結しましょう。Vim の Perl 拡張を使っても良いのですが、Perl 拡張は Vim が起動している間、読み込んだモジュールをずっとメモリ内に保持してしまうのでメディアプレーヤとしては向きません。<br />
 ここは大人しく Unite と Perl スクリプトという一般的な作りにしてしまいましょう。</p>
 
-    <pre class="code lang-vim">function! s:source.gather_candidates(args, context)
+    <pre class="code prettyprint lang-vim">function! s:source.gather_candidates(args, context)
   for line in split(system(&#39;perl &#39;.s:plfile), &#34;\n&#34;)
     let v = split(line, &#34;\t&#34;)
     call add(s:songs, {
@@ -91,7 +91,7 @@ endfunction</pre>
 さて次に選んだ際に曲を再生する仕組みを作りましょう。先ほどのスクリプトに再生する機能を足します。<br />
 Getopt::Long を使った以下の様な rhythmbox 操作スクリプトになりました。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use Config::Simple;
 use File::Find;
 use File::Spec::Functions;
@@ -133,7 +133,7 @@ if ($toggle) {
 <p>簡単ですね。「-p URL」の引数で再生(ローカルファイルの場合は file:)、「-t」で再生停止トグルとなります。<br />
 あとはこれを Vim から呼び出す様に Unite ソースを作成します。</p>
 
-    <pre class="code lang-vim">let s:save_cpo = &amp;cpo
+    <pre class="code prettyprint lang-vim">let s:save_cpo = &amp;cpo
 set cpo&amp;vim
 
 let s:source = { &#39;name&#39;: &#39;rhythmbox&#39; }
@@ -177,10 +177,10 @@ let &amp;cpo = s:save_cpo
 unlet s:save_cpo</pre>
 <p>こちらも小さいスクリプトです。この .pl ファイルと .vim ファイルを bundle 等に入れれば Unite rhythmbox source plugin が完成です。</p>
 
-    <pre class="code">:Unite rhythmbox</pre>
+    <pre class="code prettyprint">:Unite rhythmbox</pre>
 <p>とすると</p><p><img src="https://github.com/perl-users-jp/perl-advent-calendar/raw/master/2010/casual/2010-12-05/unite-rhythmbox.png" width="400" /></p><p>どーん。さらに Unite の強力なインクリメンタルサーチで曲を絞り込んで選択すると見事に音楽が再生されました。なんか嬉しい！ Vim から音楽が再生出来てステキ！</p><p>一応、おまけ機能として</p>
 
-    <pre class="code">:Unite rhythmbox:!</pre>
+    <pre class="code prettyprint">:Unite rhythmbox:!</pre>
 <p>というコマンドを実行すると再生と一時停止がトグルする様にもなっています。エディタで音楽プレーヤ操作なんてカジュアル...。<br />
 以上出来上がったソースを以下のリポジトリに置いておきます。興味のある方はどんどん改造して良い物にして下さい。</p>
 

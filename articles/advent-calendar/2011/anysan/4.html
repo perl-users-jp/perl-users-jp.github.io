@@ -17,32 +17,32 @@
 いや、便利なんです！すごいですよ！</p><p>そこで僕はどんな環境からでも IRC 通知をするための環境として ikachan を作りました。<br />
 IRC への発言を Web API 経由で操作出来るんです。</p><p>Perl とかすら入ってないサーバでも curl などの HTTP が喋れる環境 or echo コマンドと telnet コマンドさえ入っていれば IRC にポストするサーバなんだ。</p><p>もう CPAN にあるから</p>
 
-    <pre class="code">$ cpanm App::Ikachan</pre>
+    <pre class="code prettyprint">$ cpanm App::Ikachan</pre>
 <p>だけでインストール出来るよ！</p>
 
 <div class="section">
     <h4>使い方</h4>
     <p>使い方もとても簡単で</p>
 
-    <pre class="code"> $ ikachan -S irc_server_address -N nickname[ -K irc_server_password][ -P irc_server_port]</pre>
+    <pre class="code prettyprint"> $ ikachan -S irc_server_address -N nickname[ -K irc_server_password][ -P irc_server_port]</pre>
 <p>という形でサーバを立ち上げるだけです。<br />
 デフォルトでは <a href="http://localhost:4979/">http://localhost:4979/</a> に http server が立ち上がります。<br />
 API 仕様などはサーバにブラウザでアクセスした時に表示されます。<br />
 http server の address/port が気に食わなければ</p>
 
-    <pre class="code">$ ikachan -h http_host -p http_port</pre>
+    <pre class="code prettyprint">$ ikachan -h http_host -p http_port</pre>
 <p>といったオプションも利用可能です。<br />
 チャンネルに入るには</p>
 
-    <pre class="code">$ curl -F channel=\#catalyst-ja http://localhost:4979/join</pre>
+    <pre class="code prettyprint">$ curl -F channel=\#catalyst-ja http://localhost:4979/join</pre>
 <p>が使えます。<br />
 チャンネルを抜けるには</p>
 
-    <pre class="code">$ curl -F channel=\#catalyst-ja http://localhost:4979/leave</pre>
+    <pre class="code prettyprint">$ curl -F channel=\#catalyst-ja http://localhost:4979/leave</pre>
 <p>が使えます。<br />
 チャンネルにポストするには</p>
 
-    <pre class="code">$ curl -F channel=\#catalyst-ja -F message=こんにちわこんにちわ！ http://localhost:4979/notice</pre>
+    <pre class="code prettyprint">$ curl -F channel=\#catalyst-ja -F message=こんにちわこんにちわ！ http://localhost:4979/notice</pre>
 <p>が使えます。</p><p>基本的には notice メソッドを叩くだけで勝手にチャンネルに join してくれるから、細かい事気にしなくて大丈夫だよ！</p>
 
 </div>

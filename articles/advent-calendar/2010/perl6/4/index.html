@@ -18,7 +18,7 @@
     <h3>どこにある？</h3>
     <p>まず、どこにあるのか探してみましょう。Perl5ではライブラリは@INCに入っているパスにありました。</p>
 
-    <pre class="code">$ perl -E &#39;say $_ for @INC&#39;
+    <pre class="code prettyprint">$ perl -E &#39;say $_ for @INC&#39;
 /home/danjou/perl5/perlbrew/perls/perl-5.12.2/lib/site_perl/5.12.2/x86_64-linux
 /home/danjou/perl5/perlbrew/perls/perl-5.12.2/lib/site_perl/5.12.2
 /home/danjou/perl5/perlbrew/perls/perl-5.12.2/lib/5.12.2/x86_64-linux
@@ -27,7 +27,7 @@
 </pre>
 <p>こんな感じでしたね。Perl6だと、</p>
 
-    <pre class="code">$ perl6 -e &#39;say $_ for @*INC&#39;
+    <pre class="code prettyprint">$ perl6 -e &#39;say $_ for @*INC&#39;
 /home/danjou/.perl6/lib
 /home/danjou/tmp/rakudo-star-2010.11/install/lib/parrot/languages/perl6/lib
 .
@@ -46,7 +46,7 @@
     <h4>追記</h4>
     <p>#per6@freenodeで読んでもらったら、</p>
 
-    <pre class="code">$ perl6 -e &#39;.say for @*INC&#39;</pre>
+    <pre class="code prettyprint">$ perl6 -e &#39;.say for @*INC&#39;</pre>
 <p>のほうがよくね？と言われました。こっちの方がperl6っぽいですね！</p>
 
 </div>
@@ -55,7 +55,7 @@
     <h3>どんなのがある？</h3>
     <p>ではinstall/lib/parrot/languages/perl6/libをのぞいてどんなのがあるか見てみましょう。</p>
 
-    <pre class="code">$ cd ~/tmp/rakudo-star-2010.11/install/lib/parrot/languages/perl6/lib
+    <pre class="code prettyprint">$ cd ~/tmp/rakudo-star-2010.11/install/lib/parrot/languages/perl6/lib
 $ ls
 Algorithm      Form      MIME         MiniDBI.pm6     SVG.pm    YAML
 Config         Form.pir  Math         Module          Term      YAML.pir
@@ -72,7 +72,7 @@ File           LWP       MiniDBI.pir  SVG.pir         XML
 <li>MiniDBI.pirってなんだろう？</li>
 </ul><p>.pirは気になりますね。なんでしょう。</p>
 
-    <pre class="code">$ head MiniDBD.pir
+    <pre class="code prettyprint">$ head MiniDBD.pir
 .loadlib &#39;perl6_ops&#39;
 
 .HLL &#34;perl6&#34;
@@ -92,17 +92,17 @@ Perl6はParrot仮想マシン上で動いています。なので、これはPer
     <h3>つかってみよう！</h3>
     <p>では早速使ってみようと思います。先ほどみたlsの結果にはLWPというディレクトリがありましたね。ということは！httpクライアントがいそうな気がします。</p>
 
-    <pre class="code">$ ls LWP
+    <pre class="code prettyprint">$ ls LWP
 Simple.pir  Simple.pm
 </pre>
 <p>お、ありましたありました。LWP::Simpleですね。JSONというのも気になります。</p>
 
-    <pre class="code">$ ls JSON
+    <pre class="code prettyprint">$ ls JSON
 Tiny  Tiny.pir  Tiny.pm
 </pre>
 <p>JSON::Tinyというのが使えそうです。では、早速書いてみましょう。</p>
 
-    <pre class="code">#!/usr/bin/env perl6
+    <pre class="code prettyprint">#!/usr/bin/env perl6
 # fetch_tweet.pl
 use v6;
 use LWP::Simple;
@@ -118,7 +118,7 @@ sub MAIN ($screen_name) {
 <p>今回書いたのは、指定されたユーザーのtwitterタイムラインから最新の１件を取得して表示するプログラムです。すごい実用的じゃないですか。Perl6でかけるんですよ！すばらしい。<br />
 実行してみましょう！</p>
 
-    <pre class="code">$ perl6 fetch_tweet.pl
+    <pre class="code prettyprint">$ perl6 fetch_tweet.pl
 Usage:
 fetch_tweet.pl screen_name
 

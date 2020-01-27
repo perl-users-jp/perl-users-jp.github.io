@@ -27,7 +27,7 @@
 う ひ ー ＞＜</p><br />
 <p>[<a href="https://github.com/bayashi/Acme-Yomeru">Acme::Yomeru</a>]</p>
 
-    <pre class="code lang-perl">    #!/usr/bin/perl
+    <pre class="code prettyprint lang-perl">    #!/usr/bin/perl
     use strict;
     use warnings;
     use utf8;
@@ -43,7 +43,7 @@
 <p>基本は Text::MeCab を利用して形態素解析してコンバートしますが、以下のように、Yahoo API を利用する方法もあります。<br />
 しかし、そもそも Text::MeCab がないとインストールさえままならないんじゃないかどうかはよく確認していませんが、なんだかそれ風なつくりを目指していた時期がありました。</p>
 
-    <pre class="code lang-perl">    use Acme::Yomeru;
+    <pre class="code prettyprint lang-perl">    use Acme::Yomeru;
     use Acme::Yomeru::Parser::YahooAPI;
 
     my $yomeru = Acme::Yomeru-&gt;new(

@@ -29,7 +29,7 @@
     <h3>Write mt.psgi</h3>
     <p>Then write psgi script like following:</p>
 
-    <pre class="code lang-perl">#!/usr/bin/env perl
+    <pre class="code prettyprint lang-perl">#!/usr/bin/env perl
 
 use strict;
 use warnings;
@@ -74,7 +74,7 @@ my $app = $map-&gt;to_app;</pre>
 <div class="section">
     <h3>Run it!</h3>
     
-    <pre class="code">$ plackup -s Starlet -a mt.psgi</pre>
+    <pre class="code prettyprint">$ plackup -s Starlet -a mt.psgi</pre>
 <p>(or "-s Starman")</p><p>Then you can access MT setup wizard at <a href="http://127.0.0.1:5000/mt.cgi">http://127.0.0.1:5000/mt.cgi</a> !</p><p></p>
 
 </div>
@@ -82,7 +82,7 @@ my $app = $map-&gt;to_app;</pre>
     <h3>More clean URLs</h3>
     <p>I dislike URLs contains .cgi like "mt.cgi" or "mt-comments.cgi". Let's make more clean URL!</p><p>Fix mt.psgi like following:</p>
 
-    <pre class="code lang-perl">#!/usr/bin/env perl
+    <pre class="code prettyprint lang-perl">#!/usr/bin/env perl
 
 use strict;
 use warnings;
@@ -119,7 +119,7 @@ while (my ($path, $script) = each %apps) {
 my $app = $map-&gt;to_app;</pre>
 <p>And also add following configs to mt-config.cgi:</p>
 
-    <pre class="code">ActivityFeedScript feed
+    <pre class="code prettyprint">ActivityFeedScript feed
 AdminScript app
 AtomScript atom
 CheckScript check

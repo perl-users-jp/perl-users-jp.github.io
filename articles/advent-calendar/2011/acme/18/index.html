@@ -14,7 +14,7 @@
 
         <p><a href="http://twitter.com/maka2_donzoko">makamaka</a>です。まずは<a href="http://twitter.com/ktat">ktat</a>さんの<a href="http://d.hatena.ne.jp/ktat/20111205/1323023021">SQL&#x3092;&#x7D44;&#x307F;&#x7ACB;&#x3066;&#x308B;&#x3082;&#x306E;</a>をご覧ください。Teng + SQL::Maker便利だけど、ちょっと複雑なSQLをつくるときは面倒かな、という話が出てきます。</p><p>私も似たようなことを思ってて普段SQL::Abstract互換のデータをうけとれるSQL::Makerのラッパーを使っているので、それを紹介します。</p><p><a href="https://github.com/makamaka/SQL-Maker-DBICLike">SQL::Maker::DBICLike</a>という名前ですが、この名前でいいのか自分でもよくわかりません。昔はSQL::Maker::compatAbstractという名前にしてたのですが、別にメソッドに互換性があるわけでないのと、DBIx::Class::ResultSetのattributesを取れるようにしているので、現在はこういう名前になってます。また変わるかもしれません。テストもドキュメントも全然揃ってません。</p>
 
-    <pre class="code">use 5.014;
+    <pre class="code prettyprint">use 5.014;
 use strict;
 use warnings;
 use SQL::Maker::DBICLike;
@@ -32,12 +32,12 @@ my ($sql, @binds) = $maker-&gt;select(&#39;foo&#39;,[&#39;id&#39;], $where, $att
 say $sql;</pre>
 <p>実行すると</p>
 
-    <pre class="code">SELECT &#34;id&#34;, &#34;z&#34;
+    <pre class="code prettyprint">SELECT &#34;id&#34;, &#34;z&#34;
 FROM &#34;foo&#34;
 WHERE (((&#34;e&#34; LIKE ?) OR (&#34;e&#34; LIKE ?)) AND ((&#34;c&#34; = ?) OR (&#34;d&#34; = ?))) AND ((&#34;a&#34; = ?) AND (&#34;b&#34; = ?))</pre>
 <p>簡単でしょ？　上記の例ではSQL::Abstractと違って-likeではなくlikeにしなければならないなど、微妙にSQL::Abstractと違うところがありますが、基本的に-andと-orを使って如何様にでも複雑にできます。</p><p>このモジュールをTengと一緒に利用するには例えばこんな感じで</p>
 
-    <pre class="code">my $teng = Teng::Schema::Loader-&gt;load(
+    <pre class="code prettyprint">my $teng = Teng::Schema::Loader-&gt;load(
     namespace =&gt; &#39;MyDB&#39;,
     dbh       =&gt; $dbh,
     sql_builder =&gt; SQL::Maker::DBICLike-&gt;new(driver =&gt; $dbh-&gt;{Driver}-&gt;{Name}),

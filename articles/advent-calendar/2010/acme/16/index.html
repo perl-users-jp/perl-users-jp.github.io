@@ -25,7 +25,7 @@ B - 猫を高いところから落とすと足から着地する</p><p>AとBよ�
 </ul></p><p>CPANには猫に関するモジュールがいくつかありますが、本日は<a href="http://search.cpan.org/dist/Acme-Meow/">Acme::Meow</a>を使いましょう。このモジュール、機能は少ないですがPerl上で子猫が飼える優れもの。</p><p>しかしここで残念なお知らせ。CPANにはAcme::Toastが今のところ存在しません。どうする！？</p><p>そこでバター云々の話は、いわゆる<a href="http://ja.wikipedia.org/wiki/%E3%83%9E%E3%83%BC%E3%83%95%E3%82%A3%E3%83%BC%E3%81%AE%E6%B3%95%E5%89%87">マーフィーの法則</a>であることを思い出しましょう。そうすると<a href="http://search.cpan.org/dist/Acme-Murphy/">Acme::Murphy</a>があります。このモジュール、「うまくいかなそうなことはなんであれ、うまくいかない」というマーフィーの法則に従い、useすると必ず失敗（die）する優れもの。</p><br />
 <p>両者を合体させれば、猫-トースト装置になるんじゃないの！？</p><p></p>
 
-    <pre class="code lang-perl">package Acme::CatToastDevice;
+    <pre class="code prettyprint lang-perl">package Acme::CatToastDevice;
 
 use warnings;
 use strict;
@@ -36,9 +36,9 @@ our $VERSION = &#39;0.01&#39;;
 1;</pre>
 <p>合体には<a href="/articles/advent-calendar/2009/casual/05.html">昨年のアドベントカレンダー</a>でも取り上げられた<a href="http://search.cpan.org/dist/Sex/">Sex</a>を使います。いざAcme合体！</p>
 
-    <pre class="code lang-perl">$ perl -I./lib -MAcme::CatToastDevice</pre>
+    <pre class="code prettyprint lang-perl">$ perl -I./lib -MAcme::CatToastDevice</pre>
 
-    <pre class="code lang-perl">MORE! Baby. There! Let&#39;s talk about our relationship. YEAH! OOOooooh... Baseball... I thought eight inches was longer than that. OOOooooh... YES! There! OOOooooh... Harder! Recursive inheritance detected in package &#39;Exporter&#39; at ......../Sex.pm line 71.
+    <pre class="code prettyprint lang-perl">MORE! Baby. There! Let&#39;s talk about our relationship. YEAH! OOOooooh... Baseball... I thought eight inches was longer than that. OOOooooh... YES! There! OOOooooh... Harder! Recursive inheritance detected in package &#39;Exporter&#39; at ......../Sex.pm line 71.
 BEGIN failed--compilation aborted at lib/Acme/CatToastDevice.pm line 5.
 Compilation failed in require.
 BEGIN failed--compilation aborted.</pre>
@@ -48,7 +48,7 @@ BEGIN failed--compilation aborted.</pre>
 <p>悔しいのでAcme::MeowのExport部分をコメントアウトします。</p><br />
 <p></p>
 
-    <pre class="code lang-perl">package Acme::Meow;
+    <pre class="code prettyprint lang-perl">package Acme::Meow;
 
 use warnings;
 use strict;
@@ -58,7 +58,7 @@ use strict;
 ....</pre>
 <p>でもよく考えたら（よく考えなくても）Acme::Meow、Acme::Murphyどちらのモジュールも落下に関する機能がありません。そこで、ついでにAcme::CatToastDeviceにfallというメソッドを用意しましょう。呼ぶと無限ループします。</p>
 
-    <pre class="code lang-perl">package Acme::CatToastDevice;
+    <pre class="code prettyprint lang-perl">package Acme::CatToastDevice;
 
 use warnings;
 use strict;
@@ -75,7 +75,7 @@ sub fall {
 <p><br />
 下記のようなサンプルコードをつくって、再チェレンジ。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use Acme::CatToastDevice;
 
 print &#34;This is a cat-toast device!\n&#34;;
@@ -86,7 +86,7 @@ print &#34;With which side did it fall?\n&#34;;</pre>
 <p><br />
 コンゴトモヨロシク・・・</p><p></p>
 
-    <pre class="code lang-perl">$ perl test.pl
+    <pre class="code prettyprint lang-perl">$ perl test.pl
 MORE! Does it get bigger? Yes! Does it get bigger? Mmmmmm... Mmmmmm... OOOooooh... YES! Does it get bigger? OOOooooh... Yes!
 This is a cat-toast device!</pre>
 <p>よし、成功！　ずっと着地しない！　……むなしいですね！！！</p><br />
@@ -109,7 +109,7 @@ B - A Cat will always land on its foots.</p><p>From A and B, a slice of toast wi
 <p>There are some modules about cats on CPAN and I take <a href="http://search.cpan.org/dist/Acme-Meow/">Acme::Meow</a> today. It has a only few functions but a nice module becase of keeping a kitten in Perl.</p><p>Regrettable information: Acme::Toast currently does not exist on CPAN.<br />
 Well, we remember the story of a sliec of toast with butter is the so-called Murphy's law. And <a href="http://search.cpan.org/dist/Acme-Murphy/">Acme::Murphy</a> on CPAN. It is a nice module because it always fails (die) to the letter 'if anything can go wrong, it will'.</p><p>Those two modules are combined, is it a cat-toast device!?</p><p></p>
 
-    <pre class="code lang-perl">package Acme::CatToastDevice;
+    <pre class="code prettyprint lang-perl">package Acme::CatToastDevice;
 
 use warnings;
 use strict;
@@ -120,9 +120,9 @@ our $VERSION = &#39;0.01&#39;;
 1;</pre>
 <p>We can use <a href="http://search.cpan.org/dist/Sex/">Sex</a> module which was taken in <a href="/articles/advent-calendar/2009/casual/05.html">last yeat advent calendar</a>. Let's Acme-unite!</p>
 
-    <pre class="code lang-perl">$ perl -I./lib -MAcme::CatToastDevice</pre>
+    <pre class="code prettyprint lang-perl">$ perl -I./lib -MAcme::CatToastDevice</pre>
 
-    <pre class="code lang-perl">MORE! Baby. There! Let&#39;s talk about our relationship. YEAH! OOOooooh... Baseball... I thought eight inches was longer than that. OOOooooh... YES! There! OOOooooh... Harder! Recursive inheritance detected in package &#39;Exporter&#39; at ......../Sex.pm line 71.
+    <pre class="code prettyprint lang-perl">MORE! Baby. There! Let&#39;s talk about our relationship. YEAH! OOOooooh... Baseball... I thought eight inches was longer than that. OOOooooh... YES! There! OOOooooh... Harder! Recursive inheritance detected in package &#39;Exporter&#39; at ......../Sex.pm line 71.
 BEGIN failed--compilation aborted at lib/Acme/CatToastDevice.pm line 5.
 Compilation failed in require.
 BEGIN failed--compilation aborted.</pre>
@@ -133,7 +133,7 @@ Error.... Good-bye!</p><br />
 <p>How disappointing! I comment out lines about Export in Acme::Meow!</p><br />
 <p></p>
 
-    <pre class="code lang-perl">package Acme::Meow;
+    <pre class="code prettyprint lang-perl">package Acme::Meow;
 
 use warnings;
 use strict;
@@ -143,7 +143,7 @@ use strict;
 ....</pre>
 <p>But I thought deeply, both Acme::Meow and Acme::Murphy do not have a method relates to fall. So we added fall method into Acme::CatToastDevice. Calling it will cause an infinite loop.</p>
 
-    <pre class="code lang-perl">package Acme::CatToastDevice;
+    <pre class="code prettyprint lang-perl">package Acme::CatToastDevice;
 
 use warnings;
 use strict;
@@ -160,7 +160,7 @@ sub fall {
 <p><br />
 Retry with the below sample code.</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use Acme::CatToastDevice;
 
 print &#34;This is a cat-toast device!\n&#34;;
@@ -171,7 +171,7 @@ print &#34;With which side did it fall?\n&#34;;</pre>
 <p><br />
 NICE TO MEET YOU...</p><p></p>
 
-    <pre class="code lang-perl">$ perl test.pl
+    <pre class="code prettyprint lang-perl">$ perl test.pl
 MORE! Does it get bigger? Yes! Does it get bigger? Mmmmmm... Mmmmmm... OOOooooh... YES! Does it get bigger? OOOooooh... Yes!
 This is a cat-toast device!</pre>
 <p>Successful!  It never land! It's in vain!!!</p><br />

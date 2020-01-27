@@ -42,7 +42,7 @@
     <h5>psgiファイル</h5>
     <p>psgiファイルはこんな感じです。(※コードはイメージです)</p>
 
-    <pre class="code lang-perl"># -*- mode: cperl; -*-
+    <pre class="code prettyprint lang-perl"># -*- mode: cperl; -*-
 
 use utf8;
 use Text::Xslate qw(0.2013);
@@ -116,7 +116,7 @@ plackup -r --port 1970 -a /home/hirose31/work/hidek48/check-tmpl.psgi
 </pre>
 <p>tmpl/top.txはこんな感じで、</p>
 
-    <pre class="code">[% INCLUDE &#39;inc/header.tx&#39; %]
+    <pre class="code prettyprint">[% INCLUDE &#39;inc/header.tx&#39; %]
 
 &lt;div style=&#34;text-align:center;&#34;&gt;
   &lt;img src=&#34;/static/logo.jpg&#34; /&gt;
@@ -140,7 +140,7 @@ plackup -r --port 1970 -a /home/hirose31/work/hidek48/check-tmpl.psgi
     <h5>テンプレートの処理</h5>
     <p>例ではテンプレートエンジンに今をトキメク<a href="http://search.cpan.org/dist/Text-Xslate/" title="Text::Xslate">Text::Xslate</a>を使っています。</p><p>処理自体は特に奇をてらったところはなく、$appの中で素直にrenderしてShift_JISに変換したものをレスポンスとして返しているだけです。</p><p>ひとつ注目していただきたい点は、テンプレートに埋め込む変数等は、冒頭の%_varsで定義していて(ここは別ファイルにくくり出した方が見通しがよくなると思います)、テンプレ変数の指定洩れ、変数名のtypoをあぶり出すために、</p>
 
-    <pre class="code">my $vars  = hash_with_default(\%_vars, sub { qq{FILLME ($_[0])} });</pre>
+    <pre class="code prettyprint">my $vars  = hash_with_default(\%_vars, sub { qq{FILLME ($_[0])} });</pre>
 <p>とし、表示例のように、存在しない変数を参照しようとした場合には「FILLME (変数名)」と表示されるようにしているところです。これはText::Xslage 0.2013 以降の機能です。</p>
 
 </div>

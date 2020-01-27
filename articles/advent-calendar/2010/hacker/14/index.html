@@ -25,7 +25,7 @@ DBIx::ObjectMapperは特にSQLAlchemyから諸々拝借しています。</p><p>
     <h3>準備</h3>
     <p>まずは、DBIx::ObjectMapperオブジェクトを作成します。</p>
 
-    <pre class="code lang-perl">use DBIx::ObjectMapper;
+    <pre class="code prettyprint lang-perl">use DBIx::ObjectMapper;
 use DBIx::ObjectMapper::Engine::DBI;
 
 my $engine = DBIx::ObjectMapper::Engine::DBI-&gt;new({
@@ -41,7 +41,7 @@ my $mapper = DBIx::ObjectMapper-&gt;new( engine =&gt; $engine );
 </pre>
 <p>Engineを作成して、それをDBIx::ObjectMapperにわたしてあげます。</p><p>次にusersテーブルのデータを保持するMy::Userクラスを作成します。</p>
 
-    <pre class="code lang-perl">package My::User;
+    <pre class="code prettyprint lang-perl">package My::User;
 use Mouse;
 
 has &#39;id&#39;   =&gt; ( is =&gt; &#39;rw&#39;, isa =&gt; &#39;Int&#39; );
@@ -53,7 +53,7 @@ Mouseを使用していますが、みなさん大好きなMooseでもなんで�
 (※Class::Accessor::Liteでは動作しないというバグがあるため、現在対応中です)</p><br />
 <p>さて次に、usersテーブルのschema情報をデータベースからロードしてメタデータとして取り込み、My::Userクラスとメタデータを連携させます(mapping)。</p>
 
-    <pre class="code lang-perl">my $users_table = $mapper-&gt;metadata-&gt;table( &#39;users&#39; =&gt; &#39;autoload&#39; );
+    <pre class="code prettyprint lang-perl">my $users_table = $mapper-&gt;metadata-&gt;table( &#39;users&#39; =&gt; &#39;autoload&#39; );
 $mapper-&gt;maps( $users_table =&gt; &#39;My::User&#39; );
 # あるいはmetadata-&gt;tableメソッドにテーブル名だけを指定することでテーブルのメタデータを取得できます。
 $mapper-&gt;maps( $mapper-&gt;metadata-&gt;table(&#39;users&#39;) =&gt; &#39;My::User&#39; );</pre>
@@ -68,7 +68,7 @@ $mapper-&gt;maps( $mapper-&gt;metadata-&gt;table(&#39;users&#39;) =&gt; &#39;My:
     <h3>insert</h3>
     <p>それでは早速データベースへinsertをしてみましょう。</p>
 
-    <pre class="code lang-perl">
+    <pre class="code prettyprint lang-perl">
 my $user = My::User-&gt;new( name =&gt; &#39;eisukeoishi&#39; );
 
 my $session = $mapper-&gt;begin_session( autocommit =&gt; 0 );
@@ -113,7 +113,7 @@ begin_sessionメソッドのオプションを指定することでその動作�
     <h3>select</h3>
     <p>ごちゃごちゃといろいろ書いてしまいましたが、気をとりなおして、先程insertしたデータを取得してみましょう。</p>
 
-    <pre class="code lang-perl">
+    <pre class="code prettyprint lang-perl">
 my $session = $mapper-&gt;begin_session( autocommit =&gt; 0 );
 my $user = $session-&gt;get( &#39;My::User&#39; =&gt; 1 );
 # SELECT users.name, users.id FROM users WHERE ( users.id = 1 )
@@ -126,7 +126,7 @@ print $user-&gt;name; # eisukeoishi</pre>
 <div class="section">
     <h3>update</h3>
     
-    <pre class="code lang-perl">
+    <pre class="code prettyprint lang-perl">
 my $session = $mapper-&gt;begin_session( autocommit =&gt; 0 );
 my $user = $session-&gt;get( &#39;My::User&#39; =&gt; 1 );
 # BEGIN;
@@ -141,7 +141,7 @@ $session-&gt;commit;
 <div class="section">
     <h3>delete</h3>
     
-    <pre class="code lang-perl">my $session = $mapper-&gt;begin_session( autocommit =&gt; 0 );
+    <pre class="code prettyprint lang-perl">my $session = $mapper-&gt;begin_session( autocommit =&gt; 0 );
 my $user = $session-&gt;get( &#39;My::User&#39; =&gt; 1 );
 # BEGIN;
 # SELECT users.name, users.id FROM users WHERE ( users.id = 1 )
@@ -155,7 +155,7 @@ $session-&gt;commit;
 <div class="section">
     <h3>selectその2(まとめてオブジェクトを取得する)</h3>
     
-    <pre class="code lang-perl">my $session = $mapper-&gt;begin_session( autocommit =&gt; 0 );
+    <pre class="code prettyprint lang-perl">my $session = $mapper-&gt;begin_session( autocommit =&gt; 0 );
 $session-&gt;add_all(
     My::User-&gt;new( name =&gt; &#39;user1&#39; ),
     My::User-&gt;new( name =&gt; &#39;user2&#39; ),
@@ -170,7 +170,7 @@ while( my $user = $it-&gt;next ) {
 $session-&gt;commit;</pre>
 <p>条件を指定する場合は、</p>
 
-    <pre class="code lang-perl">my $session = $mapper-&gt;begin_session( autocommit =&gt; 0 );
+    <pre class="code prettyprint lang-perl">my $session = $mapper-&gt;begin_session( autocommit =&gt; 0 );
 my $attr = $mapper-&gt;attribute(&#39;My::User&#39;);
 my $it = $session-&gt;search(&#39;My::User&#39;)
     -&gt;filter(
@@ -185,10 +185,10 @@ while( my $user = $it-&gt;next ) {
 <p>のように、mapperのattributeメソッドでクラスの属性を取得してfilterメソッドに条件を書いてあげます。<br />
 ここでも注意点としては、条件を指定するのは、テーブルのカラムではなく、オブジェクトの属性を指定している点です。オブジェクトを検索しているというイメージを持ってもらえば大丈夫かと思います。</p><p>また、propメソッドで取得したクラスの属性情報に演算子をつけて条件を指定するところが、一般的なO/Rマッパーとはちょっと違う点ですが、慣れると直感的に書けます。</p><p>サポートしている演算子は ==,!=,>=,>,<=,<,eq,ne,lt,gt,le,geです。</p><p>その他に</p>
 
-    <pre class="code lang-perl">$attr-&gt;prop(&#39;id&#39;) == [ 1, 2, 3 ]</pre>
+    <pre class="code prettyprint lang-perl">$attr-&gt;prop(&#39;id&#39;) == [ 1, 2, 3 ]</pre>
 <p>は、id IN (1, 2, 3) と INとして動作し、</p><p>like,betweenなどは</p>
 
-    <pre class="code lang-perl">$attr-&gt;prop(&#39;name&#39;)-&gt;like(&#39;%str%&#39;);
+    <pre class="code prettyprint lang-perl">$attr-&gt;prop(&#39;name&#39;)-&gt;like(&#39;%str%&#39;);
 $attr-&gt;prop(&#39;id&#39;)-&gt;between( 1, 3 );</pre>
 <p>のように書けます。</p>
 
@@ -197,7 +197,7 @@ $attr-&gt;prop(&#39;id&#39;)-&gt;between( 1, 3 );</pre>
     <h3>おまけ</h3>
     <p>mappingするのにわざわざクラスを作成するとかメンドイという方には、自動でクラスを作成するオプションがあります。</p><p>冒頭のサンプルを改変してMy::Userクラスを作成せずに、下記のようにmapsメソッドを呼ぶことで、自動でクラスを作成できます。</p>
 
-    <pre class="code lang-perl">$mapper-&gt;maps(
+    <pre class="code prettyprint lang-perl">$mapper-&gt;maps(
     $users_table =&gt; &#39;My::User&#39;,
     constructor  =&gt; { auto =&gt; 1 },
     accessors    =&gt; { auto =&gt; 1 },

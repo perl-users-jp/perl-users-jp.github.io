@@ -14,7 +14,7 @@
 
         <p>こんにちは。Acme関連でしか登場しないと思われているんじゃないかと危惧している<a href="http://twitter.com/maka2_donzoko">makamka</a>です。すいません嘘です。危惧していません。</p><p>ほんの一部ですが私もカレンダーアプリのコードをいじりましたので、そのことについて記事を書きます。</p><p>最初、各トラックのインデックスには記事へのリンクとして日付しか出ていませんでした。これだとちょっと寂しいので、記事のタイトルを出してみました。</p><p>インデックス部分を処理するコードは下記のようになっていました。</p>
 
-    <pre class="code lang-perl">my $t = Time::Piece-&gt;strptime( &#34;$p-&gt;{year}/12/01&#34;, &#39;%Y/%m/%d&#39; );
+    <pre class="code prettyprint lang-perl">my $t = Time::Piece-&gt;strptime( &#34;$p-&gt;{year}/12/01&#34;, &#39;%Y/%m/%d&#39; );
 my @entries;
 while ( $t-&gt;mday &lt;= 25 ) {
     push @entries,
@@ -30,7 +30,7 @@ $vars-&gt;{entries} = \@entries;</pre>
 <p><br />
 記事がある場合にはファイルを読み込んで1行目のタイトルを取り出します。</p>
 
-    <pre class="code lang-perl">my $t = Time::Piece-&gt;strptime( &#34;$p-&gt;{year}/12/01&#34;, &#39;%Y/%m/%d&#39; );
+    <pre class="code prettyprint lang-perl">my $t = Time::Piece-&gt;strptime( &#34;$p-&gt;{year}/12/01&#34;, &#39;%Y/%m/%d&#39; );
 my @entries;
 while ( $t-&gt;mday &lt;= 25 ) {
     my $title;
@@ -54,10 +54,10 @@ while ( $t-&gt;mday &lt;= 25 ) {
 $vars-&gt;{entries} = \@entries;</pre>
 <p>これでテンプレートの方で</p>
 
-    <pre class="code lang-perl">[% entry.title %]</pre>
+    <pre class="code prettyprint lang-perl">[% entry.title %]</pre>
 <p>とやれば各記事のタイトルが出るようになりました。賑やかになりましたね！</p><p>ただ、これだとインデックスページを開くたびに毎回全部の記事を読みにいってしまいますので、キャッシュさせます。</p><p></p>
 
-    <pre class="code lang-perl">my $t = Time::Piece-&gt;strptime( &#34;$p-&gt;{year}/12/01&#34;, &#39;%Y/%m/%d&#39; );
+    <pre class="code prettyprint lang-perl">my $t = Time::Piece-&gt;strptime( &#34;$p-&gt;{year}/12/01&#34;, &#39;%Y/%m/%d&#39; );
 my $cache = Cache::MemoryCache-&gt;new( { namespace =&gt; $p-&gt;{ name } } );
 my @entries;
 while ( $t-&gt;mday &lt;= 25 ) {
@@ -91,10 +91,10 @@ $vars-&gt;{entries} = \@entries;</pre>
 <p>これで一度読み込んだタイトルはキャッシュされ、記事ファイルの更新時間が変更された時だけ、タイトルが更新されるようになりました。<br />
 なお、上記のコードのファイルの更新時間を取得する部分、私は</p>
 
-    <pre class="code lang-perl">$root-&gt;file( $t-&gt;ymd . &#39;.txt&#39; )-&gt;stat-&gt;[9];</pre>
+    <pre class="code prettyprint lang-perl">$root-&gt;file( $t-&gt;ymd . &#39;.txt&#39; )-&gt;stat-&gt;[9];</pre>
 <p>と野暮ったい書き方をしていたのですが、後でgfxさんに</p>
 
-    <pre class="code lang-perl">$root-&gt;file( $t-&gt;ymd . &#39;.txt&#39; )-&gt;stat-&gt;mtime;</pre>
+    <pre class="code prettyprint lang-perl">$root-&gt;file( $t-&gt;ymd . &#39;.txt&#39; )-&gt;stat-&gt;mtime;</pre>
 <p>と、モダンなものに書き直してもらっています。</p>
 
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>

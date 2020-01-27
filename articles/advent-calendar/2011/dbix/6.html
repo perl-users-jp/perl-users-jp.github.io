@@ -18,7 +18,7 @@
     <h4>Callbacksの基本</h4>
     <p>CallbacksはDBIに標準で用意されているHook機能です。</p>
 
-    <pre class="code">my $dbh = DBI-&gt;connect(&#39;dbi:SQLite:dbname=test.db&#39;,&#39;&#39;,&#39;&#39;, {
+    <pre class="code prettyprint">my $dbh = DBI-&gt;connect(&#39;dbi:SQLite:dbname=test.db&#39;,&#39;&#39;,&#39;&#39;, {
     RaiseError =&gt; 1,
     PrintError =&gt; 0,
     Callbacks =&gt; {
@@ -29,7 +29,7 @@
 });</pre>
 <p>接続時のAttributesにCallbacksを追加します。上では接続が完了(connected)したらcoderefが呼び出されます。</p><p>接続時にテーブルを作成するなら</p>
 
-    <pre class="code">connected =&gt; sub {
+    <pre class="code prettyprint">connected =&gt; sub {
     my $dbh = shift;
     $dbh-&gt;do(&lt;&lt;EOF);
 CREATE TABLE IF NOT EXISTS tbl (
@@ -44,7 +44,7 @@ EOF
 <p>などと書けます。DBIのcallbackでは最後にundefを返します。</p><p>connect時のattribute以外でも Database Handler(dbh) に対してCallbackを追加することが可能です<br />
  </p>
 
-    <pre class="code">$dbh-&gt;{Callbacks} = {
+    <pre class="code prettyprint">$dbh-&gt;{Callbacks} = {
    &#39;do&#39; =&gt; sub {
         ...
     },
@@ -56,7 +56,7 @@ EOF
     <h4>Statement Handler への Callback 登録</h4>
     <p>Statement Handler(sth) に対するHookは、ChildCallbacks を使うと簡単に登録が可能です。ChildCallbacksを使わない場合、sthに対して毎回 Callbacksを設定する必要があります。</p>
 
-    <pre class="code">my $dbh = DBI-&gt;connect(&#39;dbi:SQLite:dbname=test.db&#39;,&#39;&#39;,&#39;&#39;, {
+    <pre class="code prettyprint">my $dbh = DBI-&gt;connect(&#39;dbi:SQLite:dbname=test.db&#39;,&#39;&#39;,&#39;&#39;, {
     RaiseError =&gt; 1,
     PrintError =&gt; 0,
     Callbacks =&gt; {
@@ -74,7 +74,7 @@ EOF
     <h4>サンプル</h4>
     <p>以下は、Hookを利用してbind parameterにundefind valueが入っていたらエラーとするサンプル。NULLが意図しない形で入る事で全行舐めることが起きることを防げます。</p>
 
-    <pre class="code">my $callback = sub {
+    <pre class="code prettyprint">my $callback = sub {
     my ($obj,$query,$attr,@binds) = @_;
     my $i=0;
     map { ! defined $_ &amp;&amp; die(&#34;undefined bind value found at \#$i, in query \x27$query\x27&#34;); $i++ } @binds;

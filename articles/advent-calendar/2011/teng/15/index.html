@@ -17,7 +17,7 @@
 とかいろいろな意味があるんですが、ORMだったりdatabase周りで語られる場合は、<br />
 schemaのバージョン管理的な意味合いで良いと思います。</p><p>例えばMySQLで例を挙げますと、</p>
 
-    <pre class="code">CREATE TABLE `user` (
+    <pre class="code prettyprint">CREATE TABLE `user` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(10) DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -26,11 +26,11 @@ schemaのバージョン管理的な意味合いで良いと思います。</p><
 <p>こういったテーブルがあったとして、これに年齢を表すageカラムがついかされるとします。<br />
 その場合MySQLだと</p>
 
-    <pre class="code">ALTER TABLE user ADD COLUMN age int(10) UNSIGNED NOT NULL DEFAULT 0 AFTER name;</pre>
+    <pre class="code prettyprint">ALTER TABLE user ADD COLUMN age int(10) UNSIGNED NOT NULL DEFAULT 0 AFTER name;</pre>
 <p>などと実行してカラムを追加することになります。<br />
 そうすると、</p>
 
-    <pre class="code">mysql&gt; SHOW CREATE TABLE user\G
+    <pre class="code prettyprint">mysql&gt; SHOW CREATE TABLE user\G
 *************************** 1. row ***************************
        Table: user
 Create Table: CREATE TABLE `user` (

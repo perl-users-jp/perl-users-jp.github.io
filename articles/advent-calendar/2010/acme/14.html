@@ -16,16 +16,16 @@
 このモジュールを使用すると江戸時代のような鎖国状態を実現できます。<br />
 具体的には日本、中国、韓国、オランダ<a href="#fn1" title="最初はポルトガルも入れてましたがよく考えたら所謂「鎖国体制完成」時にはポルトガルとも国交が断絶してたので外しました">*1</a>以外のモジュールは使用できなくなります。</p>
 
-    <pre class="code lang-perl">use Acme::Seclusion::JP;
+    <pre class="code prettyprint lang-perl">use Acme::Seclusion::JP;
 use Moose;</pre>
 <p>上記のようにMooseを使うと標準エラー出力にエラーメッセージを出力しexitします。作者が日本人のMouseなら通常動作をします。</p><p>この動作をどのようにして実現しているかというと、<a href="http://perldoc.perl.org/functions/require.html">http://perldoc.perl.org/functions/require.html</a> にも書かれている、@INCに[コードリファレンス|オブジェクト]を入れるテクニックを使用しています。@INCにコードリファレンスが含まれている時にモジュールをロードしようとすると、そのコードリファレンスが実行されます(オブジェクトの場合はINCメソッドが実行されます)。</p><p>この機能を利用して、モジュールのロードをフックし、モジュール名からモジュールの作者情報を検索します。そのあと、<a href="http://search.cpan.org/~ishigaki/Acme-CPANAuthors-0.14/lib/Acme/CPANAuthors.pm">Acme::CPANAuthors</a>を利用して、作者がAcme::CPANAuthors::Japanese、Acme::CPANAuthors::Chainese、Acme::CPANAuthors::Korean、Acme::CPANAuthors::Dutchに含まれるか判定し、含まれなければexitします。(ちなみにAcme::CPANAuthors::Dutchのリストは空です。理由はPODを読んでみてください)</p><p>なお、以下のように "-complete" オプションを指定すると完全鎖国モードになり、日本のモジュール以外は使用できなくなります。<a href="#fn2" title="コアモジュールを除く">*2</a></p>
 
-    <pre class="code lang-perl">use Acme::Seclusion::JP &#39;-complete&#39;;</pre>
+    <pre class="code prettyprint lang-perl">use Acme::Seclusion::JP &#39;-complete&#39;;</pre>
 <p>「舶来品は使わん！」という頑固な攘夷派の方にオススメです。</p><p>今回は、@INCによるモジュールロードのフックでアホなことをしていますが、以下のようにモジュールをロードした際に暗黙的にロードされるモジュールをトレースして、遅延ロード化を検討したりとか、わりと実用的なこともできます。</p>
 
-    <pre class="code lang-perl">perl -MPerl6::Say -e &#39;BEGIN{unshift @INC,sub{ say join &#34;\t=&gt;\t&#34;,(caller)[0],do{(my $mod = $_[1]) =~ s!/!::!g;$mod =~ m!(.+)\.pm!}}}use MyModule;&#39;</pre>
-HASH(0x55c17658d608)
-HASH(0x55c1765910a8)
+    <pre class="code prettyprint lang-perl">perl -MPerl6::Say -e &#39;BEGIN{unshift @INC,sub{ say join &#34;\t=&gt;\t&#34;,(caller)[0],do{(my $mod = $_[1]) =~ s!/!::!g;$mod =~ m!(.+)\.pm!}}}use MyModule;&#39;</pre>
+HASH(0x55809a903108)
+HASH(0x55809a8e4bf8)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

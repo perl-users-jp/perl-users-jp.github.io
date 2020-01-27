@@ -35,10 +35,10 @@ MySQLではEXPLAINを使ってクエリの実行計画を確認することで�
  - !Time<br />
  - !Time~N</p><p>文字列と数値表記の2種類ありますので、好きな方を使ってください。私は環境変数からセットすることが多いので数値表記の方が好みです。実際には以下のように使っています。</p>
 
-    <pre class="code lang-bash">$ DBI_PROFILE=2 perl myscript.pl</pre>
+    <pre class="code prettyprint lang-bash">$ DBI_PROFILE=2 perl myscript.pl</pre>
 <p>この記事では以下のスクリプトをプロファイリングの対象として使います。例外処理は省略してあります。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use DBI;
 
@@ -69,10 +69,10 @@ $dbh-&gt;disconnect;</pre>
 <div class="section">
     <h4>何はともあれProfileを取ってみる</h4>
     
-    <pre class="code lang-bash">$ DBI_PROFILE=2 perl myscript.pl</pre>
+    <pre class="code prettyprint lang-bash">$ DBI_PROFILE=2 perl myscript.pl</pre>
 <p>上記コマンドを実行すると以下のような結果が得られます。</p>
 
-    <pre class="code">DBI::Profile: 0.001440s (16 calls) myscript.pl @ 2011-12-13 01:25:36
+    <pre class="code prettyprint">DBI::Profile: 0.001440s (16 calls) myscript.pl @ 2011-12-13 01:25:36
 &#39;&#39; =&gt;
     0.000342s / 10 = 0.000034s avg (first 0.000263s, min 0.000000s, max 0.000263s)
 &#39;CREATE TABLE t1 ( id integer primary key autoincrement, body text )&#39; =&gt;
@@ -88,7 +88,7 @@ $dbh-&gt;disconnect;</pre>
 <p>この結果を見ると全体で0.001440s、その中でもCREATE TABLEが0.000693sかかっているのがわかります。<br />
 各クエリの実行時間と回数が記録されているので、どのクエリがボトルネックになっているかすぐわかりますね。</p><p>ちなみに『全部盛り』的な感じにすると以下のようになります。</p>
 
-    <pre class="code">$ DBI_PROFILE=31 perl myscript.pl
+    <pre class="code prettyprint">$ DBI_PROFILE=31 perl myscript.pl
 
 DBI::Profile: 0.001600s (16 calls) myscript.pl @ 2011-12-13 01:30:31
 &#39;DBI&#39; =&gt;
@@ -154,10 +154,10 @@ DBI::Profile: 0.001600s (16 calls) myscript.pl @ 2011-12-13 01:30:31
     <h4>独自のProfileクラスの設定</h4>
     <p>今まではDBI::Profileを使ってきましたが、自分で独自のProfileクラスを設定することができます。しかし、私は独自クラスを作ったことがないので、DBIに標準でついてくるDBI::ProfileDumperを紹介します。</p><p>DBI::Profile以外のクラスを設定するのも簡単で、以下のように出力する情報の種類の後に"/"を付け、指定します。</p>
 
-    <pre class="code lang-bash">$ DBI_PROFILE=&#39;!Statement:!File/DBI::ProfileDumper&#39; perl myscript.pl</pre>
+    <pre class="code prettyprint lang-bash">$ DBI_PROFILE=&#39;!Statement:!File/DBI::ProfileDumper&#39; perl myscript.pl</pre>
 <p>実際に上記コマンドを実行しても、何も表示されないかと思いますが安心してください。DBI::ProfileDumperはSTDERRのかわりに、カレントディレクトリのdbi.profに情報を出力します。</p><p>実際に出力した結果が以下になります。</p>
 
-    <pre class="code">DBI::ProfileDumper 2.013956
+    <pre class="code prettyprint">DBI::ProfileDumper 2.013956
 Path = [ !Statement, !File ]
 Program = myscript.pl
 
@@ -185,7 +185,7 @@ Program = myscript.pl
 = 1 0.000111103057861328 0.000111103057861328 0.000111103057861328 0.000111103057861328 1323707874.05987 1323707874.05987</pre>
 <p>見ての通り、何がなんだかわかりません。dbi.profファイルは直接閲覧するのではなく、付属のdbiprofコマンドの引数に渡すことで人間用の表示になります。出力結果が長いので一部省略しますが、以下のような感じになります。</p>
 
-    <pre class="code">$ dbiprof dbi.prof
+    <pre class="code prettyprint">$ dbiprof dbi.prof
 
 DBI Profile Data (DBI::ProfileDumper 2.013956)
 

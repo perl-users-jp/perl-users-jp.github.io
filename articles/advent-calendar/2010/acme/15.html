@@ -21,7 +21,7 @@
 <p>それはともかく、なんでこの話を取り上げたかといいますと、あれは今から4年ほど前のことです。仕事が暇だった私は「そうだAcmeモジュールつくろう」と思って、<a href="https://github.com/makamaka/Acme-Rumpelstiltskin">Acme::Rumpelstiltskin</a>をつくったのです。でもドイツ語がわからない日本人にとってはRumpelstiltskinってスペルはなかなか難しい。そこでちょっとぐらいスペルを間違えてもuseできるようにしようと考えました。</p><p>そこで私がとった戦略は、「似たような名前のファイルを全部インストールする」です。ハラショー！</p><p>というわけで、makeすると似たようなファイルが400個以上作られます。</p><br />
 <p></p>
 
-    <pre class="code lang-perl">$ make
+    <pre class="code prettyprint lang-perl">$ make
 cp lib/Acme/Runperusteruskin.pm blib/lib/Acme/Runperusteruskin.pm
 cp lib/Acme/Lampelusterustkin.pm blib/lib/Acme/Lampelusterustkin.pm
 cp lib/Acme/Ranperustiltskin.pm blib/lib/Acme/Ranperustiltskin.pm
@@ -48,11 +48,11 @@ cp lib/Acme/Lumperusteruskin.pm blib/lib/Acme/Lumperusteruskin.pm
 <p><br />
 もりもり出来る。これで多少スペルが間違ってても大丈夫。</p><p></p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use Acme::Rumpelstilskin; # ←間違ってるよ！</pre>
 <p>ほら、大丈夫。</p><p>ただし、正しくこのモジュール名を指定すると</p>
 
-    <pre class="code lang-perl">use Acme::Rumpelstiltskin;</pre>
+    <pre class="code prettyprint lang-perl">use Acme::Rumpelstiltskin;</pre>
 <p><br />
 件の童話さながらにdieしますので、お気をつけください。</p><p>なおこのモジュールには何の機能もついていません。また、このモジュールを何のためにつくったかといいますと、忘れました。何しろ昔のことですから。数年ぶりに引っ張りだして<a href="https://github.com/makamaka/Acme-Rumpelstiltskin">githubにあげました</a>ので、興味がございましたらご覧下さい。</p><p>また、青空文庫にも<a href="http://www.aozora.gr.jp/cards/001091/files/42310_15932.html">ルンペルシュチルツヒェン（楠山正雄訳）</a>があります。bayashiさんの<a href="https://github.com/bayashi/Net-AozoraBunko">Net::AozoraBunko</a>を使うと良いですね！</p><br />
 <p>最後にクイズです。Perl 5.8.8までのコアドキュメントのどこかに、Rumpelstiltskinがいます。検索等を使わず探せば、このお正月のよい暇つぶしになるのではないでしょうか（5.6系にもあったようですが、5.5系以下については確認していません）。</p><br />
@@ -67,7 +67,7 @@ But To Japanese who don't know German well, the spelling of Rumpelstiltskin is d
 I thought that this module can be used  even though misspelling.<br />
 Then I decide a strategy - the distribution installs all file names that like Rumpelstiltskin. Great!</p><p>You do make, more than 400 files are installed.</p>
 
-    <pre class="code lang-perl">$ make
+    <pre class="code prettyprint lang-perl">$ make
 cp lib/Acme/Runperusteruskin.pm blib/lib/Acme/Runperusteruskin.pm
 cp lib/Acme/Lampelusterustkin.pm blib/lib/Acme/Lampelusterustkin.pm
 cp lib/Acme/Ranperustiltskin.pm blib/lib/Acme/Ranperustiltskin.pm
@@ -93,11 +93,11 @@ cp lib/Acme/Lumperusteruskin.pm blib/lib/Acme/Lumperusteruskin.pm
 .....</pre>
 <p>Copy, copy, copy... Now you can misspell Rumpelstiltskin.</p><p></p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use Acme::Rumpelstilskin;</pre>
 <p>All right.</p><p>But, you call right module name...</p>
 
-    <pre class="code lang-perl">use Acme::Rumpelstiltskin;</pre>
+    <pre class="code prettyprint lang-perl">use Acme::Rumpelstiltskin;</pre>
 <p><br />
 The module dies as the story is.</p><p>This module has no function and I forgot why this modle was made.</p><p>Lastly I give you a quiz.Until Perl 5.8.8, there is Rumpelstiltskin in a core document. If you don't use any search tool, in this winter vacation, it will be a goot to killing time.</p><br />
 <br />

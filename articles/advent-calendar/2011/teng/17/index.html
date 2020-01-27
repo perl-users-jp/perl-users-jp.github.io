@@ -14,10 +14,10 @@
 
         <p>Tengではエラーハンドリングを利用者が独自に定義することが可能です。</p><p>たとえばデフォルトの挙動として</p>
 
-    <pre class="code">$teng-&gt;search_by_sql(&#39;* FROM user WHERE id = ?&#39;, [1]);</pre>
+    <pre class="code prettyprint">$teng-&gt;search_by_sql(&#39;* FROM user WHERE id = ?&#39;, [1]);</pre>
 <p>このように誤ったSQLを実行してしまった時などは</p>
 
-    <pre class="code">@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    <pre class="code prettyprint">@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @@@@@ Teng &#39;s Exception @@@@@
 Reason  : DBD::SQLite::db prepare failed: near &#34;*&#34;: syntax error at ....
 
@@ -32,7 +32,7 @@ BIND    : $VAR1 = [
 Tengを継承しているクラスでオーバーライドすることが可能です。</p><br />
 <p>たとえばTengで表示されるエラーメッセージがうるさい場合なんかは</p>
 
-    <pre class="code">package Proj::DB;
+    <pre class="code prettyprint">package Proj::DB;
 use strict;
 use warnings;
 use parent &#39;Teng&#39;;
@@ -51,7 +51,7 @@ sub handle_error {
 1;</pre>
 <p>このようにすることで</p>
 
-    <pre class="code">DBD::SQLite::db prepare failed: near &#34;*&#34;: syntax error at /Users/kobayashi.atsushi/perl5/perlbrew/perls/perl-5.12.1/lib/site_perl/5.12.1/Teng.pm line 206. * FROM user WHERE id = ? [1] at ...</pre>
+    <pre class="code prettyprint">DBD::SQLite::db prepare failed: near &#34;*&#34;: syntax error at /Users/kobayashi.atsushi/perl5/perlbrew/perls/perl-5.12.1/lib/site_perl/5.12.1/Teng.pm line 206. * FROM user WHERE id = ? [1] at ...</pre>
 <p>と、１行で収めることも可能です。</p><p>明日はPluginについて紹介したいと思います</p>
 
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>

@@ -27,7 +27,7 @@
     <h4>play it</h4>
     <p>おもむろに以下のコードを実行してみます。</p>
 
-    <pre class="code lang-perl">use GD::Chord::Piano;
+    <pre class="code prettyprint lang-perl">use GD::Chord::Piano;
 
 my $im = GD::Chord::Piano-&gt;new;
 open my $fh, &#34;&gt;&#34;, &#34;c.png&#34; or die $!;
@@ -35,7 +35,7 @@ print $fh $im-&gt;chord(&#39;C&#39;)-&gt;png;
 close $fh;</pre>
 <p>次のような画像が吐き出されてしまいます。</p><p><img src="https://github.com/perl-users-jp/perl-advent-calendar/raw/master/2011/hacker/2011-12-16/c.png" alt="piano:C" /></p><p>赤い印のついたところを押さえれば、C が弾けますね！ ド、ミ、ソ！！</p><p>generate メソッドを使えば、おれおれコードを描画することもできてしまいます。これはびっくり。</p>
 
-    <pre class="code lang-perl">my $im = GD::Chord::Piano-&gt;new;
+    <pre class="code prettyprint lang-perl">my $im = GD::Chord::Piano-&gt;new;
 
 $im-&gt;generate(&#39;Bb/A&#39;, qw/9 14 17 22/)-&gt;png;</pre>
 <p><img src="https://github.com/perl-users-jp/perl-advent-calendar/raw/master/2011/hacker/2011-12-16/b-_on_a.png" alt="piano:Bb/A" /></p><p>簡単ですね！</p><p></p>
@@ -45,14 +45,14 @@ $im-&gt;generate(&#39;Bb/A&#39;, qw/9 14 17 22/)-&gt;png;</pre>
     <h4>テキストもあるよ</h4>
     <p>画像出力じゃなくて、ターミナルにテキストで出したいんですけど！！！</p><p>そんな要望もよくありますね！！！</p><p>そんなときは、兄弟モジュールの <a href="https://metacpan.org/module/Text::Chord::Piano" title="Text::Chord::Piano">Text::Chord::Piano</a> を使えばOK</p>
 
-    <pre class="code lang-perl">use Text::Chord::Piano;
+    <pre class="code prettyprint lang-perl">use Text::Chord::Piano;
 
 my $p = Text::Chord::Piano-&gt;new;
 
 print $p-&gt;chord(&#39;C&#39;);</pre>
 <p>以下のようなコード表が出力されます。</p>
 
-    <pre class="code">
+    <pre class="code prettyprint">
 |  | | | |  |  | | | | | |  |  | | | |  |  | | | | | |  |
 |  | | | |  |  | | | | | |  |  | | | |  |  | | | | | |  |
 |  | | | |  |  | | | | | |  |  | | | |  |  | | | | | |  |

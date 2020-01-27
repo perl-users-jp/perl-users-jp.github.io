@@ -22,7 +22,7 @@
     <h4>Test::More チートシート</h4>
     <p>まず、More というだけあって、結構機能がいっぱいあるので、チートシートを先にあげておきます。perldoc Test::More のほぼコピペですが、きっと皆さんは perldoc Test::More とかしてくれないので！！</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use Test::More;
 
@@ -73,7 +73,7 @@ done_testing; # テストの最後に書くおまじない</pre>
     <h4>初めてのテスト</h4>
     <p>さて、なにはともあれテストを書いてみましょう。テストを書けるようになるにはひたすらテストを書くしかないのでとにかく書きましょう。書きすぎて怒られるぐらい書きましょう。</p><p>まず、適当に以下のようなモジュールを書きましょう。こいつは lib/SomeModule.pm に書きます。</p>
 
-    <pre class="code lang-perl">package SomeModule;
+    <pre class="code prettyprint lang-perl">package SomeModule;
 
 use strict;
 use warnings;
@@ -95,7 +95,7 @@ sub sum {
 1;</pre>
 <p>簡単なモジュールですね。<del>テストとかいらなそう。</del></p><p>テスト駆動開発的には、まずはテストを書け！ボケナスがぁ！！って言われるかもしれませんが、現実はそんな風には出来ていないので、まずはテスト対象のコードが存在してしまうことの方が多いでしょう。</p><p>こいつのテストを書く訳ですが、perl の慣習的にテストは t/ 配下に置くことが多いのと、拡張子は .t にしとくと捗るのでで t/01_use.t とか書きましょう。</p>
 
-    <pre class="code lang-perl"># t/01_use.t
+    <pre class="code prettyprint lang-perl"># t/01_use.t
 use strict;
 use warnings;
 use Test::More;
@@ -107,10 +107,10 @@ done_testing;</pre>
 Test::More の use_ok() と done_testing() という関数を利用してます。</p><p>use_ok はそのままの意味で、モジュールを use できたら ok ってことです。<br />
 done_testing はテストはここまでですよーっていう意味ですが、深く考えずにテストファイルの末尾に書けばいいと覚えておけばいいでしょう。</p><p>さて、テストを書いたのでこいつを実行しようと思います。</p><p>単なる perl スクリプトなので、</p>
 
-    <pre class="code">$ perl -Ilib t/01_use.t</pre>
+    <pre class="code prettyprint">$ perl -Ilib t/01_use.t</pre>
 <p>とすれば、</p>
 
-    <pre class="code">ok 1 - use SomeModule;
+    <pre class="code prettyprint">ok 1 - use SomeModule;
 1..1</pre>
 <p>という風にでて、テストが全部通りました！やった！！</p><p>ちなみに、この出力ですが、TAP という形式になっていて、まぁくわしくは <a href="http://testanything.org">http://testanything.org</a> をご覧ください。</p>
 
@@ -119,13 +119,13 @@ done_testing はテストはここまでですよーっていう意味ですが�
     <h4>テストの追加</h4>
     <p>use だけ出来たところでなんも嬉しくないので、new を出来るようにしたいなと思います。</p><p>皆さんはもうさっき書いたモジュールのコードなんてすっかり忘れてしまったここと思いますので、テスト対象の new の部分をもう一度提示しておきます。親切ですね。</p>
 
-    <pre class="code lang-perl">sub new {
+    <pre class="code prettyprint lang-perl">sub new {
     my ($class, %args) = @_;
     bless \%args, $class;
 }</pre>
 <p>簡単なコードですね。テスト書きましょう。</p>
 
-    <pre class="code lang-perl"># t/02_new.t
+    <pre class="code prettyprint lang-perl"># t/02_new.t
 use strict;
 use warnings;
 use Test::More;
@@ -137,13 +137,13 @@ isa_ok $obj, &#39;SomeModule&#39;;
 done_testing;</pre>
 <p>出来ました！早速実行しましょう！！</p>
 
-    <pre class="code">$ perl -Ilib t/02_new.t
+    <pre class="code prettyprint">$ perl -Ilib t/02_new.t
 ok 1 - The object isa SomeModule
 1..1</pre>
 <p>いやっほおおおおーーーい！！</p><p>でもこれだけだと new() 引数になんも入れてない場合のテストしか出来てないですね。<br />
 というわけで、引数与える奴も追加しましょう。</p>
 
-    <pre class="code lang-perl"># t/02_new.t
+    <pre class="code prettyprint lang-perl"># t/02_new.t
 use strict;
 use warnings;
 use Test::More;
@@ -164,7 +164,7 @@ done_testing;</pre>
     <p>こういうときは昔は { ... } とかで囲んでスコープを分けてましたが、いまは subtest っていうのが使えるので素直にそれを使っておきましょう。<br />
 subtest が嫌いな人もいますが、それはそれです。</p>
 
-    <pre class="code lang-perl"># t/02_new.t
+    <pre class="code prettyprint lang-perl"># t/02_new.t
 use strict;
 use warnings;
 use Test::More;
@@ -183,7 +183,7 @@ subtest &#39;foo =&gt; bar&#39; =&gt; sub {
 done_testing;</pre>
 <p>subtest は description が必須なので、これから俺はこんなテストをやる！っていう意思表示にもなっていいですね。</p><p>これを実行するとこんな感じになります。</p>
 
-    <pre class="code">$ perl -Ilib t/02_new.t
+    <pre class="code prettyprint">$ perl -Ilib t/02_new.t
     ok 1 - The object isa SomeModule
     1..1
 ok 1 - no args
@@ -199,7 +199,7 @@ ok 2 - foo =&gt; bar
     <h4>そろそろ sum() のテストを書く</h4>
     <p>このモジュールのおそらく核の機能であるっぽい sum() のテストをいいかげん書きましょう。そろそろ飽きてきたので。</p><p>テスト対象は</p>
 
-    <pre class="code lang-perl">sub sum {
+    <pre class="code prettyprint lang-perl">sub sum {
     my $self = shift;
     my $ret = 0;
     for my $num (@_) {
@@ -209,7 +209,7 @@ ok 2 - foo =&gt; bar
 }</pre>
 <p>です。簡単ですね。</p>
 
-    <pre class="code lang-perl"># t/03_sum.t
+    <pre class="code prettyprint lang-perl"># t/03_sum.t
 use strict;
 use warnings;
 use Test::More;
@@ -224,14 +224,14 @@ subtest &#39;basic&#39; =&gt; sub {
 
 done_testing;</pre>
 
-    <pre class="code">$ perl -Ilib t/03_sum.t
+    <pre class="code prettyprint">$ perl -Ilib t/03_sum.t
     ok 1
     1..1
 ok 1 - basic
 1..1</pre>
 <p>とおりましたね！</p><p>これだけではつまらないので、ちょっと意地悪なテストを追加しましょう。</p>
 
-    <pre class="code lang-perl"># t/03_sum.t
+    <pre class="code prettyprint lang-perl"># t/03_sum.t
 use strict;
 use warnings;
 use Test::More;
@@ -253,7 +253,7 @@ subtest &#39;skip undef&#39; =&gt; sub {
 done_testing;</pre>
 <p>引数に undef が含まれている奴ですね。これを走らせてみましょう。</p>
 
-    <pre class="code">$ perl -Ilib t/03_sum.t
+    <pre class="code prettyprint">$ perl -Ilib t/03_sum.t
     ok 1
     1..1
 ok 1 - basic
@@ -264,7 +264,7 @@ ok 2 - skip undef
 1..2</pre>
 <p>テストは通りましたが、なんか warnings がでてる！これは悲しいので、warnings がでたらテストがこけるようにしてやりましょう。</p><p>warnings をキャッチする方法はいろいろとありますが、とりあえず今回は一番てっとり早い $SIG{__WARN__} さんを使うことにします。</p>
 
-    <pre class="code lang-perl"># t/03_sum.t
+    <pre class="code prettyprint lang-perl"># t/03_sum.t
 use strict;
 use warnings;
 use Test::More;
@@ -287,7 +287,7 @@ subtest &#39;skip undef&#39; =&gt; sub {
 done_testing;</pre>
 <p>これでテストを走らせましょう。</p>
 
-    <pre class="code">$ perl -Ilib t/03_sum.t
+    <pre class="code prettyprint">$ perl -Ilib t/03_sum.t
     ok 1
     1..1
 ok 1 - basic
@@ -306,7 +306,7 @@ not ok 2 - skip undef
 # Looks like you failed 1 test of 2.</pre>
 <p>無事テストがこけました。</p><p>しょうがないので、テストを通すように SomeModule を修正します。</p>
 
-    <pre class="code lang-perl">sub sum {
+    <pre class="code prettyprint lang-perl">sub sum {
     my $self = shift;
     my $ret = 0;
     for my $num (@_) {
@@ -317,7 +317,7 @@ not ok 2 - skip undef
 }</pre>
 <p>これでテストをもっかいはしらせます。</p>
 
-    <pre class="code">$ perl -Ilib t/03_sum.t
+    <pre class="code prettyprint">$ perl -Ilib t/03_sum.t
     ok 1
     1..1
 ok 1 - basic
@@ -332,7 +332,7 @@ ok 2 - skip undef
     <h4>テストを一括で走らせたい</h4>
     <p>さて、ここまで3つのテストを書いてきましたが、普通に考えて一気に走らせたいなっていう欲求があることかと思います。</p><p>そんなときは、prove というコマンドを使うといいでしょう。perl のコアに入っているのでいつでもオールレディーでございます。</p>
 
-    <pre class="code lang-perl">$ prove -lc t
+    <pre class="code prettyprint lang-perl">$ prove -lc t
 t/01_use.t .. ok   
 t/02_new.t .. ok   
 t/03_sum.t .. ok   

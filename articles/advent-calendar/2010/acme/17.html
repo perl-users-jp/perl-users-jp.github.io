@@ -14,7 +14,7 @@
 
         <p>(firstly written in Japanese, later in English)</p><p>こんにちは。もうだいたい持っているネタは尽きかけてる<a href="http://twitter.com/maka2_donzoko">makamaka</a>です。</p><p>今日は以前作った<a href="https://github.com/makamaka/p5-acme-brainfucktory">Acme::Brainfucktory</a>について記事を書きます。このモジュールはAcme::Brainfuck系のモジュールをお手軽につくるためのモジュールです。なお、Brainf*ckについては素晴らしいことに<a href="/articles/advent-calendar/2010/sym/1">sym track 1日目</a>でも取り上げられていますので、そちらをご参照ください。</p><p>さて、CPANには<a href="http://search.cpan.org/dist/Acme-Brainfuck/">Acme::Brainfuck</a>、<a href="http://search.cpan.org/dist/Acme-Ook/">Acme::Ook</a>などのbrainfuck系Acmeモジュールがいくつかあります。またAcmeではなくLanguage系モジュールとして<a href="http://search.cpan.org/dist/Language-BF/">Language::BF</a>（brainfuckを扱う）さえあります。</p><p>で、これらは基本的に8種類のコードとオペレーションが対応しているだけですから、もっと汎用的なものにしておけば、わざざ新しいものをつくる必要もないですね。そこでBrainfuckの工場、Acme::Brainfucktoryの登場です（なおインタフェースと基本コードの多くはLanguage::BFのコピペです）。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use Acme::Brainfucktory;
 
 my $bf = Acme::Brainfucktory-&gt;new();
@@ -29,7 +29,7 @@ $bf-&gt;run; # &#34;Hello World!\n&#34;</pre>
 <p>これは、基本形ですね。<br />
 しかし、ちょっと引数に値を渡してあげるだけで</p>
 
-    <pre class="code lang-perl">my $ook = Acme::Brainfucktory-&gt;new( {
+    <pre class="code prettyprint lang-perl">my $ook = Acme::Brainfucktory-&gt;new( {
     preprocess =&gt; sub {
         my $code_ref = shift;
         $$code_ref =~ s{Ook(.) Ook(.)}{$1$2}g;
@@ -70,7 +70,7 @@ CODE
 $ook-&gt;run; # &#34;Hello World!&#34;;</pre>
 <p>Acme::Ook（オランウータン用言語）に早変わり。さらにNekoMimiF*ck<a href="#fn1" title="tokuhirom氏のNekoMimiFu**で知りました">*1</a>もご覧の通り。</p>
 
-    <pre class="code lang-perl">my $nekomimi = Acme::Brainfucktory-&gt;new( {
+    <pre class="code prettyprint lang-perl">my $nekomimi = Acme::Brainfucktory-&gt;new( {
     optable =&gt; {
         &#39;ネコミミ！&#39;                    =&gt; &#39;&gt;&#39;,
         &#39;ネコミミモード&#39;                =&gt; &#39;&lt;&#39;,
@@ -125,7 +125,7 @@ $nekomimi-&gt;run; # &#34;Hello World!&#34;;</pre>
 <p><br />
 また、このモジュールはデフォルトでbrainf*ckというファンクションをエクスポートします。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use Acme::Brainfucktory;
 
 $bf = brainf*ck; # = Acme::Brainfucktory-&gt;new</pre>
@@ -138,7 +138,7 @@ $bf = brainf*ck; # = Acme::Brainfucktory-&gt;new</pre>
 TITLE: Easy Brainf*ck with Acme::Brainfucktory</p><p>Hello, this is <a href="http://twitter.com/maka2_donzoko">makamaka</a>.</p><p>I introduce <a href="https://github.com/makamaka/p5-acme-brainfucktory">Acme::Brainfucktory</a> today. It is a module for making Acme::Brainfuck-like module easily. For Brainf*ck detail, please see to <a href="/articles/advent-calendar/2010/sym/1">sym track 1st day</a>.</p><p>On CPAN, there are <a href="http://search.cpan.org/dist/Acme-Brainfuck/">Acme::Brainfuck</a>, <a href="http://search.cpan.org/dist/Acme-Ook/">Acme::Ook</a> and so on. And <a href="http://search.cpan.org/dist/Language-BF/">Language::BF</a> even exists.</p><p>Since thoese languages have basically only eight commands, we don't need new modules by the generalizatoin.<br />
 It is Acme::Brainfucktory, a factory of Brainfuck (its interface and many codes are copied from Language::BF).</p><p></p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use Acme::Brainfucktory;
 
 my $bf = Acme::Brainfucktory-&gt;new();
@@ -152,7 +152,7 @@ CODE
 $bf-&gt;run; # &#34;Hello World!\n&#34;</pre>
 <p>Basic. And you can pass options to the constructor.</p><p></p>
 
-    <pre class="code lang-perl">my $ook = Acme::Brainfucktory-&gt;new( {
+    <pre class="code prettyprint lang-perl">my $ook = Acme::Brainfucktory-&gt;new( {
     preprocess =&gt; sub {
         my $code_ref = shift;
         $$code_ref =~ s{Ook(.) Ook(.)}{$1$2}g;
@@ -193,7 +193,7 @@ CODE
 $ook-&gt;run; # &#34;Hello World!&#34;;</pre>
 <p>It was changed to Acme::Ook(orang-utans language). And NekoMimiF*ck<a href="#fn2" title="I know this language from tokuhirom's NekoMimiFu**.">*2</a>!</p>
 
-    <pre class="code lang-perl">my $nekomimi = Acme::Brainfucktory-&gt;new( {
+    <pre class="code prettyprint lang-perl">my $nekomimi = Acme::Brainfucktory-&gt;new( {
     optable =&gt; {
         &#39;ネコミミ！&#39;                    =&gt; &#39;&gt;&#39;,
         &#39;ネコミミモード&#39;                =&gt; &#39;&lt;&#39;,
@@ -247,13 +247,13 @@ CODE
 $nekomimi-&gt;run; # &#34;Hello World!&#34;;</pre>
 <p>Additionally, this module exports brainf*ck function by default.</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use Acme::Brainfucktory;
 
 $bf = brainf*ck; # = Acme::Brainfucktory-&gt;new</pre>
 <p>Good?</p><p>Well, in this winter vacation, would you like to invent new languages.... I don't care.</p>
-HASH(0x55c176563520)
-HASH(0x55c176590a90)
+HASH(0x55809a8c6468)
+HASH(0x55809a8ef7f8)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

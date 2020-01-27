@@ -23,7 +23,7 @@
     <h4>testがモリモリ肥大化する</h4>
     <p>テスト自体はとりあえず書くことは書くんだけど、何も考えずにテストを書いていると、こんな感じになっちゃったー、ってことがよくありますね。僕もよくあります。</p>
 
-    <pre class="code lang-perl">subtest with_case1 =&gt; sub {
+    <pre class="code prettyprint lang-perl">subtest with_case1 =&gt; sub {
     my $data_for_test = +{
     };
     # 上のデータからオブジェクト作ったりDBにinsertしたり色々してる...
@@ -67,7 +67,7 @@ subtest with_case3 =&gt; sub {
     <p>こういう場合、まず最初に同じコード単位(つまり.tファイル内で）共通処理をまとめてしまうことが考えられますね。あるあるですね。<br />
 test用のヘルパー関数を定義します。</p>
 
-    <pre class="code lang-per"># helper functions
+    <pre class="code prettyprint lang-per"># helper functions
 
 sub prepare_data {
     my $params = shift;
@@ -97,20 +97,20 @@ subtest with_case1 =&gt; sub {
     <p>さっき書いたようなヘルパー関数を、他のテストコードでも使いたい！という場合は普通にあると思います。<br />
 小規模なプロジェクトの場合、t/以下にUtils.pmとかを作っちゃって、各.tの中で</p>
 
-    <pre class="code lang-perl">    use t::Utils;
+    <pre class="code prettyprint lang-perl">    use t::Utils;
 
     my $data = t::Utils-&gt;foo;
     # 中略
     t::Utils-&gt;check($result, $expect);</pre>
 <p>みたいにしてしまうのもアリかもしれません。(好みの問題ですが、t::Utilsからexportしてもいいです）</p><p>でも、普通にテストコードおよびヘルパー関数が増えてくるとt::Utilに全部をぶっ込むという方式では立ち行かなくなるので、t/lib 以下にそのプロジェクト専用のテストライブラリ群を作ってしまうのが一般的だと思います。</p>
 
-    <pre class="code">t/lib/Test/MyProj/Mock.pm
+    <pre class="code prettyprint">t/lib/Test/MyProj/Mock.pm
 t/lib/Test/MyProj/APIMock.pm
 t/lib/Test/MyProj/Logic/*.pm
 t/lib/Test/MyProj/Controller/*.pm</pre>
 <p>こういうファイル群をダーっと作っていって、各.tファイルでは</p>
 
-    <pre class="code lang-perl">    use lib &#39;./t/lib&#39;;
+    <pre class="code prettyprint lang-perl">    use lib &#39;./t/lib&#39;;
     use Test::MyProj::Mock;
     use Test::MyProj::APIMock;
 

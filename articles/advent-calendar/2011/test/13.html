@@ -42,10 +42,10 @@
 <li>= just simple perl script</li>
 </ul><p>perlのテストコードは、単純なperlスクリプトです。</p>
 
-    <pre class="code">use MyApp::Queue;</pre>
+    <pre class="code prettyprint">use MyApp::Queue;</pre>
 <p>たとえば、MyApp::Queue っていうジョブキューを扱うクラスみたいなのを書くとするじゃないですか。その場合、</p>
 
-    <pre class="code">use MyApp::Queue;
+    <pre class="code prettyprint">use MyApp::Queue;
 
 my $queue = MyApp::Queue-&gt;new(...);
 
@@ -59,7 +59,7 @@ my $job = $queue-&gt;add_job({
 use Data::Dump qw/dump/; dump $job;</pre>
 <p>こんな感じのテストスクリプトを test.pl に書いて、$jobがちゃんと返ってくるかな、とか確認するのはわりと普通に思いついたりやると思います。perlで実行して、</p>
 
-    <pre class="code">&gt; perl test.pl
+    <pre class="code prettyprint">&gt; perl test.pl
 
 bless({
   MD5OfMessageBody =&gt; &#34;8314669dc97238376839c03dc65df8e7&#34;,
@@ -90,7 +90,7 @@ bless({
 <li>isa_ok();</li>
 </ul><p><a href="http://search.cpan.org/perldoc?Test::More">Test::More</a>はuse Test::More;するとテスト用関数をどばっとエクスポートするテストスクリプトのためのモジュールです。例えばこんな関数がエクスポートされる。</p><p>さっきのtest.plをTest::Moreを使ってTAPで出力するように変更するのは簡単で</p>
 
-    <pre class="code">use Test::More;
+    <pre class="code prettyprint">use Test::More;
 use MyApp::Queue;
 
 my $queue = MyApp::Queue-&gt;new(...);
@@ -113,7 +113,7 @@ done_testing();</pre>
     <h4>TAP output</h4>
     <p>で、こう変更したtest.plを実行するとこのように出ます。</p>
 
-    <pre class="code">&gt; perl test.pl
+    <pre class="code prettyprint">&gt; perl test.pl
 ok 1 - The object is a MyApp::Queue
 ok 2 - add_job()
 1..2</pre>
@@ -124,7 +124,7 @@ ok 2 - add_job()
     <h4>t/*.t</h4>
     <p>テストは、test.plとかじゃなく、プロジェクトのルートディレクトリに t/ っていうフォルダを作って、その中に .t っていう拡張子で保存していくことになってます。なんで、</p>
 
-    <pre class="code">&gt; tree
+    <pre class="code prettyprint">&gt; tree
 |-- t
 |   |-- 00-app.t
 |   |-- 01-web-controller.t
@@ -152,7 +152,7 @@ ok 2 - add_job()
     <h4>テストの分け方</h4>
     <p>「だーっと書くとわかりにくいんじゃないか」という質問に対して）テストは、ファイル単位でわけるだけじゃなくsubtestというもので一つのテストスクリプト内で区切りをつけることもできます。これはスコープも区切られるから見た目にも変数の管理がしやすい。</p>
 
-    <pre class="code">subtest &#39;CRUD&#39; =&gt; sub {
+    <pre class="code prettyprint">subtest &#39;CRUD&#39; =&gt; sub {
 
     subtest &#39;create()&#39; =&gt; sub {
         my $user = MyApp::Model::User-&gt;create({
@@ -175,7 +175,7 @@ ok 2 - add_job()
     <h4>prove <file></h4>
     <p><a href="http://search.cpan.org/perldoc?prove">prove</a>というコマンドがperlに付属してきて（実際はperlに付属してるTest::Harnessというモジュールに付属している）。</p>
 
-    <pre class="code">&gt; prove t/04-queue.t
+    <pre class="code prettyprint">&gt; prove t/04-queue.t
 t/04-queue.t .. ok
 All tests successful.
 Files=1, Tests=4,  3 wallclock secs ( 0.02 usr  0.01 sys +  0.33 cusr  0.02 csys =  0.38 CPU)
@@ -187,7 +187,7 @@ Result: PASS</pre>
     <h4>prove <dir></h4>
     <p>proveはディレクトリを渡すとまとめてじっこうしてくれるので、たいていは t をまとめて実行させます。</p>
 
-    <pre class="code">&gt; prove t
+    <pre class="code prettyprint">&gt; prove t
 t/04-queue.t ............ ok
 t/05-image.t ............ skipped: thumb yametayo
 t/06-notify-apns.t ...... ok
@@ -199,7 +199,7 @@ Test Summary Report
 -------------------</pre>
 <p>　-v を指定すると、まとめないで出力してくれたり</p>
 
-    <pre class="code">&gt; prove -v t/04-queue.t
+    <pre class="code prettyprint">&gt; prove -v t/04-queue.t
 t/04-queue.t ..
 ok 1 - The object isa MyApp::Queue
 ok 2 - add_job()
@@ -217,7 +217,7 @@ ok 4 - delete()
     <h5>Test::TCP</h5>
     <p>テストしにくそうな分野としては、サーバーを使うものとかも</p>
 
-    <pre class="code">use Test::More;
+    <pre class="code prettyprint">use Test::More;
 use Test::TCP;
 use Cache::Memcached::Fast;
 
@@ -244,7 +244,7 @@ done_testing();</pre>
 <div class="section">
     <h5>Test::Base</h5>
     
-    <pre class="code">use Test::Base;
+    <pre class="code prettyprint">use Test::Base;
 use Acme::Samurai;
 plan tests =&gt; 1 * blocks;
 

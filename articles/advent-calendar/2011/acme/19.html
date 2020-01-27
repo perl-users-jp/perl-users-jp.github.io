@@ -43,14 +43,14 @@ Acme::Something</p><p>これらのうち、2011年12月19日現在CPANに存在�
 <br />
 <p>だとあまりにあんまりなので、一つずつみていきましょうか。</p>
 
-    <pre class="code">use 5.014;
+    <pre class="code prettyprint">use 5.014;
 use Acme::Anything;
 use Ultra::Super::Delax::Module;
 use Carp;
 say &#34;ok&#34;;</pre>
 <p>実行するとokが出ます。ところでUltra::Super::Delax::Moduleは私が今適当に考えたモジュールで実際には存在しません。普通は存在しないモジュールをuseすればdieしますよね？</p><p>そう、Acme::Anythingを最初にuseしてしまえば、その後は存在しない「どんな」モジュールをuseしてもエラーにならないのです！　素晴らしいですね！</p><p>ちなみにAcme::Anythingのコードはこういう感じなんですね。</p><p></p>
 
-    <pre class="code">push @main::INC, \ &amp;handler_of_last_resort;
+    <pre class="code prettyprint">push @main::INC, \ &amp;handler_of_last_resort;
 
 sub handler_of_last_resort {
     my $fake_source_code = &#39;1&#39;;

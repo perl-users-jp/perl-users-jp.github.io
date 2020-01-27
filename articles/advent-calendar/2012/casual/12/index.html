@@ -23,7 +23,7 @@ Resque はバックグラウンドジョブを処理するためのライブラ�
 <div class="section">
     <h5>client.pl</h5>
     
-    <pre class="code lang-perl">#!/usr/bin/env perl
+    <pre class="code prettyprint lang-perl">#!/usr/bin/env perl
 use strict;
 use warnings;
 
@@ -49,7 +49,7 @@ while (my $text = &lt;STDIN&gt;){
 <div class="section">
     <h5>worker.pl</h5>
     
-    <pre class="code lang-perl">#!/usr/bin/env perl
+    <pre class="code prettyprint lang-perl">#!/usr/bin/env perl
 use strict;
 use warnings;
 
@@ -67,7 +67,7 @@ infof(&#39;### stop worker&#39;);</pre>
 <div class="section">
     <h5>lib/MyTask/Echo.pm</h5>
     
-    <pre class="code lang-perl">package MyTask::Echo;
+    <pre class="code prettyprint lang-perl">package MyTask::Echo;
 use strict;
 use v5.10;
 
@@ -108,7 +108,7 @@ hello
     <h3>仕組みを見てみる</h3>
     <p>Resque を利用したジョブキューの処理構成を図に示します。</p>
 
-    <pre class="code lang-aa">+----------+  Resque   +-------+  Resque   +----------+
+    <pre class="code prettyprint lang-aa">+----------+  Resque   +-------+  Resque   +----------+
 | client 1 | --------&gt; |       | &lt;-------- | worker 1 |
 +----------+           |       |           +----------+
                        | Redis |
@@ -118,7 +118,7 @@ hello
 <p>クライアントからジョブが Redis のキューに格納されます。これを、それぞれのワーカープロセスが読み取り、ジョブを処理をする形です。<br />
 サンプルコードには時刻が分かるようにログ出力を入れましたが、クライアントからのジョブが実行されるまで数秒遅延することがわかります。</p>
 
-    <pre class="code lang-perl">$resque-&gt;push(&#39;echo&#39; =&gt; {
+    <pre class="code prettyprint lang-perl">$resque-&gt;push(&#39;echo&#39; =&gt; {
         class =&gt; &#39;MyTask::Echo&#39;,
         args =&gt; [ $text ],
     });</pre>

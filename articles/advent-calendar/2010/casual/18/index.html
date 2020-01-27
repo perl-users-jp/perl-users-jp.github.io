@@ -27,7 +27,7 @@ BEGIN failed--compilation aborted.</p>
 というわけで、今日はサーチパスを追加する方法について。です。<br />
 PHP で例えるなら</p>
 
-    <pre class="code lang-php">&lt;?php
+    <pre class="code prettyprint lang-php">&lt;?php
 set_include_path( get_include_path( ) . PATH_SEPARATOR . dirname(__FILE__).&#39;/lib&#39; );</pre>
 <p>をいかに <del>たくさんの不思議な方法で</del> 書くかということですね。<br />
 それについて調べてみたところ、なんとなく「Perl (の特徴) っぽいなぁ」と感じる部分がありましたので、それがお伝えできればと思います。<br />
@@ -36,7 +36,7 @@ set_include_path( get_include_path( ) . PATH_SEPARATOR . dirname(__FILE__).&#39;
 <div class="section">
     <h3>'use lib' を使ったベーシックな方法</h3>
     
-    <pre class="code lang-perl">use lib &#39;./lib&#39;;</pre>
+    <pre class="code prettyprint lang-perl">use lib &#39;./lib&#39;;</pre>
 <p>たぶんきっと、一番ベーシックな方法ではないでしょうか。タイプ数も少ないですし！<br />
 今でも書き捨ての script では、こんな感じで書いている方も多いのでは？<br />
 しかし、この方法だと './lib' と相対パスで指定しているため、実行する環境によってはうまく動作しないため、長く使う script などではあまりよい方法ではなさそうですね。<br />
@@ -46,7 +46,7 @@ set_include_path( get_include_path( ) . PATH_SEPARATOR . dirname(__FILE__).&#39;
 <div class="section">
     <h3>FindBin を使うよ</h3>
     
-    <pre class="code lang-perl">use FindBin;
+    <pre class="code prettyprint lang-perl">use FindBin;
 use lib &#34;$FindBin::Bin/lib&#34;;</pre>
 <p><a href="http://search.cpan.org/~jesse/perl-5.12.2/lib/FindBin.pm">FindBin</a> というモジュールを使うと、実行中のファイルがおいてあるディレクトリまでの絶対パスを得ることができます。<br />
 これを使って、サーチパスを追加する方法です。<br />
@@ -56,7 +56,7 @@ Advent Calendar でほかの方が書かれているサンプルスクリプト�
 <ul>
 <li>remedie からの抜粋</li>
 </ul>
-    <pre class="code lang-perl">use FindBin;
+    <pre class="code prettyprint lang-perl">use FindBin;
 
 my $base_dir;
 BEGIN { $base_dir = &#34;$FindBin::Bin/..&#34; }
@@ -68,7 +68,7 @@ use lib &#34;$base_dir/lib&#34;, &#34;$base_dir/extlib&#34;; # to prefer extlib 
 また、FindBin は Perl 5.00307 から標準モジュールになったようですので、ほとんどの環境で CPAN からのインストールなしに利用できるのもメリットですね。<br />
 ちなみに、モジュールが標準モジュールかどうかを調べるときは corelist というコマンドを使うとべんりですね！</p>
 
-    <pre class="code lang-perl">$ corelist FindBin
+    <pre class="code prettyprint lang-perl">$ corelist FindBin
 FindBin was first released with perl 5.00307</pre>
 <p>ただし、この corelist (Module::CoreList) が標準モジュールとなったのが 5.8.9 からのようです。。。</p><p></p>
 
@@ -76,14 +76,14 @@ FindBin was first released with perl 5.00307</pre>
 <div class="section">
     <h3>FindBin::libs で楽したいな</h3>
     
-    <pre class="code lang-perl">use FindBin::libs;
+    <pre class="code prettyprint lang-perl">use FindBin::libs;
 # local::lib 用のディレクトリはざんねんながら。。。</pre>
 <p>CPAN からダウンロードできるモジュールで <a href="http://search.cpan.org/~lembark/FindBin-libs/lib/FindBin/libs.pm">FindBin::libs</a> というモジュールがあります。<br />
 このモジュールを利用すると、それっぽいディレクトリを勝手に探して<a href="#fn1" title="ある程度ディレクトリの構造が複雑でも、がんばって探してくれます">*1</a>、勝手にサーチパスに追加してくれます。<br />
 相当いじわるなディレクトリ構成にしない限りは、確実に見つけ出してくれるためとっても便利です。<br />
 最近は書き捨ての script では common::sense とともに、よくつかっています。</p>
 
-    <pre class="code lang-perl">#!activeperl
+    <pre class="code prettyprint lang-perl">#!activeperl
 use common::sense;
 use FindBin::libs;
 
@@ -96,7 +96,7 @@ use MyApp::Anachronism;</pre>
     <p>FindBin::libs では残念ながら local::lib 用のディレクトリをサーチパスに追加することができませんが、<a href="http://d.hatena.ne.jp/antipop/">antipop</a> さんが<a href="http://d.hatena.ne.jp/antipop/20101123/1290530162">&#x6700;&#x8FD1;&#x4F5C;&#x6210;</a>された <a href="http://search.cpan.org/~kentaro/Project-Libs/lib/Project/Libs.pm">Project::Libs</a> なら、その辺も含めてよしなにしてくれるようです。<br />
 基本的には、以下のように書くだけ。</p>
 
-    <pre class="code lang-perl">use Project::Libs;</pre>
+    <pre class="code prettyprint lang-perl">use Project::Libs;</pre>
 <p>local::lib を使っている場合には Project::Libs が便利そうですね。<br />
 正直まだあまり使ったことがないため、詳しくは antipop さんの記事をご覧ください。</p><p></p>
 
@@ -106,7 +106,7 @@ use MyApp::Anachronism;</pre>
     <p>FindBin / FindBin::libs / Project::Libs というモジュールを紹介しましたが、これらのモジュールを plackup から起動するような PSGI スクリプトで利用すると、ちょっとした罠にはまります。あれ？はまったのは私だけですか？<br />
 たとえば、以下のように app.psgi 書き</p>
 
-    <pre class="code lang-perl">use FindBin;
+    <pre class="code prettyprint lang-perl">use FindBin;
 warn $FindBin::Bin;
 
 my $app = sub {
@@ -120,7 +120,7 @@ my $app = sub {
 $app;</pre>
 <p>これを plackup で実行してみると</p>
 
-    <pre class="code">$ plackup app.psgi
+    <pre class="code prettyprint">$ plackup app.psgi
 /usr/bin at app.psgi line 2.</pre>
 <p>結果、$FindBin::Bin の値は plackup がインストールされているディレクトリとなってしまいます。<a href="#fn2" title="Plack::Util::_load_sandbox あたりの処理の結果">*2</a><br />
 当然この状態で 'use lib' をしても正しくサーチパスが設定されないため "Can't locate" を拝む結果となります。</p><p></p>
@@ -135,7 +135,7 @@ tokuhirom さんが開発されている <a href="http://github.com/tokuhirom/Am
 <ul>
 <li>Amon2 $dist.psgi より抜粋</li>
 </ul>
-    <pre class="code lang-perl">use File::Spec;
+    <pre class="code prettyprint lang-perl">use File::Spec;
 use File::Basename;
 use local::lib File::Spec-&gt;catdir(dirname(__FILE__), &#39;extlib&#39;);
 use lib File::Spec-&gt;catdir(dirname(__FILE__), &#39;lib&#39;);</pre>
@@ -146,7 +146,7 @@ FindBin は実行中の script のディレクトリパスを返すのに対し�
 <ul>
 <li>./sample.pl</li>
 </ul>
-    <pre class="code">use FindBin;
+    <pre class="code prettyprint">use FindBin;
 use lib &#34;$FindBin::Bin/lib&#34;;
 use Sample;
 warn $FindBin::Bin;
@@ -155,7 +155,7 @@ warn __FILE__;</pre>
 <ul>
 <li>./lib/Sample.pm</li>
 </ul>
-    <pre class="code lang-perl">package Sample;
+    <pre class="code prettyprint lang-perl">package Sample;
 use FindBin;
 warn $FindBin::Bin;
 warn __FILE__;
@@ -164,7 +164,7 @@ warn __FILE__;
 <ul>
 <li>実行結果</li>
 </ul>
-    <pre class="code">/home/hatyuki at lib/Sample.pm line 3.
+    <pre class="code prettyprint">/home/hatyuki at lib/Sample.pm line 3.
 lib/Sample.pm at lib/Sample.pm line 4.
 /home/hatyuki at sample.pl line 4.
 sample.pl at sample.pl line 5.</pre>
@@ -179,7 +179,7 @@ File::Basename も File::Spec も標準モジュールであるという点も�
     <h3>ワンライナー野郎御用達</h3>
     <p>ここからは、ちょっと脱線。</p>
 
-    <pre class="code lang-sh">$ perl -Ilib -Mlocal::lib=extlib script.pl
+    <pre class="code prettyprint lang-sh">$ perl -Ilib -Mlocal::lib=extlib script.pl
 $ plackup -Ilib -Mlocal::lib=extlib app.psgi</pre>
 <p>ワンライナーが大好きなみなさんは、きっとこうやって '-I' オプションを使って実行してるのではないかと。<br />
 local::lib を使っている場合には '-M' で local::lib を指定すればおっけーですね。<br />
@@ -190,7 +190,7 @@ plackup でも同じように利用できるため、覚えておいても損は
 <div class="section">
     <h3>漢なら黙って @INC を直に</h3>
     
-    <pre class="code lang-perl">BEGIN { push @INC, &#39;/path/to/my/lib&#39; }</pre>
+    <pre class="code prettyprint lang-perl">BEGIN { push @INC, &#39;/path/to/my/lib&#39; }</pre>
 <p>もうとにかく「ナマが好き」とかいう人がいるとかいないとか。<br />
 そんな人は @INC になまでそうにゅうしてるんじゃないですか。よくわかんないですけど。<br />
 BEGIN の外に出すと悲しい思いをするので、中に書いてください、なかに。よくわかんないですけど。<br />
@@ -208,8 +208,8 @@ BEGIN の外に出すと悲しい思いをするので、中に書いてくだ�
 と、いうわけで、みなさんもいろんな方法で Casual に Perl を楽しんでください！</p><br />
 <p>さてさて、明日は 915626f6af93c5d5d7927594b4a4829a さんこと piarra さんの出番です！おたのしみに！</p>
 
-</div>HASH(0x55c1765af850)
-HASH(0x55c17658dd10)
+</div>HASH(0x55809a918d30)
+HASH(0x55809a918d90)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

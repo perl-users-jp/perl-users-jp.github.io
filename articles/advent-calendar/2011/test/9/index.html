@@ -18,7 +18,7 @@
     <h4>テストをモジュールの中に移す</h4>
     <p>Test::Classやその仲間たちは、うまく使えばとても便利なのですが、テストの数が少ないうちは手間ばかりかかるので、なかなか使う機会に恵まれないかもしれません。テストをモジュールの中に移すといわれてもピンとこない方のために、まずは簡単な例をあげておきましょう。</p><p>今年のカレンダーでも何度か出てきているように、Perlのテストはふつう.tファイルにべた書きします。</p>
 
-    <pre class="code lang-perl">#!perl
+    <pre class="code prettyprint lang-perl">#!perl
 use strict;
 use warnings;
 use Test::More;
@@ -28,7 +28,7 @@ pass &#34;simplest test&#34;;
 done_testing;</pre>
 <p>テストをモジュールの中に移す、というのは、これを起動用の.tファイルと、</p>
 
-    <pre class="code lang-perl">#!perl
+    <pre class="code prettyprint lang-perl">#!perl
 use strict;
 use warnings;
 use Test::Class;
@@ -37,7 +37,7 @@ use MyTest;
 MyTest-&gt;runtests;</pre>
 <p>実際のテストをおさめるモジュールに分けるということです（ここではTest::Classを継承したりアトリビュートがついたりしていますが、これらは本質とは無関係です）。</p>
 
-    <pre class="code lang-perl">package MyTest;
+    <pre class="code prettyprint lang-perl">package MyTest;
 use strict;
 use warnings;
 use base &#39;Test::Class&#39;;
@@ -63,7 +63,7 @@ sub first_test :Test {
     <h4>テストにかかる合計時間が減る</h4>
     <p>たとえばデータベースを使うテストが大量にある場合、まさか本番用のデータベースをそのまま使うわけにもいきませんから、テスト用のデータベースを用意するわけですが、このとき、それぞれの.tファイルでデータベースの設定を行うと、テストファイルが増えれば増えるほどデータベースの初期化や後始末に時間をとられるようになります。とりわけTest::mysqldのように準備に時間がかかるツールを使う場合、テストファイルが変わるたびにMySQLの作成と廃棄を行っていては時間がかかってしかたありません。</p><p>Test::Classのようにテストをモジュール形式にしておくと、テストに使うモジュールの数は増えても、それをロードする.tファイルの数はさほど増やさずにすみます。そのため、データベースの作成などは起動用の.tファイルや、Test::Classのstartupフェーズに追い出してしまい、テストモジュールの中ではテーブルの作成や削除だけ繰り返すようにすると、待ち時間を短縮できるようになります。</p>
 
-    <pre class="code lang-perl">#!perl
+    <pre class="code prettyprint lang-perl">#!perl
 use strict;
 use warnings;
 use Test::Class::Load &#39;t/lib&#39;; # t/lib以下のテストを全部読み込む
@@ -83,7 +83,7 @@ MyTestDB-&gt;shutdown;</pre>
     <h4>テストの一部を使い回しやすくなる</h4>
     <p>テストがモジュールにまとまっているということは、ファイルを読み込んだだけではテストが実行されない、ということでもあります。もちろんテストをモジュールにしてしまわない場合でもt/lib/Utils.pmのようなテスト専用のヘルパーモジュールを用意して共通の処理をまとめることはふつうに行われていることとおもいますが、テストをモジュールの中にまとめてしまうことで、テストの本体は親クラスに押し込み、子クラスではテストに利用する値のみ変える、ということが簡単にできるようになります。ここでは時間の都合でごく簡単な例のみ載せていますが、実際には与えるデータと受け取るデータをそれぞれ配列なりハッシュなりに渡しておいて親クラスで定義したテストの中でループを回し、得られた値を順に比較していくような使い方をするのがよいでしょう。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 package MyTestBase;
 use base qw/Class::Data::Inheritable Test::Class/;
@@ -117,14 +117,14 @@ __PACKAGE__-&gt;fixture(2);</pre>
     <h4>ほかの便利なテストツールの恩恵を受けやすくなる</h4>
     <p>個人的にはこれがTest::Classのようなツールを使う一番の理由なのですが、テスト用のモジュールは、ほかの便利なツールでテストできます。</p><p>たとえば、大量に用意したテストを実行する前に、つまらない構文エラーがないか確認したいとしましょう。もちろん.tファイルの場合でもperlの-cオプションを使えば構文チェックくらいできるわけですが、Test::UseAllModulesなどを使えば、テスト用のモジュールもひっくるめてロードに失敗するモジュールがないか確認できます。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use Test::UseAllModules qw(lib t/lib);
 
 all_uses_ok();</pre>
 <p>あるいは、納品用にテストのドキュメントも必要だということになるかもしれません。Test::Pod::Coverageを使えば、どこでどんなテストをしたのか、説明を書くための圧力になってくれることでしょう。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use lib &#34;t/lib&#34;;
 use Test::More;

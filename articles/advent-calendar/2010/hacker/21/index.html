@@ -31,17 +31,17 @@ Text::Xslateはウェブアプリケーションのために最適化したテ�
 <li><a href="https://github.com/perl-users-jp/perl-advent-calendar/blob/master/tmpl/entry.html">https://github.com/perl-users-jp/perl-advent-calendar/blob/master/tmpl/entry.html</a></li>
 </ul><p>entry.htmlではText::Xatenaで整形したHTMLを埋め込みますが、その部分のテンプレートは以下のようになっています。</p>
 
-    <pre class="code lang-html">    &lt;div class=&#34;entry-content&#34;&gt;
+    <pre class="code prettyprint lang-html">    &lt;div class=&#34;entry-content&#34;&gt;
       [% text %]
     &lt;/div&gt;</pre>
 <p>このtextはエスケープされませんが、それは<a href="https://github.com/p5-app-adventcalendar/p5-app-adventcalendar/blob/master/lib/App/AdventCalendar.pm#L295">&#x30A2;&#x30D7;&#x30EA;&#x30B1;&#x30FC;&#x30B7;&#x30E7;&#x30F3;</a>側でそのまま(raw)埋め込むよう指定しているからです。</p>
 
-    <pre class="code lang-perl">#line 295
+    <pre class="code prettyprint lang-perl">#line 295
     text      =&gt; mark_raw($text),</pre>
 <p>テンプレート側でもmark_rawを行うことはできますが、これを使うのは開発中だけにしておき、リリースの際は全てアプリケーション側で処理するようにしたほうがいいでしょう。重要な処理をアプリケーションコードに分離することでメンテナンスしやすくなりますし、またアプリケーションとテンプレートをうっかり同期し忘れてXSSが発生するというアクシデントが原理的に起こらなくなります。<br />
 安全なテンプレートエンジンを使って年末年始はのんびりしましょう！<br />
 以上、<a href="http://github.org/gfx/">gfx</a>でした！</p>
-HASH(0x55c1765d5290)
+HASH(0x55809a9388b0)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

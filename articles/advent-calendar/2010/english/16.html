@@ -14,7 +14,7 @@
 
         <p>Hostname lookup functions (like inet_aton) are one of the functions that aren't cancellable, and that makes hard to set timeouts within perl scripts that connect to other servers.</p><p><a href="http://search.cpan.org/dist/Net-DNS-Lite/">Net::DNS::Lite</a> is a port of <a href="search.cpan.org/perldoc?AnyEvent::DNS">AnyEvent::DNS</a> without dependency on AnyEvent, intended to be used in ordinally perl scripts not event-driven.</p><p>The easiest way to use the function is to override the core inet_aton with the one provided by Net::DNS::Lite.  The following example does the replacement, and then uses the local variable to set the timeout.</p>
 
-    <pre class="code lang-perl">use Net::DNS::Lite;
+    <pre class="code prettyprint lang-perl">use Net::DNS::Lite;
 
 *CORE::GLOBAL::inet_aton = Net::DNS::Lite::inet_aton;
 ...

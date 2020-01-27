@@ -15,7 +15,7 @@
         <p>こんにちは。<a href="http://twitter.com/hotpepsi">hotpepsi</a>です。<br />
 以下はx86のLinuxで動作するhello.cのソースコードです。</p>
 
-    <pre class="code lang-c">__[]={
+    <pre class="code prettyprint lang-c">__[]={
 ((((((&#39;&amp;&#39;-&#39; &#39;)&lt;&lt;(&#39;$&#39;-&#39; &#39;))|(&#39;,&#39;-&#39; &#39;))&lt;&lt;(&#39;(&#39;-&#39; &#39;))|
 (((&#39;&amp;&#39;-&#39; &#39;)&lt;&lt;(&#39;$&#39;-&#39; &#39;))|(&#39;,&#39;-&#39; &#39;)))&lt;&lt;(&#39;=&#39;-&#39;-&#39;))|
 (((((&#39;&amp;&#39;-&#39; &#39;)&lt;&lt;(&#39;$&#39;-&#39; &#39;))|(&#39;%&#39;-&#39; &#39;))&lt;&lt;(&#39;(&#39;-&#39; &#39;))|
@@ -62,28 +62,28 @@ __,
 };</pre>
 <p>実行ファイルは</p>
 
-    <pre class="code"># gcc -c hello.c
+    <pre class="code prettyprint"># gcc -c hello.c
 # ld hello.o -o hello -e _</pre>
 <p>で作成することができます。</p><p>前回はついdefineを使ってしまいましたが、-Dオプションは本文に入れるべきdefine文をコマンドラインに出しただけ、と考えると反則でした。<br />
 なので今回はdefineなしでやってみました。</p><p>元ネタは</p>
 
-    <pre class="code">char main[] = &#34;...&#34;;</pre>
+    <pre class="code prettyprint">char main[] = &#34;...&#34;;</pre>
 <p>という形でした。ここからcharとmainをなくしてみます。<br />
 まず型宣言のcharですが、これを省略するとint型になるので</p>
 
-    <pre class="code">main[] = { ... };</pre>
+    <pre class="code prettyprint">main[] = { ... };</pre>
 <p>のようにint型の配列として初期化することにします。<br />
 次にmainですが、さて、世の中にはmain関数を使わないC言語のプログラムもたくさん存在します。<br />
 別にmainでなくてもよいのです。とりあえず _ という名前にしてみます。すると</p>
 
-    <pre class="code">_[] = { ... };</pre>
+    <pre class="code prettyprint">_[] = { ... };</pre>
 <p>という形になりました。元ネタと同様、変数としてバイナリを定義してコードとして実行させます。<br />
 これなら記号だけでいけそうです。<br />
 エントリポイントを _ にしてリンクすれば、mainではなく _ からプログラムを開始できます。<br />
 （Cのランタイムライブラリが使えませんが、どのみちアルファベットを使用する関数は呼べないので問題ありません）</p><p>初期化要素として使うint型の値ですが、記号だけでint型の変数、といえば記号プログラミングではおなじみの '_' などが丁度よくint型ですのでこれを使います。<br />
 0と1さえ表せればあとは演算子でどうにでもなりますが、ASCII文字コード表を眺めていたら0から0x10まで作れそうだったので用意してみました。</p>
 
-    <pre class="code">0 &#39; &#39;-&#39; &#39;
+    <pre class="code prettyprint">0 &#39; &#39;-&#39; &#39;
 1 &#39;!&#39;-&#39; &#39;
 2 &#39;#&#39;-&#39;!&#39;
 3 &#39;#&#39;-&#39; &#39;
@@ -104,10 +104,10 @@ F &#39;/&#39;-&#39; &#39;
 上の記号を手で書くのは不便なので、数値を記号に変換することを考えてみます。<br />
 変換、そうdefineです。</p>
 
-    <pre class="code lang-c">#define _0 &#39; &#39;-&#39; &#39;</pre>
+    <pre class="code prettyprint lang-c">#define _0 &#39; &#39;-&#39; &#39;</pre>
 <p>数値そのままではシンボルにならないので_をつけましたが、これでなんとなく可読性のある数値によりプログラミングできそうです。より具体的には以下のようにします。</p>
 
-    <pre class="code lang-c">#define _0 &#39; &#39;-&#39; &#39;
+    <pre class="code prettyprint lang-c">#define _0 &#39; &#39;-&#39; &#39;
 #define _1 &#39;!&#39;-&#39; &#39;
 #define _2 &#39;#&#39;-&#39;!&#39;
 #define _3 &#39;#&#39;-&#39; &#39;
@@ -131,7 +131,7 @@ F &#39;/&#39;-&#39; &#39;
 <p>defineは使わないんじゃなかったのかよ、とお思いかもしれませんが、これは記号のコードを生成するだけのために利用します。<br />
 実は先頭のソースコードの元データはこのようになっています。</p>
 
-    <pre class="code lang-c">hello[]={
+    <pre class="code prettyprint lang-c">hello[]={
 MAKE32(_4,_8,_6,_5,_6,_C,_6,_C),  // Hell
 MAKE32(_6,_F,_2,_C,_2,_0,_7,_7),  // o, w
 MAKE32(_6,_F,_7,_2,_6,_C,_6,_4),  // orld
@@ -148,7 +148,7 @@ MAKE32(_4,_0,_C,_D,_8,_0,_9,_0),  // incl %eax / int $0x80
 };</pre>
 <p>MAKE32マクロを利用してこれを</p>
 
-    <pre class="code"># gcc -E hello.c</pre>
+    <pre class="code prettyprint"># gcc -E hello.c</pre>
 <p>として展開すると、プリプロセッサが記号に変換してくれるのがわかると思います。</p>
 
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>

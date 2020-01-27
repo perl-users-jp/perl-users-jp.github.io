@@ -38,7 +38,7 @@
     <h4>Jenkinsでのメトリクス監視の方法</h4>
     <p>これらのメトリクスの測定結果をどのようにJenkinsに統合するかです。今まで、自分の日記のJenkinsのエントリを読んでもらっている人は、勘のいい方は気づいてるんじゃないかと思うんですが、Javaのツールにマッピングすればいいんですね。</p><p>この分野は、静的言語でもあることから、Javaは周辺ツールがとても充実しており、今回はそのうちの一つであるCheckStyleのXMLに測定結果をマッピングしてみました。これにより、チェック結果のViewをそのまま流用できるわけです。</p><p>作ってみたマッピングするツールは以下の通りです。</p>
 
-    <pre class="code lang-perl">#!/usr/bin/perl
+    <pre class="code prettyprint lang-perl">#!/usr/bin/perl
 use strict;
 use warnings;
 
@@ -134,11 +134,11 @@ __DATA__
     <p>上記のスクリプトのconfigurationの設定を最初にします。<br />
 CCが10、sub lengthが50行という設定だと、以下のように書きます。</p>
 
-    <pre class="code lang-perl">our $MAX_CYCLOMATIC_COMPLEXITY = 10;
+    <pre class="code prettyprint lang-perl">our $MAX_CYCLOMATIC_COMPLEXITY = 10;
 our $MAX_SUB_LENGTH            = 50;</pre>
 <p>以下のようにスクリプトの引数にlibディレクトリを指定します。そうすると、workspaceにcheckstyle-result.xmlが生成されます。</p>
 
-    <pre class="code lang-sh">checkstyle.pl lib</pre>
+    <pre class="code prettyprint lang-sh">checkstyle.pl lib</pre>
 <p>後は、Jenkinsにcheckstyle pluginをいれておけば、ビルド時に自動でcheckstyleのViewにメトリクスでの測定結果が表示されます。</p>
 
 </div>
@@ -146,7 +146,7 @@ our $MAX_SUB_LENGTH            = 50;</pre>
     <h4>おまけ</h4>
     <p>以下のようにPerl::Metrics::Simple::Analysis::Fileを変更することでメソッドの行数を取得することが可能になります。上記のcheckstyle.plでは、line numberは1という固定値になってますが、以下の変更を加えてcheckstyle.plのテンプレートを変更すれば、行数のマッピングも出来ます。そうすることで、check_styleのDetailのレポートから直接ソースコードの街頭メソッドにジャンプすることができるようになります。</p>
 
-    <pre class="code lang-perl">--- Perl/Metrics/Simple/Analysis/File.pm.orig	2011-12-10 13:49:45.000000000 +0900
+    <pre class="code prettyprint lang-perl">--- Perl/Metrics/Simple/Analysis/File.pm.orig	2011-12-10 13:49:45.000000000 +0900
 +++ Perl/Metrics/Simple/Analysis/File.pm	2011-12-10 13:34:52.000000000 +0900
 @@ -327,6 +327,7 @@
              name              =&gt; $sub-&gt;name,

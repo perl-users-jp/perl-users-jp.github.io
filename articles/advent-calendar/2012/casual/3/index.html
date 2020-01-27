@@ -27,7 +27,7 @@
     <p>優先度を付けてデータを選びたい時はrandを使っての実装が思い浮かびますが、バグりそうな気もするし面倒だし出来れば書きたくないです。<br />
 (書き方が悪いという説もある)</p>
 
-    <pre class="code lang-perl"># 結果をdumpする関数
+    <pre class="code prettyprint lang-perl"># 結果をdumpする関数
 sub dump_total {
     my ($cb) = @_;
 
@@ -42,7 +42,7 @@ sub dump_total {
     say Dumper $total;
 }</pre>
 
-    <pre class="code lang-perl">my $rate = [
+    <pre class="code prettyprint lang-perl">my $rate = [
     { rate =&gt; 40, value =&gt; &#34;寿司&#34; },
     { rate =&gt; 20, value =&gt; &#34;ラーメン&#34; },
     { rate =&gt; 20, value =&gt; &#34;焼肉&#34; },
@@ -72,7 +72,7 @@ my $pick = sub {
 say $pick-&gt;();
 dump_total($pick);</pre>
 
-    <pre class="code">寿司
+    <pre class="code prettyprint">寿司
 $VAR1 = {
           &#39;パスタ&#39; =&gt; 151,
           &#39;焼肉&#39; =&gt; 192,
@@ -88,7 +88,7 @@ $VAR1 = {
 typesterさんのSub::Rateを使うと、こんな感じでmax_rateとそれぞれのrateによって関数を返してくれます。<br />
 シンプルに書けてとてもいいですね。</p>
 
-    <pre class="code lang-perl"># default max_rate  == 100
+    <pre class="code prettyprint lang-perl"># default max_rate  == 100
 my $rate = Sub::Rate-&gt;new;
 $rate-&gt;add( 40 =&gt; sub { &#34;寿司&#34; });
 $rate-&gt;add( 20 =&gt; sub { &#34;ラーメン&#34; });
@@ -100,7 +100,7 @@ my $func = $rate-&gt;generate;
 say $func-&gt;();
 dump_total($func);</pre>
 
-    <pre class="code">Sub::Rate
+    <pre class="code prettyprint">Sub::Rate
 焼肉
 $VAR1 = {
           &#39;パスタ&#39; =&gt; 153,
@@ -112,7 +112,7 @@ $VAR1 = {
 <p><br />
 またアタリ・ハズレの処理を作りたい場合もdefaultを使って簡単に出来ます。</p>
 
-    <pre class="code lang-perl">my $rate = Sub::Rate-&gt;new;
+    <pre class="code prettyprint lang-perl">my $rate = Sub::Rate-&gt;new;
 # 5%でよっちゃんイカがもう一個もらえる
 $rate-&gt;add( 5 =&gt; sub { &#34;よっちゃんイカアタリ&#34;  });
 $rate-&gt;add( default =&gt; sub { &#34;ハズレ&#34; });
@@ -121,7 +121,7 @@ my $func = $rate-&gt;generate;
 say $func-&gt;();
 dump_total($func);</pre>
 
-    <pre class="code">ハズレ
+    <pre class="code prettyprint">ハズレ
 $VAR1 = {
           &#39;よっちゃんイカアタリ&#39; =&gt; 47,
           &#39;ハズレ&#39; =&gt; 953
@@ -129,7 +129,7 @@ $VAR1 = {
 <p><br />
 さらにSub::Rateではrateを決定する処理をコンストラクタで変更することも出来るので寿司がいやな人はこんなことも...</p>
 
-    <pre class="code lang-perl">my $rate = Sub::Rate-&gt;new(rand_func =&gt; sub {
+    <pre class="code prettyprint lang-perl">my $rate = Sub::Rate-&gt;new(rand_func =&gt; sub {
     my ($max_rate) = @_;
     # no sushi!!!!
     return 40 + rand($max_rate);
@@ -144,7 +144,7 @@ my $func = $rate-&gt;generate;
 say $func-&gt;();
 dump_total($func);</pre>
 
-    <pre class="code">コンビニ
+    <pre class="code prettyprint">コンビニ
 $VAR1 = {
           &#39;パスタ&#39; =&gt; 153,
           &#39;焼肉&#39; =&gt; 205,
@@ -154,7 +154,7 @@ $VAR1 = {
 <p><br />
 また、モジュールにはSub::Rate::NoMaxRateというのもあってこちらだとmax_rateを計算しなくても使うことが出来ます。</p>
 
-    <pre class="code lang-perl"># my $rate = Sub::Rate::NoMaxRate-&gt;new(max_rate =&gt; 10000);
+    <pre class="code prettyprint lang-perl"># my $rate = Sub::Rate::NoMaxRate-&gt;new(max_rate =&gt; 10000);
 my $rate = Sub::Rate::NoMaxRate-&gt;new;
 $rate-&gt;add( 4000 =&gt; sub { &#34;寿司&#34; });
 $rate-&gt;add( 200 =&gt; sub { &#34;ラーメン&#34; });
@@ -166,7 +166,7 @@ my $func = $rate-&gt;generate;
 say $func-&gt;();
 dump_total($func);</pre>
 
-    <pre class="code">寿司
+    <pre class="code prettyprint">寿司
 $VAR1 = {
           &#39;パスタ&#39; =&gt; 2,
           &#39;焼肉&#39; =&gt; 1,
@@ -187,7 +187,7 @@ $VAR1 = {
     <p><a href="http://search.cpan.org/~xaicron/Data-WeightedRoundRobin/">http://search.cpan.org/~xaicron/Data-WeightedRoundRobin/</a><br />
 xaicronさんのData::WeightedRoundRobinを使うとこんな感じでそれぞれのweightによってvalueを返してくれます。(もちろん関数も返せます)</p>
 
-    <pre class="code lang-perl">my $dwr = Data::WeightedRoundRobin-&gt;new([
+    <pre class="code prettyprint lang-perl">my $dwr = Data::WeightedRoundRobin-&gt;new([
     { weight =&gt; 4, value =&gt; &#34;寿司&#34; },
     { weight =&gt; 2, value =&gt; &#34;ラーメン&#34; },
     { weight =&gt; 2, value =&gt; &#34;焼肉&#34; },
@@ -198,7 +198,7 @@ xaicronさんのData::WeightedRoundRobinを使うとこんな感じでそれぞ�
 say $dwr-&gt;next;
 dump_total(sub { $dwr-&gt;next });</pre>
 
-    <pre class="code">寿司
+    <pre class="code prettyprint">寿司
 $VAR1 = {
           &#39;パスタ&#39; =&gt; 145,
           &#39;焼肉&#39; =&gt; 193,

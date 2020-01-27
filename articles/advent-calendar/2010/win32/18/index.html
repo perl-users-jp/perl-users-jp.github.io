@@ -20,14 +20,14 @@
     <p>Windows の path 区切りは 「\」 であることは周知のとおりですが、実は 「/」 も扱えます。<br />
 「\」だとダブルクォートの時に重ね打ちしないといけないし、正規表現での変数展開でもよろしくない動きをしたりしてちょっと悲しいです。</p>
 
-    <pre class="code lang-perl">say &#34;C:\nekomimi-mode&#34;; # C:{改行}ekomimi-mode
+    <pre class="code prettyprint lang-perl">say &#34;C:\nekomimi-mode&#34;; # C:{改行}ekomimi-mode
 say &#34;C:\\nekomimi-mode&#34;; # C:\nekomimi-mode
 my $reg = &#39;C:\test&#39;;
 say &#39;C:\test\foo&#39; =~ /^$reg/ ? 1 : 0; # 0</pre>
 <p>2つ目の奴が 0 になってしまうのは \t が正規表現の中でタブとして扱われてしまうのでそうなってしまいます。<br />
 もし、path を含むようなものを正規表現に使いたい場合は、以下のように quotemeta を使うとよいです。</p>
 
-    <pre class="code lang-perl">my $reg = quotemeta &#39;C:\test&#39;;
+    <pre class="code prettyprint lang-perl">my $reg = quotemeta &#39;C:\test&#39;;
 say &#39;C:\test\foo&#39; =~ /^$reg/ ? 1 : 0; # 1</pre>
 <p>「/」ならこういった心配もなくて安心ですね。</p>
 
@@ -37,14 +37,14 @@ say &#39;C:\test\foo&#39; =~ /^$reg/ ? 1 : 0; # 1</pre>
     <p>$ENV{PATH} の中身が欲しい時は File::Spec->path で行けますが、こいつになんか追加したり削除したりしてもう一度 $ENV{PATH} 形式にしたい場合はどうするか。<br />
 Windwos の PATH 区切りは 「;」ですから、</p>
 
-    <pre class="code lang-perl">use File::Spec;
+    <pre class="code prettyprint lang-perl">use File::Spec;
 my @path = File::Spec-&gt;path;
 unshift @path, &#39;C:\foo\bar\bin&#39;;
 $ENV{PATH} = join &#39;;&#39;, @path;</pre>
 <p>こうすればいいでしょうか？<br />
 でもそれだと Windows でしか動きませんね。こういうときは $Config{path_sep} を使いましょう。</p>
 
-    <pre class="code lang-perl">use File::Spec;
+    <pre class="code prettyprint lang-perl">use File::Spec;
 use Config;
 my @path = File::Spec-&gt;path;
 unshift @path, &#39;C:\foo\bar\bin&#39;;
@@ -56,13 +56,13 @@ $ENV{PATH} = join $Config{path_sep}, @path;</pre>
     <h4>which とか /dev/null とかないです。。。</h4>
     <p>Windows の「三大ないです問題」に数えられる which, /dev/null をどうすればいいのか。</p><p>とあるコマンドがあるか調べたいときはよく</p>
 
-    <pre class="code lang-perl">if (!system &#39;which sl 2&amp;&gt;1 /dev/null&#39;) {
+    <pre class="code prettyprint lang-perl">if (!system &#39;which sl 2&amp;&gt;1 /dev/null&#39;) {
     say &#39;sl command is installed. you are crazy??&#39;;
 }</pre>
 <p>のように書いてしまうと思いますが、Windows には which コマンドが標準でないですし、/dev/null もありません。<br />
 こういうときは、File::Which や File::Spec->devnull を使いましょう。</p>
 
-    <pre class="code lang-perl">use File::Spec;
+    <pre class="code prettyprint lang-perl">use File::Spec;
 use File::Which qw(which);
 
 if (which &#39;sl&#39;) {
@@ -76,14 +76,14 @@ system &#39;foo &gt; &#39; . File::Spec-&gt;devnull;</pre>
     <h4>/tmp とかないです。。。</h4>
     <p>「三大ないです問題」に数えられる（ry</p><p>/tmp とか無いので、以下のコードは動きません。</p>
 
-    <pre class="code lang-perl">system &#34;echo foo &gt; /tmp/$$.lock&#34;;</pre>
+    <pre class="code prettyprint lang-perl">system &#34;echo foo &gt; /tmp/$$.lock&#34;;</pre>
 <p>こういうときは、File::Sepc->tmpdir を使いましょう。</p>
 
-    <pre class="code lang-perl">use File::Spec;
+    <pre class="code prettyprint lang-perl">use File::Spec;
 system &#34;echo foo &gt;&#34; . File::Spec-&gt;catfile(File::Spec-&gt;tmpdir, &#34;$$.lock&#34;);</pre>
 <p>また、一時ファイルを作りたい場合などは、File::Temp を使いましょう。</p>
 
-    <pre class="code lang-perl">use File::Temp qw(tempfile tempdir);
+    <pre class="code prettyprint lang-perl">use File::Temp qw(tempfile tempdir);
 my $tmpdir = tempdir CLEANUP =&gt; 1;
 my ($fh, $filename) = tempfile(DIR =&gt; $tmpdir);</pre>
 <p>こんな感じにしておくと、スコープが抜けたときにお掃除してくれたりして便利です。</p>

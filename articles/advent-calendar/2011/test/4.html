@@ -22,7 +22,7 @@
     <h4>使い方</h4>
     <p>たとえば、Module::Build で新しいテストのターゲット 「test_sl」 を定義すると以下のようになります。</p><p>inc/MyBuilder.pm を以下のようにかきます。</p>
 
-    <pre class="code lang-perl">package inc::MyBuilder;
+    <pre class="code prettyprint lang-perl">package inc::MyBuilder;
 use strict;
 use warnings;
 use parent qw(Module::Build);
@@ -37,7 +37,7 @@ sub ACTION_test_sl {
 1;</pre>
 <p>そしたら、以下のように Build.PL をかきます。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use inc::MyBuilder;
 
@@ -72,7 +72,7 @@ my $build = inc::MyBuilder-&gt;new(
 $build-&gt;create_build_script();</pre>
 <p>仕上げに以下のようにして Build script をはしらせます</p>
 
-    <pre class="code">perl Build.PL
+    <pre class="code prettyprint">perl Build.PL
 ./Build distmeta</pre>
 <p>こうすると、`make test_sl` したときに、sl コマンドが走り、その後何事もなかったかのように test が走り、test が終わるとすかさず、助けを求めながら飛んでいく機関車が走ります。<br />
 「俺らはいつだって走り続ける、一秒だって止まってられねェンだ！」って感じでかっこいいですね！<br />
@@ -88,7 +88,7 @@ $build-&gt;create_build_script();</pre>
     <p>t/lib とかは割と指定しそうです。<br />
 @INC にライブラリパスをいれておくと、いいかんじに処理してくれます。</p>
 
-    <pre class="code lang-perl">sub ACTION_test_libs {
+    <pre class="code prettyprint lang-perl">sub ACTION_test_libs {
     my $self = shift;
 
     local @INC = @INC;
@@ -102,7 +102,7 @@ $build-&gt;create_build_script();</pre>
     <h4>モジュールのプリロード</h4>
     <p>perl -MFoo と同等です。あらかじめ読み込んでおきたいモジュールを指定しておくとよいですね。</p>
 
-    <pre class="code lang-perl">sub ACTION_test_mods {
+    <pre class="code prettyprint lang-perl">sub ACTION_test_mods {
     my $self = shift;
 
     local $ENV{HARNESS_PERL_SWITCHES} = ($ENV{HARNESS_PERL_SWITCHES} ||&#39;&#39;) . &#39; -MAcme::FizzBuzz&#39;;
@@ -119,7 +119,7 @@ $build-&gt;create_build_script();</pre>
     <h5>テスト対象のファイル</h5>
     <p>デフォルトではないテスト対象のファイルをつかいたい場合はこんなかんじにします。</p>
 
-    <pre class="code lang-perl">sub ACTION_test_files {
+    <pre class="code prettyprint lang-perl">sub ACTION_test_files {
     my $self = shift;
 
     local $self-&gt;{properties}-&gt;{test_files} = &#39;t/*.t&#39;;
@@ -132,7 +132,7 @@ $build-&gt;create_build_script();</pre>
     <h5>環境変数</h5>
     <p>普通に環境変数をさしかえれば OK です。</p>
 
-    <pre class="code lang-perl">sub ACTION_test_env {
+    <pre class="code prettyprint lang-perl">sub ACTION_test_env {
     my $self = shift;
 
     local %ENV = %ENV;
@@ -147,12 +147,12 @@ $build-&gt;create_build_script();</pre>
     <h4>まとめ</h4>
     <p>テストの時にいろいろとフックしたいお！という要望から生まれたわけではないモジュールですが、なかなか重宝しています。</p><p>あと、なんかめんどくさかったらアクションをぜんぶ Perl でかけるわけなので App::Prove や TAP::Harness などを手でよんで、失敗したら die する、みたいなかんじのコードをかいちゃってもおなじことです。</p>
 
-    <pre class="code lang-perl">sub ACTION_love {
+    <pre class="code prettyprint lang-perl">sub ACTION_love {
     die &#34;Love was not found\n&#34;;
 }</pre>
 <p>:p</p>
 
-</div>HASH(0x55c1765d9d48)
+</div>HASH(0x55809a912310)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

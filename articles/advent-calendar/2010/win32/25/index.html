@@ -19,7 +19,7 @@
     <h3>プロセスリストを取得</h3>
     <p>まさにこれをやってくれる、<a href="http://search.cpan.org/dist/Win32-Process-List/">Win32::Process::List</a> というモジュールがあって、こいつを使うと簡単に取得できます。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use List::Util qw/max/;
 use Win32::Process::List;
@@ -35,7 +35,7 @@ for my $pid (keys %processes) {
 }</pre>
 <p>こんな感じにやると、以下のように出ます。</p>
 
-    <pre class="code lang-perl">chrome.exe                   | pid: 2028
+    <pre class="code prettyprint lang-perl">chrome.exe                   | pid: 2028
 perl.exe                     | pid: 1376
 cmdagent.exe                 | pid:  288
 chrome.exe                   | pid: 2748
@@ -53,7 +53,7 @@ spoolsv.exe                  | pid: 1912
     <h3>名前から pid を知りたい！</h3>
     <p>できますできます。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use Win32::Process::List;
 
@@ -68,7 +68,7 @@ print &#34;$name: $pid&#34;;</pre>
     <h3>プロセスの個数を知りたい！</h3>
     <p>なんであるのかよくわからないですが、使いましょう！</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use Win32::Process::List;
 
@@ -85,7 +85,7 @@ print $pl-&gt;GetNProcesses;</pre>
 この記事だけ読んだあなたは、ぜひ[/articles/advent-calendar/2010/win32/:title=最初から読みましょう。]きっと面白いよ！</p><p>これで、日本の Win32 Perl Monger も 100人ぐらいにはなったはずなので、Perl-Win32 Con 的なのが開催できる日も近いですね！<br />
 それではみなさんまた逢う日まで！アディオス！！</p>
 
-</div>HASH(0x55c1765b1890)
+</div>HASH(0x55809a91ba18)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

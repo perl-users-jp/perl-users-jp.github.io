@@ -42,7 +42,7 @@
     <h4>対策1</h4>
     <p>モンキーパッチして、new を作ります。(connect を書き換えるのもアリ)</p>
 
-    <pre class="code lang-perl">BEGIN {
+    <pre class="code prettyprint lang-perl">BEGIN {
     use DBD::mysqlPP;
     {
         no warnings &#39;redefine&#39;;
@@ -61,7 +61,7 @@ my $dbh = DBD::mysqlPP::db-&gt;new();
     <h4>対策2</h4>
     <p>むりやり bless して、インスタンスを作成してしまいます。</p>
 
-    <pre class="code lang-perl">my $dbh = bless {}, &#39;DBD::mysqlPP::db&#39;; # むりやり $dbh を作る
+    <pre class="code prettyprint lang-perl">my $dbh = bless {}, &#39;DBD::mysqlPP::db&#39;; # むりやり $dbh を作る
 my $sth = bless { Database =&gt; $dbh, Statement =&gt; $sql }, &#39;DBD::mysqlPP::st&#39;; # 同じようにむりやり $sth を作る</pre>
 <p>普段意識することはあまり無いのですが、bless の第2引数はクラス名の文字列なので、こうすると、いつでもどこでもどんなクラスのインスタンスでも作れてしまいます。</p><p>もちろん、正規のやり方に対して不足している情報があれば、その機能は使えません。この場合だと、DB に接続して行う処理は何もできません。<a href="#fn1" title="そもそもそれを望んでいるのです">*1</a></p><p>実際のコードでは、この「対策2」の方を使ってみました。(モンキーパッチも DESTROY の書き換えに使ってますが)</p>
 
@@ -76,8 +76,8 @@ my $sth = bless { Database =&gt; $dbh, Statement =&gt; $sql }, &#39;DBD::mysqlPP
     <p>bless を使って、無理やりインスタンスを生成する手法を紹介しました。</p><p>普段使う場面はあまりないと思いますが、依存を増やしたくなくて、インスタンスを作るのが面倒な場合のテスト手法の一つとして、頭の片隅の片隅くらいに入れておいていただければ、と思います。</p><br />
 <p>明日は。。。誰が書くんでしょうね？</p>
 
-</div>HASH(0x55c1765bdcf8)
-HASH(0x55c17659e448)
+</div>HASH(0x55809a8ff220)
+HASH(0x55809a918b20)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

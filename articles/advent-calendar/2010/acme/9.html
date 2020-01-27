@@ -20,7 +20,7 @@
     <h3>使い方</h3>
     <p>もうすでに名前からしてわけがわかりませんが、とりあえず use するだけで動きます。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use utf8;
 use Acme::CheckCharactorsOutsideRange;
@@ -29,14 +29,14 @@ print &#34;I ♡ Acme&#34;;</pre>
 <p>これを実行すると普通に動きます。(Wide character in print という警告が出ますが、Acme 本質じゃないので無視してね☆)<br />
 しかし、以下のように import の引数に文字コードを指定すると、</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use utf8;
 use Acme::CheckCharactorsOutsideRange &#39;cp932&#39;;
 
 print &#34;I ♡ Acme&#34;;</pre>
 
-    <pre class="code">&#34;\x{2661}&#34; does not map to cp932 at foo.pl line 7</pre>
+    <pre class="code prettyprint">&#34;\x{2661}&#34; does not map to cp932 at foo.pl line 7</pre>
 <p>というように怒られます。地味ですね。</p>
 
 </div>

@@ -18,21 +18,21 @@
     <h4>後片づけ編</h4>
     <p>(オブジェクトではなく)クラス内部でコネクションを張りっぱなしにしてしまうDBIx系モジュールでありがちなことですが、テストの後始末をするときに、DBD::SQLiteで開いておいたデータベースを閉じずに削除しようとすると、Windows環境などではパーミッションの問題でエラーになります。</p>
 
-    <pre class="code lang-perl">my $dbh = DBI-&gt;connect(&#39;dbi:SQLite:foo.db&#39;);
+    <pre class="code prettyprint lang-perl">my $dbh = DBI-&gt;connect(&#39;dbi:SQLite:foo.db&#39;);
 
 ...
 
 unlink &#39;foo.db&#39;;</pre>
 <p>明示的にデータベースを閉じてからデータベースを削除するのが王道ですが、</p>
 
-    <pre class="code lang-perl">my $dbh = DBI-&gt;connect(&#39;dbi:SQLite:foo.db&#39;);
+    <pre class="code prettyprint lang-perl">my $dbh = DBI-&gt;connect(&#39;dbi:SQLite:foo.db&#39;);
 
 ...
 undef $dbh;
 unlink &#39;foo.db&#39;;</pre>
 <p>並列処理を行う場合のようにどうしても実ファイルを用意する必要がある場合を除いては、メモリ専用のデータベース(:memory:)を利用すると、ファイルの後始末自体、不要になります。</p>
 
-    <pre class="code lang-perl">my $dbh = DBI-&gt;connect(&#39;dbi:SQLite::memory:&#39;);</pre>
+    <pre class="code prettyprint lang-perl">my $dbh = DBI-&gt;connect(&#39;dbi:SQLite::memory:&#39;);</pre>
 <p>なお、DBD::SQLite 1.27以降、データベース名を空にしておくと実ファイルを利用した一時データベースが作成されます。後始末不要という点ではこちらも便利ですが、この場合はMakefile.PLなどで依存モジュールのバージョンを明示的に指定しておかないと、古いDBD::SQLiteが入っている環境で思いがけないエラーに出くわすことになるので要注意です。</p>
 
 </div>
@@ -40,7 +40,7 @@ unlink &#39;foo.db&#39;;</pre>
     <h4>型の扱い</h4>
     <p>SQLiteはよく型がないと言われますが、実際には内部でよいように型変換してくれているだけで、型の概念自体はあります。いちばん顕著なのがinteger primary keyの扱いで、以下のスクリプトの場合、前者はintegerのカラムにfooという文字列を入れても何も起こらずふつうにfooが保存されますが、後者はinsertの時点でエラーになります。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use DBI;
 
@@ -57,7 +57,7 @@ use DBI;
 }</pre>
 <p>また、伝統的にDBD::SQLiteはすべての値を文字列として保存していましたので、プレースホルダを通していない生の数値とプレースホルダ経由の値を比較しようとすると問題を起こすことがありました。コードだけではちょっとわかりづらいかもしれませんが、ここでは(最初は文字列として保存されていた)vカラムの値を2で割ることによって数値化したものと、プレースホルダを経由することで文字列化されてしまった"2"を比較しようとしておかしなことになっています。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use DBI;
 
@@ -70,14 +70,14 @@ my $rows = $dbh-&gt;selectall_arrayref($sql, undef, 2);
 print scalar @$rows;</pre>
 <p>この解決策はいくつかありますが、新規データベースでない場合はプレースホルダで取り込んだ値に0を足すなどして数値化してから比較するのが手軽な対策。</p>
 
-    <pre class="code lang-perl">my $sql = &#39;select * from foo where (v/2) &gt; (?+0)&#39;;</pre>
+    <pre class="code prettyprint lang-perl">my $sql = &#39;select * from foo where (v/2) &gt; (?+0)&#39;;</pre>
 <p>O/Rマッパを使っている場合などでクエリの構築部分に手を出しづらい場合は、DBD::SQLite 1.32で導入したsqlite_se_if_its_a_numberというデータベースハンドルアトリビュートを使うと、プレースホルダに値をバインドする際に数値に見える値はすべて数値コンテキストで処理するようになります。</p>
 
-    <pre class="code lang-perl">local $dbh-&gt;{sqlite_see_if_its_a_number} = 1;
+    <pre class="code prettyprint lang-perl">local $dbh-&gt;{sqlite_see_if_its_a_number} = 1;
 my $rows = $dbh-&gt;selectall_arrayref($sql, undef, 2);</pre>
 <p>もちろんこのアトリビュートはデータベース接続時に指定してもかまいませんが、既存のデータベースを扱う際には思わぬ副作用が出る可能性もあるので、新規データベースの場合以外は限定的に使うことをおすすめします。</p><p>なお、DBD::SQLite 1.35からは明示的に型を指定した場合に限り、型チェックをより厳密にして、数値カラムに文字列を入れようとした場合にはエラーを返すようになりました。ふつうに使っている分にはあまり気にしなくてもかまいませんが、DBIx::Classのようにこの機構をフル活用しているO/Rマッパを使っている場合、従来は暗黙のうちに文字列として保存されていた桁あふれの整数値などがエラーを引き起こすことがあります。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use DBI &#39;:sql_types&#39;;
 
@@ -100,7 +100,7 @@ $sth-&gt;execute; # error</pre>
     <h4>ALTER TABLEの制約</h4>
     <p>これはDBD::SQLiteではなくSQLite側の制約ですが、SQLiteのFAQにもあるようにSQLiteのALTER TABLEはいまのところカラムの追加とテーブルのリネームしかサポートしていません。カラムの削除やインデックスの張り直し等々には使えませんので、必要な場合はテンポラリテーブルにデータを退避してから、以下のような手順でテーブルを作り直してください。</p>
 
-    <pre class="code">BEGIN TRANSACTION;
+    <pre class="code prettyprint">BEGIN TRANSACTION;
 CREATE TEMPORARY TABLE t1_backup(a,b);
 INSERT INTO t1_backup SELECT a,b FROM t1;
 DROP TABLE t1;

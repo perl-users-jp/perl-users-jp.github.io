@@ -23,14 +23,14 @@ App::Donburiは名前空間から分かるように、ライブラリではな�
     <h4>インストール & 起動</h4>
     <p>App::DonburiはCPANにアップロード済みなので、cpan(cpanm)コマンドで簡単に導入できます。</p>
 
-    <pre class="code lang-sh">cpanm App::Donburi</pre>
+    <pre class="code prettyprint lang-sh">cpanm App::Donburi</pre>
 <p>インストールが済んだら、donburiコマンドを実行してみましょう。</p>
 
-    <pre class="code lang-sh">% donburi
+    <pre class="code prettyprint lang-sh">% donburi
 donburi need &#39;config.yaml&#39;. I write config.yaml sample at ./config.yaml . please edit it</pre>
 <p>設定ファイルが無いのでサンプル置いたよ。とのことなので、config.yamlを開いてみます。</p>
 
-    <pre class="code lang-yaml">---
+    <pre class="code prettyprint lang-yaml">---
 irc:
   server: &#34;irc.freenode.net&#34;
   port: 6667
@@ -49,7 +49,7 @@ store: &#34;./channel.yaml&#34;</pre>
     <h3>設定する</h3>
     <p>ブラウザでアクセスすると設定画面が開きます。channelの欄の「edit」をクリックすると、通知を行なうチャンネルの管理が出来ます。チャンネルを追加すると、donburiのbot(初期設定だとdonburiというnick)が、チャンネルにjoinしてくると思います。</p><p>TOP画面に戻って、channelを選択してmessage欄に何か入力してpostしてみると</p>
 
-    <pre class="code">22:19 donburi has joined (~donburi@KD113149019186.ppp-bb.dion.ne.jp)
+    <pre class="code prettyprint">22:19 donburi has joined (~donburi@KD113149019186.ppp-bb.dion.ne.jp)
 22:22 donburi: こんばんは!!!
 22:23 __kan: donburi: クリスマスイヴになにやってんだ……</pre>
 <p>このようにIRCに通知されます。</p>
@@ -59,7 +59,7 @@ store: &#34;./channel.yaml&#34;</pre>
     <h3>スクリプトから利用する</h3>
     <p>Web画面からのアクセスは確認用のようなもので、実際にはスクリプト等からAPIを叩いて利用することになります。donburiのAPIはJSON RPCなので投稿用のスクリプトは</p>
 
-    <pre class="code lang-perl">use JSON::RPC::Client;
+    <pre class="code prettyprint lang-perl">use JSON::RPC::Client;
 
 my $uri = &#39;http://localhost:8080/&#39;;
 my $method = &#39;privmsg&#39;;

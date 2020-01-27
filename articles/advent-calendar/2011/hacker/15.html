@@ -28,7 +28,7 @@
     <h4>サンプルコード</h4>
     <p>flush, closeは呼ばない場合 オブジェクト破棄時(DESTROY)で呼ぶことになっているので, 不要といえば不要です. レンダリングのパラメタを細かく設定したい場合は renderメソッドが使えます. 実装済みですが, どのパラメータがどう働くかがまだ理解できていないのです. とりあえず使いたいのであれば, fastrenderメソッドでよいかと思います.</p>
 
-    <pre class="code lang-perl">#!perl
+    <pre class="code prettyprint lang-perl">#!perl
 use strict;
 use warnings;
 
@@ -65,7 +65,7 @@ $aa-&gt;close;</pre>
     <h4>実行結果</h4>
     <p><a href="http://blog.yappo.jp/yappo/archives/000764.html">&quot;Perl-users.jp&#x5275;&#x8A2D;&#x8005; &#x5927;&#x6CA2;Yappo&#x548C;&#x5B8F; &#x304B;&#x3089;&#x306E;&#x7DCA;&#x6025;&#x306E;&#x304A;&#x9858;&#x3044;&#x3092;&#x304A;&#x8AAD;&#x307F;&#x4E0B;&#x3055;&#x3044;&quot;</a>の画像を AAにしてみました. でかい画像だったのでフォントを小さく設定して全体を表示するようにしています. それらしいですね(??).</p><p></p>
 
-    <pre class="code">  % perl aalib.pl
+    <pre class="code prettyprint">  % perl aalib.pl
   % cat a.txt</pre>
 <p><img src="https://github.com/perl-users-jp/perl-advent-calendar/raw/master/2011/hacker/2011-12-15/image01.png" alt="yappo_onegai" width="85%" /></p><p></p>
 

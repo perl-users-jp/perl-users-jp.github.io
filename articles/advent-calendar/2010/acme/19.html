@@ -16,7 +16,7 @@
 書く人がいないので埋め草的な記事です。Acme大全2010の使い回しです。</p><p>CPANでも割とユニークだと私が感じるモジュールを紹介しましょう。十分Acmeなモノです。<br />
 <a href="http://search.cpan.org/dist/Text-CSV-UniqueColumns/">Text::CSV::UniqueColumns</a>。CSVファイルから重複しない値を持ったカラムを探すモジュールです。</p>
 
-    <pre class="code lang-perl"># ヘッダを持ったCSVファイル
+    <pre class="code prettyprint lang-perl"># ヘッダを持ったCSVファイル
 #------- foo.csv ------
 col1,col2,col3,col4
 1,a,1,a
@@ -35,14 +35,14 @@ print $csv-&gt;checkUniq(&#39;col1&#39;); # =&gt; 1
 print $csv-&gt;getUniqCols();     # =&gt; col1,col4</pre>
 <p>で、まあ、<a href="http://search.cpan.org/dist/Text-CSV/">Text::CSV</a>を使って値を調べたりするのかなと思ってソースを見たのですよ。そしたら</p>
 
-    <pre class="code lang-perl">sub getUniqCols {
+    <pre class="code prettyprint lang-perl">sub getUniqCols {
 （中略）
     my $sCmd = &#34;cut -f$iField -d , $self-&gt;{&#39;_file&#39;} | sed s/&#39; &#39;//g | wc -l;&#34;;
     $sCmd .= &#34;cut -f$iField -d ,  $self-&gt;{&#39;_file&#39;} | sed s/&#39; &#39;//g | sort | uniq | wc -l&#34;;
     my ($iCount1, $iCount2) = split(&#34;\n&#34;,`$sCmd`);</pre>
 <p>あー……</p><p></p>
 
-    <pre class="code lang-perl">sub checkUniq {
+    <pre class="code prettyprint lang-perl">sub checkUniq {
 （中略）
     my $sCmd = &#34;paste  -d , $sPasteFiles &gt; pasteOutput &#34;;
     push (@cleanup, &#39;pasteOutput&#39;);
@@ -52,7 +52,7 @@ print $csv-&gt;getUniqCols();     # =&gt; col1,col4</pre>
 <p><br />
 あー……</p><p></p>
 
-    <pre class="code lang-perl">sub cleanUp {
+    <pre class="code prettyprint lang-perl">sub cleanUp {
     foreach my $sFile (@cleanup){
         `rm -f $sFile`;
     }
@@ -70,7 +70,7 @@ As no one writes articles, I worte.</p><p>I introduce a module felt as a unique 
 <a href="http://search.cpan.org/dist/Text-CSV-UniqueColumns/">Text::CSV::UniqueColumns</a>.<br />
 It finds columns which have unique values.</p><p></p>
 
-    <pre class="code lang-perl"># a csv file which has its header.
+    <pre class="code prettyprint lang-perl"># a csv file which has its header.
 #------- foo.csv ------
 col1,col2,col3,col4
 1,a,1,a
@@ -90,7 +90,7 @@ print $csv-&gt;getUniqCols();     # =&gt; col1,col4</pre>
 <p>Firstly I thought using <a href="http://search.cpan.org/dist/Text-CSV/">Text::CSV</a>.<br />
 And I look at the source.</p>
 
-    <pre class="code lang-perl">sub getUniqCols {
+    <pre class="code prettyprint lang-perl">sub getUniqCols {
 ...
     my $sCmd = &#34;cut -f$iField -d , $self-&gt;{&#39;_file&#39;} | sed s/&#39; &#39;//g | wc -l;&#34;;
     $sCmd .= &#34;cut -f$iField -d ,  $self-&gt;{&#39;_file&#39;} | sed s/&#39; &#39;//g | sort | uniq | wc -l&#34;;
@@ -98,7 +98,7 @@ And I look at the source.</p>
 <p><br />
 Ah....</p><p></p>
 
-    <pre class="code lang-perl">sub checkUniq {
+    <pre class="code prettyprint lang-perl">sub checkUniq {
 ...
     my $sCmd = &#34;paste  -d , $sPasteFiles &gt; pasteOutput &#34;;
     push (@cleanup, &#39;pasteOutput&#39;);
@@ -108,7 +108,7 @@ Ah....</p><p></p>
 <p><br />
 Ah....</p><p></p>
 
-    <pre class="code lang-perl">sub cleanUp {
+    <pre class="code prettyprint lang-perl">sub cleanUp {
     foreach my $sFile (@cleanup){
         `rm -f $sFile`;
     }

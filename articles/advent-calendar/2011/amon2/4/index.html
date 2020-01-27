@@ -40,7 +40,7 @@
     <h4>ブラウザでのテスト</h4>
     <p>今回は index.html を以下のようにしました。AJAX をつかうためだけに jQuery をつかっているところがゆとり乙的なかんじですが、まあいいでしょう。今回、node やブラウザに依存した部分を排除するために AJAX でデータをとってきてそれを eval するようにしています。また、subtest や is といった Perl で慣れた名前にエイリアスをはっています。</p>
 
-    <pre class="code lang-html">&lt;!DOCTYPE html&gt;
+    <pre class="code prettyprint lang-html">&lt;!DOCTYPE html&gt;
 &lt;html&gt;
 &lt;head&gt;
         &lt;meta charset=&#34;UTF-8&#34; /&gt;
@@ -76,10 +76,10 @@
     <h4>node.js でのテスト</h4>
     <p>さて、次はおなじテストスクリプトで node.js でもテストできるようにしましょう。</p><p>node.js で QUnit するには t-wada さんのかいた qunit-tap というライブラリをつかえばいいそうです。このへんについては id:sugyan の記事が参考になるかとおもいます( <a href="http://d.hatena.ne.jp/sugyan/20110325/1301061279">http://d.hatena.ne.jp/sugyan/20110325/1301061279</a> )。</p><p>まずは npm で以下のようにしてインストールしましょう。</p>
 
-    <pre class="code lang-shell">npm install qunit-tap</pre>
+    <pre class="code prettyprint lang-shell">npm install qunit-tap</pre>
 <p>今回の場合にはテストローダは以下のようにかいてみました。簡単ですね。</p>
 
-    <pre class="code lang-js">var QUnit = require(&#39;./qunit&#39;).QUnit,
+    <pre class="code prettyprint lang-js">var QUnit = require(&#39;./qunit&#39;).QUnit,
     qunitTap = require(&#39;qunit-tap&#39;).qunitTap,
     sys = require(&#39;sys&#39;),
     fs = require(&#39;fs&#39;);
@@ -100,7 +100,7 @@ with ({is: QUnit.equal, subtest: QUnit.test}) {
 QUnit.start();</pre>
 <p>しあげに Makefile をかきました。これでいつでも簡単に誰でもテストをうごかすことができます。</p>
 
-    <pre class="code">test:
+    <pre class="code prettyprint">test:
         node test/node-test.js
 test-browser:
         @echo &#34;Access to http://localhost:9041/test/index.html&#34;

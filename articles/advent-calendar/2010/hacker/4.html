@@ -23,7 +23,7 @@
     <p>インストールすると、Module::Install ベースの Makefile.PL で test_target と default_test_target という二つの関数が使えるようになります。<br />
 たとえば、新しい テストのターゲット 「test_sl」 を定義すると以下のようになります。</p>
 
-    <pre class="code lang-perl">use inc::Module::Install;
+    <pre class="code prettyprint lang-perl">use inc::Module::Install;
 name &#39;Love-Plus&#39;;
 all_from &#39;lib/Love/Plus.pm&#39;;
 
@@ -53,7 +53,7 @@ WriteAll;</pre>
     <h4>説明</h4>
     <p>Module::Install::TestTarget では以下のパラメーターが使えます。</p>
 
-    <pre class="code lang-perl">test_target foo =&gt; (
+    <pre class="code prettyprint lang-perl">test_target foo =&gt; (
     includes           =&gt; [&#34;$ENV{HOME}/perl5/lib&#34;],
     load_modules       =&gt; [qw/Foo Bar/],
     run_on_prepare     =&gt; [qw/before.pl/],
@@ -82,12 +82,12 @@ pp と xs のテストの切り分けや、<a href="http://twitter.com/#!/lestrr
     <p>テストの時にいろいろとフックしたいお！という要望から生まれたモジュールですが、なかなか重宝しています。<br />
 本来であれば、ExtUtils::MakeMaker のさまざまな部分にフック機構があればいいのでしょうが、はてさて。</p><p>明日は YAPC::Asia 2010 で MacBook をかっさらって「重いこれ！」って叫んでいた perl 界の麒麟児 tokuhirom さんです！超お楽しみに！！</p>
 
-    <pre class="code lang-perl">test_target love =&gt; (
+    <pre class="code prettyprint lang-perl">test_target love =&gt; (
     insert_on_prepare =&gt; &#39;die &#34;Love was not found\n&#34;&#39;,
 );</pre>
 <p>:p</p>
 
-</div>HASH(0x55c1765d9448)
+</div>HASH(0x55809a919930)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

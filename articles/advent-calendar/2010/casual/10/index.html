@@ -25,7 +25,7 @@ Text::Xatenaについて書こうと思っていたんですが、もう<a href=
     <h4>ベンチマーク</h4>
     <p><a href="https://github.com/gfx/p5-Data-Validator/blob/master/benchmark/simple.pl">p5-Data-Validator/benchmark/simple.pl</a></p>
 
-    <pre class="code">Params::Validate/0.95
+    <pre class="code prettyprint">Params::Validate/0.95
 Smart::Args/0.06
 Data::Validator/0.06
 without type constraints
@@ -41,14 +41,14 @@ D::Validator    63999/s          205%            203%           72%           --
 <div class="section">
     <h4>Data::Validatorのインストール</h4>
     
-    <pre class="code">    cpanm Data::Validator</pre>
+    <pre class="code prettyprint">    cpanm Data::Validator</pre>
 <p>CPANにも上がってるので簡単ですね！</p>
 
 </div>
 <div class="section">
     <h4>Data::Validatorの使い方</h4>
     
-    <pre class="code lang-perl">    use Data::Validator;
+    <pre class="code prettyprint lang-perl">    use Data::Validator;
     my $v = Data::Validator-&gt;new(
         hoge =&gt; { isa =&gt; &#34;Num&#34; },
     );
@@ -57,19 +57,19 @@ D::Validator    63999/s          205%            203%           72%           --
 isaだけなら、「 hoge => "Num" 」でも大丈夫です。<br />
 例えば、以下のようにすると「Invalid value for 'hoge': Validation failed for 'Num' with value str」と怒られます。</p>
 
-    <pre class="code lang-perl">    my $args = $v-&gt;validate(hoge =&gt; &#34;str&#34;);</pre>
+    <pre class="code prettyprint lang-perl">    my $args = $v-&gt;validate(hoge =&gt; &#34;str&#34;);</pre>
 <p>isaは、Mouseのtype constraint名か任意のtype constraintオブジェクトを渡す事が出来ます。<br />
 <a href="http://search.cpan.org/dist/Mouse/lib/Mouse/Util/TypeConstraints.pm#Default_Type_Constraints">Mouse::Util::TypeConstraintsのDefault Type Constraints</a>とかですね。<br />
 URIかどうか確かめたい！という時はこうします。</p>
 
-    <pre class="code lang-perl">use Data::Validator;
+    <pre class="code prettyprint lang-perl">use Data::Validator;
 use MouseX::Types::URI;
 
 my $v    = Data::Validator-&gt;new( uri =&gt; { isa =&gt; &#39;URI&#39; } );
 my $args = $v-&gt;validate(uri =&gt; &#39;http://example.com/&#39;);</pre>
 <p>あらまあ、簡単。</p>
 
-    <pre class="code">use Mouse::Util::TypeConstraints;
+    <pre class="code prettyprint">use Mouse::Util::TypeConstraints;
 use Data::Validator;
 
 my $MyHash = subtype &#39;MyHash&#39;, as &#39;HashRef&#39;;

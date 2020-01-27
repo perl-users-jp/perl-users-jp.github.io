@@ -18,13 +18,13 @@
     <h4>1. auto increment の扱い</h4>
     <p>まず、いわゆる自動発番なカラムの扱いについて。MySQL ではカラム定義で AUTO_INCREMENT 指定、SQLite では最初のカラムの型を INTEGER にして PRIMARY KEY 指定、でできるやつですね。PostgreSQL では SERIAL 型を使用して定義します。</p>
 
-    <pre class="code lang-sql">CREATE TABLE foo (
+    <pre class="code prettyprint lang-sql">CREATE TABLE foo (
     id SERIAL PRIMARY KEY,
     bar TEXT
 );</pre>
 <p>ただし実際の型として SERIAL があるわけではなく、以下のような定義へ翻訳される sugar 的な構文となっています。(細部はバージョンによって異なります)</p>
 
-    <pre class="code lang-sql">CREATE SEQUENCE foo_id_seq;
+    <pre class="code prettyprint lang-sql">CREATE SEQUENCE foo_id_seq;
 CREATE TABLE foo (
     id INTEGER not null default nextval(&#39;foo_id_seq&#39;::regclass),
     bar TEXT
@@ -36,13 +36,13 @@ CREATE TABLE foo (
 </ul><p>という意味ですね。<br />
 ここで MySQL / SQLite と異なるポイントは、「自動発番させたくて NULL を投入しようとするとエラーになる」ことです。つまり</p>
 
-    <pre class="code lang-sql">INSERT INTO foo (id, bar) VALUES(NULL, &#39;BAR&#39;);  　-- ERROR</pre>
+    <pre class="code prettyprint lang-sql">INSERT INTO foo (id, bar) VALUES(NULL, &#39;BAR&#39;);  　-- ERROR</pre>
 <p>は動作しません。「NOT NULL」なカラムに NULL を入れようとしているので、当然といえば当然ですが、デフォルト値を使わせるためには、NULL を入れるのではなく、カラム自体を省略する必要があります。</p>
 
-    <pre class="code lang-sql">INSERT INTO foo (bar) VALUES(&#39;BAR&#39;); -- id はシーケンスから発番される</pre>
+    <pre class="code prettyprint lang-sql">INSERT INTO foo (bar) VALUES(&#39;BAR&#39;); -- id はシーケンスから発番される</pre>
 <p>また、自動発番された id を Perl から得るには last_insert_id() を使用します。</p>
 
-    <pre class="code lang-perl">$dbh-&gt;last_insert_id(undef, $schema, $table, undef, { sequence =&gt; $seq_name }); # PostgreSQL
+    <pre class="code prettyprint lang-perl">$dbh-&gt;last_insert_id(undef, $schema, $table, undef, { sequence =&gt; $seq_name }); # PostgreSQL
 $dbh-&gt;mysql_insert_id;           # MySQL
 $dbh-&gt;func(&#39;last_insert_rowid&#39;); # SQLite</pre>
 <p>他の DBD と異なり、</p>
@@ -66,10 +66,10 @@ $dbh-&gt;func(&#39;last_insert_rowid&#39;); # SQLite</pre>
     <p>予約語をカラム名など識別子に使用したい場合、quote する必要があります。MySQL では ` (バッククォート) ですが、SQLite と PostgreSQL では " (ダブルクォート) で行います。<br />
 DBI には quote_identifier という関数があり、DBD ごとの違いを吸収してくれるので、これを使いましょう。</p>
 
-    <pre class="code lang-perl">$dbh-&gt;quote_identifier( $name );
+    <pre class="code prettyprint lang-perl">$dbh-&gt;quote_identifier( $name );
 $dbh-&gt;quote_identifier( $catalog, $schema, $table, \%attr );</pre>
 
-    <pre class="code lang-perl">$dbh-&gt;quote_identifier(&#39;foo&#39;);  #= &#34;foo&#34; (PostgreSQL)
+    <pre class="code prettyprint lang-perl">$dbh-&gt;quote_identifier(&#39;foo&#39;);  #= &#34;foo&#34; (PostgreSQL)
 $dbh-&gt;quote_identifier(&#39;foo&#39;);  #= `foo` (MySQL)
 $dbh-&gt;quote_identifier(&#39;foo&#39;);  #= &#34;foo&#34; (SQLite)</pre>
 
@@ -78,10 +78,10 @@ $dbh-&gt;quote_identifier(&#39;foo&#39;);  #= &#34;foo&#34; (SQLite)</pre>
     <h4>3. LIMIT OFFSET</h4>
     <p>確か大昔 (3.23時代?) は MySQL の LIMIT 構文は</p>
 
-    <pre class="code lang-SQL">LIMIT 5,10</pre>
+    <pre class="code prettyprint lang-SQL">LIMIT 5,10</pre>
 <p>の形式のみだったと思いますが、最近は PostgreSQL と同じ OFFSET を使用した構文もサポートされています。</p>
 
-    <pre class="code lang-SQL">LIMIT 5 OFFSET 5</pre>
+    <pre class="code prettyprint lang-SQL">LIMIT 5 OFFSET 5</pre>
 <p>SQLite も同様の構文でいけますので、LIMIT OFFSET 形式を使用すれば 3者で問題なく使用できるでしょう。</p>
 
 </div>
@@ -90,7 +90,7 @@ $dbh-&gt;quote_identifier(&#39;foo&#39;);  #= &#34;foo&#34; (SQLite)</pre>
     <p>MySQL には <a href="http://search.cpan.org/dist/Test-mysqld/">Test::mysqld</a>、PostgreSQL には <a href="http://search.cpan.org/dist/Test-postgresql/">Test::postgresql</a> という、どちらも kazuho さんの書かれたテスト用モジュールがあります。<br />
 使いかたはどちらも同様で、</p>
 
-    <pre class="code lang-perl">$mysql = Test::mysqld-&gt;new;
+    <pre class="code prettyprint lang-perl">$mysql = Test::mysqld-&gt;new;
 $dbh = DBI-&gt;connect( $mysql-&gt;dsn );
 
 $pgsql = Test::postgresql-&gt;new;
@@ -99,28 +99,28 @@ $dbh = DBI-&gt;connect( $pgsql-&gt;dsn );</pre>
 公式ドキュメントでは <a href="http://www.postgresql.jp/document/9.0/html/kernel-resources.html">PostgreSQL 9.0.1文書 / 17章サーバの準備と運用 / 17.4. カーネルリソースの管理</a> に記述がありますが、たいていの場合問題が起きるのは SHMMAX と SHMALL だと思います。<br />
 Test::postgresql は自身のインストール時のテストで 2インスタンスの起動を行うため、「自分でコマンドラインから initdb すれば動くのに Test::postgresql はコケる！」という、知らないと訳の分からない現象に悩まされるかもしれません。</p><p>その場合は、OSX なら</p>
 
-    <pre class="code">$ sysctl kern.sysv.shmmax
+    <pre class="code prettyprint">$ sysctl kern.sysv.shmmax
 $ sysctl kern.sysv.shmall</pre>
 <p>Linux なら</p>
 
-    <pre class="code">$ cat /proc/sys/kernel/shmmax
+    <pre class="code prettyprint">$ cat /proc/sys/kernel/shmmax
 $ cat /proc/sys/kernel/shmall</pre>
 <p>を実行し、現在の設定を確認の上、問題がないサイズまで設定を増やしてあげる必要があります。<br />
 詳細は上記の公式ドキュメントを参照して頂きたいのですが、面倒だというかたはとりあえず shmmax に実メモリの半分(または 1GB) ぐらい、shmall をその 1/4096 に設定するといいんじゃないでしょうか。</p><p>OSX ならば /etc/sysctl.conf に</p>
 
-    <pre class="code">kern.sysv.shmmax=1073741824
+    <pre class="code prettyprint">kern.sysv.shmmax=1073741824
 kern.sysv.shmall=262144</pre>
 <p>と記述して reboot するか、コマンドラインから以下のように設定 (sysctl.conf に指定しないと再起動時に反映されません)。</p>
 
-    <pre class="code"># sysctl -w kern.sysv.shmmax=1073741824
+    <pre class="code prettyprint"># sysctl -w kern.sysv.shmmax=1073741824
 # sysctl -w kern.sysv.shmall=262144</pre>
 <p>Linux ならば /etc/sysctl.conf に以下のように記述して reboot するか、</p>
 
-    <pre class="code">kernel.shmmax = 1073741824
+    <pre class="code prettyprint">kernel.shmmax = 1073741824
 kernel.shmmax = 262144</pre>
 <p>同様に再起動時には反映されませんがコマンドラインから</p>
 
-    <pre class="code"># echo 1073741824 &gt; /proc/sys/kernel/shmmax
+    <pre class="code prettyprint"># echo 1073741824 &gt; /proc/sys/kernel/shmmax
 # echo 262144     &gt; /proc/sys/kernel/shmall</pre>
 <p>とすることで共有メモリの設定を変更できます。</p>
 

@@ -19,7 +19,7 @@
 既に[/articles/advent-calendar/2011/hacker/7:title=7日目のトラック]にて紹介されているのでご存知でない方はそちらを見ていただければと思います。</p><p>このTime::Piece、非常に軽快でシンプルが故に意外とかゆいところに手が届かないことがあるのではないでしょうか？<br />
 例えば<a href="http://search.cpan.org/~drolsky/DateTime-0.70/lib/DateTime.pm">DateTime</a>にあるtruncateメソッドはTime::Pieceにはありません。</p><p>例えば今日の0時を取得したい時は</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use utf8;
 use 5.012001;
@@ -44,7 +44,7 @@ say $today-&gt;strftime(&#39;%Y年%m月%d日 %H:%M:%S&#39;); # 2011年12月12日
     <h4>使い方</h4>
     <p>使い方は簡単です</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use 5.012001;
 use Time::Piece::Plus;
@@ -79,7 +79,7 @@ Cronで前日のデーターを集計したい時なんかに使えるんでは�
 ただこれも、Time::Pieceのlocaltime関数はコンテキストで戻り値が変わったり、Time::Piece1.16未満(Perl5.10や5.12のコアに含まれてます)ではこの呼び方でインスタンスを生成した時に、中身のArrar refの構造が壊れるというバグがあったりします。</p><p>後者はバージョン上げればいいじゃなーいと思われるかもしれませんが、上げられない環境もありますよね！はい、身近にあります。<br />
 そういうことを書くたびに考えるのは面倒なので、そこら辺をうまくやってくれるMySQL関連のメソッドを書きました。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use 5.012001;
 use Time::Piece::Plus;

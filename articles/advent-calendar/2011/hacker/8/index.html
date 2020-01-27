@@ -23,13 +23,13 @@
     <h4>使い方</h4>
     <p>インストール方法は cpanm App::pfswatch を叩くだけです。適当なbin/に pfswatchコマンド がインストールされます。インストール後は、pfswatchコマンドに監視したいディレクトリやファイルと実行したいコマンドを-eオプションのに続けて渡してあげます。</p>
 
-    <pre class="code lang-bash">$ pfswatch /path/to/watch -e perl -E &#39;say &#34;wassyoi&#34;&#39;</pre>
+    <pre class="code prettyprint lang-bash">$ pfswatch /path/to/watch -e perl -E &#39;say &#34;wassyoi&#34;&#39;</pre>
 <p>私は以下のようなコマンドで、モジュールを更新したらテストを自動で実行するために使っています。別窓で立ち上げておくと、横目で互換性が壊れてないか確認できるので、互換性を壊すようなコミットをする割合が減りました。</p>
 
-    <pre class="code lang-bash">$ pfswatch lib/ -e prove -lr t/</pre>
+    <pre class="code prettyprint lang-bash">$ pfswatch lib/ -e prove -lr t/</pre>
 <p>上記コマンドではどのファイルが変更されたのかわかりませんが、変更があったファイル名を実行コマンドの標準入力に渡す機能もあります。xargs等で受け取ると便利かもしれません。</p>
 
-    <pre class="code lang-bash">$ pfswatch /tmp/hoge/ --pipe -e perl -nE &#39;say &#34;$_ changed&#34;&#39;</pre>
+    <pre class="code prettyprint lang-bash">$ pfswatch /tmp/hoge/ --pipe -e perl -nE &#39;say &#34;$_ changed&#34;&#39;</pre>
 <p>その他の使い方としては、某高校生Perl HackerがosascriptでApple Scriptを実行させていたこともあるようです。</p><p>注意点として頻繁なファイル更新は取りこぼす点があります。ゆるふわな監視以外に使う場合は注意が必要です。もし、いい感じの修正案があれば教えてください。</p>
 
 </div>

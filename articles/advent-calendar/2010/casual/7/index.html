@@ -23,7 +23,7 @@
     <h4>DateTimeモジュール</h4>
     <p>DateTimeモジュールのインストールについては、CPANから導入するのであれば特に難しい事が無いので割愛します。</p><p>それではさっそくWebサーバのアクセスログ(<a href="http://www.microsoft.com/japan/windowsserver2003/iis/default.mspx">IIS</a>のデフォルト設定の状態を想定しています)からDateTimeモジュールにより"GMT"で記録された時間を日本時間に変換するサンプルをご紹介します。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use DateTime;
 
 my $filename = shift;
@@ -58,7 +58,7 @@ close(FILE);</pre>
 <p>まず最初にアクセスログのフォーマットに合わせて日付部分を抽出します。年、月、日、時、分、秒を特定出来たら、それらの情報を基にDateTimeオブジェクトを生成します。<br />
 この際にアクセスログ出力時に使用されているタイムゾーンを指定する必要があります。解析対象のアクセスログは"GMT"で記録されているので、そのまま"GMT"と指定しています。</p><p>DateTimeオブジェクトを生成したら、タイムゾーンの変換はset_time_zone関数で変換先のタイムゾーンを指定します。日本時間であれば"Asia/Tokyo"です。</p><p>これでタイムゾーンを考慮した状態になっているので、後は必要な情報を取得するだけです。</p>
 
-    <pre class="code lang-perl">printf(&#34;%d年%d月%d日 %d時%d分%d秒\n&#34;, $local_date-&gt;year, $local_date-&gt;month, $local_date-&gt;day, $local_date-&gt;hour, $local_date-&gt;minute, $local_date-&gt;second);</pre>
+    <pre class="code prettyprint lang-perl">printf(&#34;%d年%d月%d日 %d時%d分%d秒\n&#34;, $local_date-&gt;year, $local_date-&gt;month, $local_date-&gt;day, $local_date-&gt;hour, $local_date-&gt;minute, $local_date-&gt;second);</pre>
 
 </div>
 <div class="section">
@@ -67,7 +67,7 @@ close(FILE);</pre>
 一言でアクセスログの解析といっても色々な手法がありますが、一般的には時系列でのアクセス数の変化を見たいという要求が多いと思います。<br />
 そこで、アクセスログに記録されている何らかの情報毎のアクセス数を集計するという処理を考えてみます。</p><p>まずはアクセスログをパースする処理です(前例と同じ様に<a href="http://www.microsoft.com/japan/windowsserver2003/iis/default.mspx">IIS</a>のデフォルト設定を想定しています)。</p>
 
-    <pre class="code lang-perl">my @data = split(&#34; &#34;, $line);
+    <pre class="code prettyprint lang-perl">my @data = split(&#34; &#34;, $line);
 my $date = $data[0];
 my $time = $data[1];
 my $method = $data[4];
@@ -94,11 +94,11 @@ my $local_date = DateTime-&gt;new(
 $local_date-&gt;set_time_zone(&#39;Asia/Tokyo&#39;);</pre>
 <p>最初のサンプルと流れは同じで、日付以外の情報に名前を付けただけです。ファイルのオープン等の処理は省略しています。</p><p>この情報を元に、メソッド別(GETやPOST等)で集計を行ってみます。</p>
 
-    <pre class="code lang-perl">++$method_data{$local_date-&gt;year}-&gt;{$local_date-&gt;month}-&gt;{$local_date-&gt;day}-&gt;{$local_date-&gt;hour}-&gt;{$local_date-&gt;minute}-&gt;{$method}</pre>
+    <pre class="code prettyprint lang-perl">++$method_data{$local_date-&gt;year}-&gt;{$local_date-&gt;month}-&gt;{$local_date-&gt;day}-&gt;{$local_date-&gt;hour}-&gt;{$local_date-&gt;minute}-&gt;{$method}</pre>
 <p>"$method_data"には、分単位でのメソッド別のアクセス数が記録される事になります。<br />
 このように集計した情報は、以下の様にしてCSV形式で出力します。</p>
 
-    <pre class="code lang-perl">foreach my $year (sort keys %method_data) {
+    <pre class="code prettyprint lang-perl">foreach my $year (sort keys %method_data) {
     foreach my $mon (sort keys %{$method_data{$year}}) {
         foreach my $day (sort keys %{$method_data{$year}-&gt;{$mon}}) {
             foreach my $hour (sort keys %{$method_data{$year}-&gt;{$mon}-&gt;{$day}}) {
@@ -121,7 +121,7 @@ $local_date-&gt;set_time_zone(&#39;Asia/Tokyo&#39;);</pre>
 }</pre>
 <p>この結果は以下の様な出力になります。</p>
 
-    <pre class="code">Type    Year    Mon    Day    Hour    Min    Data    Count
+    <pre class="code prettyprint">Type    Year    Mon    Day    Hour    Min    Data    Count
 method    2010    12    6    10    0    GET    95
 method    2010    12    6    10    0    OPTIONS    39
 method    2010    12    6    10    0    GET    241
@@ -141,7 +141,7 @@ method    2010    12    6    10    1    GET    197</pre>
     <p><a href="http://www.microsoft.com/japan/windowsserver2003/iis/default.mspx">IIS</a>のログに対してという事で説明しましたが、当然<a href="http://httpd.apache.org/">Apache</a>のアクセスログについても同じ様な加工をする事が出来ます。<br />
 <a href="http://httpd.apache.org/">Apache</a>のアクセスログ解析についてのモジュールもあるのですが、私は以下の様な処理でパースする事が多いです。</p>
 
-    <pre class="code lang-perl">print STDERR &#34;Cannot parse log format. Data is &#39;$line.&#39;\n&#34;, next if (!($line =~ /^(.*) (.*) (.*) \[(.*)\] &#34;(.*)&#34; (.*) (.*) &#34;(.*)&#34; &#34;(.*)&#34;$/));
+    <pre class="code prettyprint lang-perl">print STDERR &#34;Cannot parse log format. Data is &#39;$line.&#39;\n&#34;, next if (!($line =~ /^(.*) (.*) (.*) \[(.*)\] &#34;(.*)&#34; (.*) (.*) &#34;(.*)&#34; &#34;(.*)&#34;$/));
 my $date_time = $4;
 my @tmp = split(/ /, $5);
 my $method = $tmp[0];
@@ -174,7 +174,7 @@ my $sec = $6</pre>
     <p>アクセスログが保存されているディレクトリを引数に指定して実行します。<br />
 指定したディレクトリはさらにサーバ名を表すサブディレクトリを保持している事を前提しています。</p>
 
-    <pre class="code">├ [引数で指定するディレクトリ]
+    <pre class="code prettyprint">├ [引数で指定するディレクトリ]
 │   ├ [サーバ名を表すディレクトリ]
 │   │   ├ [IISのアクセスログ]
 │   │   ├ [IISのアクセスログ]
@@ -187,7 +187,7 @@ my $sec = $6</pre>
              ・</pre>
 <p>集計結果は標準出力に出力されるので、リダイレクトして保存して下さい。</p>
 
-    <pre class="code lang-perl">#!/usr/bin/perl -w
+    <pre class="code prettyprint lang-perl">#!/usr/bin/perl -w
 use strict;
 use DateTime;
 

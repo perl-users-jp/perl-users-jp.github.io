@@ -23,11 +23,11 @@
     <h4>カバレッジを取る</h4>
     <p>perl でカバレッジを取る方法といえば Devel::Cover ですね。他にもいろいろありますが。</p><p>とりあえず、テストしたいプロジェクトにいって</p>
 
-    <pre class="code">$ perl Makefile.PL
+    <pre class="code prettyprint">$ perl Makefile.PL
 $ cover -test</pre>
 <p>ってするだけでテストカバレッジが取れます！すごい！！</p><p>ちなみに以下は、拙作の DBIx::QueryLog でカバレッジを取った結果です。</p>
 
-    <pre class="code">---------------------------- ------ ------ ------ ------ ------ ------ ------
+    <pre class="code prettyprint">---------------------------- ------ ------ ------ ------ ------ ------ ------
 File                           stmt   bran   cond    sub    pod   time  total
 ---------------------------- ------ ------ ------ ------ ------ ------ ------
 blib/lib/DBIx/QueryLog.pm      99.5   82.4   82.1  100.0    0.0  100.0   90.7
@@ -67,7 +67,7 @@ Total                          99.5   82.4   82.1  100.0    0.0  100.0   90.7
     </tr>
 </table><p>barn と cond を 100% にするのは結構たいへんなので sub と stmt ぐらいをある程度上げとけばいいのかなって思います。</p><p>ちなみに、これの詳細な結果は cover_db/coverage.html をみるとわかります。</p><p>開くと以下のような感じになっています。</p><p><img src="https://github.com/perl-users-jp/perl-advent-calendar/raw/master/2011/test/2011-12-15/7603de72eb477e2c245d3c5514033289.png" /></p><p>cond とかをクリックすると以下のようになっててとってもわかりやすいですね。</p><p><img src="https://github.com/perl-users-jp/perl-advent-calendar/raw/master/2011/test/2011-12-15/5605bfcd423be976d6b15cf4adda6593.png" /></p><p>これを見ながらいろいろと修正してカバレッジを上げて行きましょう！！</p><p>やり終えたら</p>
 
-    <pre class="code">$ cover -delete</pre>
+    <pre class="code prettyprint">$ cover -delete</pre>
 <p>とかすれば、cover_db が消えてすっきりですね。</p>
 
 </div>

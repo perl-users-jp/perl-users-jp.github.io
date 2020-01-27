@@ -23,21 +23,21 @@
 そこで、テキスト中の*の数を数えてドラゴンボールにHitしたらsayしてくれる<br />
 radarを作りました。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use Acme::DragonBall qw(radar);
 
 radar(&#34;asdf*hdshaf*osd**hfa&#34;); # &#39;四星球みっけ！&#39;</pre>
 <p>全部の球を集めるとシェンロンも呼べます。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use Acme::DragonBall qw(radar);
 
 radar(&#34;*&#34; x 28); # &#39;★ ★ ★  ！！！いでよ、神龍！！！！ ★ ★ ★ ★&#39;</pre>
 <p>ちなみにドラゴンボールに無い星数だと、懐かしの台詞や単語がランダムに飛び出します。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use Acme::DragonBall qw(radar);
 

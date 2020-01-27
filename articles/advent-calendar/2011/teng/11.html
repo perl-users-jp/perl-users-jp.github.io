@@ -39,7 +39,7 @@ columnの単純なデータをオブジェクトという構造体にふくら�
     <p>Tengではinflate / deflateの定義をschemaに書きます。</p><p>今回のinflate / deflateの例を持ち出すのにいまのschemaではものたりないのでuserテーブルにcreated_atとupdated_atというカラムを追加したいと思います。<br />
 追加した後のtable定義、schema定義はまずこうなります。</p>
 
-    <pre class="code">package Proj::DB::Schema;
+    <pre class="code prettyprint">package Proj::DB::Schema;
 use strict;
 use warnings;
 use Teng::Schema::Declare;
@@ -61,7 +61,7 @@ create table user (
 );</pre>
 <p>これでTeng経由でcreated_on / updated_onというカラムの操作ができるようになりました。</p>
 
-    <pre class="code">$teng-&gt;insert(&#39;user&#39;,
+    <pre class="code prettyprint">$teng-&gt;insert(&#39;user&#39;,
     +{
         id         =&gt; 1,
         name       =&gt; &#39;nekokak&#39;,
@@ -73,7 +73,7 @@ create table user (
 またdbに日付データを格納する際もiso形式だったりunixtimestampだったりと形式も様々でしょう。</p><p>そんなときにinflate / deflateの設定をschemaにもたせることで、<br />
 データの変換を簡単におこなってくれるようになります。</p><p>今回はDateTimeを一例として使います。</p><p>inflate / deflateはschemaに定義を行います</p>
 
-    <pre class="code">package Proj::DB::Schema;
+    <pre class="code prettyprint">package Proj::DB::Schema;
 use strict;
 use warnings;
 use Teng::Schema::Declare;
@@ -100,7 +100,7 @@ table {
 1;</pre>
 <p>このように定義を行うと</p>
 
-    <pre class="code">use DateTime;
+    <pre class="code prettyprint">use DateTime;
 my $dt = DateTime-&gt;now();
 $teng-&gt;insert(&#39;user&#39;,
      +{
@@ -112,14 +112,14 @@ $teng-&gt;insert(&#39;user&#39;,
 );</pre>
 <p>このように書くことができ、また、</p>
 
-    <pre class="code">my $row = $teng-&gt;single(&#39;user&#39;);
+    <pre class="code prettyprint">my $row = $teng-&gt;single(&#39;user&#39;);
 $row-&gt;created_at; # DateTime オブジェクト
 $row-&gt;updated_at; # DateTime オブジェクト</pre>
 <p>このようにRowオブジェクト経由でカラムに対応するメソッドを呼び出すとinflateが実行され<br />
 DateTimeのオブジェクトが取得できます。<br />
 またDateTimeのオブジェクトではなく、カラムのデータそのものを取得したい場合は</p>
 
-    <pre class="code">$row-&gt;get_column(&#39;created_at&#39;);</pre>
+    <pre class="code prettyprint">$row-&gt;get_column(&#39;created_at&#39;);</pre>
 <p>とするとdbから取得したunixtimeがそのまま取得できます。</p><p>プログラム中では日付データってDateTimeとかのオブジェクトで扱うともろもろ便利だったりしますよね。<br />
 もちろんTime::Pieceでもいいんですけど。</p><p>さらに日付データではなく、jsonなデータとかでももちろんOK</p><p>このようにデータを プログラム層 <-> RDBMS の間で良い感じにデータ変換してくれるのが</p><p>inflate / deflateでした。</p><p>明日はschema loaderについて説明します</p>
 

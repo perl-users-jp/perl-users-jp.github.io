@@ -14,7 +14,7 @@
 
         <p>アドベントカレンダーをご覧のみなさん、こーんにーちわ！　<a href="http://twitter.com/tomita">&#x30C8;&#x30DF;&#x30FC;&#x30EB;</a> です (`･ω´･)ノ</p><p>今年はずっと、Voyage Group 社内のいろんな子会社名義で、スマートフォン向けアプリのバックエンドAPIばっかり作てました。直近のやつはひさびさの PHP で書くことに (o_o)</p><p>最終的に、複数の言語を使ってみることはエンジニア人生にとって有益とおもう。PHPでちゃんと書いてみてあらためてそう思った。始めは非効率だけど外国行ってカタコトでコミュニケーションする楽しさがあるし学ぶことがある。言語そのものだけじゃなく文化（コミュニティやエコサイクル）ごと見るの大事。ただ、何か慣れた “ホーム” ツールがあるとどこで何する上でもいい。ぼくの場合は perl にだいぶ助けられますた。</p><p>たとえばテストね。クライアントアプリ開発側と API 仕様にぎったら、まず先に Bahavior のテストを書いてしまってから開発に入る。PHP の場合 Behat とかあるよーと教えてもらったのだけど、特定のPHPソースを temporary で動かすサーバーも欲しくて（残念ながら php -S が使えない環境だったので（お察しください））perl で php アプリをテストするの書いて使ったりした。</p>
 
-    <pre class="code lang-perl">package tests::lib::APITest;
+    <pre class="code prettyprint lang-perl">package tests::lib::APITest;
 use strict;
 use warnings;
 use utf8;
@@ -67,7 +67,7 @@ Include /etc/apache2/mods-enabled/php5.conf
 DocumentRoot ./public_html
 </pre><p>専用の Test::Httpd::Apache2 とかもあるのだけど、<a href="https://metacpan.org/module/Test%3A%3ATCP">Test::TCP</a> は覚えておけば memcached とかテストに要るサーバー temporary で起動する系全般につぶしがきいてイイ。愛用してます。サンプルコードの下の方にあるけど API のテストするときは Test::Base も未だに愛用してる。以下みたいなやつを並べる。</p>
 
-    <pre class="code">=== error: data missmatch
+    <pre class="code prettyprint">=== error: data missmatch
 --- method: POST
 --- path: /foo/bar
 --- headers
@@ -88,7 +88,7 @@ subtest &#39;foooooo&#39; =&gt; sub {
 }</pre>
 <p>あとベンチマーク。「ユーザーつくって〜　ポストして〜　ポストして〜　」みたいな、ab 一発でできることをちょっと超えたシナリオをベンチマークしたいとき、不慣れな JMeter で作り込みせずとも <a href="https://metacpan.org/module/Parallel%3A%3ABenchmark">Parallel::Benchmark</a> は慣れた LWP/Mechanize/Furl で書けるのがいい。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use utf8;
 use Data::Dump qw/dump/;

@@ -20,10 +20,10 @@
     <p><a href="http://search.cpan.org/dist/Cocoa-Growl/">http://search.cpan.org/dist/Cocoa-Growl/</a></p><p>そんな不満を打破するべく僕は Cocoa::Growl を書いた。<br />
 XS で Objective-C をつかい、直接 Growl.framework を使う Growl モジュールだ。</p><p>Growl.framework が同封されていてデフォルトではそれをロードするが、/Library/Frameworks に Growl.framework を置いてあれば、</p>
 
-    <pre class="code lang-perl">perl Makefile.PL USE_LOCAL_GROWL_FRAMEWORK=1</pre>
+    <pre class="code prettyprint lang-perl">perl Makefile.PL USE_LOCAL_GROWL_FRAMEWORK=1</pre>
 <p>とすることで、そちらのライブラリにリンクするようビルドすることも出来る。</p><p>使い方は簡単。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use Cocoa::Growl &#39;:all&#39;;
 
@@ -43,7 +43,7 @@ growl_notify(
 Growl通知のクリックイベントがとりたいぃぃぃい！！！ というわけで AnyEvent::Impl::NSRunLoop と言うやつも作ったのだ。</p><p><a href="http://search.cpan.org/dist/AnyEvent-Impl-NSRunLoop/">http://search.cpan.org/dist/AnyEvent-Impl-NSRunLoop/</a></p><p>これを use しておくと Cocoa アプリケーションで使われているイベントループ上で AnyEvent アプリケーションを書くことが出来る。<br />
 つまり、このモジュールを併用することで Cocoa::Growl はクリックイベントをハンドリングすることができるのだ！</p>
 
-    <pre class="code lang-perl">use AnyEvent;
+    <pre class="code prettyprint lang-perl">use AnyEvent;
 use AnyEvent::Impl::NSRunLoop;
 
 my $cv = AE::cv;
@@ -66,7 +66,7 @@ $cv-&gt;recv;</pre>
 <p>このサンプルはGrowl通知がクリックされたらURLをブラウザで開くというものだ。</p><p>on_click は通知がクリックされた時に呼ばれるコールバック、on_timeout はそれ以外の理由で通知が消えたときに呼ばれるコールバックで、<br />
 この例ではどちらかが起こったときにスクリプトが終了するように $cv->send しているというわけだ。</p><p>この様にして自分専用のコールバック関数が定義することで、Growl をクリックした瞬間に処理が走らせられるので、例えば家族からの「お腹すいた」のネットワーク Growl をトリガーに <a href="http://e8y.net/blog/2006/07/25/p126.html">Plagger でピザを注文する</a>なんて事も出来るのです。</p><p>さて今日はシンプルに Twitter Stream を Growl に垂れ流すアプリケーションを書きましょう。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use Config::Pit;
 use AnyEvent::Twitter::Stream;

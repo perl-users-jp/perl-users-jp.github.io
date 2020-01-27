@@ -25,11 +25,11 @@
     <h4>使い方</h4>
     <p>使い方はとっても簡単。</p>
 
-    <pre class="code lang-sh">perl -MO=Xref ***.pl</pre>
+    <pre class="code prettyprint lang-sh">perl -MO=Xref ***.pl</pre>
 <p>これで対象の Perl のソースコードを解析した結果を出力してくれます。<br />
 出力結果は以下のような感じになります(適当に加工しています)。</p>
 
-    <pre class="code">File /opt/local/lib/perl5/site_perl/5.12.3/JSON.pm
+    <pre class="code prettyprint">File /opt/local/lib/perl5/site_perl/5.12.3/JSON.pm
   Subroutine (definitions)
     Package JSON
       &amp;from_json        s123
@@ -72,11 +72,11 @@
     <h4>-r オプション</h4>
     <p>より本格的に使いたい場合は、 -r オプションをつけましょう。</p>
 
-    <pre class="code lang-sh">perl -MO=Xref,-r ***.pl</pre>
+    <pre class="code prettyprint lang-sh">perl -MO=Xref,-r ***.pl</pre>
 <p>このオプションをつけることで出力形式が変わります。<br />
 ファイルパス、パッケージ名、関数名、行番号、定義／使用している変数名などを機械的に処理しやすく出力してくれます。</p>
 
-    <pre class="code">/opt/local/lib/perl5/site_perl/5.12.3/JSON.pm JSON::to_json   139 main            @ _                used
+    <pre class="code prettyprint">/opt/local/lib/perl5/site_perl/5.12.3/JSON.pm JSON::to_json   139 main            @ _                used
 /opt/local/lib/perl5/site_perl/5.12.3/JSON.pm JSON::to_json   145 (lexical)       $ json             intro
 /opt/local/lib/perl5/site_perl/5.12.3/JSON.pm JSON::to_json   147 main            @ _                used
 /opt/local/lib/perl5/site_perl/5.12.3/JSON.pm JSON::to_json   148 (lexical)       $ opt              intro

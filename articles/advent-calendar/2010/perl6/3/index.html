@@ -20,7 +20,7 @@
 PDFは英語ですが順を追ってPerl6の機能を紹介してあるので、ざっと一度読んでおくとよいでしょう。<a href="https://github.com/rakudo/star/raw/master/skel/docs/UsingPerl6-draft.pdf">&#x3053;&#x3061;&#x3089;</a>でオンラインで読めるので、インストールするほどじゃないけど興味があるな、という方もぜひ読んでみてください。<br />
 cheetsheet.txtの中身はこんなのです。</p>
 
-    <pre class="code">
+    <pre class="code prettyprint">
 Perl 6 cheat sheet v2                                                »ö«
 
 SIGILS    MAJOR/MINOR CONTEXTS         ACCESS ARRAYS      HASHES
@@ -93,7 +93,7 @@ $*PID  process id       « »    word boundary    \w == &lt;+alpha+digit+[_]&gt;
     <h3>「こんなことがしたいのに！」というとき</h3>
     <p>たとえば日付がらみの処理がしたいけど、どんなメソッドがあるのかわからない、そんなときは</p>
 
-    <pre class="code">$ cd ~/tmp/rakudo-star-2010.11/rakudo/t/spec
+    <pre class="code prettyprint">$ cd ~/tmp/rakudo-star-2010.11/rakudo/t/spec
 $ grep -lr date *</pre>
 <p>などとしてテストをほじくります。するとS32-temporal/Date.tというのが見つかるので、この中身をまねしてみればいいだろう、ということになります。<br />
 注意しなければいけないのは、tディレクトリに入っている.tファイルだからといってテストされるとは限らない点です。t/spectest.dataというファイルに実際にテストされるファイルが列記されていて、たまにコメントアウトされてます。その場合、テストはあるけどそのバージョンのperl6ではそのとおりには動かないと思った方が良いでしょう。</p>

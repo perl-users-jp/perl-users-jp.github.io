@@ -22,7 +22,7 @@ nekokakさんに誘われて、引き受けたものの、DBIxとか特に知ら
     <p>とあるサービスのユーザー情報を格納するテーブルを設計するとします。<br />
 そのサービスでは、ユーザーが開発言語に何を使うかを登録していて、使う言語の組み合わせで検索することが多いとします。</p><p>そんな時に、</p>
 
-    <pre class="code"> use_c
+    <pre class="code prettyprint"> use_c
  use_c_plus_plus
  use_java
  use_php
@@ -31,15 +31,15 @@ nekokakさんに誘われて、引き受けたものの、DBIxとか特に知ら
  ...</pre>
 <p>のように延々とフラグを作ってしまうと、これらをAND/OR条件で検索しようと思うと、</p>
 
-    <pre class="code lang-sql">use_c = 1 AND use_c_plus_plus = 1 
+    <pre class="code prettyprint lang-sql">use_c = 1 AND use_c_plus_plus = 1 
 use_c = 1 AND (use_java = 1 OR use_c_plus_plus = 1)</pre>
 <p>みたいなことになりますが、これが30言語くらいあったら、割と大変な事になりそうです。<br />
 また、フラグを追加したいと思ったら、ALTER TABLEしないといけません。レコード数が多いと厳しいですね。</p><p>そんな時に、ビットを使ってみると良いかも知れません。例えば次のようなフィールドを作ります。</p>
 
-    <pre class="code">use_language</pre>
+    <pre class="code prettyprint">use_language</pre>
 <p>ここに入る値は以下の値をビットORしたものです。</p>
 
-    <pre class="code">1 ... C
+    <pre class="code prettyprint">1 ... C
 2 ... C++
 4 ... JAVA
 8 ... C#
@@ -50,7 +50,7 @@ use_c = 1 AND (use_java = 1 OR use_c_plus_plus = 1)</pre>
 ...</pre>
 <p>つまり、</p>
 
-    <pre class="code">use_language が 3 であれば、C、C++を使える人(1 | 2 = 3)
+    <pre class="code prettyprint">use_language が 3 であれば、C、C++を使える人(1 | 2 = 3)
 use_language が 33 であれば、 C、Perlを使える人(1 | 32 = 33)</pre>
 <p>といった具合です。</p>
 
@@ -59,26 +59,26 @@ use_language が 33 であれば、 C、Perlを使える人(1 | 32 = 33)</pre>
     <h3>ビットを使って条件を作る</h3>
     <p>このようなフィールドの場合、次のような条件で検索したい時に簡単に書けます。</p><p>C と C++ を使える人</p>
 
-    <pre class="code lang-sql">use_language &amp; 3 == 3</pre>
+    <pre class="code prettyprint lang-sql">use_language &amp; 3 == 3</pre>
 <p>Perl または、Pythonを使える人</p>
 
-    <pre class="code lang-sql">use_language &amp; 96</pre>
+    <pre class="code prettyprint lang-sql">use_language &amp; 96</pre>
 <p>C と、Java または C++が使える人</p>
 
-    <pre class="code lang-sql">use_language &amp; 1 AND use_language &amp; 6</pre>
+    <pre class="code prettyprint lang-sql">use_language &amp; 1 AND use_language &amp; 6</pre>
 <p>PHP以外を使える人</p>
 
-    <pre class="code lang-sql">use_language &amp; ~ 16</pre>
+    <pre class="code prettyprint lang-sql">use_language &amp; ~ 16</pre>
 <p>といった感じです。</p><p>Webのformを書く時でも、</p>
 
-    <pre class="code lang-html">&lt;input type=&#34;checkbox&#34; name=&#34;use_language&#34; value=&#34;1&#34;&gt;C
+    <pre class="code prettyprint lang-html">&lt;input type=&#34;checkbox&#34; name=&#34;use_language&#34; value=&#34;1&#34;&gt;C
 &lt;input type=&#34;checkbox&#34; name=&#34;use_language&#34; value=&#34;2&#34;&gt;C++
 &lt;input type=&#34;checkbox&#34; name=&#34;use_language&#34; value=&#34;4&#34;&gt;JAVA
 &lt;input type=&#34;checkbox&#34; name=&#34;use_language&#34; value=&#34;8&#34;&gt;C#
 ...</pre>
 <p>みたいにして、</p>
 
-    <pre class="code lang-perl"> my $use_langulage = 0;
+    <pre class="code prettyprint lang-perl"> my $use_langulage = 0;
  foreach my $bit ($q-&gt;param(&#39;use_language&#39;)) {
      $use_language |= $bit;
  }</pre>
@@ -89,7 +89,7 @@ use_language が 33 であれば、 C、Perlを使える人(1 | 32 = 33)</pre>
     <h3>値から文字への変換</h3>
     <p>値から文字列を表示する場合のためには、以下のようなコンスタントを作ります。</p>
 
-    <pre class="code lang-perl"> use constant BIT2LANGUAGE =&gt; {
+    <pre class="code prettyprint lang-perl"> use constant BIT2LANGUAGE =&gt; {
     1      =&gt; &#39;C&#39;,
     1 &lt;&lt; 1 =&gt; &#39;C++&#39;,
     1 &lt;&lt; 2 =&gt; &#39;JAVA&#39;,
@@ -101,7 +101,7 @@ use_language が 33 であれば、 C、Perlを使える人(1 | 32 = 33)</pre>
  };</pre>
 <p>次のようにすれば、使える言語の文字列が取得できます。</p>
 
-    <pre class="code lang-perl"> my $bit2lang = BIT2LANGUAGE;
+    <pre class="code prettyprint lang-perl"> my $bit2lang = BIT2LANGUAGE;
  my @lang;
  my $use_language = $row-&gt;use_language;
  foreach my $bit (keys %$bit2lang) {
@@ -114,7 +114,7 @@ use_language が 33 であれば、 C、Perlを使える人(1 | 32 = 33)</pre>
     <p>TTならプラグインやフィルタ、Text::Xslateなら関数を作ればいいんじゃないかと思います。<br />
 Text::Xslateなら、コンストラクタに次のように渡せば良いでしょう。</p>
 
-    <pre class="code lang-perl">  Text::Xslate-&gt;new(
+    <pre class="code prettyprint lang-perl">  Text::Xslate-&gt;new(
     {functions =&gt; {
        bit_and =&gt; sub { ($_[0] + 0) &amp; $_[1] },
     }},
@@ -122,7 +122,7 @@ Text::Xslateなら、コンストラクタに次のように渡せば良いで�
 <p>※文字同士のビットANDになってしまうと希望と違う結果になってしまうので、片方に + 0 をしています。<br />
 テンプレート内では以下のように。</p>
 
-    <pre class="code"> [% IF bit_and(use_language, 32); &#39;Perl使い&#39;; END %]</pre>
+    <pre class="code prettyprint"> [% IF bit_and(use_language, 32); &#39;Perl使い&#39;; END %]</pre>
 
 </div>
 <div class="section">

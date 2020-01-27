@@ -19,7 +19,7 @@ Acme::dan とかになってないですが、プラグマなので dan とし�
     <h4>dan を入れよう</h4>
     <p>dan は既に CPAN レディなので普通に cpanm で入れられます。</p>
 
-    <pre class="code">$ cpanm dan
+    <pre class="code prettyprint">$ cpanm dan
 --&gt; Working on dan
 Fetching http://search.cpan.org/CPAN/authors/id/Y/YA/YAPPO/dan-0.551.2.tar.gz ... OK
 Configuring dan-0.551.2 ... OK
@@ -32,7 +32,7 @@ Successfully installed dan-0.551.2</pre>
     <h4>dan を使おう</h4>
     <p>使い方はとっても簡単で</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use feature &#39;say&#39;;
 
@@ -65,7 +65,7 @@ say &#39;だ！&#39;;</pre>
     <h4>hinthash の件</h4>
     <p>perl 5.10 から、ユーザが誰でもプラグマを実装出来るように、その実装をするために必要な %^H が整備されてます。 5.8 の時代からあったんですが、気軽に使えるような状況ではなかったんですね。</p><p>もう必要な所だけ説明すると BEGIN フェーズ(例えば import/unimport)の時に %^H を操作しておいて、あとから caller() を読んだ時に、 caller() を読んだスコープの中での hintash の内容が取得できるという、説明すると面倒なのでコードを貼ると</p>
 
-    <pre class="code lang-perl">package yappo {
+    <pre class="code prettyprint lang-perl">package yappo {
     use strict;
     use warnings;
 
@@ -85,7 +85,7 @@ say &#39;だ！&#39;;</pre>
 1;</pre>
 <p>こういった yappo.pm というモジュールを用意しておいて</p>
 
-    <pre class="code lang-perl">use common::sense;
+    <pre class="code prettyprint lang-perl">use common::sense;
 require yappo;
 
 say yappo::is_hentai() ? &#39;hentai&#39; : &#39;normal&#39;;
@@ -118,7 +118,7 @@ normal</p>
     <h4>エンコーディング処理を乗っ取る</h4>
     <p>まったくもって今や使うべきでは無いものなんですが</p>
 
-    <pre class="code lang-perl">use encoding &#34;euc-jp&#34;
+    <pre class="code prettyprint lang-perl">use encoding &#34;euc-jp&#34;
 my $text = &#39;にほんご&#39;;</pre>
 <p>とかすると、文字リテラルを euc-jp として decode してから $text に自動的に定義するようになります。</p><p>dan.pm では、これを行うための仕組みに悪ふざけをして文字リテラルの読み込み処理に細工を施しています。</p>
 
@@ -126,7 +126,7 @@ my $text = &#39;にほんご&#39;;</pre>
     <h5>文字リテラル読み込みを行うクラスを奪う</h5>
     <p>${^ENCODING} という特殊変数に、文字リテラルを読み込むためのインスタンスを入れると、それ以後の文字列読み取り処理がそのインスタンスを介して行われるようになります。</p><p>たとえば dan.pm ではだいたい以下のような事をしてます。</p>
 
-    <pre class="code lang-perl">${^ENCODING} = bless {}, &#39;dan&#39;;</pre>
+    <pre class="code prettyprint lang-perl">${^ENCODING} = bless {}, &#39;dan&#39;;</pre>
 
 </div>
 <div class="section">

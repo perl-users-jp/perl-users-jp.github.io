@@ -18,10 +18,10 @@
     <h4>とりあえずつかおう！</h4>
     <p>まずはインストールです。</p>
 
-    <pre class="code">$ cpanm Geo::Coordinates::Converter</pre>
+    <pre class="code prettyprint">$ cpanm Geo::Coordinates::Converter</pre>
 <p>で入ります簡単ですね。</p><p>使い方はとっても簡単で</p>
 
-    <pre class="code lang-perl">use common::sense;
+    <pre class="code prettyprint lang-perl">use common::sense;
 use Geo::Coordinates::Converter;
 
 my $geo = Geo::Coordinates::Converter-&gt;new(
@@ -35,15 +35,15 @@ say $point-&gt;lat;
 say $point-&gt;lng;</pre>
 <p>のように書くと</p>
 
-    <pre class="code">35.39.09.225
+    <pre class="code prettyprint">35.39.09.225
 139.39.32.434</pre>
 <p>と表示されます。ここで肝なのは</p>
 
-    <pre class="code lang-perl">my $point = $geo-&gt;convert( tokyo =&gt; &#39;dms&#39; );</pre>
+    <pre class="code prettyprint lang-perl">my $point = $geo-&gt;convert( tokyo =&gt; &#39;dms&#39; );</pre>
 <p>で、 new して作った geo オブジェクトを tokyo 測地系に変換しつつ dms フォーマットにしてくれます。<br />
 dgree のままでいいけど tokyo 測地系に変換したいよ！というときは</p>
 
-    <pre class="code lang-perl">my $point = $geo-&gt;convert( &#39;tokyo&#39; );</pre>
+    <pre class="code prettyprint lang-perl">my $point = $geo-&gt;convert( &#39;tokyo&#39; );</pre>
 <p>と、書くだけでokです。このケースは例えば Google Maps から取得した緯度経度を使ってライブドア地図を表示したい時に有効です。 Google Maps は wgs84 測地系でライブドアの地図は tokyo 測地系だから、測地系の変換処理が必要になるのでした。</p>
 
 </div>
@@ -53,7 +53,7 @@ dgree のままでいいけど tokyo 測地系に変換したいよ！という�
 まぁ、それはどーでも良いんですが携帯の各キャリアでの位置情報の取り扱いが多様化していて一々キャリア別のコードなんか書いてらんないじゃんすか。<br />
 そこで、日本の携帯Perl業界のドンの clouder さんが<a href="http://blog.clouder.jp/archives/001015.html">HTTP::MobileAgent::Plugin::Locator</a>を書いたので、それを使うとよいですよ！</p>
 
-    <pre class="code lang-perl">use HTTP::MobileAgent;
+    <pre class="code prettyprint lang-perl">use HTTP::MobileAgent;
 use HTTP::MobileAgent::Plugin::Locator;
 
 my $req      = Plack::Request-&gt;new($env);

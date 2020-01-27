@@ -15,7 +15,7 @@
         <p>こんにちは、冬なのに脇からの発汗が凄まじい<a href="http://twitter.com/dameninngenn">dameninngenn</a>です。<br />
 脇周りが白くなってるインナーを確認してはニッコリする毎日です。</p><p>さて、先日<a href="http://search.cpan.org/~dameo/Acme-W-0.03/lib/Acme/W.pm">Acme::W</a>なるモジュールを書いてみましたので今回はその紹介をさせて頂きます。</p><p>このAcme::Wというモジュールも<a href="/articles/advent-calendar/2010/acme/8">acme Track 8日目</a>を担当された<a href="http://d.hatena.ne.jp/hide_o_55/">hide_o_55さん</a>の<a href="https://github.com/hideo55/p5-Acme-Tsu">Acme::Tsu</a>と同様にソース書き換え系のモジュールです。</p><p>使い方は簡単。cpanからAcme::Wをインストールし、先頭に「use Acme::W;」と書くだけです。</p>
 
-    <pre class="code lang-perl">use Acme::W;
+    <pre class="code prettyprint lang-perl">use Acme::W;
 
 use strict;
 use warnings;
@@ -23,11 +23,11 @@ use warnings;
 print &#34;Hello Acme World!!\n&#34;;</pre>
 <p>上記のスクリプトを実行すると</p>
 
-    <pre class="code">% perl w.pl
+    <pre class="code prettyprint">% perl w.pl
 Hello Acme World!!</pre>
 <p>と表示され、ファイルが下記のように書き換わります。</p>
 
-    <pre class="code lang-perl">use Acme::W;
+    <pre class="code prettyprint lang-perl">use Acme::W;
 
 WwwWw strict;
 WwwWw warnings;
@@ -52,7 +52,7 @@ print &#34;Hello Acme World!!\n&#34;;
 (※1 現実は非情です。決して真似しないでください。)<br />
 (※2 svnやgitなどのバージョン管理システムを使っていても、真似しないほうが平和かもしれません。)</p><p>Acme::Wではコメント文やクォートで囲まれた箇所は置換の対象としていません。</p><p>気になるあの子にどうしてもサプライズメッセージを伝えたい場合はクォート部を読みにくくするために<a href="/articles/advent-calendar/2010/sym/">記号プログラミング</a>を組み合わせてみればいいのではないでしょうか。</p><p><a href="/articles/advent-calendar/2010/sym/5">sym Track 5日目</a>を担当されたsugyanさんのやり方で書いてみましょう。</p>
 
-    <pre class="code lang-perl">use Acme::W;
+    <pre class="code prettyprint lang-perl">use Acme::W;
 
 WwwWw strict;
 WwwWw warnings;

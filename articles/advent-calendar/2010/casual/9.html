@@ -20,19 +20,19 @@
     <h4>1. インストール</h4>
     <p><a href="http://search.cpan.org/~danjou/Net-Google-Spreadsheets/">Net::Google::Spreadsheets</a>はCPANに登録されてるのでcpan系コマンドで入ります。</p>
 
-    <pre class="code lang-sh"># cpanm Net::Google::Spreadsheets</pre>
+    <pre class="code prettyprint lang-sh"># cpanm Net::Google::Spreadsheets</pre>
 
 </div>
 <div class="section">
     <h4>2. Config::Pitを使う</h4>
     <p>GoogleアカウントのパスワードをスクリプトにハードコーディングしないためにConfig::Pitを使いましょう。</p>
 
-    <pre class="code lang-sh"># cpanm Config::Pit</pre>
+    <pre class="code prettyprint lang-sh"># cpanm Config::Pit</pre>
 
-    <pre class="code lang-sh">% ppit set google.com</pre>
+    <pre class="code prettyprint lang-sh">% ppit set google.com</pre>
 <p>でusernameとpasswordを$EDITORを使って書きこむか、 </p>
 
-    <pre class="code lang-sh">% perl -MConfig::Pit -e&#39;Config::Pit::set(&#34;google.com&#34;, data=&gt;{ username=&gt;&#34;dankogai&#34;, password=&gt;&#34;kogaidan&#34; })&#39;</pre>
+    <pre class="code prettyprint lang-sh">% perl -MConfig::Pit -e&#39;Config::Pit::set(&#34;google.com&#34;, data=&gt;{ username=&gt;&#34;dankogai&#34;, password=&gt;&#34;kogaidan&#34; })&#39;</pre>
 <p>というようなワンライナーでパスワードを保存しておきます。</p>
 
 </div>
@@ -42,7 +42,7 @@
 一旦ブラウザで表計算書類をひらいてアドレスバーの「<a href="https://spreadsheets.google.com/ccc?key={キー文字列}">https://spreadsheets.google.com/ccc?key={キー文字列}</a> 」を調べておきます。そしてシートの名前も控えておきます。<br />
 仮に「hogefugafoobar」「blogs.com ネタ蔵」の「url」列だとすると</p>
 
-    <pre class="code lang-perl">#!/usr/bin/env perl
+    <pre class="code prettyprint lang-perl">#!/usr/bin/env perl
 use strict;
 use warnings;
 use Config::Pit;
@@ -68,7 +68,7 @@ say map{ $_-&gt;content-&gt;{url} } @rows;</pre>
     <h4>4. キー文字列をConfig::Pitに収納する</h4>
     <p>スクリプト内にGoogle Docsキー文字列を埋め込まないでConfig::Pitにsheetkeyという項目を増やしてそこから読み取るように変更してます。</p>
 
-    <pre class="code lang-perl">my $config = pit_get(&#39;google.com&#39;, require =&gt; {
+    <pre class="code prettyprint lang-perl">my $config = pit_get(&#39;google.com&#39;, require =&gt; {
         username =&gt; &#39;your Google ID&#39;, 
         password =&gt; &#39;your Google password&#39;, 
         sheetkey =&gt; &#39;your Spreadsheets key&#39;, 
@@ -86,7 +86,7 @@ my $sheet = $service-&gt;spreadsheet(
     <p>add_rowメソッドで新しい行に書きこむことが簡単にできます。<br />
 （date列には投稿日の日付を自動的に生成して入れたいのでTime::Pieceを使っています）</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use Config::Pit;
 use Net::Google::Spreadsheets;
@@ -126,7 +126,7 @@ my $new_row = $worksheet-&gt;add_row(
     <h4>6. CUIで引数からURLを取得</h4>
     <p>伏原さんの書いたoptsを使います。まぁ普通は$ARGV[0]から取ればいいんですが。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use Config::Pit;
 use Net::Google::Spreadsheets;
@@ -167,7 +167,7 @@ my $new_row = $worksheet-&gt;add_row(
 );</pre>
 <p>これで</p>
 
-    <pre class="code lang-sh">% perl ./blogs_addrow.pl --url=http://www.example.com</pre>
+    <pre class="code prettyprint lang-sh">% perl ./blogs_addrow.pl --url=http://www.example.com</pre>
 <p>というようなコマンドラインからGoogle Docsの表計算書類に一発投稿が出来たりします。</p>
 
 </div>

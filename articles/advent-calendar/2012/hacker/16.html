@@ -40,7 +40,7 @@ IFは用意されていませんが、構造的にはParserを差し替えられ
 これによって非常にカジュアルにHTMLのバリデーションをさせる事が出来ます。</p><br />
 <p>これはdocomoが提供しているistyle属性を許可する例です。<a href="#fn1" title="ドキュメンテーションするのを忘れていましたが、各エラーで$paramに渡ってくる値は、現状%HTML::Lint::Error::errorsの値を見て書くというワイルドな仕様になっております。">*1</a></p>
 
-    <pre class="code lang-perl">use HTML::Lint::Pluggable;
+    <pre class="code prettyprint lang-perl">use HTML::Lint::Pluggable;
 
 my $lint = HTML::Lint::Pluggable-&gt;new;
 $lint-&gt;load_plugin(WhiteList =&gt; +{
@@ -73,7 +73,7 @@ FieldHashについては、id:gfx さんの記事に詳しく書かれていま�
 FieldHashにメソッドの実体を保持しつつ、それを呼ぶような作りになっています。<br />
 文章で説明するのがむずかしいのでコードこぴぺします。日本語むずかしい！</p>
 
-    <pre class="code lang-perl">fieldhash my %OVERRIDED_CODES;
+    <pre class="code prettyprint lang-perl">fieldhash my %OVERRIDED_CODES;
 my %ROOTCODE;
 sub override {
     my($self, $method, $code) = @_;
@@ -113,7 +113,7 @@ sub override {
 また、コンソールを触る事が出来ない人には使う事ができません。</p><p>そこで、このチェックをPlack::Middlewareでやる事によってエラーを常に可視化出来るようにしました。<br />
 これを使うとこんな具合でどのようなエラーがあるのかを表示させる事が出来ます。</p>
 
-    <pre class="code lang-perl">use Plack::Builder;
+    <pre class="code prettyprint lang-perl">use Plack::Builder;
 
 my $error_html = q{
 &lt;!DOCTYPE html&gt;
@@ -140,7 +140,7 @@ builder {
 };</pre>
 <p>istyle属性のエラーうぜー！！ってなったときは以下のように無視させる事も出来ます。</p>
 
-    <pre class="code lang-perl">use Plack::Builder;
+    <pre class="code prettyprint lang-perl">use Plack::Builder;
 
 my $error_html = q{
 &lt;!DOCTYPE html&gt;
@@ -188,9 +188,9 @@ HTMLの構文エラーが出たままコミットされる事が減り、消え�
 instance単位でプラグイン読み込める機構が嬉しい場面は稀ですが、こういう原理で作る事ができるという事は覚えておいて損は無いかと思います。<br />
 また、instance単位でこういう事をやる場合、こうやって自作するよりMo[ou]seのRoleを使って作った方が断然楽なのでオススメです。</p><p>次回はサンタさんですかね？イエス・キリストですかね？お楽しみに！！</p>
 
-</div>HASH(0x55c1765c4a78)
-HASH(0x55c1765d9790)
-HASH(0x55c1765c4b98)
+</div>HASH(0x55809a918ee0)
+HASH(0x55809a983da0)
+HASH(0x55809a983f50)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

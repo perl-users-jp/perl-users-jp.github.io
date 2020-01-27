@@ -37,7 +37,7 @@
 <div class="section">
     <h4>サンプルコード</h4>
     
-    <pre class="code lang-perl">
+    <pre class="code prettyprint lang-perl">
 use WebService::Async;
 use WebService::Async::Parser::JSON;
 my $wa = WebService::Async-&gt;new(
@@ -59,7 +59,7 @@ $wa-&gt;send_request;    # sending three requests in parallel.</pre>
 <div class="section">
     <h4>実行結果</h4>
     
-    <pre class="code">orange =&gt; arancione       ※英語→イタリア語
+    <pre class="code prettyprint">orange =&gt; arancione       ※英語→イタリア語
 banana =&gt; la banane       ※英語→フランス語
 apple =&gt; mela             ※英語→イタリア語</pre>
 
@@ -83,7 +83,7 @@ apple =&gt; mela             ※英語→イタリア語</pre>
 <div class="section">
     <h4>サンプルコード</h4>
     
-    <pre class="code lang-perl">
+    <pre class="code prettyprint lang-perl">
 use Cache::Memcached;
 use WebService::Async;
 use WebService::Async::Parser::JSON;
@@ -128,7 +128,7 @@ my $result = $wa-&gt;send_request()</pre>
 <div class="section">
     <h4>実行結果 一回目: キャッシュにセットされる</h4>
     
-    <pre class="code">[Wed Sep 29 10:23:25 2010] [info] Does not hit any caches: http://ajax.googleapis.com/ajax/services/language/translate?q=banana&amp;v=1.0&amp;langpair=en%7Cfr at /opt/perl/lib/site_perl/5.10.0/WebService/Async.pm line 111
+    <pre class="code prettyprint">[Wed Sep 29 10:23:25 2010] [info] Does not hit any caches: http://ajax.googleapis.com/ajax/services/language/translate?q=banana&amp;v=1.0&amp;langpair=en%7Cfr at /opt/perl/lib/site_perl/5.10.0/WebService/Async.pm line 111
 [Wed Sep 29 10:23:25 2010] [info] Does not hit any caches: http://ajax.googleapis.com/ajax/services/language/translate?q=apple&amp;v=1.0&amp;langpair=en%7Cfr at /opt/perl/lib/site_perl/5.10.0/WebService/Async.pm line 111
 [Wed Sep 29 10:23:25 2010] [debug] Cache set at: http://ajax.googleapis.com/ajax/services/language/translate?q=apple&amp;v=1.0&amp;langpair=en%7Cfr at /opt/perl/lib/site_perl/5.10.0/WebService/Async.pm line 111
 [Wed Sep 29 10:23:27 2010] [debug] Cache set at: http://ajax.googleapis.com/ajax/services/language/translate?q=banana&amp;v=1.0&amp;langpair=en%7Cfr at /opt/perl/lib/site_perl/5.10.0/WebService/Async.pm line 111</pre>
@@ -137,7 +137,7 @@ my $result = $wa-&gt;send_request()</pre>
 <div class="section">
     <h4>実行結果 二回目： キャッシュ結果が使われる</h4>
     
-    <pre class="code">[Wed Sep 29 10:12:52 2010] [info] Cache hit: http://ajax.googleapis.com/ajax/services/language/translate?q=banana&amp;v=1.0&amp;langpair=en%7Cfr?q=banana&amp;v=1.0&amp;langpair=en%7Cfr at /opt/perl/lib/site_perl/5.10.0/WebService/Async.pm line 111
+    <pre class="code prettyprint">[Wed Sep 29 10:12:52 2010] [info] Cache hit: http://ajax.googleapis.com/ajax/services/language/translate?q=banana&amp;v=1.0&amp;langpair=en%7Cfr?q=banana&amp;v=1.0&amp;langpair=en%7Cfr at /opt/perl/lib/site_perl/5.10.0/WebService/Async.pm line 111
 [Wed Sep 29 10:12:52 2010] [info] Cache hit: http://ajax.googleapis.com/ajax/services/language/translate?q=apple&amp;v=1.0&amp;langpair=en%7Cfr?q=apple&amp;v=1.0&amp;langpair=en%7Cfr at /opt/perl/lib/site_perl/5.10.0/WebService/Async.pm line 111</pre>
 
 </div>

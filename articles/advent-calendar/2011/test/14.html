@@ -14,7 +14,7 @@
 
         <p>こんにちは。ikasam_a です。</p><p>今日は、以前のテスト分類のお話とは一転して Test::Exception というモジュールを紹介します。</p><p>これを使うと、実行中に die しちゃうようなコードを気軽にテストできます。</p><p>例えば、アイコンを作りたいんだけど不正な状態だったら例外投げちゃう感じのクラスがあるとしますね。例ですよ。そんなクラスのテストもこんな感じで書けるようになります。</p>
 
-    <pre class="code lang-perl">use Test::More;
+    <pre class="code prettyprint lang-perl">use Test::More;
 use Test::Exception;
 use My::Icon;
 
@@ -29,7 +29,7 @@ dies_ok {
 done_testing;</pre>
 <p>読んで字のごとくですね。lives_ok はブロックの中で例外が発生しなければ ok になります。一方 dies_ok 例外が発生すると ok になります。</p><p>このテストを実行するとこんな感じですね。</p>
 
-    <pre class="code">$ prove -lvc 01_cute.t
+    <pre class="code prettyprint">$ prove -lvc 01_cute.t
 01_cute.t .. 
 ok 1 - icon is cute
 ok 2 - icon is not cute
@@ -40,7 +40,7 @@ Files=1, Tests=2,  0 wallclock secs ( 0.02 usr  0.01 sys +  0.01 cusr  0.00 csys
 Result: PASS</pre>
 <p>簡単ですね。</p><p>Test::Exception には throws_ok というのもあって、これは発生した例外メッセージや例外オブジェクトのマッチングができるので、dies_ok より詳しい条件で例外チェックができます。</p>
 
-    <pre class="code lang-perl">throws_ok {
+    <pre class="code prettyprint lang-perl">throws_ok {
     open my $fh, &#39;&lt;&#39;, &#39;not_existent_file&#39; or die $!;
 } qr/No such file/, &#39;does not open file&#39;;
 

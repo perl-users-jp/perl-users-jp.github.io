@@ -18,20 +18,20 @@
     <h4>自動的にカバレッジを計測しましょう</h4>
     <p>（Jenkinsじゃなくてもそうですが）Devel::Coverでカバレッジを計測するならPERL5OPTで渡すのが一番簡単ですね。</p>
 
-    <pre class="code">    export PERL5OPT=&#34;-MDevel::Cover&#34;</pre>
+    <pre class="code prettyprint">    export PERL5OPT=&#34;-MDevel::Cover&#34;</pre>
 <p>ちなみにJenkinsでテストしてるときにはなるたけテストに使っているPerlから見えるところに余計な依存ライブラリを置きたくないので、Devel::Coverはそれだけ別の場所にいれてます。こうすればDevel::Coverを使う時以外はDevel::Coverをインストールしてあるディレクトリを有効化しないようにしてます。</p>
 
-    <pre class="code">    cpanm -l/path/to/devel-cover Devel::Cover</pre>
+    <pre class="code prettyprint">    cpanm -l/path/to/devel-cover Devel::Cover</pre>
 <p>このように別パスに入れておいて、カバレッジ計測するジョブでだけPERL5OPTでこのパスを有効にしまうｓ：</p><p>    export PERL5OPT="-Mlib=/path/to/devel-cover/lib/perl5 -MDevel::Cover"</p><p>ちなみにDevel::Coverのオプションも有効にしたい場合はそれもここで指定すると良いです。自分の場合は プロジェクトの libディレクトリだけ計測対象にしたいので、以下のようにしています(っていうかytoriiさんに調べてもらいました！）：</p>
 
-    <pre class="code">    export PERL5OPT=&#34;-Mlib=/path/to/devel-cover/lib/perl5 -MDevel::Cover=+ignore,.*,+select,^lib&#34;</pre>
+    <pre class="code prettyprint">    export PERL5OPT=&#34;-Mlib=/path/to/devel-cover/lib/perl5 -MDevel::Cover=+ignore,.*,+select,^lib&#34;</pre>
 <p>そしてこの状態でテストを走らせます</p>
 
-    <pre class="code">    make test
+    <pre class="code prettyprint">    make test
     # もしくは prove ...</pre>
 <p>こうすると cover_db/ ディレクトリ以下にDevel::Cover形式のカバレッジデータが作成されます。</p><p>あとは</p>
 
-    <pre class="code">    # XXX /path/to/devel-cover内にインストールしてるので、ここで
+    <pre class="code prettyprint">    # XXX /path/to/devel-cover内にインストールしてるので、ここで
     # ちゃんとパス指定しないとみつけてくれないッ
     export PATH=&#34;/path/to/devel-cover/bin:$PATH&#34;
     cover -report html</pre>
@@ -42,10 +42,10 @@
     <h4>Cloverで可視化</h4>
     <p>これで一応カバレッジはとれるわけですが、どうせJenkinsで動かすのだったらジョブのサマリーページでカバレッジの推移を見たいですよね。そこでJenkinsのプラグインから<a href="https://wiki.jenkins-ci.org/display/JENKINS/Clover+Plugin">Clover Plugin</a>を入れておきます。Clover自体はAtlassianのプロダクトで有償なのですが、プラグインは別にお金がかからないのでノープロブレムです。あとはこのプラグインが読み込める形のデータを用意しておけばよいだけです。</p><p>このClover用のデータを用意するには Devel::Cover::Rerpot::Cloverというのを使います。最初のDevel::Coverと同じパスにインストールしておきましょう。</p>
 
-    <pre class="code">    cpanm -l/path/to/devel-cover Devel::Cover::Report::Clover</pre>
+    <pre class="code prettyprint">    cpanm -l/path/to/devel-cover Devel::Cover::Report::Clover</pre>
 <p>そしてあとは先ほどのcover -report htmlの後に以下のように呼び出すとcover_db ディレクトリにclover.xmlというファイルが生成されます</p>
 
-    <pre class="code">    cover -report clover</pre>
+    <pre class="code prettyprint">    cover -report clover</pre>
 <p>もちろん、Devel::Coverの元々のHTMLがいらないのであればhtmlの方を消してもいいのですが、後述の理由によりhtmlも生成するのをおすすめします。</p><p>これで準備ができました。今度はJenkins側の設定をします。Clover Pluginをインストールしておくと、それ用の設定がジョブの設定ページに表示されますので "Clover カバレッジレポートを集計"にチェックを入れてください。現れる詳細設定で"Cloverレポート ディレクトリ"にcover_dbを設定してください。あとの設定はとりあえずそのままで大丈夫です。</p><p>これで準備完了です。このジョブを走らせるとカバレッジ情報が計測され、ジョブのサマリーページにカバレッジの推移情報が表示されるようになります。やったね！</p><p><img src="https://github.com/perl-users-jp/perl-advent-calendar/raw/master/2011/test/2011-12-20/jenkins.png" width="400" height="244" /></p>
 
 </div>

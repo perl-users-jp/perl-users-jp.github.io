@@ -14,7 +14,7 @@
 
         <p>こんばんは。<a href="http://www.twitter.jp/Songmu">Songmu</a>です。</p><p>さて、テストデータ等でランダム文字列がほしいときがあると思います。そんなときに役立つのがString::Randomです。</p><p>引数に独自記法を指定するrandpatternメソッドと、正規表現(のサブセット)を指定するrandregexメソッドに分かれています。とっつきやすいのはrandregexメソッドです。randpatternも自分でルールを追加したり出来るみたいなので、慣れれば便利なのかも知れません</p><p>で、String::Randomの情報はググると日本語でもいくつか有用な情報が出てくるので、詳しくはそっちをみてください（ぇ</p><p>このモジュールは本来的にはASCIIを出力することしか期待されていません。しかし裏技的な使い方ですが、use utf8してあると、randregexメソッド内に記述したマルチバイト文字を正しくハンドリングしてくれます。また、ブラケットと範囲指定を組み合わせることも可能です。</p><p>ということで、以下のようにすると、カタカナ3～9文字のランダム文字列や、漢字3～6文字のランダム文字列を出力させることができます。</p>
 
-    <pre class="code">use utf8;
+    <pre class="code prettyprint">use utf8;
 binmode STDOUT, &#39;:encoding(utf8)&#39;;
 use String::Random;
  
@@ -22,7 +22,7 @@ my $rand_maker = String::Random-&gt;new;
 say $rand_maker-&gt;randregex(&#39;[ーァ-ヶ]{3,9}&#39;) for 1..20;
 say $rand_maker-&gt;randregex(&#39;[一-龠]{3,6}&#39;) for 1..20;</pre>
 
-    <pre class="code">イジボ
+    <pre class="code prettyprint">イジボ
 ョガゼペトボテ
 イヶヂライペ
 ヘヒカミィリッチ
@@ -64,7 +64,7 @@ say $rand_maker-&gt;randregex(&#39;[一-龠]{3,6}&#39;) for 1..20;</pre>
 獹醢後嗘拹</pre>
 <p>カタカナはなかなか楽しい感じです。漢字はちょっと範囲が広すぎました。</p><p>Undocumentedでマルチバイトはテストされておらず、おそらく作者自身もマルチバイトをあまり意識していないと思うので、使うのであれば自己責任で。</p><p>で、やはり心配なのでrandregexの実装を見てみると、簡易オートマトンをナイーブに実装していて、指定された正規表現文字列を一文字一文字読み進めてパースしています。ブラケットの範囲指定の場合は、ordで文字の整数値を取得して、その範囲の文字全てを配列に格納して候補文字の集合を作っているようです。なので、マルチバイトが指定されても問題なく動きそうです。</p><p>以下最新バージョン(v0.22)の102～119行目部分を引用。</p>
 
-    <pre class="code">    &#39;[&#39; =&gt; sub {
+    <pre class="code prettyprint">    &#39;[&#39; =&gt; sub {
                my ($self, $ch, $chars, $string)=@_;
                my @tmp;
                while (defined($ch=shift(@{$chars})) &amp;&amp; ($ch ne &#34;]&#34;)) {

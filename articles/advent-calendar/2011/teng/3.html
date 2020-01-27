@@ -21,14 +21,14 @@ INSERTの方法を紹介します。</p><p></p>
     <p><br />
 SQLのINSERT文を実行するには以下のようにします。</p>
 
-    <pre class="code">my $row = $teng-&gt;insert(&#39;user&#39;, +{id =&gt; 1, name =&gt; &#39;nekokak&#39;});</pre>
+    <pre class="code prettyprint">my $row = $teng-&gt;insert(&#39;user&#39;, +{id =&gt; 1, name =&gt; &#39;nekokak&#39;});</pre>
 <p>このようにすると、</p>
 
-    <pre class="code">INSERT INTO user (id,name) VALUES(1,&#39;nekokak&#39;);</pre>
+    <pre class="code prettyprint">INSERT INTO user (id,name) VALUES(1,&#39;nekokak&#39;);</pre>
 <p>というようなSQLが実行され、データベースに新しい行が登録されます。</p><p>Tengのinsertメソッドの返り値として、insertしたtableに対応するRowクラスでインスタンス化された<br />
 Rowオブジェクトがかえってきますので、</p>
 
-    <pre class="code">$row-&gt;id;   # 1
+    <pre class="code prettyprint">$row-&gt;id;   # 1
 $row-&gt;name; # nekokak</pre>
 <p>といったようにアクセスすることが可能です。</p><p>Tengのinsertメソッドではinsertに利用したrowデータを元にRowオブジェクトを生成していますが、<br />
 rowオブジェクトが必要でない場合、無駄なコストが発生します。</p><p></p>
@@ -40,7 +40,7 @@ rowオブジェクトが必要でない場合、無駄なコストが発生し�
 fast_insertメソッドの引数はinsertメソッドと全く同じで、返却値がことなるだけです。<br />
 fast_insertの時の返却値はlast insert idとなります。</p>
 
-    <pre class="code">my $id = $teng-&gt;fast_insert(&#39;user&#39;, +{id =&gt; 2, name =&gt; &#39;xaicron&#39;});</pre>
+    <pre class="code prettyprint">my $id = $teng-&gt;fast_insert(&#39;user&#39;, +{id =&gt; 2, name =&gt; &#39;xaicron&#39;});</pre>
 
 </div>
 <div class="section">
@@ -49,7 +49,7 @@ fast_insertの時の返却値はlast insert idとなります。</p>
 毎回INSERT文を発行することになるので、パフォーマンスの劣化が激しくなります。<br />
 大量のデータをまとめてINSERTする場合はbulk_insertメソッドを利用してください。</p><p></p>
 
-    <pre class="code">$teng-&gt;bulk_insert(&#39;user&#39;, [
+    <pre class="code prettyprint">$teng-&gt;bulk_insert(&#39;user&#39;, [
     +{ id =&gt; 3, name =&gt; &#39;zigorou&#39;},
     +{ id =&gt; 4, name =&gt; &#39;hidek48&#39;},
 ]);</pre>
@@ -59,7 +59,7 @@ fast_insertの時の返却値はlast insert idとなります。</p>
 現在はPluginをloadしなくても利用できるようになっています。</p><br />
 <p>INSERTの実行方法を紹介しました。</p><p>自分で</p>
 
-    <pre class="code">INSERT INTO user (id,name) VALUES(?,?);</pre>
+    <pre class="code prettyprint">INSERT INTO user (id,name) VALUES(?,?);</pre>
 <p>のようなSQLをかいて実行するよりもかなり楽にかけるようになってますよね。<br />
 今回の例ではcolumn数が少ないので生SQLでもそんなに難しくはないですが、<br />
 多くのcolumnを持つtableのINSERT文を書くのは結構面倒です。<br />

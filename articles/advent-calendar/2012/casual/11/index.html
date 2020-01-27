@@ -14,7 +14,7 @@
 
         <p>こんにちは、週末海でマンボウを獲っていたらラギアクルスに襲われた<a href="http://twitter.com/hiratara">@hiratara</a>です。今回は<a href="http://pdl.perl.org/">Perl Data Language</a>について紹介します。</p><p>Perl Data LanguageとはMATLABやNumpy、Rなどと同様に、多次元配列を効率よく扱って数値計算を実現するためのライブラリです。cpanmで普通にインストールすれば使えますが、グラフを描画したり本格的な数値計算のライブラリである<a href="http://www.gnu.org/software/gsl/">GSL</a>のバインディングを利用したりする場合はhomebrewでゴニョゴニョしたりする必要があるので、多少頑張って下さい。</p><p>基本的にはpdl関数でオブジェクトに変更してから使います。</p>
 
-    <pre class="code lang-perl">use PDL;
+    <pre class="code prettyprint lang-perl">use PDL;
 my $pdl = pdl [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
 print $pdl;
 【実行結果】
@@ -25,7 +25,7 @@ print $pdl;
 ]</pre>
 <p>pdlが得意なのは、多次元配列内の要素の一括処理です。</p>
 
-    <pre class="code lang-perl">$pdl += 1;
+    <pre class="code prettyprint lang-perl">$pdl += 1;
 print $pdl;
 【実行結果】
 [
@@ -34,7 +34,7 @@ print $pdl;
  [1 1 2]
 ]</pre>
 
-    <pre class="code lang-perl">$pdl = asin ($pdl / 2);
+    <pre class="code prettyprint lang-perl">$pdl = asin ($pdl / 2);
 print $pdl;
 【実行結果】
 [
@@ -44,7 +44,7 @@ print $pdl;
 ]</pre>
 <p>様々な方法で多次元配列を作ることもできます。</p>
 
-    <pre class="code lang-perl">my $zero = zero 4, 2, 3;
+    <pre class="code prettyprint lang-perl">my $zero = zero 4, 2, 3;
 my $iter = iterate 4, 2, 3;
 print $zero;
 print $iter;
@@ -80,7 +80,7 @@ print $iter;
 ]</pre>
 <p>pdlコマンドというshellも着いてるので、結果を確認しながら計算を進めることもできます。</p>
 
-    <pre class="code lang-perl">% pdl
+    <pre class="code prettyprint lang-perl">% pdl
 perlDL shell v1.354_001
 ...
 pdl&gt; $x = grandom 100000
@@ -94,7 +94,7 @@ pdl&gt; p $x-&gt;var
 pdl&gt; $h = histogram $x, 0.1, -4, 80</pre>
 <p>グラフも出力できます。</p>
 
-    <pre class="code lang-perl">pdl&gt; use PDL::Graphics::PGPLOT
+    <pre class="code prettyprint lang-perl">pdl&gt; use PDL::Graphics::PGPLOT
  Graphics device/type (? to see list, default /NULL): ?
  PGPLOT v5.2.2 Copyright 1997 California Institute of Technology
  Interactive devices:
@@ -120,7 +120,7 @@ line: xmin=-4; xmax=; ymin=1; ymax=4034</pre>
     <h4>ベンチマークをとってみる</h4>
     <p>PDLを使うと何が嬉しいかというと、高速でかつメモリをほとんど使わないことです。生のC配列のような振る舞いをするのだから当然ですね。</p><p>では、一応比べてみましょう。grandomで正規分布に従う乱数を100万個用意し、その分散を求めて速度を比べてみます。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use Benchmark qw(cmpthese);
 use PDL;
@@ -168,11 +168,11 @@ pdl_v  303/s 5630%  639%    --</pre>
     <h4>さらに巨大な配列</h4>
     <p><a href="http://qiita.com/items/f479744bed8633338fb5">Perl&#x306E;&#x914D;&#x5217;&#x306E;&#x6DFB;&#x5B57;&#x306F;32bit&#x307E;&#x3067;&#x3089;&#x3057;&#x3044;</a>ですが、PDLではそれ以上でも使えます。デフォルトでは30bitまで扱えます。</p>
 
-    <pre class="code lang-perl">% perl -MPDL -e &#39;my $x = zeroes byte, 2 ** 30; print $x-&gt;slice(2 ** 30 - 1), &#34;\n&#34;;&#39;
+    <pre class="code prettyprint lang-perl">% perl -MPDL -e &#39;my $x = zeroes byte, 2 ** 30; print $x-&gt;slice(2 ** 30 - 1), &#34;\n&#34;;&#39;
 [0]</pre>
 <p>それ以上の大きさを扱いたい場合は、$PDL::BIGPDLをセットするとよいでしょう。</p>
 
-    <pre class="code lang-perl">% perl -MPDL -e &#39;my $x = zeroes byte, 2 ** 30 + 1; print $x-&gt;slice(2 ** 30), &#34;\n&#34;;&#39;
+    <pre class="code prettyprint lang-perl">% perl -MPDL -e &#39;my $x = zeroes byte, 2 ** 30 + 1; print $x-&gt;slice(2 ** 30), &#34;\n&#34;;&#39;
 Probably false alloc of over 1Gb PDL! (set $PDL::BIGPDL = 1 to enable) at Basic/Core/Core.pm.PL (i.e. PDL::Core.pm) line 854.
 % perl -MPDL -e &#39;$PDL::BIGPDL = 1; my $x = zeroes byte, 2 ** 30 + 1; print $x-&gt;slice(2 ** 30), &#34;\n&#34;;&#39;
 [0]</pre>
@@ -182,7 +182,7 @@ Probably false alloc of over 1Gb PDL! (set $PDL::BIGPDL = 1 to enable) at Basic/
     <h4>PDLで画像操作</h4>
     <p>PDLはメモリ効率が非常によいので、画像を丸っと取り込んでピクセル単位で弄るという操作にも向いています。以下のプログラムは色のついた画像を読み込んで白黒の画像になるようピクセル変換をするものです。</p>
 
-    <pre class="code lang-perl">use PDL;
+    <pre class="code prettyprint lang-perl">use PDL;
 use PDL::IO::Pic qw(rpic wpic);
 
 my $pdl = rpic &#34;bd31d4c5ff720790ec8b8f24cc4f5eb1.jpeg&#34;;

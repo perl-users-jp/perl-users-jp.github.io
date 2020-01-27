@@ -40,7 +40,7 @@
     <h5>syncの使用例 ( remote => local )</h5>
     <p>delete ( -d ), dry run ( -n ), verbose ( -v ) に作り手のこだわりを感じますね!!</p>
 
-    <pre class="code">&gt; dropbox-api sync dropbox:/product/checker/src /tmp/product -dnv
+    <pre class="code prettyprint">&gt; dropbox-api sync dropbox:/product/checker/src /tmp/product -dnv
 remote_base: /product/chrome-extentions/checker/src
 local_base: /private/tmp/product
 ** download **
@@ -85,19 +85,19 @@ skip reset.css</pre>
 <div class="section">
     <h4>envをげろげろーってするやつ</h4>
     
-    <pre class="code lang-perl">plackup -e &#34;sub { use Data::Dumper;warn Dumper(@_);[200, [], [&#39;ok&#39;]] }&#34;</pre>
+    <pre class="code prettyprint lang-perl">plackup -e &#34;sub { use Data::Dumper;warn Dumper(@_);[200, [], [&#39;ok&#39;]] }&#34;</pre>
 
 </div>
 <div class="section">
     <h4>give me 適当なヘッダー</h4>
     
-    <pre class="code lang-perl">plackup -e &#34;sub { [404, [&#39;X-XRDS-Location&#39;, &#39;http://www.example.jp/xrds&#39;], [&#39;404&#39;]] }&#34;</pre>
+    <pre class="code prettyprint lang-perl">plackup -e &#34;sub { [404, [&#39;X-XRDS-Location&#39;, &#39;http://www.example.jp/xrds&#39;], [&#39;404&#39;]] }&#34;</pre>
 
 </div>
 <div class="section">
     <h4>CPANにUPする前に欠かせない紳士のPODチェック</h4>
     
-    <pre class="code lang-perl">plackup -MDocLife::Pod -e &#39;DocLife::Pod-&gt;new( root =&gt; &#34;./lib&#34; )-&gt;to_app&#39;</pre>
+    <pre class="code prettyprint lang-perl">plackup -MDocLife::Pod -e &#39;DocLife::Pod-&gt;new( root =&gt; &#34;./lib&#34; )-&gt;to_app&#39;</pre>
 
 </div>
 </div>
@@ -110,7 +110,7 @@ skip reset.css</pre>
     <h3>ガラケーサイト with Plack::Session</h3>
     <p>Amon2::Setup::Flavor::MobileJP ! ※詳しくはamon2トラック参照</p><p>Amon2::Setup::Flavor::MobileJP !! ※大 (ry</p><p>Plack::MiddlewareでSession使う必要があり、</p><p><a href="HTTP::SessionからURIに埋めるヤツを複写して使っていたのですが、">HTTP::SessionからURIに埋めるヤツを複写して使っていたのですが、</a></p><p>今はcpanに上げています。</p><p>Plack::Session::State::URI使うとcookieダメな子も安心!</p><p>※CookieいけるときはCookieで的な事まではしてないです、ごめんよみんな</p>
 
-    <pre class="code lang-perl">enable &#39;Plack::Middleware::Session&#39;,
+    <pre class="code prettyprint lang-perl">enable &#39;Plack::Middleware::Session&#39;,
     %{ $config-&gt;{Session} },
     state =&gt; Plack::Session::State::URI-&gt;new(
         session_id_name =&gt; &#39;sss&#39;,
@@ -121,7 +121,7 @@ skip reset.css</pre>
     <h3>MySQL Casual with Teng</h3>
     <p>jsonの値MySQLに突っ込みたい時に xxx_json 的なカラムは自動en/decodeする的なコード</p><p>よくある_onをDateTimeにする奴とかと一緒な感じですね。 (詳しくはtengトラック参照)</p><p>やり方は色々あります、以下はあくまでサンプルという事でお願いします。</p>
 
-    <pre class="code lang-perl">sub db {
+    <pre class="code prettyprint lang-perl">sub db {
     my $c = shift;
     unless ( defined $c-&gt;{db} ) {
         my $conf = $c-&gt;config-&gt;{DBI}

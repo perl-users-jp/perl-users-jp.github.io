@@ -19,10 +19,10 @@
     <p><a href="https://github.com/rakudo/star/downloads">https://github.com/rakudo/star/downloads</a> にソースがあるので落としてきます。7月から毎月リリースされていますので、最新のものを選びましょう。以前インストールしたけどHDDの肥やしにしちゃってる方も、この際ですから最新版をインストールしてみましょう。そしてなんと、Windows用のインストーラもあります！Windowsユーザーの方はぜひインストールしてみてください。Windowsマシンが手元にないので、今回はunixっぽいシステムに入れることにします。<br />
 インストールするにはCコンパイラ、make、perl-5.8.4以降が必要なので、事前に準備しておきましょう。また、Unicodeをちゃんと扱うためにはICUライブラリが必要になります。Fedoraだとyumで入れておくのが楽でしょう。</p>
 
-    <pre class="code">$ sudo yum -y install libicu-devel</pre>
+    <pre class="code prettyprint">$ sudo yum -y install libicu-devel</pre>
 <p>では、~/tmpディレクトリをつくってそこにインストールしてみましょう。</p>
 
-    <pre class="code">$ cd
+    <pre class="code prettyprint">$ cd
 $ mkdir tmp
 $ wget https://github.com/downloads/rakudo/star/rakudo-star-2010.11.tar.gz
 $ tar xf rakudo-star-2010.11.tar.gz
@@ -33,12 +33,12 @@ $ make install</pre>
 <p>これでインストール完了です！<br />
 そしてPATHを通しておきましょう。.zshenvや.bashrcなどに以下のように追記し、設定を読み込みましょう。</p>
 
-    <pre class="code">export PATH=&#34;$HOME/.perl6/bin:$HOME/tmp/rakudo-star-2010.11/install/bin:$PATH&#34;</pre>
+    <pre class="code prettyprint">export PATH=&#34;$HOME/.perl6/bin:$HOME/tmp/rakudo-star-2010.11/install/bin:$PATH&#34;</pre>
 
-    <pre class="code">$ source ~/.zshenv</pre>
+    <pre class="code prettyprint">$ source ~/.zshenv</pre>
 <p>さぁ、記念すべきperl6の最初の実行です！</p>
 
-    <pre class="code">$ perl6 -v
+    <pre class="code prettyprint">$ perl6 -v
 
 This is Rakudo Perl 6, version 2010.11 built on parrot 2.10.1Null PMC access in get_bool()
 current instr.: &#39;perl6;Perl6;Compiler;version&#39; pc 326465 (src/gen/perl6-grammar.pir:16967)

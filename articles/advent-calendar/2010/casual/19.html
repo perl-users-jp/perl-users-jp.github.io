@@ -23,7 +23,7 @@ Twitterとの違いは、</p>
 <li>投稿の文字数制限がないこと(厳密にはデータ型の限界があるかと思います)</li>
 </ul><p>などがあります。</p><p>使ってみたいけれどSalesforceは有料でしょ？という質問があるかもしれませんが、実は、force.comのFree Editionを使えば、100名以下の組織であれば、無料でChatterを使うことができます。(2010年12月現在)</p><p>Chatterを使ってみたいという方は、<a href="http://www.salesforce.com/jp/platform/pricing-editions.jsp?d=70130000000FlcL&internal=true">&#x3053;&#x3061;&#x3089;</a>よりforce.comのFree Editionにサインアップしてみてください。</p><p>そんなチーム内のコミュニケーションを豊かにするChatterですが、少し残念なこととして、TwitterライクなAPIが用意されておらず、クライアントを作ることが困難なことがあげられます。</p><p>そこで、今日はCPANモジュールWWW::Salesforceを用いて、Chatterのフィードを取得する方法をまとめてみました。</p><p>以下、サンプルプログラムです。</p>
 
-    <pre class="code lang-perl">use common::sense;
+    <pre class="code prettyprint lang-perl">use common::sense;
 use Data::Dumper;
 use WWW::Salesforce::Simple;
 $WWW::Salesforce::SF_PROXY = &#39;https://www.salesforce.com/services/Soap/u/20.0&#39;;
@@ -50,11 +50,11 @@ $security_tokenにはAPI用のセキュリティトークンを指定します�
 Chatterだけでなく、クラウド上の様々なデータを同様に抽出することができます。<br />
 ※SOQLの先頭にはスペースを含めることができませんので注意が必要です。</p><p>ChatterのデータはNewsFeed, FeedCommentsというテーブル上に含まれていますので、それをSELECTしています。</p>
 
-    <pre class="code lang-perl">$WWW::Salesforce::SF_PROXY = &#39;https://www.salesforce.com/services/Soap/u/20.0&#39;;</pre>
+    <pre class="code prettyprint lang-perl">$WWW::Salesforce::SF_PROXY = &#39;https://www.salesforce.com/services/Soap/u/20.0&#39;;</pre>
 <p>この行では、APIのバージョンを指定しています。<br />
 WWW::Salesforceのデフォルトではバージョンが古くChatterを取得できませんので、ここでは現時点で最新の20.0を指定しています。</p><p>上記の出力結果のサンプルは以下のような形です。</p>
 
-    <pre class="code lang-perl">$VAR1 = [
+    <pre class="code prettyprint lang-perl">$VAR1 = [
           bless( {
                    &#39;FeedTrackedChanges&#39; =&gt; undef,
                    &#39;Id&#39; =&gt; [

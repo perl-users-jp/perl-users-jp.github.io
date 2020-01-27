@@ -22,7 +22,7 @@
 <div class="section">
     <h3>使い方</h3>
     
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use Acme::Spinner;
 
 # 時間のかかる処理
@@ -35,7 +35,7 @@ for my $i (0..100) {
 }</pre>
 <p>すると、</p>
 
-    <pre class="code">|
+    <pre class="code prettyprint">|
 \
 -
 /</pre>
@@ -46,11 +46,11 @@ for my $i (0..100) {
     <h3>ちゃんとやる</h3>
     <p>ちゃんとアニメーションさせるには、</p>
 
-    <pre class="code lang-perl">print STDERR $spinner-&gt;next . &#34;\r&#34;;</pre>
+    <pre class="code prettyprint lang-perl">print STDERR $spinner-&gt;next . &#34;\r&#34;;</pre>
 <p>が呼ばれるタイミングだったり、回数を制御しなきゃいけなくて、<br />
 例えば画像をモノクロに変換する処理の場合はこんな感じ。</p>
 
-    <pre class="code lang-perl">use warnings;
+    <pre class="code prettyprint lang-perl">use warnings;
 use strict;
 use Imager;
 use Acme::Spinner;

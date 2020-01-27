@@ -14,7 +14,7 @@
 
         <p><a href="http://twitter.com/maka2_donzoko">makamaka</a>です。これは前日の続きですので、まずは19日分の記事に目を通してからお読みください。</p><p>問題は次の通りでした。</p>
 
-    <pre class="code">Acme::Anything
+    <pre class="code prettyprint">Acme::Anything
 Acme::Everything
 Acme::Nothing
 Acme::Something
@@ -49,13 +49,13 @@ Acme::Something
 <br />
 <p>下記のコードをご覧ください。useしてるモジュールは一つです。</p>
 
-    <pre class="code">use 5.014;
+    <pre class="code prettyprint">use 5.014;
 use Acme::Everything;
 
 say JSON-&gt;new-&gt;encode([&#39;ok&#39;]);</pre>
 <p>実行できますね？　でもJSONなんていつロードしたのかしら？　ロードしてないのに使えてる……　そう、このモジュールを一度useすれば、実行時にCPANからダウンロードしてくれるのです！　CPANPLUS使ってます。</p><p>さあ、最後です。</p>
 
-    <pre class="code">use 5.014;
+    <pre class="code prettyprint">use 5.014;
 use Acme::Nothing;
 use Carp;
 use JSON;

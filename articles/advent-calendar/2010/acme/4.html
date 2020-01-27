@@ -17,7 +17,7 @@
 <div class="section">
     <h4>インストールする</h4>
     
-    <pre class="code">$ git clone git://github.com/yusukebe/Acme-Porn-JP.git
+    <pre class="code prettyprint">$ git clone git://github.com/yusukebe/Acme-Porn-JP.git
 $ cd Acme-Porn-JP
 $ perl Makefile.PL
 $ make
@@ -33,7 +33,7 @@ $ make install</pre>
     <h4>使う</h4>
     <p>こんな感じでリストを取得できます。</p>
 
-    <pre class="code lang-perl">use Acme::Porn::JP;
+    <pre class="code prettyprint lang-perl">use Acme::Porn::JP;
 
 my $porn_jp = Acme::Porn::JP-&gt;new();
 my $actress_list = $porn_jp-&gt;actress();
@@ -47,7 +47,7 @@ print $category_list-&gt;[10] . &#34;\n&#34;;</pre>
     <h4>応用</h4>
     <p>では、応用として登録されているAV女優のリストを使って、大量のおっぱい画像を集めてみましょう。今回は画像のURL取得にYahoo! 検索 API、画像のダウンロードにクエリー毎の並列処理を行っています。</p>
 
-    <pre class="code lang-perl">#!/usr/bin/perl
+    <pre class="code prettyprint lang-perl">#!/usr/bin/perl
 use strict;
 use warnings;
 use Coro;

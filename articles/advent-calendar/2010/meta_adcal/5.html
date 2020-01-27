@@ -33,7 +33,7 @@
     <h4>Text::Xatena は一般的なフォーマット系モジュールと同じぐらいの早さ</h4>
     <p><a href="https://github.com/cho45/Text-Xatena/blob/master/benchmark/benchmark.pl">ベンチマーク</a>によると、他の似たようなフォーマットモジュールと同じぐらいの速度です。</p>
 
-    <pre class="code">Rate   Hatena  Textile Markdown   Xatena
+    <pre class="code prettyprint">Rate   Hatena  Textile Markdown   Xatena
 Hatena   26.8/s       --     -84%     -86%     -89%
 Textile   171/s     537%       --      -8%     -27%
 Markdown  186/s     594%       9%       --     -20%
@@ -50,24 +50,24 @@ Xatena    233/s     770%      37%      25%       --</pre>
     <h3>Text::Xatena の使いかた</h3>
     <p>簡易的には単に以下の通りに使えます。</p>
 
-    <pre class="code lang-perl">my $thx = Text::Xatena-&gt;new;
+    <pre class="code prettyprint lang-perl">my $thx = Text::Xatena-&gt;new;
 $thx-&gt;format($string);</pre>
 <p>Inline フォーマットは独立しており、別に指定することができます。デフォルトの Inline フォーマッタは http://...:title というタイトルを自動的にとってくる記法に対応していませんが、以下のようにするとそれが有効になります (cache は実際には Cache::File などにすべきでしょう)。</p>
 
-    <pre class="code lang-perl">my $thx = Text::Xatena-&gt;new;
+    <pre class="code prettyprint lang-perl">my $thx = Text::Xatena-&gt;new;
 $thx-&gt;format($string,
 	inline =&gt; Text::Xatena::Inline::Aggressive-&gt;new(cache =&gt; Cache::MemoryCache-&gt;new)
 );</pre>
 <p>さらに、いくつかデフォルトの挙動がはてな記法と異る部分については、hatena_compatible オプションを渡すと、はてなダイアリーの記法により近くなります。すなわち、改行1つで p が挿入されるようになり、見出し記法は構造化されず全部フラットになります。</p>
 
-    <pre class="code lang-perl">my $thx = Text::Xatena-&gt;new(hatena_compatible =&gt; 1);;
+    <pre class="code prettyprint lang-perl">my $thx = Text::Xatena-&gt;new(hatena_compatible =&gt; 1);;
 $thx-&gt;format($string,
 	inline =&gt; Text::Xatena::Inline::Aggressive-&gt;new(cache =&gt; Cache::MemoryCache-&gt;new)
 );</pre>
 <p><br />
 ちなみに format メソッドが返す値は本文の部分のHTMLだけです。どういうことかというと、脚注記法 <a href="#fn1" title="これのことです">*1</a> の内容は含まれません。脚注記法の結果を取得して表示するには以下のようにします。</p>
 
-    <pre class="code lang-perl">my $thx = Text::Xatena-&gt;new;
+    <pre class="code prettyprint lang-perl">my $thx = Text::Xatena-&gt;new;
 my $inline = Text::Xatena::Inline-&gt;new;
 my $formatted = $thx-&gt;format(&#39;aaa((foobar)) bbb((barbaz))&#39;, inline =&gt; $inline);
 my $out = &#39;&#39;;
@@ -85,7 +85,7 @@ for my $footnote (@{ $inline-&gt;footnotes }) {
 $out .= &#39;&lt;/div&gt;&#39;;</pre>
 <p>ちなみに脚注記法は若干実装が面倒で、まぁ以上に書いたように本文の要素とは別のものを扱うという点でも面倒ですが、俗にgkbr対応とか言われるのがあります。どういうことかというと以下の通りです。</p><p>(((；゜Д゜))))ガクブル を書けるようにするために</p>
 
-    <pre class="code">(((foobar))) は脚注にしない。((foobar)) は脚注。)((foobar))( は ((foobar)) となり、脚注にならない。</pre>
+    <pre class="code prettyprint">(((foobar))) は脚注にしない。((foobar)) は脚注。)((foobar))( は ((foobar)) となり、脚注にならない。</pre>
 <p>とかいうルールがあり、割と面倒です。</p><p></p>
 
 </div>
@@ -93,7 +93,7 @@ $out .= &#39;&lt;/div&gt;&#39;;</pre>
     <h3>まとめ</h3>
     <p>Text::Hatena ははてな記法との互換性もいまいちですし、遅いのであまりオススメできませんが、Text::Xatena を使うとお手軽にはてな記法のような記法に対応できます。</p><p>ダイアリー完全互換な実装セットも作りたいなあとは思っていますが、自分が全く使わない記法は挙動をよく知らないので割と困ってます。「こういう記法に対応して欲しい!」ということがあれば、ご意見をいただければ実装するかもしれません。あるいはパッチを頂ければなんとかします。</p><p>ということで、Text::Xatena で快適なブロッギングライフを送りましょう! それでは!</p>
 
-</div>HASH(0x55c17659d6e0)
+</div>HASH(0x55809a938ac0)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

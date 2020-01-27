@@ -28,11 +28,11 @@
     <h4>dotcloud.yml</h4>
     <p>dotcloud.ymlは将来的に変わるかもしれないけど、これをユーザーに書かせると多分誰も使ってくれないので、setup.shスクリプトで自動生成するようにしました。</p><p>以下全部一つのファイルに入ってるのですが、ここでは各セクションを紹介します。 まずわかりやすいmysql:</p>
 
-    <pre class="code lang-yaml">db:
+    <pre class="code prettyprint lang-yaml">db:
     type: mysql</pre>
 <p>ディスパッチャーとストレージ：</p>
 
-    <pre class="code lang-yaml">dispatcher101:
+    <pre class="code prettyprint lang-yaml">dispatcher101:
     approot: dispatcher
     type: perl
     requirements:
@@ -50,7 +50,7 @@ storage101:
         STF_BACKEND_ROOT: /home/dotcloud/stf</pre>
 <p>ここでrequirementsというのがでてきますが、これはMakefile.PLにrequiresと書いておくのと同等です。ただ、STFの場合TheSchwartzはあくまで任意のモジュールなため、Makefile.PLには入っていません。そこでこのrequirementsの出番です。yum的なパッケージ名か、Perl関連のサービスの場合はモジュール名を入れておけば勝手にcpanmしてくれます。また、STFにSchwartを使えと伝えるのにSTF_QUEUE_TYPEという環境変数に値を入れています。</p><p>あと、実際のSTFはApacheで動かしているのですが、dotcloudではnginxで動いているのでそこも変更が必要でした。STF_NGINX_STYLE_REPROXYというのがその設定で、<a href="https://github.com/stf-storage/stf/blob/master/lib/STF/Dispatcher.pm#L417">X-Reproxy-URLを使用するときに若干変更が必要だったのです</a>。</p><p>またこの設定をnginx側にわかってもらうためにもnginx.confを指定してやる必要があります。こんな感じのものですね。これはほぼ定型です</p>
 
-    <pre class="code">location = /reproxy {
+    <pre class="code prettyprint">location = /reproxy {
     resolver 64.27.57.11;
     internal;
     set $reproxy $upstream_http_x_reproxy_url;
@@ -59,7 +59,7 @@ storage101:
 }</pre>
 <p>はまったのは"resolver"の指定です。nginxさんはこれがないとホスト名を解決してくれないよ！</p><p>ストレージのほうはただ単純にどこにデータをいれるかという指定だけしてあります。あとはただのPSGIアプリです。</p><p>ワーカーも基本的にはただのperl-workerサービスです</p>
 
-    <pre class="code lang-yaml">worker101:
+    <pre class="code prettyprint lang-yaml">worker101:
     approot: worker
     type: perl-worker
     requirements:
@@ -69,7 +69,7 @@ storage101:
         STF_QUEUE_TYPE: Schwartz</pre>
 <p>ワーカーのほうはsupervisordから立ち上がりますので、その設定をしてやる必要があります</p>
 
-    <pre class="code lang-yaml">[program:stf-worker]
+    <pre class="code prettyprint lang-yaml">[program:stf-worker]
 command = perl -I/home/dotcloud/current/lib /home/dotcloud/current/bin/stf-worker
 stderr_logfile = /var/log/supervisor/stf-worker.error.log
 stdout_logfile = /var/log/supervisor/stf-worker.log</pre>

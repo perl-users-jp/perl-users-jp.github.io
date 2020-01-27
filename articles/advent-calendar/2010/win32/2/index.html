@@ -22,7 +22,7 @@ Perl の様な柔軟な言語が GUI アプリケーションのプラグイン�
     <h4>まずはWindows GUI アプリケーションを作ろう</h4>
     <p>ここは Win32 SDK をどっぷり触ったオッサンなら誰でも作れますよね。</p>
 
-    <pre class="code lang-C">#include &lt;windows.h&gt;
+    <pre class="code prettyprint lang-C">#include &lt;windows.h&gt;
 #include &#34;resource.h&#34;
 
 static HWND hEdit = NULL;
@@ -111,7 +111,7 @@ WinMain(
 }</pre>
 <p>リソースファイルはこんなのですね</p>
 
-    <pre class="code lang-C">#include &lt;windows.h&gt;
+    <pre class="code prettyprint lang-C">#include &lt;windows.h&gt;
 #include &#34;resource.h&#34; 
 ID_MENU MENU DISCARDABLE
 BEGIN
@@ -124,13 +124,13 @@ BEGIN
 END</pre>
 <p>リソースヘッダは</p>
 
-    <pre class="code lang-C">#define ID_EDIT (10001)
+    <pre class="code prettyprint lang-C">#define ID_EDIT (10001)
 #define ID_MENU (10002)
 #define IDM_HUNGRY (WM_USER+1)
 #define IDM_EXIT   (WM_USER+2)</pre>
 <p>最後にMakefileは</p>
 
-    <pre class="code lang-Makefile">PERL_CORE=c:/strawberry/perl/lib/core
+    <pre class="code prettyprint lang-Makefile">PERL_CORE=c:/strawberry/perl/lib/core
 SRC=edit.c
 OBJS=$(SRC:.c=.o)
 RC=edit.rc
@@ -167,7 +167,7 @@ clean:
     <h4>ここに Perl を起動するアクションを作りましょう。</h4>
     <p>まずメニューにアイテムを追加してそのアクション関数を以下の様に書きました。</p>
 
-    <pre class="code lang-C">static PerlInterpreter *my_perl;
+    <pre class="code prettyprint lang-C">static PerlInterpreter *my_perl;
 static int my_argc = 2;
 static char *my_argv[] = { &#34;perl&#34;, &#34;-e:0&#34;, NULL };
 static char **my_env;
@@ -198,7 +198,7 @@ hungry() {
 でも Perl スクリプト内で何かやってもアプリケーション側に返事が返せないと面白くないですよね。戻り値？いやそれプラグインじゃないでしょ...って事で Perl 側に見える API を提供しましょう。<br />
 ここで登場するのが xsub です。先ほどの関数を以下の様に書き換えます。</p>
 
-    <pre class="code lang-C">static PerlInterpreter *my_perl;
+    <pre class="code prettyprint lang-C">static PerlInterpreter *my_perl;
 static int my_argc = 2;
 static char *my_argv[] = { &#34;perl&#34;, &#34;-e:0&#34;, NULL };
 static char **my_env;
@@ -252,7 +252,7 @@ hungry() {
     <h4>さぁ！あとはスクリプト</h4>
     <p>みんな大好き Web::Scraper を使いましょう。</p>
 
-    <pre class="code lang-perl">use Encode;
+    <pre class="code prettyprint lang-perl">use Encode;
 use URI;
 use Web::Scraper;
 
@@ -280,7 +280,7 @@ for (@{$res-&gt;{foods}}) {
 これまでのソースは以下のURLに置いてあります。ぜひ他の機能も付けて楽しんで下さい。</p><p><a href="https://github.com/mattn/windows-gui-and-perl">https://github.com/mattn/windows-gui-and-perl</a></p><p>さて明日は日本人でPerlを使っているWindowsユーザ3人の内の最後、charsbarさんの登場です。<br />
 お楽しみに！！</p>
 
-</div>HASH(0x55c1765af7f0)
+</div>HASH(0x55809a903330)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

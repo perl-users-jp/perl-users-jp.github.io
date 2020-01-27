@@ -18,7 +18,7 @@
     <h3>今回は、JScriptからperlを呼び出すよ！</h3>
     <p>まずは、<a href="./5">前回</a>の失態を修正、正しくはこうですよね。</p>
 
-    <pre class="code">&lt;job&gt;
+    <pre class="code prettyprint">&lt;job&gt;
 &lt;script language=&#34;PerlScript&#34;&gt;
 
 use strict;
@@ -31,23 +31,23 @@ $main::WScript-&gt;Echo( &#34;hello world.&#34; );
 <p>(拡張子は"wsf")</p><p><br /><br />
 これを、JScriptでやるとこんな感じ。</p>
 
-    <pre class="code lang-javascript">WScript.Echo( &#34;hello world.&#34; );</pre>
+    <pre class="code prettyprint lang-javascript">WScript.Echo( &#34;hello world.&#34; );</pre>
 <p>(拡張子は"js")<br />
 って、こんなことをやりたいわけじゃないんです。</p><p><br /><br />
 まずは、perlスクリプトを用意します。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 
 print &#34;オッス！オラ悟○！！ &#34;;</pre>
 <p>(hello.pl)<br />
 実行方法は、もちろんこんな感じ。</p>
 
-    <pre class="code">&gt; perl hello.pl</pre>
+    <pre class="code prettyprint">&gt; perl hello.pl</pre>
 <p><br /><br />
 これを、同じフォルダ階層に置いたJScriptから呼び出します。</p>
 
-    <pre class="code lang-javascript">
+    <pre class="code prettyprint lang-javascript">
 // perlスクリプトのファイル名
 var script = &#39;hello.pl&#39;;
 
@@ -68,7 +68,7 @@ WScript.Echo( oExec.StdOut.ReadAll() );</pre>
 実はこれにも弱点があって、このままだと標準エラー出力が表示されません。<br />
 ですが、ご安心を！</p>
 
-    <pre class="code lang-javascript">
+    <pre class="code prettyprint lang-javascript">
 // 標準出力
 var stdout = oExec.StdOut.ReadAll();
 
@@ -77,7 +77,7 @@ var stderr = oExec.StdErr.ReadAll();</pre>
 <p>あとは、空文字列か判定して表示するだけですね！</p><p><br /><br />
 それから、JScriptでも引数を受け取って、perlに引数を渡せます。</p>
 
-    <pre class="code lang-javascript">var args = WScript.Arguments;
+    <pre class="code prettyprint lang-javascript">var args = WScript.Arguments;
 for (var i=0; i&lt;args.length; i++) {
 	// WScript.Echo( args(i) );
 }</pre>

@@ -20,7 +20,7 @@
 <li>getHolidays() - 指定月の祝日とその名前のハッシュリファレンスを返す</li>
 </ul><p>コードを見てみましょう。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use Calendar::Japanese::Holiday;
 use YAML qw/Dump/;
 use Perl6::Say;
@@ -33,21 +33,21 @@ say isHoliday(2012, 1, 9);
 say Dump getHolidays(2012, 1);</pre>
 <p>実行結果は次の通り。</p>
 
-    <pre class="code">成人の日
+    <pre class="code prettyprint">成人の日
 ---
 1: 元日
 9: 成人の日</pre>
 <p><br />
 振替休日も求めたい場合は、引数を最後に1つ加えます。（真値であれば '1'以外でも大丈夫です）</p>
 
-    <pre class="code lang-perl"># 祝日の名前
+    <pre class="code prettyprint lang-perl"># 祝日の名前
 say isHoliday(2012, 1, 2, 1);
 
 # 指定月の祝日
 say Dump getHolidays(2012, 1, 1);</pre>
 <p>実行結果。</p>
 
-    <pre class="code">振替
+    <pre class="code prettyprint">振替
 ---
 1: 元日
 2: 振替

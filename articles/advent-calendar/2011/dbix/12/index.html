@@ -29,7 +29,7 @@ PLAN や EXPLAINを発行しなければならない。。。」</p><p>まあ、
     <p>そんなとき[/articles/advent-calendar/2011/dbix/2]を読んで思いついたのが、「ふだんsthでprepareしているSQLをDBIをnewする箇所を書き換えるだけで一瞬にして実行計画取得プログラムに変えてしまう仕組みを用意しておけばええんやないかな？」ってことでした。もうすでに実はあったりしたらすみませんが、それを今日は試してみます。<br />
 オレオレDBIx（＝OnlyExplainDBI.pm）は↓な感じ。</p>
 
-    <pre class="code lang-perl">package OnlyExplainDBI;
+    <pre class="code prettyprint lang-perl">package OnlyExplainDBI;
 
 use strict;
 use DBI;
@@ -59,7 +59,7 @@ use vars qw(@ISA);
 @ISA = qw(DBI::st);</pre>
 <p>みたいなのを置いておいて、普段使われてるアプリケーションのDBIをnewしている部分をオレオレDBIに置き換える。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 
 ##use DBI; #- 普段のAPLはこっち
@@ -89,7 +89,7 @@ foreach my $row ( @{$rows} ) {
 exit;</pre>
 <p>これで、Oracleなんかだとexplain plan for SQL文; のあと、</p>
 
-    <pre class="code lang-sql">----------------------------------------------------------------------------
+    <pre class="code prettyprint lang-sql">----------------------------------------------------------------------------
 | Id  | Operation	  | Name   | Rows  | Bytes | Cost (%CPU)| Time	   |
 ----------------------------------------------------------------------------
 |   0 | SELECT STATEMENT  |	   |   176 |  3520 |	 3   (0)| 00:00:01 |

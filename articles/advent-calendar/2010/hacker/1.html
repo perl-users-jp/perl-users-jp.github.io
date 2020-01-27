@@ -20,7 +20,7 @@
     <h4>はじめに</h4>
     <p>とりあえずはテスト用の table を用意しましょう。</p>
 
-    <pre class="code lang-sql">USE test;
+    <pre class="code prettyprint lang-sql">USE test;
 
 DROP TABLE IF EXISTS location;
 
@@ -81,13 +81,13 @@ VALUES
     <h4>まずはスキーマ情報の取り込み</h4>
     <p>Test::Fixture::DBI は特定の ORM に依存するモジュールでは無いのでそのままではスキーマが分かりません。Test::Fixture::DBI に付属している make_database_yaml.pl コマンドを使ってスキーマ情報を取り込みましょう。</p>
 
-    <pre class="code">$ make_database_yaml.pl -d &#34;dbi:mysql:dbname=test&#34; -u root -o ./t/schema.yaml</pre>
+    <pre class="code prettyprint">$ make_database_yaml.pl -d &#34;dbi:mysql:dbname=test&#34; -u root -o ./t/schema.yaml</pre>
 <p>コマンドの詳しい使い方は -h を実行してみて下さい。</p><p>次に fixture を作ります。こちらは make_fixture_yaml.pl を実行します。</p>
 
-    <pre class="code">$ make_fixture_yaml.pl -d &#34;dbi:mysql:dbname=test&#34; -u root -t location -n id -o ./t/fixture.yaml</pre>
+    <pre class="code prettyprint">$ make_fixture_yaml.pl -d &#34;dbi:mysql:dbname=test&#34; -u root -t location -n id -o ./t/fixture.yaml</pre>
 <p>こうすると location テーブルの中身が全て YAML ファイルになります。ちなみに例えば user_id が 10008 のレコードだけを抽出したい場合は、</p>
 
-    <pre class="code">$ make_fixture_yaml.pl -d &#34;dbi:mysql:dbname=test&#34; -u root -t location -n id -e &#34;SELECT * FROM location WHERE user_id = 10008&#34;</pre>
+    <pre class="code prettyprint">$ make_fixture_yaml.pl -d &#34;dbi:mysql:dbname=test&#34; -u root -t location -n id -e &#34;SELECT * FROM location WHERE user_id = 10008&#34;</pre>
 <p>のように SQL を直接指定して fixture を作る事が出来ます。</p>
 
 </div>
@@ -95,7 +95,7 @@ VALUES
     <h4>早速テストを書いてみよう</h4>
     <p>もういきなりサンプルから。get_user_locations() がそもそもテストしたい処理です。本来なら別のモジュールのサブルーチンなりメソッドだったりすると考えて下さい。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 
 use DBI;
@@ -193,17 +193,17 @@ done_testing;</pre>
 </ul><p>と言う事だけをやっています。</p><p>実はデータの用意と実際のテストの骨子は大体こんなノリで書いてます。</p><p>ちなみにプロダクトの開発ではきっと prove で個別のテストを書いて実行してと言う事を繰り返すと思いますが、設定した fixture の状況を mysql コマンドで確認したいなんて事もあるかもしれません。<br />
 そういう時はテストをデバッガで立ち上げましょう。</p>
 
-    <pre class="code">$ prove -lvc t/tomochinski.t</pre>
+    <pre class="code prettyprint">$ prove -lvc t/tomochinski.t</pre>
 <p>としていたならば、</p>
 
-    <pre class="code">$ perl -Ilib -d t/tomochinski.t</pre>
+    <pre class="code prettyprint">$ perl -Ilib -d t/tomochinski.t</pre>
 <p>のように書き換えてあげれば OK です。Test::mysqld のインスタンスが取れる適当な所にブレイクポイントを設定し、</p>
 
-    <pre class="code">  DB&lt;2&gt; x $mysqld-&gt;dsn
+    <pre class="code prettyprint">  DB&lt;2&gt; x $mysqld-&gt;dsn
 0  &#39;DBI:mysql:dbname=test;mysql_socket=/var/folders/NR/NRiLzdzEH74Z8Ac-hC3B8++++TQ/-Tmp-/o6KffyN4hc/tmp/mysql.sock;user=root&#39;</pre>
 <p>などとすると mysql_socket の値が分かるので、</p>
 
-    <pre class="code">$ mysql -uroot -S/var/folders/NR/NRiLzdzEH74Z8Ac-hC3B8++++TQ/-Tmp-/o6KffyN4hc/tmp/mysql.sock test</pre>
+    <pre class="code prettyprint">$ mysql -uroot -S/var/folders/NR/NRiLzdzEH74Z8Ac-hC3B8++++TQ/-Tmp-/o6KffyN4hc/tmp/mysql.sock test</pre>
 <p>などのようにすると mysql コマンドでテスト中のデータを覗き見る事が出来ますよ。</p>
 
 </div>

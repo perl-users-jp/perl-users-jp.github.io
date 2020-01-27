@@ -16,7 +16,7 @@
 <p>てなわけで、迎え撃つはCPANモジュール<a href="http://search.cpan.org/dist/Acme-Test">Acme::Test</a>です。指定したモジュールに対して必ずPASSするテストを自動的につくってくれます。</p><br />
 <p></p>
 
-    <pre class="code"># MyLovelyModule.pm
+    <pre class="code prettyprint"># MyLovelyModule.pm
 package MyLovelyModule;
 
 use strict;
@@ -30,11 +30,11 @@ sub hello { print &#34;Hello.\n&#34;  }
 1;</pre>
 <p>というモジュールがあるとして、あとはそれに対するテストファイルをつくります。</p>
 
-    <pre class="code"># acme.t
+    <pre class="code prettyprint"># acme.t
 use Acme::Test qw(MyLovelyModule);</pre>
 <p>実行すると。</p>
 
-    <pre class="code">$ perl acme.t
+    <pre class="code prettyprint">$ perl acme.t
 # Testing MyLovelyModule
 # [Public] Testing global scalar $MyLovelyModule::VERSION
 ok 1 -     $VERSION available
@@ -53,7 +53,7 @@ ok 11 -     new() return value OK
 1..11</pre>
 <p>どーです？　個人的にはTest::Successfulの方がいいなあ。</p><p>あとねぇ、Acme系テストで好きだったのは<a href="http://search.cpan.org/dist/Acme-Test-Weather">Acme::Test::Weather</a>ですね。マシンのIPアドレスから都市を判定して、天気をテストするという、素晴らしいモジュールです。残念ながら現在CPANにないモジュールに依存しているためインストールしにくいので、代わりに<a href="http://search.cpan.org/dist/WWW-HostipInfo">WWWW::HostipInfo</a>を使ったパッチを後ろの方に掲載しておきます。</p>
 
-    <pre class="code">use Test::More;
+    <pre class="code prettyprint">use Test::More;
 use Acme::Test::Weather;
 
 is_sunny();
@@ -63,7 +63,7 @@ done_testing;
 =&gt; not ok 1 - it&#39;s partly cloudy in Tokyo, Japan</pre>
 <p>この原稿を書いている今は曇りなので、is_sunnyは通りませんでした。気をとりなおしてちょっと書き換えます。</p>
 
-    <pre class="code">use Test::More;
+    <pre class="code prettyprint">use Test::More;
 use Acme::Test::Weather;
 
 is_cloudy();
@@ -80,7 +80,7 @@ done_testing;
 1..4</pre>
 <p>通りますね！　他にも温度をチェックする eq_celsius() などなかなか楽しいですね！</p><p>パッチはこちら。</p><p></p>
 
-    <pre class="code">--- lib/Acme/Test/Weather.pm.bak        2003-02-22 04:25:34.000000000 +0900
+    <pre class="code prettyprint">--- lib/Acme/Test/Weather.pm.bak        2003-02-22 04:25:34.000000000 +0900
 +++ lib/Acme/Test/Weather.pm    2011-12-28 15:41:33.000000000 +0900
 @@ -64,7 +64,7 @@
  use Sys::Hostname;

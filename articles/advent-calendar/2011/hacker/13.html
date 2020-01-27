@@ -47,7 +47,7 @@ Skype::Anyでは、相手からCHATMESSAGEに分類されたものはSkype::Any:
 <div class="section">
     <h5>メッセージを送る</h5>
     
-    <pre class="code lang-perl">use Skype::Any;
+    <pre class="code prettyprint lang-perl">use Skype::Any;
 use Skype::Any::User;
 
 my $skype = Skype::Any-&gt;new;
@@ -60,7 +60,7 @@ $user-&gt;send_message(&#39;どうもー&#39;);</pre>
 <div class="section">
     <h5>自動返信</h5>
     
-    <pre class="code lang-perl">use Skype::Any;
+    <pre class="code prettyprint lang-perl">use Skype::Any;
 
 my $skype = Skype::Any-&gt;new;
 
@@ -74,7 +74,7 @@ $skype-&gt;run;</pre>
 <p>$skype->run というものが出てきました。これはイベントループ開始の合図です。<br />
 また、誰がメッセージを送ったのが知りたいですね。メッセージの内容も知りたいです。そんなときには、$self->from_handleや$self->bodyで取得することができます。ちなみに、message_receivedの場合、$selfはSkype::Any::ChatMessageオブジェクトです。</p><p>先ほどの例では、ただ返信することしかできなかったはずです。しかし、Skypeには1対1でチャットをしたり、グループチャットをするときがあります。それぞれ区別して返信したいですね。</p>
 
-    <pre class="code lang-perl">use Skype::Any;
+    <pre class="code prettyprint lang-perl">use Skype::Any;
 
 my $skype = Skype::Any-&gt;new;
 
@@ -91,7 +91,7 @@ $skype-&gt;received_message(sub {
 $skype-&gt;run;</pre>
 <p>グループチャットから個人宛にメッセージを送りたいときもありますね。</p>
 
-    <pre class="code lang-perl">use Skype::Any;
+    <pre class="code prettyprint lang-perl">use Skype::Any;
 use Skype::Any::User;
 
 my $skype = Skype::Any-&gt;new;
@@ -105,7 +105,7 @@ $skype-&gt;received_message(sub {
 $skype-&gt;run;</pre>
 <p>ここで、ちょっとした例を書いてみます。URLを貼り付けるとタイトルを教えてくれるbotです。とても簡単に書けますね。</p>
 
-    <pre class="code lang-perl">use Skype::Any;
+    <pre class="code prettyprint lang-perl">use Skype::Any;
 use LWP::UserAgent;
 use URI::Find;
 
@@ -133,7 +133,7 @@ $skype-&gt;message_received(sub {
 $skype-&gt;run;</pre>
 <p>基本的なことはSkype::Anyで簡単にできますが、凝ったことをしたいときにはSkype APIを叩いてあげる必要があります。</p>
 
-    <pre class="code lang-perl">use Skype::Any;
+    <pre class="code prettyprint lang-perl">use Skype::Any;
 
 my $skype = Skype::Any-&gt;new;
 
@@ -146,7 +146,7 @@ $skype-&gt;call(status =&gt; sub {
 });</pre>
 <p>Skype APIを叩きたいときには、このようなものを書くと便利です。対話形式でSkype APIを叩くことが出来るようになります。</p>
 
-    <pre class="code lang-perl">use Skype::Any;
+    <pre class="code prettyprint lang-perl">use Skype::Any;
 use Term::ReadLine;
 
 my $skype = Skype::Any-&gt;new;
@@ -164,7 +164,7 @@ while (defined(my $cmd = $term-&gt;readline(&#39;Skype&gt; &#39;))) {
 Macに対応していないのが心残りですが。。<a href="#fn1" title="対応させてあげる、という方がいらっしゃったらぜひpull request送ってください :) お待ちしております。">*1</a><br />
 最後にすばらしいbotの例を書いて終わりにします。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use Skype::Any;
 use Skype::Any::User;
@@ -178,7 +178,7 @@ while (1) {
     $user-&gt;send_message(&#39;:)&#39;);
 }</pre>
 
-</div>HASH(0x55c1765c4910)
+</div>HASH(0x55809a984e30)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

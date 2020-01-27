@@ -14,10 +14,10 @@
 
         <p>こんにちは、MHP3を買ったものの諸般の事情でキャラ作っただけの<a href="http://fushihara.net/">kan</a>です。来年になったら誰か狩りに行きませんか。</p><p>さて、<a href="http://search.cpan.org/dist/Acme-MorningMusume/">Acme::MorningMusume</a>というモジュールをご存知でしょうか? モーニング娘。のメンバー情報を細かに取得できる素晴らしく実用的なAcmeモジュールです。いわゆるプロフィールはもちろんのこと、Googleの画像検索等を利用してイメージまで引っ張ってくることが出来ます。</p><p>今日紹介するのは、このモジュールに影響を受けて制作した拙作「Acme::PrettyCure」です。</p>
 
-    <pre class="code lang-perl">my @precure = Acme::PrettyCure-&gt;now;</pre>
+    <pre class="code prettyprint lang-perl">my @precure = Acme::PrettyCure-&gt;now;</pre>
 <p>上記のように実行すると、現在放映中の「ハートキャッチプリキュア」のメンバーオブジェクトを取得することが出来ます。各プリキュアの情報はAcme::MorningMusumeと比べると簡単なものしか取得できませんが、プリキュアらしい仕掛けがしてあります。</p>
 
-    <pre class="code lang-perl">my ($nozomi,) = Acme::PrettyCure-&gt;members(&#39;Five&#39;);
+    <pre class="code prettyprint lang-perl">my ($nozomi,) = Acme::PrettyCure-&gt;members(&#39;Five&#39;);
 
 say $nozomi-&gt;name; # =&gt; 夢原のぞみ
 
@@ -26,7 +26,7 @@ $nozomi-&gt;transform;
 say $nozomi-&gt;name; # =&gt; キュアドリーム !?</pre>
 <p>上記の通り、変身します。現状は全てtransformメソッドになっていますが、それぞれの変身に合わせたメソッド名にaliasを張る予定です。また、初代とSplashStar組は相方を引数に取らないと変身できない(本編通りの)仕様になっています。</p><p>更に、transformメソッドを実行すると<em>問答無用</em>で変身時の口上を標準出力にprintします。これも仕様なので仕方ないですね。</p>
 
-    <pre class="code lang-perl">my ($nagisa, $honoka) = Acme::PrettyCure-&gt;members;
+    <pre class="code prettyprint lang-perl">my ($nagisa, $honoka) = Acme::PrettyCure-&gt;members;
 
 $nagisa-&gt;transform($honoka); # 出力結果はお手元でご確認下さい
 

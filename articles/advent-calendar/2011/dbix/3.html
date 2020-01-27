@@ -18,7 +18,7 @@
     <h4>DBIx::Tree</h4>
     <p>このモジュールは、いわゆる Adjacency List Model のテーブルを、ツリー形式で見るためのモジュールです。</p><p>Adjacency List Model というのは、階層構造を持つデータです。RDBMSにおいては、通常、シンプルにフラットな複数のリスト同士を、関連するidでヒモ付けることで階層構造のようなものをつくることが多いと思いますが、Adjacency List Model においては、ひとつのテーブルのレコードそれぞれにユニークなIDと、同じテーブルのレコードにヒモ付く親IDを持ちます。</p><p>例えば、以下のようなテーブルを見てみましょう！</p>
 
-    <pre class="code">    food                food_id   parent_id
+    <pre class="code prettyprint">    food                food_id   parent_id
     ==================  =======   =========
     Food                001       NULL
     Beans and Nuts      002       001
@@ -45,7 +45,7 @@
 <div class="section">
     <h5>Adjacency List Model の視覚化</h5>
     
-    <pre class="code lang-perl">#!/usr/bin/perl
+    <pre class="code prettyprint lang-perl">#!/usr/bin/perl
 use strict;
 use warnings;
 use DBIx::Tree;
@@ -81,7 +81,7 @@ sub disp_tree {
 }</pre>
 <p>上記のコードを実行すると、以下のように結果が表示されます。</p>
 
-    <pre class="code">  ROOT: Food(001)
+    <pre class="code prettyprint">  ROOT: Food(001)
     001: Beans and Nuts(002)
       002: Beans(003)
         003: Black Beans(005)

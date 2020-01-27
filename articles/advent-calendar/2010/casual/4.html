@@ -38,7 +38,7 @@
 </tr><br />
 </table></p><p>この考え方が本当に正しいかを確かめるために、UnicodeのコードポイントがU+00E8である「è」という文字を使って試してみましょう。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use utf8;
 use Encode qw/is_utf8 encode_utf8/;
@@ -73,7 +73,7 @@ Dump(UTF-8 encoding): 0xC3 0xA8</pre>
     <h4>誤解から生まれる不具合</h4>
     <p>先のような誤解をしていると、以下のように「文字列、または、UTF-8でエンコードされたバイナリ列、を受け取る関数」を書いてしまうかもしれませんが、これは誤りです。</p>
 
-    <pre class="code lang-perl"># !!!! こんな風に書いちゃ駄目 !!!!
+    <pre class="code prettyprint lang-perl"># !!!! こんな風に書いちゃ駄目 !!!!
 use Encode qw/is_utf8 encode_utf8/;
 
 sub utf8_byte_size {
@@ -83,7 +83,7 @@ sub utf8_byte_size {
 }</pre>
 <p>utf8_byte_sizeは、UTF-8でエンコーディングすると何バイトが必要となるかを求める関数ですが、この関数を先ほどの「è」に使うと結果がおかしくなります。</p>
 
-    <pre class="code lang-perl">use utf8;
+    <pre class="code prettyprint lang-perl">use utf8;
 my $utf8flagged = &#39;è&#39;;
 my $latin1      = &#34;\x{00E8}&#34;;
 
@@ -97,7 +97,7 @@ UTF-8 flagged: 2
 Latin-1: 1</pre>
 <p>UTF-8だと「è」は2byteなのに、内部表現がLatin-1の「è」では1が返ってきてしまいます。これを正しく実装するには、文字列だけを受け取るという仕様に変更した上で、以下のようにします。</p>
 
-    <pre class="code lang-perl"># 正しい実装 (ただし、入力は文字列のみで、バイナリ列は受け取らないものとする)
+    <pre class="code prettyprint lang-perl"># 正しい実装 (ただし、入力は文字列のみで、バイナリ列は受け取らないものとする)
 sub utf8_byte_size {
     my $utf8_bytes = encode_utf8(shift);
     return length $utf8_bytes;
@@ -108,7 +108,7 @@ sub utf8_byte_size {
     <h4>use feature "unicode_strings" について</h4>
     <p>おまけで一つ紹介します。現在のPerlの文字列の扱いでは、Latin-1エンコーディングで0x80以上の範囲にある「è」のような文字について、直感的でない動作をすることがあります。例えば以下のコードを実行すると、文字列「è」に対するuc(Upper Case)の結果が「È」となる場合とならない場合があります。</p>
 
-    <pre class="code lang-perl">use utf8;
+    <pre class="code prettyprint lang-perl">use utf8;
 my $utf8flagged = &#39;è&#39;;
 my $latin1      = &#34;\x{00E8}&#34;;
 print &#34;UTF-8 flagged: &#34;, encode_utf8(uc $utf8flagged), &#34;\n&#34;;
@@ -121,7 +121,7 @@ UTF-8 flagged: È
 Latin-1      : è</pre>
 <p>この動作を直そうというのが、"unicode_strings"の目標です。5.12では大文字と小文字の正しい取り扱いが実装されているため、上のコードの先頭に以下の1行を付け足すと、内部表現がLatin-1でも「È」が出力されるようになります。</p>
 
-    <pre class="code lang-perl">use feature &#34;unicode_strings&#34;;</pre>
+    <pre class="code prettyprint lang-perl">use feature &#34;unicode_strings&#34;;</pre>
 
 </div>
 <div class="section">
@@ -146,7 +146,7 @@ Latin-1      : è</pre>
     <h4>追記(12/4)</h4>
     <p><a href="http://twitter.com/punytan/status/11006591151120384">@punytanさんよりアドバイスをもらった</a>ので追記します。内部表現がLatin-1かUTF-8かって話は、Devel::Peek使った方がはっきりしますね。</p>
 
-    <pre class="code lang-perl">use utf8;
+    <pre class="code prettyprint lang-perl">use utf8;
 use Devel::Peek;
 
 my $utf8flagged = &#39;è&#39;;

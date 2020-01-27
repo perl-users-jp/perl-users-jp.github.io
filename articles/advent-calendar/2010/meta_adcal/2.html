@@ -23,7 +23,7 @@
 <li><a href="http://localhost/2010/">http://localhost/2010/</a></li>
 </ul><p>年/ で、その年のtrack一覧を表示するようにしました。</p><p>これを実現するには、アクセス毎に処理を振り分ける必要があります。CPANにはpath routing用のモジュールが沢山ありますが、今回はシンプルに使える Router::Simple を使うことにしました。↑のルールは以下のように書けます。</p>
 
-    <pre class="code lang-perl">$router-&gt;connect(
+    <pre class="code prettyprint lang-perl">$router-&gt;connect(
     &#39;/{year:\d{4}}/&#39;,
     { controller =&gt; &#39;Calendar&#39;, action =&gt; &#39;track_list&#39; }
 );
@@ -37,11 +37,11 @@ $router-&gt;connect(
 );</pre>
 <p>「{year:\d{4}}」のように書くと「\d{4}」という正規表現にマッチした値を「year」というキーで参照できるようになります。以下のような感じです。</p>
 
-    <pre class="code lang-perl">my $p = $router-&gt;match($env);
+    <pre class="code prettyprint lang-perl">my $p = $router-&gt;match($env);
 warn $p-&gt;{year};</pre>
 <p>処理を振り分けたら、画面を表示する処理を作ります。HTMLを出力する場合、perlのソース中にHTMLを埋め込んでいく手もありますが、可読性が落ちて早々にメンテが困難になるケースが多いと思います(e.g. perl4時代のCGIスクリプト)。そういった理由から個人的にはなるべく最初からテンプレートをコードと分離するようにしています。</p><p>分離したテンプレートはplain textで書いて正規表現で置換、とかでも良いのですが、どうせ誰かすぐ使うだろうということで、今をときめく Text::Xslate を使ってしまうことにしました。Text::Xslate::Syntax::TTerse を使ってTT2風の構文で記述することにします。</p>
 
-    <pre class="code lang-perl">my $tx = Text::Xslate-&gt;new(
+    <pre class="code prettyprint lang-perl">my $tx = Text::Xslate-&gt;new(
     syntax    =&gt; &#39;TTerse&#39;,
     path      =&gt; [&#39;tmpl&#39;, &#39;app/tmpl&#39;],
     cache_dir =&gt; &#39;/tmp/app-adventcalendar&#39;,

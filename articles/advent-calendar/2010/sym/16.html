@@ -18,7 +18,7 @@
     <h3>C言語でフィボナッチ数列を数える</h3>
     <p>それではまず最初に、Cの文字列領域にフィボナッチ数列を数えるx86の32bit実行コードを書いて、それを無理やり関数呼び出しの形式にして実行してみたいと思います。</p>
 
-    <pre class="code lang-c">#include &lt;stdio.h&gt;
+    <pre class="code prettyprint lang-c">#include &lt;stdio.h&gt;
 
 char x86[] = {
     0x8B, 0x4C, 0x24, 0x04, //  mov ecx,[esp+0x4]
@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
 }</pre>
 <p>このファイルをa.cで保存し、gccでコンパイルして実行すると、フィボナッチ数列が高速に出力されます。</p>
 
-    <pre class="code">$ gcc a.c
+    <pre class="code prettyprint">$ gcc a.c
 $ ./a.out 46
 f[0] = 0
 f[1] = 1
@@ -116,7 +116,7 @@ f[46] = 1836311903</pre>
     <h3>記号だけのmain関数で「Hello, world!」を書いてみる</h3>
     <p>これを踏まえて、記号だけのmain関数で「Hello, world!」を書いてみます。</p>
 
-    <pre class="code lang-c">char main[] =
+    <pre class="code prettyprint lang-c">char main[] =
 &#34;`%@@@@%!!!!----!-:(*}-[:,&gt;-|;|``[[[[[[[%@@@@%!!!!-&#34;
 &#34;====-&lt;;;;-{{{{-|{{{`[[[[[[[%@@@@%!!!!------***[-.,&#34;
 &#34;^{-{|}{`[[[[[[[%@@@@%!!!!------}#**-{{+,-[{{|`[[[[&#34;
@@ -146,7 +146,7 @@ f[46] = 1836311903</pre>
     <h3>80386コードリーディング</h3>
     <p>objdump -D a.out して、実行バイナリをディスアセンブルした結果を読んでみましょう。</p>
 
-    <pre class="code">08049560 &lt;main&gt;:
+    <pre class="code prettyprint">08049560 &lt;main&gt;:
  8049560:       60                      pusha
  8049561:       25 40 40 40 40          and    $0x40404040,%eax
  8049566:       25 21 21 21 21          and    $0x21212121,%eax
@@ -456,7 +456,7 @@ f[46] = 1836311903</pre>
     <h3>スタック上に展開されるコード</h3>
     <p>0x804974e まで実行されると、スタック上に以下のコードが展開されます</p>
 
-    <pre class="code">0XXXXX00 &lt;.text&gt;:
+    <pre class="code prettyprint">0XXXXX00 &lt;.text&gt;:
  XXXXX00:       b8 04 00 00 00          mov    $0x4,%eax
  XXXXX05:       bb 01 00 00 00          mov    $0x1,%ebx
  XXXXX0a:       e8 0e 00 00 00          call   0xXXXXX1d
@@ -473,7 +473,7 @@ f[46] = 1836311903</pre>
     <h3>自己書き換え</h3>
     <p>0x804986fにあるsub %edi,0x21(%esi)命令が実行されると、次の0x8049872番地がcall esp（0xff 0xd4）を実行するコードに書き変わります。</p>
 
-    <pre class="code"> 8049872:       90                      nop
+    <pre class="code prettyprint"> 8049872:       90                      nop
  8049873:       ff d4                   call esp
  8049875:       90                      nop</pre>
 <p>これで無事Linuxのシステムコールで「Hello, world!」の文字が標準出力に出力され（int80h,eax=4）、プログラムの終了（int80h,eax=1）も行うことができました。</p><p>簡単ですね。</p>

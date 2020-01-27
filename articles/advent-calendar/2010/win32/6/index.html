@@ -25,13 +25,13 @@
     <h3>改行コード編</h3>
     <p>ソースコードの改行コードは基本的にはLFに揃えたいところです。ただ、Windowsには様々なところでCRLFがついてまわりますが、</p><p>注意。いきなりバッドノウハウです。</p><p>ActivePerlでは、標準の改行コードがCRLFになっています。また、読み込んだファイルの改行コードがCRLFでもLFでもよろしく計らってくれるようになっています。</p><p><strong>そして文字列中の"\n"を勝手にCRLFに変換して出力してしまいます</strong>(binmode ':raw'にしてから出力すれば良いんですが)</p><p>実際module-setup等のコード自動出力系のモジュールを使うと困ってしまいます。</p><p>その妙な気遣いが空回りしている辺り、Perlが変なWindowsの毒気に中てられてしまっていてよろしくありません。全部LFに統一してしまいましょう。</p><p>方法は簡単です。環境変数PERLIOに":unix:perlio"を指定します。</p>
 
-    <pre class="code">C:\&gt;set PERLIO=:unix:perlio</pre>
+    <pre class="code prettyprint">C:\&gt;set PERLIO=:unix:perlio</pre>
 
 <div class="section">
     <h5>軽く解説</h5>
     <p>PERLIOはデフォルトのPerlIOを指定できる環境変数です。PerlIOとは</p>
 
-    <pre class="code">open $fh,&#39;&lt;:encoding(***)&#39;,&#39;file&#39;;</pre>
+    <pre class="code prettyprint">open $fh,&#39;&lt;:encoding(***)&#39;,&#39;file&#39;;</pre>
 <p>で"***"の部分に指定するやつです。(正確には違いますが)</p><p>UNIXでは:unix:perlioまたは:stdioがデフォルト、Win32では:unix:crlfがデフォルトで将来的には:win32がデフォルトになる予定のようです。</p><p>参考URL  <br />
 <a href="http://perldoc.perl.org/PerlIO.html">http://perldoc.perl.org/PerlIO.html</a>  <br />
 <a href="http://d.hatena.ne.jp/pasela/20090909/perlio">http://d.hatena.ne.jp/pasela/20090909/perlio</a>  <br />
@@ -47,7 +47,7 @@
     <h4>gitの改行コード問題</h4>
     <p>なんかWindowsのgitにも勝手に、改行コードをLFからCRLFに変えてしまうような設定があり、それがデフォルトだったりするのでそんなものはoffにしてしまいましょう。</p>
 
-    <pre class="code">git config --global core.autoCRLF false</pre>
+    <pre class="code prettyprint">git config --global core.autoCRLF false</pre>
 
 </div>
 </div>
@@ -99,7 +99,7 @@ suitable replacement.</p><br />
     
 </blockquote><p>リンク先のURLは以下で、そこになんとtar.gzの書き込み権限を落としてくれるスクリプトのコードが置かれています。</p><p><a href="http://perlmonks.org/index.pl?node_id=731935">http://perlmonks.org/index.pl?node_id=731935</a></p><p>私はこれを、tarfix4cpan.pl という名前で保存して、以下のようにして、tar.gzの書き込み権限をクリアしています。</p>
 
-    <pre class="code">tarfix4cpan.pl -i ***.tar.gz</pre>
+    <pre class="code prettyprint">tarfix4cpan.pl -i ***.tar.gz</pre>
 <p>このメールが自動で送られてくるのには感動しました。エラーに対して自動で解決方法が送られるようになってるってのが凄い、CPAN凄い。まあ、同じ過ちを犯した人も多かったんでしょうね。</p><p>てことで、Windows上でCPANモジュールを作った流れをざっくり書いてみましたが、多分こんなに頑張らずにVMWareとかMacとかを使うのが良いと思います。</p><p>さて、明日はどなたが書くのでしょうか。</p>
 
 </div>

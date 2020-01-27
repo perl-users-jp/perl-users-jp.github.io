@@ -22,11 +22,11 @@
     <h4>流れ</h4>
     <p>proveでテストをすると、proveのプラグインを呼び出す設定ができるのですが、これをプラグインというよりテスト前に実行されるフックとして利用する事によって任意の設定用のコードを実行してしまおう、というのが目的です。</p><p>プラグインを使う際proveでは-Pスイッチを使って指定します：</p>
 
-    <pre class="code"># イメージ
+    <pre class="code prettyprint"># イメージ
 prove -P MyPlugin1 -P MyPlugin2 ...</pre>
 <p>ですがこのようにオプションが何個も連なるとどのオプションをどの順番に設定するのかすぐ忘れてしまいますし、プロジェクト内の他の人に実行してもらう時に説明しなければいけなくなってよくないですね。これを回避するために rcファイルを設定します。</p><p>rcfileに書いてある内容は全てproveへの引数として適用されますので、rcファイルだけ渡せばOKになります。</p>
 
-    <pre class="code">prove --rc=/path/to/rcfile</pre>
+    <pre class="code prettyprint">prove --rc=/path/to/rcfile</pre>
 <p>これは簡単！そしてもう--rcさえ入力したくなければ、rcfileをプロジェクトのトップディレクトリに.provercという名前で保存しておけば自動的にそれを読み込んでくれます。</p>
 
 </div>
@@ -34,7 +34,7 @@ prove -P MyPlugin1 -P MyPlugin2 ...</pre>
     <h4>プラグイン</h4>
     <p>prove -Pでプラグインを指定すると、該当パッケージ内のload() 関数が呼び出されます。</p><p>なので例えば以下のようなプラグインを実装しておけばテストを実行した時間を表示することができます：</p>
 
-    <pre class="code lang-perl">package MyTest::Timer;
+    <pre class="code prettyprint lang-perl">package MyTest::Timer;
 use strict;
 
 sub load {
@@ -43,12 +43,12 @@ sub load {
 
 1;</pre>
 
-    <pre class="code">prove -PMyTest::Timer ...
+    <pre class="code prettyprint">prove -PMyTest::Timer ...
 Starting test at Sun Dec 18 16:52:14 2011
 ...</pre>
 <p>もうちょっと工夫すれば、テスト終了時の時刻も表示することができます：</p>
 
-    <pre class="code lang-perl">package MyTest::Timer;
+    <pre class="code prettyprint lang-perl">package MyTest::Timer;
 use strict;
 use Scope::Guard qw(guard);
 
@@ -73,7 +73,7 @@ END {
     <h4>MySQLを自動的に開始する</h4>
     <p>ということでもう想像が付くとは思いますが、mysqldを自動的にTest::mysqld経由で開始してみましょう</p>
 
-    <pre class="code lang-perl">package MyTest::mysqld;
+    <pre class="code prettyprint lang-perl">package MyTest::mysqld;
 use strict;
 use Test::mysqld;
 use Test::More;
@@ -100,14 +100,14 @@ END { undef $MYSQLD }
 1;</pre>
 <p>これを仕込んでおきデータベース接続する部分の設定で $ENV{TEST_DSN}を読み込むようにすればこのデータベースを使ってテストができます。必要であればスキーマも流し込んでおくと良いでしょう。</p><p>Test::mysqldはインスタンスへのリファレンスをなくしさえすれば自動的にmysqldを停止してくれますので、$MYSQLDをパッケージレベルで保存しておけばテスト中はずっとmysqldは動作しています。ENDは無くても動きますが、なんとなくつけてみました。</p><p>というわけでこれを以下のように-Pで呼び出せるようにしておけばmysqldを使うテストもprove経由で簡単に書けますね</p>
 
-    <pre class="code">prove -PMyTest::mysqld ...</pre>
+    <pre class="code prettyprint">prove -PMyTest::mysqld ...</pre>
 
 </div>
 <div class="section">
     <h4>Memcachedもついでに開始</h4>
     <p>同じようにmemcachedも簡単に開始できます。</p>
 
-    <pre class="code lang-perl">package MyTest::memcached;
+    <pre class="code prettyprint lang-perl">package MyTest::memcached;
 use strict;
 use Test::More;
 use Test::TCP;
@@ -139,25 +139,25 @@ END { undef @MEMCACHED }
 1;</pre>
 <p>テスト内では Cache::Memcached/Cache::Memcached::Fast のコンストラクタにmemcachedサーバーの情報を渡せばmemcached混みのテストを書けます。</p>
 
-    <pre class="code lang-perl">Cache::Memcached-&gt;new({
+    <pre class="code prettyprint lang-perl">Cache::Memcached-&gt;new({
     servers =&gt; [ split /, /, $ENV{TEST_MEMCACHED_SERVERS} ]
 });</pre>
 <p>proveからは以下のように呼び出せばよいだけです。</p>
 
-    <pre class="code">prove -PMyTest::mysqld -PMyTest::memcached ...</pre>
+    <pre class="code prettyprint">prove -PMyTest::mysqld -PMyTest::memcached ...</pre>
 
 </div>
 <div class="section">
     <h4>Makefile.PL で make testとフック</h4>
     <p>あとはproveでもmakeでもどっちでも同じように動くよう仕掛けをしておけばよいです。ここでは t/provercというファイルにproveを実行するのに必要な情報を保存してあると仮定します：</p>
 
-    <pre class="code"># t/proverc
+    <pre class="code prettyprint"># t/proverc
 # 本当は --lib か --blib を指定してライブラリへのパスを設定する必要があります
 -PMyTest::memcached
 -PMyTest::mysqld</pre>
 <p>ここではプラグイン関連の設定しかしていませんが、各自必要な設定をここにいれておいてください。そしてmake testから何がよばれるのかをフックするには以下のような関数を指定しておけばいいだけです。</p>
 
-    <pre class="code lang-perl"># Makefile.PL
+    <pre class="code prettyprint lang-perl"># Makefile.PL
 
 sub MY::test_via_harness { &#34;\tprove --rc=t/proverc t\n&#34; }
 

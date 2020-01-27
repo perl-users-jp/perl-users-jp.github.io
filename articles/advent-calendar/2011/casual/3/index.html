@@ -23,7 +23,7 @@ Casual Track 3日目は、Crypt::SaltedHashを紹介します。</p><p>ユーザ
     <h4>ハッシュ化</h4>
     <p>以下のように、文字列をハッシュ化できます。</p>
 
-    <pre class="code lang-perl">use Crypt::SaltedHash;
+    <pre class="code prettyprint lang-perl">use Crypt::SaltedHash;
 
 # パスワード
 my $secret = &#39;HirakeGom@&#39;;
@@ -45,7 +45,7 @@ my $salted = $crypt-&gt;generate();
     <h4>パスワードがあっているか確認</h4>
     <p>では、ハッシュ化された文字列を使って、どのようにしてパスワードの正当性を確認すればよいのでしょうか。</p>
 
-    <pre class="code lang-perl">use Crypt::SaltedHash;
+    <pre class="code prettyprint lang-perl">use Crypt::SaltedHash;
 
 # $secretにはパスワード、$saltedにはハッシュ化された文字列を
 # あらかじめ格納しておく
@@ -66,7 +66,7 @@ if ( $is_valid ) {
     <h4>Authen::Simple::Passwordでのチェック</h4>
     <p>CPANにはAuthen::Simpleという認証専門のモジュールがあるのですが、このモジュールに含まれるAuthen::Simple::Passwordでも、Crypt::SaltedHashでハッシュ化された文字列をそのまま正当性のチェックに使うことが可能です。</p>
 
-    <pre class="code lang-perl">use Authen::Simple::Password;
+    <pre class="code prettyprint lang-perl">use Authen::Simple::Password;
 
 # $secretにはパスワード、$saltedにはハッシュ化された文字列を
 # あらかじめ格納しておく

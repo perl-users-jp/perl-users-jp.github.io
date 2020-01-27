@@ -23,7 +23,7 @@
     <h3>右クリックメニューを追加する</h3>
     <p>みなさんよくご存じのように、Windows ではふつうファイルのアイコンをダブルクリックすると、ファイルの拡張子に応じて登録済みのアプリケーションが実行されるようになっています。もちろん Perl もこの例外ではありません。ActivePerl や、最近では Strawberry Perl の場合でも、インストーラ経由で Perl をインストールした方は「.pl」という拡張子のファイルをダブルクリックすると、Perl がそのスクリプトを実行してくれるようになっているはずです。</p><p>でも、このようにして実行したスクリプトは、ふつう処理が終わったとたんに画面が消えてしまいます。エラーが出ていようが何しようがおかまいなしです。これでは不便ですよね。</p><p>そこで、ふつうは左下の「スタート」メニューから「コマンドプロンプト」というプログラム（「プログラム」メニューの「アクセサリ」のなかに入っています）を呼び出して、その昔は「DOS 窓」などと呼ばれていたウインドウのなかで Perl を使うわけですが、「スタート」メニューからコマンドプロンプトを呼び出した場合は、cd コマンドを使って、実行したいスクリプトのあるディレクトリまでいちいち手で移動しなければなりません。</p><p>（ちょっとしたテストスクリプトを書きたいだけだからディレクトリの移動はいいや、なんて思って、ふとプロンプトの前に表示されているカレントディレクトリを見たら Windows のシステムディレクトリだった、なんてこともありえますから、おたがい気をつけましょう）</p><p>もちろん世の中には「GUI なんて飾りです(ry」という人もいますし、そういう方は日頃から何でもコマンドプロンプトから実行できるようにさまざまな手管を弄しているのですが、どのみち日常業務では Excel や PDF ファイルを開くのにエクスプローラーを使わざるをえないのですから、Perl を実行するときだけコマンドプロンプトでディレクトリ移動するのは、控えめに言っても二度手間です。それよりはエクスプローラーの任意のディレクトリからコマンドプロンプトを開けるようにした方がよいでしょう。</p><p>やり方は簡単です。お使いのテキストエディタでこのようなスクリプトを書いて、適当なディレクトリに保存したら、そのファイルをダブルクリックするだけ。エクスプローラーで適当なディレクトリを右クリックしたときに「prompt」というメニューが追加されていれば成功です。クリックしたらそのディレクトリがカレントディレクトリになっているプロンプトが開きましたね？</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use Win32::TieRegistry;
 
@@ -33,14 +33,14 @@ $Registry-&gt;Open(&#39;Classes/Folder/shell/&#39;)
          -&gt;SetValue(&#39;&#39;, &#39;cmd.exe /K cd %L&#39;);</pre>
 <p>いまどきの Windows 用 Perl であればたいてい Win32::TieRegistry は標準添付されているはずですが、自分で Perl をコンパイルした方や、何かほかのプログラムについてきた Perl を使った方は、先に CPAN や PPM リポジトリからこのモジュールをインストールする必要があるかもしれません。また、できる人はわざわざスクリプトを保存しなくても、「スタート」メニューの「ファイル名を指定して実行」にこんなコマンドを入れてやればOKです。</p>
 
-    <pre class="code lang-perl">perl -MWin32::TieRegistry -e &#34;$Registry-&gt;{&#39;Classes\\Folder\\shell\\&#39;}-&gt;CreateKey(&#39;prompt\\command\\&#39;)-&gt;SetValue(&#39;&#39;,&#39;cmd.exe /K cd %L&#39;)&#34;</pre>
+    <pre class="code prettyprint lang-perl">perl -MWin32::TieRegistry -e &#34;$Registry-&gt;{&#39;Classes\\Folder\\shell\\&#39;}-&gt;CreateKey(&#39;prompt\\command\\&#39;)-&gt;SetValue(&#39;&#39;,&#39;cmd.exe /K cd %L&#39;)&#34;</pre>
 
 </div>
 <div class="section">
     <h3>タブ補完を有効にする</h3>
     <p>いまどきの Windows であれば標準でできるという噂もありますが、いわゆる「コマンドプロンプト」のもとである cmd.exe は、そのままではファイル名やディレクトリ名の補完ができません。cmd.exe の起動時に「/f:on」というオプションをつけるとそれっぽいことはできるのですが、このとき有効になるのは Ctrl+D（ディレクトリ用）と Ctrl+F（ファイル用）というキーなので、「ディレクトリもファイルも区別せずにタブ補完したい」という用途には向きません。</p><p>これも先ほどと同じような方法で解決できます。今度はこのようなスクリプトを書いて、実行しましょう。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use Win32::TieRegistry;
 
@@ -50,7 +50,7 @@ $key-&gt;SetValue(&#39;CompletionChar&#39;,     pack(&#39;L&#39;, 9), &#39;REG_D
 $key-&gt;SetValue(&#39;PathCompletionChar&#39;, pack(&#39;L&#39;, 9), &#39;REG_DWORD&#39;);</pre>
 <p>もちろんワンライナーでもOKです。ここでは二行にわけましたが、一行にまとめたければご自由にどうぞ。</p>
 
-    <pre class="code lang-perl">perl -MWin32::TieRegistry -e &#34;$Registry-&gt;{&#39;CUser\\Software\\Microsoft\\Command Processor\\\\CompletionChar&#39;} = [pack(&#39;L&#39;, 9), &#39;REG_DWORD&#39;]&#34;
+    <pre class="code prettyprint lang-perl">perl -MWin32::TieRegistry -e &#34;$Registry-&gt;{&#39;CUser\\Software\\Microsoft\\Command Processor\\\\CompletionChar&#39;} = [pack(&#39;L&#39;, 9), &#39;REG_DWORD&#39;]&#34;
 perl -MWin32::TieRegistry -e &#34;$Registry-&gt;{&#39;CUser\\Software\\Microsoft\\Command Processor\\\\PathCompletionChar&#39;} = [pack(&#39;L&#39;, 9), &#39;REG_DWORD&#39;]&#34;</pre>
 <p>現在のユーザだけでなく、ローカルマシン全体に適用したい場合は、「CUser」となっているところを「LMachine」に置き換えてください。</p>
 
@@ -59,7 +59,7 @@ perl -MWin32::TieRegistry -e &#34;$Registry-&gt;{&#39;CUser\\Software\\Microsoft
     <h3>notepad.exe をふくむエントリを探す</h3>
     <p>最後は応用編ということで、レジストリの値を再帰的に検索する方法も紹介しておきましょう。これは notepad.exe に関連づけられている拡張子などを検索するときによく使います。</p>
 
-    <pre class="code lang-perl">use strict;
+    <pre class="code prettyprint lang-perl">use strict;
 use warnings;
 use Win32::TieRegistry;
 

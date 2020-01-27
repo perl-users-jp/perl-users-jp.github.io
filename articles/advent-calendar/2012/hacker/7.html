@@ -14,13 +14,13 @@
 
         <p>やあハッキングモンスターのみんな、元気かーい？ ぼくは普通です。</p><p>きょうはみんなでログをう゛ぁーてぃかるぱみゅぱみゅしちゃうぞ！あ、こんにちは bayashi です。</p><p>さて、ログは見てるかい？cat してるかい？ tail してるかい？ GB単位のログを vim で開いてフリーズさせてやいないかい？ログは吐いたら終わりじゃいけないぜ！ちゃんとうぉっちしないと鬼がでちゃうぞ！！</p><p>とはいえ、そんなログも、たいていは1行につらつらと書かれてて見るのがつらいね！！例えばこんなやつだ。</p>
 
-    <pre class="code">$ tail log
+    <pre class="code prettyprint">$ tail log
 127.0.0.1 - bayashi [10/Oct/2000:13:55:36 -0700] &#34;GET /apache_pb.gif HTTP/1.0&#34; 200 2326 &#34;http://www.example.com/start.html&#34; &#34;Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0; .NET CLR 2.0.50727; .NET CLR 3.0.4506.2152; .NET CLR 3.5.30729)&#34;
 127.0.0.1 - bayashi [10/Oct/2000:13:55:38 -0700] &#34;GET / HTTP/1.0&#34; 200 6789 &#34;http://www.example.com/docs/2.2/logs.html&#34; &#34;Mozilla/5.0 (Windows NT 5.1; rv:12.0) Gecko/20100101 Firefox/12.0&#34;
 127.0.0.1 - bayashi [10/Oct/2000:13:55:39 -0700] &#34;GET /apache_pc.gif HTTP/1.0&#34; 200 1234 &#34;http://www.example.com/start.html&#34; &#34;Mozilla/5.0 (iPhone; U; CPU iPhone OS 4_3_2 like Mac OS X; ja-jp) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8H7 Safari/6533.18.5&#34;</pre>
 <p>こういうのを何千行も見て無意識に脳内パーズして目grepしてたら、頭がおかしくなってゾンビになりかけるだろ？</p><p>だからぼくは、yg っていうコマンドを使ってこうしてみるんだ！！</p>
 
-    <pre class="code">$ yg log
+    <pre class="code prettyprint">$ yg log
 ******************** 1 ********************
      Host: 127.0.0.1
     Ident: -
@@ -59,17 +59,17 @@ UserAgent: Mozilla/5.0 (iPhone; U; CPU iPhone OS 4_3_2 like Mac OS X; ja-jp) App
     <h4>App::YG</h4>
     <p>yg コマンドは App::YG っていうモジュールをインストールしたらくっついてくるぞ！！</p>
 
-    <pre class="code lang-sh">$ sudo cpan App::YG</pre>
+    <pre class="code prettyprint lang-sh">$ sudo cpan App::YG</pre>
 <p>これでいつでも yg を使ってログをう゛ぁーてぃかるぱみゅぱみゅできちゃうぞ！簡単すぎますね！！</p><p>でも実は、ラベルを付けて縦表示というのはどんなログでもできるというわけじゃあないぞ！！できると思った？！できません！！テヘペロ！残念でした！！</p><p>いまのところ、apache / apache combined / apache error / nginx main がう゛ぁーてぃかるぱみゅぱみゅできるぞ！もし他のログ形式に対応したい場合は App::YG::Foo::Bar のようなものを書いて、</p>
 
-    <pre class="code lang-sh">$ yg -p foo-bar hoge.log</pre>
+    <pre class="code prettyprint lang-sh">$ yg -p foo-bar hoge.log</pre>
 <p>という風に、パーザに指定すればOK!!</p><p>結構面倒だね！こんなんじゃ使いたくないよ！！ってボクも思っちゃいました！！あちゃー＞＜</p>
 
 <div class="section">
     <h5>さくっと縦分割</h5>
     <p>でもやっぱり諦めたくない！諦めたらそこでPONPONPONですよ！！</p><p>というわけで、ログなんてだいたいタブ区切りとかですよね！！だからもうそういうのは適当にさくっとやっちゃえばいいんですよ！！</p><p>d オプションでぱみゅれます。</p>
 
-    <pre class="code">$ yg -d -n fuga.log
+    <pre class="code prettyprint">$ yg -d -n fuga.log
 ******************** 1 ********************
 1: 2012-11-27 14:34:08
 2: [warn]
@@ -104,7 +104,7 @@ UserAgent: Mozilla/5.0 (iPhone; U; CPU iPhone OS 4_3_2 like Mac OS X; ja-jp) App
 9: (MyApp::F::Entry L15)</pre>
 <p>やったね、たえちゃん！！(-n はラベルの代わりに項目番号を出すオプションです。)</p><p>ちなみに、yg は標準入力を受けてう゛ぁーてぃかるぱみゅぱみゅることもできるぞ！！</p>
 
-    <pre class="code">$ cat page.log | yg</pre>
+    <pre class="code prettyprint">$ cat page.log | yg</pre>
 
 </div>
 </div>

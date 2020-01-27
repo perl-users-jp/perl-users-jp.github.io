@@ -14,13 +14,13 @@
 
         <p>Tengでdatabaseからデータを取得すると、基本的には各レコードはTeng::Rowのオブジェクトになって返されます。</p>
 
-    <pre class="code">my $row = $teng-&gt;single(&#39;user&#39;, +{id =&gt; 1});</pre>
+    <pre class="code prettyprint">my $row = $teng-&gt;single(&#39;user&#39;, +{id =&gt; 1});</pre>
 <p>この時点の$rowはProj::DB::Row::Userというクラスでインスタンス化されています。<br />
 しかし今までの説明でProj::DB::Row::Userを定義したことはありませんでした。<br />
 Tengではtableに対応するRowクラスを自動的に生成し、利用します。</p><p>例えばこのProj::DB::Row::Userというクラスにメソッドを追加したいとします。<br />
 その場合は単純に自分でそのクラスを定義するだけです。</p>
 
-    <pre class="code">package Proj::DB::Row::User;
+    <pre class="code prettyprint">package Proj::DB::Row::User;
 use strict;
 use warnings;
 use parent &#39;Teng::Row&#39;;
@@ -30,7 +30,7 @@ sub special_method { q{I&#39;m special!} }
 1;</pre>
 <p>それだけで</p>
 
-    <pre class="code">my $row = $teng-&gt;single(&#39;user&#39;, +{id =&gt; 1});
+    <pre class="code prettyprint">my $row = $teng-&gt;single(&#39;user&#39;, +{id =&gt; 1});
 print $row-&gt;special_method; # I&#39;m special!</pre>
 <p>と、独自に定義したメソッドを利用することが可能になります。<br />
 Teng::Rowを継承していることにご注意ください。</p><br />
@@ -38,7 +38,7 @@ Teng::Rowを継承していることにご注意ください。</p><br />
 ごにょごにょした理由で別のnamespaceにあるクラスを利用したい場合は、<br />
 schemaの定義で、row_classを定義することができるので、そうしましょう。</p>
 
-    <pre class="code">package Proj::DB::Schema;
+    <pre class="code prettyprint">package Proj::DB::Schema;
 use strict;
 use warnings;
 use Teng::Schema::Declare;
