@@ -11,6 +11,9 @@
     </head>
     <body>
         <h1>Kolonでかこう</h1>
+        tag
+            <a href='/tag/perl'>perl</a>
+            <a href='/tag/template'>template</a>
 
         <p>nihenです。こんにちは。 今年もブクマ数ビリを目指したいとおもいます！</p><p>Perl界隈で今年はText::Xslateというテンプレートエンジンが流行っています。</p><p>しかしこのXslateで現在主流に使われているSyntaxはTTerse<a href="#fn1" title="現在のテンプレートエンジンのデファクトスタンダードであるTemplate-Toolkit互換のSyntax">*1</a>であり、XslateネィティブともいえるKolonはまだあまり使われていないというのが現状のようです。</p><p>というわけで今回はKolonの使い方の基本を紹介します。</p>
 
@@ -173,7 +176,7 @@ sub all_cache_remove_tx {
 }</pre>
 <p>all_cache_txは$txで読み込まれる可能性のあるテンプレートファイルをすべてキャッシュにロードします。その後forkするとCopy On Write的にうれしい感じになると思います。</p><p>また、_all_cache_remove_txは、すべてのコンパイル済みファイルを削除しています。cache => 2でコンパイル済みファイルがあるとインスタンス生成後1回目の呼び出しであっても無条件にコンパイル済みファイルを使用してしまうためこのように最初にすべて削除しています。</p><p>更新のあったファイルに関連するテンプレートのコンパイル済みファイルのみを削除するほうがスマートだと思いますが面倒なのですべてけしているという感じす。</p>
 
-</div>HASH(0x55809a8efd08)
+</div>HASH(0x55e33a77a140)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

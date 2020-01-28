@@ -11,6 +11,11 @@
     </head>
     <body>
         <h1>Resque で学ぶジョブキューイング</h1>
+        tag
+            <a href='/tag/perl'>perl</a>
+            <a href='/tag/resque'>resque</a>
+            <a href='/tag/redis'>redis</a>
+            <a href='/tag/jobqueue'>jobqueue</a>
 
         <p>こんにちは。hatak (<a href="http://twitter.com/hisashi">@hisashi</a>) です。</p><p>Perl でジョブキューというと <a href="http://search.cpan.org/perldoc?TheSchwartz">TheSchwartz</a> や <a href="http://search.cpan.org/perldoc?Qudo">Qudo</a> などの名前が挙がるかと思いますが、今回はバックエンドに <a href="http://redis.io/">Redis</a> を利用したジョブキュー "<a href="http://search.cpan.org/perldoc?Resque">Resque</a>" を紹介します。<br />
 Resque はバックグラウンドジョブを処理するためのライブラリで、Github を始め大規模なサイトでも利用されています。もともとは <a href="https://github.com/defunkt/resque">Ruby&#x30E9;&#x30A4;&#x30D6;&#x30E9;&#x30EA;</a>ですが、<a href="https://github.com/defunkt/resque/wiki/Alternate-Implementations">Ruby &#x4EE5;&#x5916;&#x306E;&#x69D8;&#x3005;&#x306A;&#x8A00;&#x8A9E;&#x3067;&#x3082;&#x5B9F;&#x88C5;&#x3055;&#x308C;&#x3066;&#x3044;&#x307E;&#x3059;</a>。今回紹介するのはその Perl 実装のモジュールです。</p>

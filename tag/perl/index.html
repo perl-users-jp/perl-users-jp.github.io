@@ -1,0 +1,1090 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="perl">
+        <title>perl</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1>perl</h1>
+        <ul>
+            <li>
+                <a href="/articles/advent-calendar/2010/sym/12">
+                    7種類の記号だけでPerlプログラムを書く
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/casual/18">
+                    @INC にみる Perl のやりかたがいっぱい
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2012/hacker/3">
+                    @__gfx__ は病欠です。
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/acme/3">
+                    Acme::AirRead - perl初心者が初心を一歩抜け出すために
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/acme/17">
+                    Acme::BrainfucktoryでBrainf*ckをもっと簡単に
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/acme/9">
+                    Acme::CheckCharactorsOutsideRange
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/acme/10">
+                    Acme::DragonBall - つっかもうぜ！ドラ○ンボール！
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/acme/20">
+                    Acme::HeptaSymbolizeで7記号プログラミング
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/acme/12">
+                    Acme::Ikamusumeで侵略しなイカ？
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/acme/5">
+                    Acme::Jiro - ラーメン二郎ジェネレータ in Perl
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/acme/23">
+                    Acme::KamenriderFourze - 仮面ライダーフォーゼに変身してみよう
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/acme/7">
+                    Acme::KamenriderOOO - 仮面ライダーオーズに変身してみよう
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/acme/16">
+                    Acme::NumericalArgumenttttttttttttttttttttt
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/acme/2">
+                    Acme::Pokemon
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/acme/2">
+                    Acme::PrettyCure - プリキュアは永遠に不滅です
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/acme/14">
+                    Acme::Seclusion::JP
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/acme/9">
+                    Acme::State で Kensiro！
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/acme/6">
+                    Acme::Text::Glitchでテキストをぐちゃぐちゃにしよう
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/acme/8">
+                    Acme::Time::Reverse - 時間を戻したい貴方のために
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/acme/8">
+                    Acme::Tsu
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/acme/13">
+                    Acme::W
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/acme/10">
+                    Acme::Yomeru
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/acme/19">
+                    AcmeなるモジュールをCPANに求めて
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/acme/22">
+                    Acmeを越えて - 依存されるAcme
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/acme/17">
+                    Acmeモジュールで捗るはなし
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/acme/1">
+                    Acmeモジュール入門
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/acme/19">
+                    Acme何thing?　出題編
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/acme/21">
+                    Acme何thing?　番外編
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/acme/20">
+                    Acme何thing?　解答編
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/acme/16">
+                    Acme合体で猫-トースト装置をつくる
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/hacker/2">
+                    Alien::RRDtool - RRDtoolをCPANから入れる
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/amon2/5">
+                    Amon2 と DotCloud
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/amon2/1">
+                    Amon2 と JavaScript
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/amon2/6">
+                    Amon2 と bootstrap
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/hacker/7">
+                    AnyEvent::APNSでiPhoneのプッシュ通知を実装しよう
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/hacker/4">
+                    AnyEvent::RabbitMQ - メッセージキュー…使いこなしてますか？
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/hacker/9">
+                    App::Donburi - IRCを使い倒すアプリ
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/hacker/3">
+                    App::Rolling - 標準入力を世代管理されたファイルに書き出す
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2012/hacker/7">
+                    App::YG - ログをう゛ぁーてぃかるぱみゅぱみゅしちゃう！！
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2012/hacker/5">
+                    AxsLog - Yet Another AccessLog middleware
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/casual/25">
+                    B::Xref で Perl のソースコードを読む
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/hacker/24">
+                    BokkaKumiai: 音楽のコード進行解析とギタータブ譜出力
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/casual/5">
+                    CGI::Expand - フラットなハッシュをネストデータに変換
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2012/casual/9">
+                    CPAN Author になりました - Dist::Zilla のご紹介
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/test/22">
+                    CPAN::Mini::DevelとCPAN::Reporter::Smokerで簡単スモーキング
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2012/casual/6">
+                    CPANなにこれモジュール集
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/acme/11">
+                    CPAN愛のモジュール - Acmeから始まらない物語
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2012/hacker/10">
+                    CSS::LESS::Filter で Twitter Bootstrap をいい感じに改造しよう
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/casual/20">
+                    Calendar::Japanese::Holiday - 日本の祝日を求める
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/hacker/1">
+                    Config::ENV - 環境変数で config を切替えるためのモジュール
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/casual/3">
+                    Crypt::SaltedHash - パスワードを安全に保存するための一手段
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/dbix/11">
+                    DBI のお供になりそうなモジュールたち
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/dbix/13">
+                    DBI::Profileでお手軽プロファイリング
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/dbix/16">
+                    DBIx::*ユーザのためのDBD::SQLite
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/dbix/17">
+                    DBIx::Class で FORCE INDEX する方法
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/dbix/14">
+                    DBIx::DBSchema: 環境ごとのテーブルスキーマを管理したい、したかったんだ…
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/hacker/5">
+                    DBIx::Inspector で DB の中をのぞきみる
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/hacker/14">
+                    DBIx::ObjectMapperでData Mapperパターン!
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/dbix/9">
+                    DBIx::QueryLog で DBI で実行された SQL を丸見えにする！
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/dbix/20">
+                    DBIx::QueryLog でクエリの実行計画も丸見えにする！
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/dbix/8">
+                    DBIx::Simple ふたたび
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/casual/1">
+                    DISられても負けないWindows Perl Hacker養成講座
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/hacker/14">
+                    Data::Monad::CondVar でAnyEvent を使いやすくする
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/casual/24">
+                    Data::Section::Simpleで__DATA__をカジュアルに使おう！
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/casual/10">
+                    Data::Validatorでバリデーションする
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/test/20">
+                    Devel::CoverとJenkins
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2012/casual/5">
+                    Dropbox上のMarkdownテキストをプレビューしちゃえ！
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/hacker/16">
+                    Email::MIME::MobileJPで文字コードまわりに気をつかわないでメールの送受信をおこなう
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/casual/2">
+                    Encode::Locale - 環境に合わせたエンコーディングを提供する
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/english/24">
+                    Encode::UTF8Mac makes you happy while handling file names on MacOSX.
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/hacker/10">
+                    FarmBalance: Webファームシステムにおけるデータ件数やトランザクション量等の均等分散
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/hacker/17">
+                    FormValidator::Simple::Plugin::V8 - バリデーションルールをサーバー/クライアントで共有するためのモジュール
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/hacker/16">
+                    GD::Chord::Piano - ピアノのコード表を画像出力する
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/casual/14">
+                    Geo::Coordinates::Converter - 位置座標の測地系やフォーマットを変換する
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/casual/21">
+                    Getopt::Longでコマンドラインのオプション指定をサクっと簡単に取得する
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/casual/9">
+                    Google Docsの表計算書類をNet::Google::Spreadsheetsを使ってブラウザ抜きで読み書きする
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2012/hacker/1">
+                    Graphviz::DSL - 「逆に考えるだ, DOTファイルっぽく書いちゃってもいいさと」
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/casual/4">
+                    Groonga Casual Tutorial - Groongaをカジュアルに使ってみたい
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/hacker/9">
+                    HTML5 な今だからこその位置情報ハンドリング♡  - Geo::Coordinates::Converter
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/casual/16">
+                    HTML::Shakanでフォーム生成・バリデーションからモデル作成まで
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2012/hacker/16">
+                    HTMLのバリデーションをよしなにやりたくてHTML::Lint::Pluggable書いた
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/hacker/8">
+                    HTTPサーバフレームワークとしてのPlack活用法と、Plack::Middleware::Pictogram::MobileJpを使ったその事例紹介
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/test/8">
+                    HTTP通信を含むモジュールのテスト
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/test/16">
+                    HTTP通信を含むモジュールのテスト #2
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/english/8">
+                    How to run MovableType with Plack
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/casual/12">
+                    Image::SizeとImage::Imlib2を使ってCSS Spriteしてみよう
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/win32/14">
+                    JScriptからperlを呼び出すよ！
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/test/11">
+                    Jenkinsで継続的メトリクス測定のすすめ
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2012/hacker/4">
+                    Karas - 漆黒の翼
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/casual/8">
+                    Kolonでかこう
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2012/casual/2">
+                    List::Compareで二つの配列の集合を扱うの巻
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2012/hacker/8">
+                    Module::AnyEvent::Helper::Filter と filtered のご紹介
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/test/4">
+                    Module::Build で let's `make love`
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/hacker/4">
+                    Module::Install::TestTarget で let's `make love`
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2012/casual/7">
+                    Mojolicious::Lite を使って一人ぼっちSNS「AloneSNS」を作る。
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/casual/11">
+                    Mojolicious::Liteでウェブツールを作ろう
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/casual/6">
+                    MySQL と SQLite に対応した DBIx なモジュールを PostgreSQL に対応させる Tips いくつか
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2012/hacker/6">
+                    Net::APNs::Extended - あなたに通知を送りたい
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/casual/13">
+                    Net::Google::Analyticsを使ってGoogle Analyticsのデータを引っ張る
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/casual/18">
+                    Net::eBayで自分が好きなアーティスト作品の出品情報を常時取得する
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/casual/10">
+                    Object::Container ‐ Containerを使って開発スピードをあげる
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2012/casual/11">
+                    PDLで数値計算
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2012/casual/10">
+                    PHPのアプリだけどperlでテストするんだぜ？（ワイルドだry
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/acme/25">
+                    PMのためのAcme - Acme::PM::*
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/casual/15">
+                    Path::Classで簡単ファイル操作
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/hacker/15">
+                    Perl から Growl をちゃんと使おう
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/test/5">
+                    Perl から Hadoop と連携したテストをしてみる
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/casual/17">
+                    Perl で Amazon S3 をあつかう Net::Amazon::S3
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/test/23">
+                    Perl 以外の何かをテストする
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/hacker/21">
+                    Perl::Metrics::Lite - プラガブルなメトリクス測定モジュール
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/acme/23">
+                    PerlIO::via で遊ぶ
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2012/casual/1">
+                    Perlでアプリケーションをささっと書くのに役立つTips
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/casual/11">
+                    Perlで文学を嗜む Net::AozoraBunko
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/test/6">
+                    PerlとOracleDatabaseでの性能試験（データ増幅）
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/dbix/5">
+                    PerlのO/Rマッパーよくある機能一覧
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/test/10">
+                    Perlテストのリファクタリング的なあれ
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2012/hacker/14">
+                    Plack::App::Gateway - コンテンツをお好みにゲートうぇいうぇいうぇい！！
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/meta_adcal/9">
+                    RFC822対応しててサーバアプリケーション動かなくなった
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/meta_adcal/6">
+                    RSS 出力対応した作業ログ
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2012/casual/12">
+                    Resque で学ぶジョブキューイング
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/dbix/21">
+                    SQL::Interpで生がお好きなあなたも満足
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/acme/18">
+                    SQL::MakerのAcme的利用について
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/hacker/22">
+                    STF分散オブジェクトストレージ
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2012/casual/16">
+                    Scalar::Util::blessedでblessされちゃった判定するよ！
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2012/hacker/9">
+                    Scope::Guard等でリソース解放を実装する際に知っておきたいこと
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2012/hacker/13">
+                    Script::Ichigeki - 相手は死ぬ
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/hacker/13">
+                    Skype::AnyでSkype botを作る
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/casual/24">
+                    Smart::Args でバリデーションする。またはバリデーターとして必要な事
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/casual/19">
+                    Smart::Matchで快適スマートマッチ
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2012/hacker/2">
+                    Smart::Options - もっと手軽にコマンドライン引数解析
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/casual/17">
+                    Term::UI - サクッと対話的に入力を求める
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/test/14">
+                    Test::Exception で Death テスト
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/test/7">
+                    Test::MockTime - 時間にまつわるtest
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/hacker/15">
+                    Text::AAlib - すべての画像を AAに
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/acme/21">
+                    Text::MeCab（日本語変換系Acmeモジュールを支える偉大なモジュール）
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/hacker/5">
+                    Text::UnicodeTable::Simple - 全角文字を含むテキストテーブルを描く
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2012/casual/15">
+                    Text::Xslate TTerse の深淵なる罠
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/casual/15">
+                    TheSchwartzでちょっとした大きなデータを扱いたい！
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/hacker/7">
+                    Time::Piece::Over24 - 24時以降の時間をTime::Pieceで扱う
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/hacker/12">
+                    Time::Piece::Plus - Time::Pieceに便利メソッドを
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/english/10">
+                    Use Perl with UNIX tools
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/casual/5">
+                    Vim と Perl で音楽プレーヤを作ろう
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/casual/19">
+                    WWW::SalesforceでChatterのタイムラインを取得する
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2012/casual/14">
+                    Web アプリケーションのデプロイについての考察
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/hacker/10">
+                    WebService::Async でウェブサービスの非同期アクセスを簡単に! あるいは私は如何にしてMacBookProを手に入れたか？
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/casual/22">
+                    Webスクレイピング入門
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/win32/8">
+                    Win32::GUITest と Win32::Clipboard で GUI 操作を自動化する
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/win32/2">
+                    Windows GUI アプリケーションでの Perl プラグインの作り方
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/win32/12">
+                    Windows でも Growl を使おう
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/win32/11">
+                    Windows で複数の perl を使い分けよう！
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/win32/22">
+                    Windows の STDIN を非同期で読み込む。
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/win32/7">
+                    Windows のイベントログで勤務時間を調べよう
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/test/12">
+                    bless を使った Casual な Test Double について
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/amon2/7">
+                    caym.js の dispatcher について
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/acme/24">
+                    dan.pm に迫る
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/hacker/19">
+                    dotcloudで複数サーバーが必要なシステムを立ち上げたりした話 2011年12月版
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/casual/16">
+                    dropbox-api-command - DropboxでLinuxライクなコマンド操作を
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/casual/22">
+                    forksでithreadsに思いを馳せてみる
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2012/hacker/15">
+                    integerでちょっちゅ速くするお話
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/win32/20">
+                    meta-author mattn.jp@gmail.com (mattn)
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/win32/25">
+                    meta-author xaicron
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/test/13">
+                    perl ♡ tests
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/test/1">
+                    perl でテストを始めよう！！
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/test/21">
+                    prove についてのおさらい
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/casual/20">
+                    proveをうまく使ってテスト実行を効率化しよう
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2012/casual/13">
+                    vim で Perl を書くときのための tips
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/dbix/23">
+                    あるある ORM ドハマリ大辞典
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/acme/22">
+                    お米モジュールの衝撃と木目モジュールの慟哭
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/casual/7">
+                    かゆいところに手が届くマイナーCPANモジュールランキング
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2012/casual/8">
+                    こんなマジック知らなかった。
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2012/hacker/11">
+                    すべてのデータベース接続を切断する - DBIx::DisconnectAll
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/meta_adcal/8">
+                    そうだ、カレンダを出そう
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/dbix/6">
+                    それCallbacksで - DBIxを作りだす前に
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/win32/13">
+                    それ多分IIS7でできるよ
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/win32/10">
+                    それ多分Perlでできるよ
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/test/17">
+                    ちょっと他言語に行ったら例えば RSpec にハマった人のために
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/casual/13">
+                    とある言語の例外処理 またはTry::Tinyの落とし穴
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/amon2/2">
+                    どの Flavor つかったらいいのん?
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/acme/13">
+                    の　　　　　（Acme::No）
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/test/3">
+                    ぼくのかんがえた最強のテスト分類
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/casual/7">
+                    アクセスログの解析時のDateTimeによる日付処理
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/acme/25">
+                    アルパカとテストとAcmeモジュー
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/hacker/17">
+                    アレしたあとにコレしたい！
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/win32/5">
+                    オススメしないperlの実行方法
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/dbix/12">
+                    オレオレDBIxでMySQLやOracleの実行計画を一瞬にして採る（採りたい）！
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/dbix/2">
+                    オレオレDBIxへの第一歩 - DBIのサブクラスを作る
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/casual/12">
+                    カジュアルにperlデバッガを使って捗る
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2012/casual/3">
+                    カジュアルにデータを確率とか優先度で処理する
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/amon2/4">
+                    クライアントサイドJSでもサーバーサイドJSでもうごくテストを書く
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/test/9">
+                    テストだってテストが必要です
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/test/18">
+                    テストのためにデーモンを自動的に起動するやりかた2011年版
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/test/15">
+                    テストのカバレッジを出す
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/test/19">
+                    データの偏りを考慮したデータ増幅：【続】PerlとOracleDatabaseでの性能試験
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/hacker/11">
+                    データ分散とインデックス最適化のためのハッシュ関数の利用
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/win32/18">
+                    ファイル操作にまつわるエトセトラ
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/dbix/7">
+                    ベンチどうしますか？
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2012/casual/4">
+                    傘をもっていくかどうかを知らせるシェルスクリプト
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/hacker/6">
+                    変態的正規表現モジュールを支える Regexp::Assemble::Compressed
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/acme/12">
+                    子　　　　　（Acme::Time::Baby）
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/acme/4">
+                    実践 Acme::Spinner
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/acme/15">
+                    将　　　　　（Acme::Shorten::ZoffixsModuleNames）
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/dbix/22">
+                    敢えてDBIx::Connectorを紹介してやろうじゃないか
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/acme/15">
+                    時にはお伽の話を - Acme::Rumpelstiltskin
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/casual/14">
+                    書き捨てスクリプトを書くときに便利なモジュールとPragmatic Module
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2012/hacker/12">
+                    最強のケンオールを求めて - Parse::JapanesePostalCode
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/casual/9">
+                    業務終了後、git logとDist::Makerでさっさと帰る話。
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/acme/14">
+                    玉　　　　　（Acme::Magic8Ball）
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/dbix/10">
+                    生DBIの構成例
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/dbix/4">
+                    続DBIとforkの関係
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2010/casual/4">
+                    続・Encodeでラクラク日本語処理
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/acme/24">
+                    聖夜に暖炉の前でする話
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/dbix/3">
+                    自己参照の階層構造を持つテーブルをツリー形式にする DBIx::Tree
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/casual/6">
+                    配列操作をカジュアルに
+                </a>
+            </li>
+            <li>
+                <a href="/articles/advent-calendar/2011/acme/11">
+                    餃　　　　　（Acme::Chef）
+                </a>
+            </li>
+        </ul>
+
+        <a href="/tag">タグ一覧</a>
+        <a href="/">HOME</a>
+
+    </body>
+</html>

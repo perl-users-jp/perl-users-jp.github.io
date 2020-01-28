@@ -11,6 +11,9 @@
     </head>
     <body>
         <h1>forksでithreadsに思いを馳せてみる</h1>
+        tag
+            <a href='/tag/perl'>perl</a>
+            <a href='/tag/casual'>casual</a>
 
         <p>仕事でいっぱいいっぱいのmakamakaです。</p><p>Perlには<a href="http://search.cpan.org/~jesse/perl-5.12.2/pod/perlthrtut.pod">ithreads</a>というスレッド機能がありますよね。みなさん使ってますか？　私は使ってません。ithreadsといえば、遅い・メモリ喰い・不安定とディスられまくりの可哀想な子。非同期処理がしたければ<a href="http://search.cpan.org/dist/Coro/">Coro</a>などもありますし、使わない（使えない）ですよね。</p><p>そ・れ・で・も</p><p>「せっかくだから一度ぐらい使ってみたいなあ」と思う方もいるかもしれません。でもでも、使ってるPerlがスレッド無効でコンパイルしてあるので試せないよ、ithreadsごときに再コンパイルしたくないよ、という方もいるでしょう。そこで両者を同時に満たすために<a href="http://search.cpan.org/dist/forks/">forks</a>を紹介します。</p><p>forksは<a href="http://search.cpan.org/dist/threads/">threads</a>互換のAPIを提供します。ただしスレッドはforkを使って実現されます<a href="#fn1" title="Windowsには対応していません">*1</a>。スレッド間の通信（共有変数）はソケット通信。</p><p></p>
 
@@ -51,7 +54,7 @@ print $count, &#34;\n&#34;; # 10
 
     <pre class="code prettyprint lang-perl">$ perl -Mforks -e &#39;print threads-&gt;VERSION&#39;</pre>
 <p>ってやるとthreadsの互換バージョンがわかります。</p><p>あんまり役に立つネタじゃなくてごめんなさい。おまけとして<a href="/articles/advent-calendar/2010/acme/22">acmeトラックに補足記事</a>を用意しました。ではさようなら。</p><p>さあ、明日はgfxさんです！</p>
-HASH(0x55809a8e4250)
+HASH(0x55e33a77bcd8)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

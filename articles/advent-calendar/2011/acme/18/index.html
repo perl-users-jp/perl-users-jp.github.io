@@ -11,6 +11,9 @@
     </head>
     <body>
         <h1>SQL::MakerのAcme的利用について</h1>
+        tag
+            <a href='/tag/perl'>perl</a>
+            <a href='/tag/acme'>acme</a>
 
         <p><a href="http://twitter.com/maka2_donzoko">makamaka</a>です。まずは<a href="http://twitter.com/ktat">ktat</a>さんの<a href="http://d.hatena.ne.jp/ktat/20111205/1323023021">SQL&#x3092;&#x7D44;&#x307F;&#x7ACB;&#x3066;&#x308B;&#x3082;&#x306E;</a>をご覧ください。Teng + SQL::Maker便利だけど、ちょっと複雑なSQLをつくるときは面倒かな、という話が出てきます。</p><p>私も似たようなことを思ってて普段SQL::Abstract互換のデータをうけとれるSQL::Makerのラッパーを使っているので、それを紹介します。</p><p><a href="https://github.com/makamaka/SQL-Maker-DBICLike">SQL::Maker::DBICLike</a>という名前ですが、この名前でいいのか自分でもよくわかりません。昔はSQL::Maker::compatAbstractという名前にしてたのですが、別にメソッドに互換性があるわけでないのと、DBIx::Class::ResultSetのattributesを取れるようにしているので、現在はこういう名前になってます。また変わるかもしれません。テストもドキュメントも全然揃ってません。</p>
 

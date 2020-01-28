@@ -11,6 +11,8 @@
     </head>
     <body>
         <h1>RSS 出力対応した作業ログ</h1>
+        tag
+            <a href='/tag/perl'>perl</a>
 
         <p>こんにちわ。Perl 界の桜井章一と呼ばれている <a href="http://mattn.kaoriya.net/">mattn</a> です。キメゼリフは「あんた、コードが煤けてるぜ」です<a href="#fn1" title="要出典">*1</a>。<br />
 今回初めて JPerl Advent Calendar に参加しましたが、この Advent Calendar を動かしてるサーバアプリのソースをガチャガチャと触っている、とてもしつけのなっていない大人です。</p><p>このサーバアプリで今回私が手を入れたのは、RSS の出力部分ですが今日はどの様に対応したかを説明します。どちらかというと作業ログです。</p><p><a href="https://github.com/p5-app-adventcalendar/p5-app-adventcalendar">App::AdventCalendar</a> は kan さんがこの JPerl Advent Calendar の為に書いたサーバアプリで、テキストファイルを食わしてブログ形式に仕上げる代物です。中身は PSGI 形式のリクエスト handler と、Text::Xatena を使った整形、Router::Simple を使ったルーティング、Text::Xslate をテンプレートエンジンに使っています。結構人気のある物を集めた作りだと思います。<br />
@@ -98,7 +100,7 @@ $entry-&gt;{categories} = \@tags;</pre>
   &lt;/channel&gt;
 &lt;/rss&gt;</pre>
 <p>簡単ですね。</p>
-HASH(0x55809a902a90)
+HASH(0x55e33a79bb10)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

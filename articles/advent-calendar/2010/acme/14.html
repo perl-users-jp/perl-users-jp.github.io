@@ -11,6 +11,9 @@
     </head>
     <body>
         <h1>Acme::Seclusion::JP</h1>
+        tag
+            <a href='/tag/perl'>perl</a>
+            <a href='/tag/acme'>acme</a>
 
         <p>こんにちは。Acme Track 2回目の<a href="http://d.hatena.ne.jp/hide_o_55/">hide_o_55</a>です。</p><p>今回紹介させて頂くのは、<a href="https://github.com/hideo55/p5-Acme-Seclusion-JP">Acme::Seclusion::JP</a>です。<br />
 このモジュールを使用すると江戸時代のような鎖国状態を実現できます。<br />
@@ -24,8 +27,8 @@ use Moose;</pre>
 <p>「舶来品は使わん！」という頑固な攘夷派の方にオススメです。</p><p>今回は、@INCによるモジュールロードのフックでアホなことをしていますが、以下のようにモジュールをロードした際に暗黙的にロードされるモジュールをトレースして、遅延ロード化を検討したりとか、わりと実用的なこともできます。</p>
 
     <pre class="code prettyprint lang-perl">perl -MPerl6::Say -e &#39;BEGIN{unshift @INC,sub{ say join &#34;\t=&gt;\t&#34;,(caller)[0],do{(my $mod = $_[1]) =~ s!/!::!g;$mod =~ m!(.+)\.pm!}}}use MyModule;&#39;</pre>
-HASH(0x55809a903108)
-HASH(0x55809a8e4bf8)
+HASH(0x55e33a7791e8)
+HASH(0x55e339cb7cd0)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

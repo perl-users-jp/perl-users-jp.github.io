@@ -11,6 +11,7 @@
     </head>
     <body>
         <h1>Cache::LRU が速い理由</h1>
+        tag
 
         <p>先日、オンメモリなキャッシュモジュール <a href="http://search.cpan.org/dist/Cache-LRU">Cache::LRU</a> を書きました。<a href="http://blog.kazuhooku.com/2010/11/cachelru-handy-and-fast-in-memory-cache.html">Kazuho's Weblog: Cache::LRU (a handy and fast in-memory cache module in pure-perl)</a> を見ていただければ、Cache::LRU が他のモジュールより速いことは明らかだと思います。速度差の原因としては機能や実装上の差異もあるのですが、設計上の工夫も Cache::LRU が速い理由のひとつです。</p><p>LRU (<a href="http://ja.wikipedia.org/wiki/Least_Recently_Used">Least Recently Used</a>) アルゴリズムを備えたキャッシュを実装しようと思うと、</p>
 

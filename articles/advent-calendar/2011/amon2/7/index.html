@@ -11,6 +11,9 @@
     </head>
     <body>
         <h1>caym.js の dispatcher について</h1>
+        tag
+            <a href='/tag/perl'>perl</a>
+            <a href='/tag/js'>js</a>
 
         <p>こんにちは！tokuhirom です！</p><p>caym.js というものを amon2 に標準添付しようとおもっていて、それの紹介です。</p><p><a href="https://github.com/tokuhirom/caym-js">https://github.com/tokuhirom/caym-js</a> このへんにあるよ。</p><p><a href="http://tech.kayac.com/archive/javascript-url-dispatcher.html">http://tech.kayac.com/archive/javascript-url-dispatcher.html</a> という ago さんの記事をよんでからわりとこれつかってたんですが、ただの静的な URL の場合にも regexp でパターンを指定するのが煩雑だなあとおもっていて、なんかいいかんじにできるといいなとおもったんで、なんかそういうのかいたというはなし。</p><p>なんかこういうかんじでつかえる。</p><p>    var dispatcher = new Caym.Dispatcher();<br />
     dispatcher.register('/my/', function () {<br />

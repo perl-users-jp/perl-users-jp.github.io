@@ -11,10 +11,11 @@
     </head>
     <body>
         <h1>Acvent Calendar Applicationを高速化する</h1>
+        tag
 
         <p>10日になったので最適化しましょう。<br />
 まず手始めにいろいろキャッシュしましょうね。<a href="https://github.com/p5-app-adventcalendar/p5-app-adventcalendar/blob/master/lib/App/AdventCalendar.pm">p5-app-adventcalendar</a>でキャッシュできそうなものはいろいろありますが、今回はRouter、Template Engine、Formatterをキャッシュします。このアプリではそれぞれ<a href="http://search.cpan.org/dist/Router-Simple/">Router::Simple</a>、<a href="http://search.cpan.org/dist/Text-Xslate/">Text::Xslate</a>、<a href="http://search.cpan.org/dist/Text-Xatena/">Text::Xatena</a>を使います<a href="#fn1" title="Text::XslateとText::Xatenaは見た目が似ていて紛らわしいですね。">*1</a>。</p><p>もともとこの三つのオブジェクトはhandler()内でいちいちnew()していたのでした。これでは効率が悪い！ということでhandler()の外に出したりidごとにキャッシュしたりするようにしたのでした。</p><p>めでたしめでたし。</p><p>さらに工夫するとすれば、いちいちText::Xatenaでフォーマットしなおしているのがよくないですね。今度の記事ではそれをやろうと思います。</p><p>gfxでした！</p>
-HASH(0x55809a912c70)
+HASH(0x55e33a74dea8)
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

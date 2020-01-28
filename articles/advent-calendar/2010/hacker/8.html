@@ -11,6 +11,12 @@
     </head>
     <body>
         <h1>HTTPサーバフレームワークとしてのPlack活用法と、Plack::Middleware::Pictogram::MobileJpを使ったその事例紹介</h1>
+        tag
+            <a href='/tag/perl'>perl</a>
+            <a href='/tag/hacker'>hacker</a>
+            <a href='/tag/plack'>plack</a>
+            <a href='/tag/psgi'>psgi</a>
+            <a href='/tag/mobile'>mobile</a>
 
         <p>実はお腹回りが入らなくなってスーツを新調した<a href="http://twitter.com/hirose31">hirose31</a>です。</p><p>みなさん、<a href="http://plackperl.org/" title="Plack">Plack</a>使ってますか？ 弊社でも<a href="http://search.cpan.org/dist/Starlet/" title="Starlet">Starlet</a>をNginxのバックエンドに置いてプロダクション環境でモリモリ使っているのですが、ちょっとした検証にもPlackは大変重宝しています。</p><p>具体的には、キャッシュに関連するレスポンスヘッダ(Last-Modified、Expiresなど)の組み合わせと、条件付きGETやブラウザキャッシュの挙動をブラウザごとに調べたときに使いました。あくまで検証用と割りきって特にファイル分割などはせず、psgiファイルにゴリゴリっとベロっとコードを書いてパパパっと検証用のHTTPサーバを作りました。</p><p>このように、限定された目的のHTTPサーバをサササっと実装してペロっと上げるのにもPlackは大変有益です。</p><p>そこで今日は、検証用簡易HTTPサーバとしてのPlack活用法ということで、最近あった事例をひとつ紹介したいと思います。</p>
 
