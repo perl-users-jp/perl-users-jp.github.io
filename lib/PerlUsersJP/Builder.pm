@@ -315,7 +315,7 @@ sub build_atom {
 
 sub diag {
     my ($self, $msg) = @_;
-    #print $msg;
+    print $msg;
 }
 
 sub to_public {
