@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="<?= $vars->{description} ?>">
+        <title><?= $vars->{title} ?></title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link href="TODO" rel="stylesheet">
+    </head>
+    <body>
+        <h1><?= $vars->{tag} ?></h1>
+        <ul>
+?           for (@{$vars->{files}}) {
+            <li>
+                <a href="<?= $_->{href} ?>">
+                    <?= $_->{title} ?>
+                </a>
+            </li>
+?           }
+        </ul>
+
+        <a href="/tag">タグ一覧</a>
+        <a href="/">HOME</a>
+
+    </body>
+</html>

@@ -3,14 +3,18 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <meta name="description" content="<?= $vars->{description} ?>">
-        <meta name="author" content="<?= $vars->{author} ?>">
+        <meta name="description" content="<?= $vars->{matter}->description ?>">
+        <meta name="author" content="<?= $vars->{matter}->author ?>">
         <title><?= $vars->{subtitle} ? "$vars->{title} - $vars->{subtitle}" : $vars->{title} ?></title>
         <link rel="icon" href="/img/favicon.ico">
         <link href="TODO" rel="stylesheet">
     </head>
     <body>
         <h1><?= $vars->{title} ?></h1>
+        tag
+?       for my $tag ($vars->{matter}->tags->@*) {
+            <a href='<?= "/tag/$tag" ?>'><?= $tag ?></a>
+?       }
 
         <?= $vars->{text} ?>
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>

@@ -35,11 +35,12 @@ sub BUILDARGS {
         return {
             format => $format,
             title  => $data->{title} // '',
+            tags   => [], # TODO HTMLでもタグ対応したいね
         }
     }
     else {
         my $data    = _parse_text_entry($file);
-        my $tags    = $data->{tags} ? [split ',', $data->{tags}] : [];
+        my $tags    = $data->{tags} ? [ grep { $_ } map { s!\s*!!; s!\s*$!!; $_ } split /[,\s]/, $data->{tags} ] : [];
 
         return {
             body        => $data->{body},

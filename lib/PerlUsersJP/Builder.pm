@@ -73,8 +73,7 @@ sub build_entries {
     }
 
     $self->build_categories($src_list);
-    # TODO
-    #$self->build_tags(\@entries);
+    $self->build_tags($src_list);
     #$self->build_sitemap(\@entries);
     #$self->build_atom(\@entries);
 }
@@ -118,8 +117,7 @@ sub build_entry {
             text        => $self->entry_text($src),
             title       => $matter->title,
             subtitle    => $self->entry_subtitle($src),
-            author      => $matter->author,
-            description => $matter->description,
+            matter      => $matter,
         });
         $dest->spew_utf8($html);
         $sub_dest->spew_utf8($html) if $sub_dest;
@@ -162,7 +160,8 @@ sub build_categories {
     my ($self, $src_list) = @_;
 
     my %src_list_map;
-    for my $src ($src_list->@*) {
+    for ($src_list->@*) {
+        my $src      = $_;
         my $category = $src->parent;
         while ($category ne $self->content_dir) {
             $src_list_map{$category}{$src} = 1;
@@ -233,8 +232,75 @@ sub category_description {
 }
 
 sub build_tags {
-    my ($self, $entries) = @_;
-    ... # TODO
+    my ($self, $src_list) = @_;
+
+    my %tag_map;
+    for my $src ($src_list->@*) {
+        my $matter = $self->front_matter($src);
+        next unless $matter->exists;
+
+        for my $tag ($matter->tags->@*) {
+            push $tag_map{$tag}->@*, $src;
+        }
+    }
+
+    $self->build_tag_index([keys %tag_map]);
+
+    for my $tag (keys %tag_map) {
+        my $src_list = $tag_map{$tag};
+        $self->build_tag($tag, $src_list);
+    }
+}
+
+sub build_tag_index {
+    my ($self, $tags) = @_;
+
+    my $html = $self->_render_string('tag_index.html', {
+        tags => [sort { $a cmp $b } $tags->@*],
+    });
+
+    my $tag_dir = $self->public_dir->child('tag');
+    my $dest = $tag_dir->child('index.html');
+    $tag_dir->mkpath unless $tag_dir->is_dir;
+    $dest->spew_utf8($html);
+    $self->diag("Created tag_list $dest\n");
+}
+
+sub build_tag {
+    my ($self, $tag, $src_list) = @_;
+
+    my @src_list = map {
+        my $file   = Path::Tiny::path($_);
+        my $matter = $self->front_matter($file);
+        my $title  = $matter->title;
+
+        # content/foo/bar.txt => /foo/bar
+        my $href = do {
+            my $content_dir = $self->content_dir;
+            my $path = $file =~ s!$content_dir!!r;
+            my $href = $path =~ s!\.([^.]+)$!!r;
+            $href;
+        };
+        {
+            file   => $file,
+            matter => $matter,
+            title  => $title,
+            href   => $href,
+        }
+    } $src_list->@*;
+
+    my $html = $self->_render_string('tag.html', {
+        tag         => $tag,
+        description => $tag,
+        title       => $tag,
+        files       => [ sort { $a->{title} cmp $b->{title} } @src_list ],
+    });
+
+    my $tag_dir = $self->public_dir->child('tag', $tag);
+    my $dest = $tag_dir->child('index.html');
+    $tag_dir->mkpath unless $tag_dir->is_dir;
+    $dest->spew_utf8($html);
+    $self->diag("Created tag $dest\n");
 }
 
 sub build_sitemap {
