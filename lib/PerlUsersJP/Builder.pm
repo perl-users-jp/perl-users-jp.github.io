@@ -117,8 +117,7 @@ sub build_entry {
             text        => $self->entry_text($src),
             title       => $matter->title,
             subtitle    => $self->entry_subtitle($src),
-            author      => $matter->author,
-            description => $matter->description,
+            matter      => $matter,
         });
         $dest->spew_utf8($html);
         $sub_dest->spew_utf8($html) if $sub_dest;
