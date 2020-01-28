@@ -72,7 +72,7 @@ sub build_entries {
         $self->build_entry($src);
     }
 
-    #$self->build_categories($src_list);
+    $self->build_categories($src_list);
     $self->build_tags($src_list);
     #$self->build_sitemap(\@entries);
     #$self->build_atom(\@entries);
@@ -161,7 +161,8 @@ sub build_categories {
     my ($self, $src_list) = @_;
 
     my %src_list_map;
-    for my $src ($src_list->@*) {
+    for ($src_list->@*) {
+        my $src      = $_;
         my $category = $src->parent;
         while ($category ne $self->content_dir) {
             $src_list_map{$category}{$src} = 1;
