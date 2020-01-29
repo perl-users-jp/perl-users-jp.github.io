@@ -13,7 +13,7 @@
         <ul>
 ?           for my $tag (@{$vars->{tags}}) {
             <li>
-                <a href=<?= "/tag/$tag" ?>>
+                <a href=<?= normalize_name "/tag/$tag" ?>>
                     <?= $tag ?>
                 </a>
             </li>

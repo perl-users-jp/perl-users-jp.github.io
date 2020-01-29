@@ -6,6 +6,9 @@ use feature qw(state);
 
 use PerlUsersJP::FrontMatter;
 
+use Encode::Locale;
+use Encode qw(encode);
+
 use Path::Tiny ();
 use Date::Format ();
 use Scalar::Util ();
@@ -176,6 +179,11 @@ sub build_categories {
     }
 }
 
+sub normalize_name {
+    my ($name) = @_;
+    return $name =~ s!::!-!gr;
+}
+
 sub build_category {
     my ($self, $src_category, $src_list) = @_;
 
@@ -296,7 +304,7 @@ sub build_tag {
         files       => [ sort { $a->{title} cmp $b->{title} } @src_list ],
     });
 
-    my $tag_dir = $self->public_dir->child('tag', $tag);
+    my $tag_dir = $self->public_dir->child('tag', encode(locale => normalize_name($tag)));
     my $dest = $tag_dir->child('index.html');
     $tag_dir->mkpath unless $tag_dir->is_dir;
     $dest->spew_utf8($html);
