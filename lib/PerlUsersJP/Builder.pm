@@ -359,7 +359,7 @@ sub format_text {
             $html .= "\n<div class=\"footnotes\">\n";
             $html .= join "\n", map {
                 sprintf(
-                    '  <div class="footnote" id="#fn%d">*%d: %s</div>',
+                    '  <div class="footnote" id="fn%d">*%d: %s</div>',
                     $_->{number}, $_->{number}, $_->{note},
                 )
             } @{ $inline->footnotes };
