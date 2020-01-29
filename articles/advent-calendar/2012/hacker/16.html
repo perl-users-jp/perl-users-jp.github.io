@@ -191,9 +191,13 @@ HTMLの構文エラーが出たままコミットされる事が減り、消え�
 instance単位でプラグイン読み込める機構が嬉しい場面は稀ですが、こういう原理で作る事ができるという事は覚えておいて損は無いかと思います。<br />
 また、instance単位でこういう事をやる場合、こうやって自作するよりMo[ou]seのRoleを使って作った方が断然楽なのでオススメです。</p><p>次回はサンタさんですかね？イエス・キリストですかね？お楽しみに！！</p>
 
-</div>HASH(0x55c173fecdd0)
-HASH(0x55c173fed3e8)
-HASH(0x55c174037e88)
+</div>
+<div class="footnotes">
+  <div class="footnote" id="#fn1">*1: ドキュメンテーションするのを忘れていましたが、各エラーで$paramに渡ってくる値は、現状%HTML::Lint::Error::errorsの値を見て書くというワイルドな仕様になっております。</div>
+  <div class="footnote" id="#fn2">*2: HTML5の場合、HTML5用のパーサーを作って、標準のパーサーをそれに挿げ替えるほうがベターな策ですが、ホワイトリスト式の方が実装コストが圧倒的に低く、実用上はこれでほぼ問題無い為こうなっています。</div>
+  <div class="footnote" id="#fn3">*3: わざとではないです</div>
+</div>
+
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

@@ -246,11 +246,15 @@ sub make_http_response {
     <p>国内外の AMQP と RabbitMQ の認知度の都合上、AnyEvent::RabbitMQ に対する意見や要望、機能追加や障害対応のパッチは、全て日本国外から頂いており、日本国内では、多分、全く利用されていません。</p><p>今回、例として扱った案件は、オープンソースだけで対応できる仮想の案件となりますが、クレジットカード決済のサービスを提供する際に発生した実案件が元となっています。故に AnyEvent::RabbitMQ や Net::RabbitFoot は、実際にミッションクリティカルな現場で利用されているものであり、日本国内のみなさんにとっても有益なモジュールであるという確信をもって紹介させて頂きました。</p><p>もしよろしければ、RabbitMQ 共々、ご利用頂ければ幸いです。</p><p>ちなみに、実案件で構築したシステムは、他にも多くの CPAN モジュールに依存した形で構築されており、この場をお借りして、Perl コミュニティにお礼申し上げます。いつも、良質なコードを提供してくれて、ありがとうございます。みなさんが良いクリスマスを迎えられますように！</p>
 
 </div>
-</div>HASH(0x55c174048280)
-HASH(0x55c17403d550)
-HASH(0x55c174038050)
-HASH(0x55c174038260)
-HASH(0x55c174048208)
+</div>
+<div class="footnotes">
+  <div class="footnote" id="#fn1">*1: Core2Duo 3GH/Memory 2G 程度</div>
+  <div class="footnote" id="#fn2">*2: 対応していないクライアントも多いのです</div>
+  <div class="footnote" id="#fn3">*3: 自画自賛で恐縮です</div>
+  <div class="footnote" id="#fn4">*4: 海外ユーザの方々は、AnyEvent::RabbitMQ を直接使っているようです。Coro に依存したくないのでしょうね</div>
+  <div class="footnote" id="#fn5">*5: 実案件では、念のため、各スレッド毎に Channel を開いています</div>
+</div>
+
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>
