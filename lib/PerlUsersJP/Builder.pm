@@ -355,7 +355,16 @@ sub format_text {
         state $xatena = Text::Xatena->new;
         my $inline    = Text::Xatena::Inline->new;
         my $html = $xatena->format( $text, inline => $inline );
-        $html .= join "\n", @{ $inline->footnotes };
+        if (scalar @{ $inline->footnotes }) {
+            $html .= "\n<div class=\"footnotes\">\n";
+            $html .= join "\n", map {
+                sprintf(
+                    '  <div class="footnote" id="#fn%d">*%d: %s</div>',
+                    $_->{number}, $_->{number}, $_->{note},
+                )
+            } @{ $inline->footnotes };
+            $html .= "\n</div>\n";
+        }
         return $html;
     }
     elsif ($format eq 'pod') {
