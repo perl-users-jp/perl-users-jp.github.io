@@ -1,5 +1,8 @@
 requires 'perl', '5.030001';
 
+requires 'Encode::Locale';
+requires 'Encode';
+
 requires 'Class::Tiny';
 requires 'Date::Format';
 requires 'Path::Tiny';
