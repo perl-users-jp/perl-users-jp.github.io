@@ -7,7 +7,7 @@ use feature qw(state);
 use PerlUsersJP::FrontMatter;
 
 use Encode::Locale;
-use Encode qw(decode encode);
+use Encode qw(encode);
 
 use Path::Tiny ();
 use Date::Format ();
