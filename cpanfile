@@ -4,6 +4,7 @@ requires 'Class::Tiny';
 requires 'Date::Format';
 requires 'Path::Tiny';
 requires 'Text::MicroTemplate';
+requires 'XML::Atom';
 
 requires 'Text::Xatena';
 requires 'Text::Markdown';

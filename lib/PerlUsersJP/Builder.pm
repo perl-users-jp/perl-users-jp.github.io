@@ -10,6 +10,10 @@ use Path::Tiny ();
 use Date::Format ();
 use Scalar::Util ();
 use Text::MicroTemplate;
+use XML::Atom::Feed;
+use XML::Atom::Entry;
+use XML::Atom::Person;
+use XML::Atom::Link;
 
 use Text::Xatena;
 use Text::Xatena::Inline;
@@ -75,7 +79,7 @@ sub build_entries {
     $self->build_categories($src_list);
     $self->build_tags($src_list);
     #$self->build_sitemap(\@entries);
-    #$self->build_atom(\@entries);
+    $self->build_atom_feed($src_list);
 }
 
 
@@ -124,6 +128,36 @@ sub build_entry {
     }
 
     $self->diag("Created entry $dest\n");
+}
+
+# content/foo/bar.txt => /foo/bar
+sub entry_url_path {
+    my ($self, $src) = @_;
+
+    my $content_dir = $self->content_dir;
+    my $path = "$src";
+    $path =~ s!$content_dir!!;
+    $path =~ s!\.([^.]+)$!!;
+    return $path;
+}
+
+sub entry_url {
+    my ($self, $src) = @_;
+    return "https://perl-users.jp" . $self->entry_url_path($src);
+}
+
+sub entry_updated {
+    my ($self, $src) = @_;
+    return Date::Format::time2str('%a, %d %b %Y %H:%M:%S %z', $src->stat->mtime);
+}
+
+sub entry_published {
+    my ($self, $src) = @_;
+
+    # FIXME
+    #my $matter = $self->front_matter($src);
+    #$matter->date
+    return Date::Format::time2str('%a, %d %b %Y %H:%M:%S %z', $src->stat->mtime);
 }
 
 sub entry_text {
@@ -273,14 +307,8 @@ sub build_tag {
         my $file   = Path::Tiny::path($_);
         my $matter = $self->front_matter($file);
         my $title  = $matter->title;
+        my $href   = $self->entry_url_path($file);
 
-        # content/foo/bar.txt => /foo/bar
-        my $href = do {
-            my $content_dir = $self->content_dir;
-            my $path = $file =~ s!$content_dir!!r;
-            my $href = $path =~ s!\.([^.]+)$!!r;
-            $href;
-        };
         {
             file   => $file,
             matter => $matter,
@@ -308,9 +336,56 @@ sub build_sitemap {
     ... # TODO
 }
 
-sub build_atom {
-    my ($self, $entries) = @_;
-    ... # TODO
+sub build_atom_feed {
+    my ($self, $src_list) = @_;
+
+    my $feed = XML::Atom::Feed->new;
+    $feed->title('新着記事 - Perl Users JP');
+    $feed->id('tag:perl-users.jp,2020:/feed');
+    #$feed->description('Perl Users JPの新着記事');
+    $feed->link('https://perl-users.jp');
+
+    my @sorted = sort { $b->stat->mtime <=> $a->stat->mtime } $src_list->@*;
+    my @new_src_list = splice @sorted, 0, 10;
+    for my $src (@new_src_list) {
+        my $entry = XML::Atom::Entry->new;
+    
+        my $matter = $self->front_matter($src);
+        my $path   = $self->entry_url_path($src);
+
+        $entry->title($matter->title);
+        $entry->id("tag:perl-users.jp,2020:$path");
+        $entry->updated($self->entry_updated($src)); # TODO: format
+        $entry->published($self->entry_published($src)); # TODO: format
+        $entry->content(
+            $self->entry_text($src)
+        );
+
+        my $author = XML::Atom::Person->new;
+        $author->name($matter->author);
+        $entry->author($author);
+
+        my $url = $self->entry_url($src);
+        #$entry->url($url);
+
+        my $link = XML::Atom::Link->new;
+        $link->type('text/html');
+        $link->rel('alternate');
+        $link->href($url);
+    
+        $feed->add_entry($entry);
+    }
+
+    my $first_src = $new_src_list[0];
+    $feed->updated($self->entry_updated($first_src));
+
+    my $xml = $feed->as_xml;
+
+    my $atom_dir = $self->public_dir->child();
+    my $dest = $atom_dir->child('feed.atom');
+    $atom_dir->mkpath unless $atom_dir->is_dir;
+    $dest->spew_utf8($xml);
+    $self->diag("Created atom $dest\n");
 }
 
 sub diag {
@@ -364,6 +439,9 @@ sub format_text {
         $parser->html_header('');
         $parser->html_footer('');
         $parser->parse_string_document("=pod\n\n$text");
+    }
+    elsif ($format eq 'html') {
+        return $text;
     }
     else {
         die "unsupported format: $format";
