@@ -146,20 +146,6 @@ sub entry_url {
     return "https://perl-users.jp" . $self->entry_url_path($src);
 }
 
-sub entry_updated {
-    my ($self, $src) = @_;
-    return Date::Format::time2str('%a, %d %b %Y %H:%M:%S %z', $src->stat->mtime);
-}
-
-sub entry_published {
-    my ($self, $src) = @_;
-
-    # FIXME
-    #my $matter = $self->front_matter($src);
-    #$matter->date
-    return Date::Format::time2str('%a, %d %b %Y %H:%M:%S %z', $src->stat->mtime);
-}
-
 sub entry_text {
     my ($self, $src) = @_;
     my $matter = $self->front_matter($src);
@@ -336,17 +322,35 @@ sub build_sitemap {
     ... # TODO
 }
 
+my $ATOM_FEED_COUNT  = 10;
+my $ATOM_DATE_FORMAT = '%Y-%m-%dT%H:%M:%S%z';
+
 sub build_atom_feed {
     my ($self, $src_list) = @_;
 
     my $feed = XML::Atom::Feed->new;
     $feed->title('新着記事 - Perl Users JP');
     $feed->id('tag:perl-users.jp,2020:/feed');
-    #$feed->description('Perl Users JPの新着記事');
-    $feed->link('https://perl-users.jp');
+    $feed->lang('ja-JP');
+
+    { # link alternate
+        my $link = XML::Atom::Link->new;
+        $link->type('text/html');
+        $link->rel('alternate');
+        $link->href('https://perl-users.jp');
+        $feed->add_link($link);
+    }
+
+    { # link self
+        my $link = XML::Atom::Link->new;
+        $link->type('application/atom+xml');
+        $link->rel('self');
+        $link->href('https://perl-users.jp/feed.atom');
+        $feed->add_link($link);
+    }
 
     my @sorted = sort { $b->stat->mtime <=> $a->stat->mtime } $src_list->@*;
-    my @new_src_list = splice @sorted, 0, 10;
+    my @new_src_list = splice @sorted, 0, $ATOM_FEED_COUNT;
     for my $src (@new_src_list) {
         my $entry = XML::Atom::Entry->new;
     
@@ -355,8 +359,8 @@ sub build_atom_feed {
 
         $entry->title($matter->title);
         $entry->id("tag:perl-users.jp,2020:$path");
-        $entry->updated($self->entry_updated($src)); # TODO: format
-        $entry->published($self->entry_published($src)); # TODO: format
+        $entry->updated(Date::Format::time2str($ATOM_DATE_FORMAT, $src->stat->mtime));
+        #$entry->published(Date::Format::time2str($ATOM_DATE_FORMAT, $src->stat->mtime)); # FIXME mtime
         $entry->content(
             $self->entry_text($src)
         );
@@ -365,26 +369,23 @@ sub build_atom_feed {
         $author->name($matter->author);
         $entry->author($author);
 
-        my $url = $self->entry_url($src);
-        #$entry->url($url);
-
         my $link = XML::Atom::Link->new;
         $link->type('text/html');
         $link->rel('alternate');
-        $link->href($url);
-    
+        $link->href($self->entry_url($src));
+
         $feed->add_entry($entry);
     }
 
     my $first_src = $new_src_list[0];
-    $feed->updated($self->entry_updated($first_src));
+    $feed->updated(Date::Format::time2str($ATOM_DATE_FORMAT, $first_src->stat->mtime));
 
     my $xml = $feed->as_xml;
 
     my $atom_dir = $self->public_dir->child();
     my $dest = $atom_dir->child('feed.atom');
     $atom_dir->mkpath unless $atom_dir->is_dir;
-    $dest->spew_utf8($xml);
+    $dest->spew($xml);
     $self->diag("Created atom $dest\n");
 }
 
