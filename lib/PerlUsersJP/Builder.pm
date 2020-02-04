@@ -238,6 +238,7 @@ sub build_category {
         category    => $category,
         description => $category,
         title       => $category,
+        url         => "https://$HOST$category/",
         files       => [
             sort {
                 Scalar::Util::looks_like_number($a->{name}) && Scalar::Util::looks_like_number($b->{name})
@@ -287,6 +288,8 @@ sub build_tag_index {
     my ($self, $tags) = @_;
 
     my $html = $self->_render_string('tag_index.html', {
+        url          => "https://$HOST/tag/",
+        tag_url_path => sub { $self->tag_url_path(@_) },
         tags => [sort { $a cmp $b } $tags->@*],
     });
 
@@ -318,6 +321,7 @@ sub build_tag {
         tag         => $tag,
         description => $tag,
         title       => $tag,
+        url         => $self->tag_url($tag),
         files       => [ sort { $a->{title} cmp $b->{title} } @src_list ],
     });
 
@@ -326,6 +330,16 @@ sub build_tag {
     $tag_dir->mkpath unless $tag_dir->is_dir;
     $dest->spew_utf8($html);
     $self->diag("Created tag $dest\n");
+}
+
+sub tag_url_path {
+    my ($self, $tag) = @_;
+    return sprintf("/tag/%s", normalize_name $tag);
+}
+
+sub tag_url {
+    my ($self, $tag) = @_;
+    return "https://$HOST" . $self->tag_url_path($tag);
 }
 
 sub build_sitemap {

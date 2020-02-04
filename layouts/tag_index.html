@@ -6,6 +6,7 @@
         <meta name="description" content="cription} ?>">
         <title>タグ一覧</title>
         <link rel="icon" href="/img/favicon.ico">
+        <link rel="canonical" href="<?= $vars->{url} ?>">
         <link href="TODO" rel="stylesheet">
     </head>
     <body>
@@ -13,7 +14,7 @@
         <ul>
 ?           for my $tag (@{$vars->{tags}}) {
             <li>
-                <a href=<?= normalize_name "/tag/$tag" ?>>
+                <a href=<?= $vars->{tag_url_path}->($tag) ?>>
                     <?= $tag ?>
                 </a>
             </li>
