@@ -125,6 +125,7 @@ sub build_entry {
             title       => $matter->title,
             subtitle    => $self->entry_subtitle($src),
             matter      => $matter,
+            url         => $self->entry_url($src),
         });
         $dest->spew_utf8($html);
         $sub_dest->spew_utf8($html) if $sub_dest;
