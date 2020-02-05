@@ -31,6 +31,9 @@ use Class::Tiny qw(
 
 our $HOST = 'perl-users.jp';
 
+my $ATOM_FEED_COUNT = 10;
+my $DATE_FORMAT     = '%Y-%m-%dT%H:%M:%S%z';
+
 sub BUILDARGS {
     my ($class, %args) = @_;
 
@@ -83,7 +86,7 @@ sub build_entries {
 
     $self->build_categories($src_list);
     $self->build_tags($src_list);
-    #$self->build_sitemap(\@entries);
+    $self->build_sitemap($src_list);
     $self->build_atom_feed($src_list);
 }
 
@@ -144,6 +147,7 @@ sub entry_url_path {
     my $path = "$src";
     $path =~ s!$content_dir!!;
     $path =~ s!\.([^.]+)$!!;
+    $path =~ s!index$!!;
     return $path;
 }
 
@@ -343,12 +347,37 @@ sub tag_url {
 }
 
 sub build_sitemap {
-    my ($self, $entries) = @_;
-    ... # TODO
-}
+    my ($self, $src_list) = @_;
 
-my $ATOM_FEED_COUNT  = 10;
-my $ATOM_DATE_FORMAT = '%Y-%m-%dT%H:%M:%S%z';
+    my @url_list;
+
+    # CASE: entry
+    for my $src ($src_list->@*) {
+        my $loc      = $self->entry_url($src);
+        my $lastmod  = Date::Format::time2str($DATE_FORMAT, $src->stat->mtime);
+        my $count    = scalar grep { $_ ne 'index.html' } split qr!/!, $src;
+        my $priority = int((0.8 ** ($count - 1)) * 100) / 100;
+        push @url_list => {
+            loc      => $loc,
+            lastmod  => $lastmod,
+            priority => $priority,
+        }
+    }
+
+    # TODO
+    # CASE: category
+    # CASE: tag
+
+    @url_list = sort { $b->{priority} <=> $a->{priority} } @url_list;
+
+    my $xml = $self->_render_string('sitemap.xml', {
+        url_list => \@url_list,
+    });
+
+    my $dest = $self->public_dir->child('sitemap.xml');
+    $dest->spew_utf8($xml);
+    $self->diag("Created sitemap $dest\n");
+}
 
 sub build_atom_feed {
     my ($self, $src_list) = @_;
@@ -384,8 +413,8 @@ sub build_atom_feed {
 
         $entry->title($matter->title);
         $entry->id("tag:$HOST,2020:$path");
-        $entry->updated(Date::Format::time2str($ATOM_DATE_FORMAT, $src->stat->mtime));
-        #$entry->published(Date::Format::time2str($ATOM_DATE_FORMAT, $src->stat->mtime)); # FIXME mtime
+        $entry->updated(Date::Format::time2str($DATE_FORMAT, $src->stat->mtime));
+        #$entry->published(Date::Format::time2str($DATE_FORMAT, $src->stat->mtime)); # FIXME mtime
         $entry->content(
             $self->entry_text($src)
         );
@@ -403,7 +432,7 @@ sub build_atom_feed {
     }
 
     my $first_src = $new_src_list[0];
-    $feed->updated(Date::Format::time2str($ATOM_DATE_FORMAT, $first_src->stat->mtime));
+    $feed->updated(Date::Format::time2str($DATE_FORMAT, $first_src->stat->mtime));
 
     my $xml = $feed->as_xml;
 
