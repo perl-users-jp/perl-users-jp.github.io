@@ -29,6 +29,8 @@ use Class::Tiny qw(
     layouts_dir
 );
 
+our $HOST = 'perl-users.jp';
+
 sub BUILDARGS {
     my ($class, %args) = @_;
 
@@ -125,6 +127,7 @@ sub build_entry {
             title       => $matter->title,
             subtitle    => $self->entry_subtitle($src),
             matter      => $matter,
+            url         => $self->entry_url($src),
         });
         $dest->spew_utf8($html);
         $sub_dest->spew_utf8($html) if $sub_dest;
@@ -146,7 +149,7 @@ sub entry_url_path {
 
 sub entry_url {
     my ($self, $src) = @_;
-    return "https://perl-users.jp" . $self->entry_url_path($src);
+    return "https://$HOST" . $self->entry_url_path($src);
 }
 
 sub entry_text {
@@ -235,6 +238,7 @@ sub build_category {
         category    => $category,
         description => $category,
         title       => $category,
+        url         => "https://$HOST$category/",
         files       => [
             sort {
                 Scalar::Util::looks_like_number($a->{name}) && Scalar::Util::looks_like_number($b->{name})
@@ -284,6 +288,8 @@ sub build_tag_index {
     my ($self, $tags) = @_;
 
     my $html = $self->_render_string('tag_index.html', {
+        url          => "https://$HOST/tag/",
+        tag_url_path => sub { $self->tag_url_path(@_) },
         tags => [sort { $a cmp $b } $tags->@*],
     });
 
@@ -315,6 +321,7 @@ sub build_tag {
         tag         => $tag,
         description => $tag,
         title       => $tag,
+        url         => $self->tag_url($tag),
         files       => [ sort { $a->{title} cmp $b->{title} } @src_list ],
     });
 
@@ -323,6 +330,16 @@ sub build_tag {
     $tag_dir->mkpath unless $tag_dir->is_dir;
     $dest->spew_utf8($html);
     $self->diag("Created tag $dest\n");
+}
+
+sub tag_url_path {
+    my ($self, $tag) = @_;
+    return sprintf("/tag/%s", normalize_name $tag);
+}
+
+sub tag_url {
+    my ($self, $tag) = @_;
+    return "https://$HOST" . $self->tag_url_path($tag);
 }
 
 sub build_sitemap {
@@ -338,14 +355,14 @@ sub build_atom_feed {
 
     my $feed = XML::Atom::Feed->new;
     $feed->title('新着記事 - Perl Users JP');
-    $feed->id('tag:perl-users.jp,2020:/feed');
+    $feed->id("tag:$HOST,2020:/feed");
     $feed->lang('ja-JP');
 
     { # link alternate
         my $link = XML::Atom::Link->new;
         $link->type('text/html');
         $link->rel('alternate');
-        $link->href('https://perl-users.jp');
+        $link->href("https://$HOST");
         $feed->add_link($link);
     }
 
@@ -353,7 +370,7 @@ sub build_atom_feed {
         my $link = XML::Atom::Link->new;
         $link->type('application/atom+xml');
         $link->rel('self');
-        $link->href('https://perl-users.jp/feed.atom');
+        $link->href("https://$HOST/feed.atom");
         $feed->add_link($link);
     }
 
@@ -366,7 +383,7 @@ sub build_atom_feed {
         my $path   = $self->entry_url_path($src);
 
         $entry->title($matter->title);
-        $entry->id("tag:perl-users.jp,2020:$path");
+        $entry->id("tag:$HOST,2020:$path");
         $entry->updated(Date::Format::time2str($ATOM_DATE_FORMAT, $src->stat->mtime));
         #$entry->published(Date::Format::time2str($ATOM_DATE_FORMAT, $src->stat->mtime)); # FIXME mtime
         $entry->content(
