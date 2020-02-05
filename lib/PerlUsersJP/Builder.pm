@@ -84,10 +84,10 @@ sub build_entries {
         $self->build_entry($src);
     }
 
-    $self->build_categories($src_list);
+    my $categories = $self->build_categories($src_list);
     $self->build_tags($src_list);
-    $self->build_sitemap($src_list);
     $self->build_atom_feed($src_list);
+    $self->build_sitemap($src_list, $categories);
 }
 
 
@@ -200,28 +200,27 @@ sub build_categories {
         }
     }
 
-    for my $category (keys %src_list_map) {
-        my @src_list = keys $src_list_map{$category}->%*;
-        $self->build_category($category, \@src_list);
-    }
-}
-
-sub normalize_name {
-    my ($name) = @_;
-    return $name =~ s!::!-!gr;
-}
-
-sub build_category {
-    my ($self, $src_category, $src_list) = @_;
-
-    # すでにカテゴリ一覧のページが存在していたら、生成しないでおく
-    $src_category = Path::Tiny::path($src_category);
-    for my $ext ('html', 'txt', 'md', 'markdown') {
-        return if $src_category->child("index.$ext")->exists;
-    }
+    my @categories;
 
     my $content_dir = $self->content_dir;
-    my $category = $src_category =~ s!$content_dir!!r;
+    for my $category (keys %src_list_map) {
+        $category =~ s!$content_dir!!;
+
+        # すでにカテゴリ一覧のページが存在していたら、生成しないでおく
+        for my $ext ('html', 'txt', 'md', 'markdown') {
+            next if Path::Tiny::path($content_dir, $category, "index.$ext")->exists;
+        }
+
+        my @src_list = keys $src_list_map{$category}->%*;
+        $self->build_category($category, \@src_list);
+        push @categories => $category;
+    }
+    return \@categories;
+}
+
+
+sub build_category {
+    my ($self, $category, $src_list) = @_;
 
     my @src_list = map {
         my $file   = Path::Tiny::path($_);
@@ -242,7 +241,7 @@ sub build_category {
         category    => $category,
         description => $category,
         title       => $category,
-        url         => "https://$HOST$category/",
+        url         => $self->category_url($category),
         files       => [
             sort {
                 Scalar::Util::looks_like_number($a->{name}) && Scalar::Util::looks_like_number($b->{name})
@@ -257,6 +256,11 @@ sub build_category {
     $category_dir->mkpath;
     $dest->spew_utf8($html);
     $self->diag("Created category $dest\n");
+}
+
+sub category_url {
+    my ($self, $category) = @_;
+    return "https://$HOST$category/"
 }
 
 sub category_title {
@@ -329,7 +333,7 @@ sub build_tag {
         files       => [ sort { $a->{title} cmp $b->{title} } @src_list ],
     });
 
-    my $tag_dir = $self->public_dir->child('tag', encode(locale => normalize_name($tag)));
+    my $tag_dir = $self->public_dir->child('tag', encode(locale => _normalize_name($tag)));
     my $dest = $tag_dir->child('index.html');
     $tag_dir->mkpath unless $tag_dir->is_dir;
     $dest->spew_utf8($html);
@@ -338,7 +342,7 @@ sub build_tag {
 
 sub tag_url_path {
     my ($self, $tag) = @_;
-    return sprintf("/tag/%s", normalize_name $tag);
+    return sprintf("/tag/%s", _normalize_name($tag));
 }
 
 sub tag_url {
@@ -347,7 +351,7 @@ sub tag_url {
 }
 
 sub build_sitemap {
-    my ($self, $src_list) = @_;
+    my ($self, $src_list, $categories) = @_;
 
     my @url_list;
 
@@ -364,8 +368,18 @@ sub build_sitemap {
         }
     }
 
-    # TODO
     # CASE: category
+    for my $category ($categories->@*) {
+        my $loc      = $self->category_url($category);
+        my $count    = scalar split qr!/!, $category;
+        my $priority = int((0.8 ** ($count - 1)) * 100) / 100;
+        push @url_list => {
+            loc      => $loc,
+            priority => $priority,
+        }
+    }
+
+    # TODO
     # CASE: tag
 
     @url_list = sort { $b->{priority} <=> $a->{priority} } @url_list;
@@ -531,6 +545,11 @@ sub _render_string {
     ...
 
     return $renderer->($vars);
+}
+
+sub _normalize_name {
+    my ($name) = @_;
+    return $name =~ s!::!-!gr;
 }
 
 1;
