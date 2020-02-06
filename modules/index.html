@@ -1,131 +1,125 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
-    <head profile="http://purl.org/net/ns/metaprof">
-        <!-- Document Metadata -->
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-        <meta http-equiv="Content-Language" content="ja" />
-        <meta http-equiv="Content-Style-Type" content="text/css" />
-        <meta http-equiv="Content-Script-Type" content="text/javascript" />
-        <meta http-equiv="imagetoolbar" content="no" />
-
-        <!-- Atom news feed -->
-
-        <link rel="alternate" type="application/rss+xml" title="RSS feed" href="http://coderepos.org/share/log/websites/perl-users.jp?limit=100&amp;mode=stop_on_copy&amp;format=rss" />
-        <link rel="stylesheet" type="text/css" href="/css/perl-users.jp.css" />
-        <link rel="shortcut icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
-        <link rel="icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
-
-        <title>CPANライブラリ - モダンなPerl入門</title>
-
-        <script src="http://www.google-analytics.com/urchin.js" type="text/javascript"></script>
-        <script type="text/javascript">
-            _uacct = "UA-4463402-1";
-            urchinTracker();
-        </script>
-        <!-- script src="/js/codepress/codepress.js" type="text/javascript"></script -->
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="/modules">
+        <title>/modules</title>
+        <link rel="icon" href="/img/favicon.ico">
+        <link rel="canonical" href="https://perl-users.jp/modules/">
+        <link href="TODO" rel="stylesheet">
     </head>
     <body>
-        <div id="head-navigation"><a href="/">Perl-users.jp</a></div>
-<!-- content start -->
+        <h1>/modules</h1>
+        <ul>
+            <li>
+                <a href="/modules/b_deparse">
+                    b_deparse.html
+                </a>
+            </li>
+            <li>
+                <a href="/modules/cache_memcached_fast">
+                    cache_memcached_fast.html
+                </a>
+            </li>
+            <li>
+                <a href="/modules/config_pit">
+                    config_pit.html
+                </a>
+            </li>
+            <li>
+                <a href="/modules/cpan_mini">
+                    cpan_mini.html
+                </a>
+            </li>
+            <li>
+                <a href="/modules/cpan_mini_webserver">
+                    cpan_mini_webserver.html
+                </a>
+            </li>
+            <li>
+                <a href="/modules/datetime">
+                    datetime.html
+                </a>
+            </li>
+            <li>
+                <a href="/modules/devel_cover">
+                    devel_cover.html
+                </a>
+            </li>
+            <li>
+                <a href="/modules/devel_nytprof">
+                    devel_nytprof.html
+                </a>
+            </li>
+            <li>
+                <a href="/modules/email_mime">
+                    email_mime.html
+                </a>
+            </li>
+            <li>
+                <a href="/modules/email_send">
+                    email_send.html
+                </a>
+            </li>
+            <li>
+                <a href="/modules/http_engine">
+                    http_engine.html
+                </a>
+            </li>
+            <li>
+                <a href="/modules/index">
+                    index.html
+                </a>
+            </li>
+            <li>
+                <a href="/modules/json">
+                    json.html
+                </a>
+            </li>
+            <li>
+                <a href="/modules/list_moreutils">
+                    list_moreutils.html
+                </a>
+            </li>
+            <li>
+                <a href="/modules/list_util">
+                    list_util.html
+                </a>
+            </li>
+            <li>
+                <a href="/modules/module_corelist">
+                    module_corelist.html
+                </a>
+            </li>
+            <li>
+                <a href="/modules/path_class">
+                    path_class.html
+                </a>
+            </li>
+            <li>
+                <a href="/modules/template">
+                    template.html
+                </a>
+            </li>
+            <li>
+                <a href="/modules/text_csv_xs">
+                    text_csv_xs.html
+                </a>
+            </li>
+            <li>
+                <a href="/modules/xml_feed">
+                    xml_feed.html
+                </a>
+            </li>
+            <li>
+                <a href="/modules/xml_libxml">
+                    xml_libxml.html
+                </a>
+            </li>
+        </ul>
 
+        <a href="/">HOME</a>
 
-
-        <h1>CPANモジュール入門</h1>
-        <p>Perl Mongers が普段つかっているオススメの CPAN モジュールを厳選して紹介する</p>
-        <p>こんなとき、どんなモジュールをつかったらいいの?という疑問に答えられるようなドキュメント(になる予定)</p>
-        <p>モバイル関連のモジュールについては扱わない。量も多いから別枠で。</p>
-        <div>
-            <h2>目次</h2>
-            <ol>
-                <li>HTTP
-                    <ol>
-                        <li>LWP::UserAgent</li>
-                        <li>LWPx::ParanoidAgent</li>
-                        <li>Web::Scraper</li>
-                        <li><a href="/modules/http_engine.html">HTTP::Engine</a></li>
-                    </ol>
-                </li>
-                <li>O/R Mapper
-                    <ol>
-                        <li>DBIx::Class</li>
-                        <li>Data::ObjectDriver</li>
-                    </ol>
-                </li>
-                <li>テンプレートエンジン
-                    <ol>
-                        <li><a href="/modules/template.html">Template-Toolkit</a></li>
-                        <li>HTML::Template</li>
-                        <li>Text::MicroMason</li>
-                    </ol>
-                </li>
-                <li>メール
-                    <ol>
-                        <li><a href="/modules/email_send.html">送信(Email::MIME + Email::Send)</a></li>
-                        <li><a href="/modules/email_mime.html">パーズ(Email::MIME)</a></li>
-                    </ol>
-                </li>
-                <li>データ
-                    <ol>
-                        <li><a href="/modules/text_csv_xs.html">CSV(Text::CSV_XS)</a></li>
-                        <li><a href="/modules/json.html">JSON(JSON.pm)</a></li>
-                        <li><a href="/modules/xml_libxml.html">XML::LibXML</a></li>
-                        <li><a href="/modules/xml_feed.html">RSS, Atom, etc(XML::Feed)</a></li>
-                        <li>TBD: YAML</li>
-                        <li><a href="/modules/config_pit.html">Config::Pit</a></li>
-                    </ol>
-                </li>
-                <li>開発ツール
-                    <ol>
-                        <li><a href="/modules/devel_nytprof.html">プロファイラ(Devel::NYTProf)</a></li>
-                        <li><a href="/modules/devel_cover.html">カバレッジ率をみる(Devel::Cover)</a></li>
-                        <li><a href="/modules/b_deparse.html">Perlの解釈結果をみる(B::Deparse)</a></li>
-                    </ol>
-                </li>
-                <li>クラスをつくる
-                    <ol>
-                        <li>Moose</li>
-                    </ol>
-                </li>
-                <li>日付処理
-                    <ol>
-                        <li><a href="/modules/datetime.html">DateTime</a></li>
-                    </ol>
-                </li>
-                <li>リスト処理
-                    <ol>
-                        <li><a href="/modules/list_util.html">List::Util</a></li>
-                        <li><a href="/modules/list_moreutils.html">List::MoreUtils</a></li>
-                    </ol>
-                </li>
-                <li>キャッシュ
-                    <ol>
-                        <li><a href="/modules/cache_memcached_fast.html">Cache::Memcached::Fast</a></li>
-                    </ol>
-                </li>
-                <li>ファイル処理
-                    <ol>
-                        <li><a href="/modules/path_class.html">Path::Class</a></li>
-                    </ol>
-                </li>
-                <li>テスト
-                    <ol>
-                        <li>Test::More</li>
-                        <li>Test::Base</li>
-                    </ol>
-                </li>
-                <li>開発ツール
-                    <ol>
-                        <li><a href="/modules/cpan_mini.html">CPAN::Mini</a></li>
-                        <li><a href="/modules/cpan_mini_webserver.html">CPAN::Mini::Webserver</a></li>
-                        <li><a href="/modules/module_corelist.html">Module::CoreList - 標準モジュールかどうかを調べる</a></li>
-                        <li>local::lib - CPAN モジュールを特定のディレクトリにインストールして管理</li>
-                    </ol>
-                </li>
-            </ol>
-        </div>
-<!-- content end -->
-        <hr />
-        <p><a href="/modern_introduction_perl/">目次へ</a></p>
-        <p>Last modified: $Date: 2009-06-02 19:46:50 +0900 (火, 02  6月 2009) $</p>
     </body>
 </html>
