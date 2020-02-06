@@ -139,22 +139,6 @@ sub build_entry {
     $self->diag("Created entry $dest\n");
 }
 
-# content/foo/bar.txt => /foo/bar
-sub entry_url_path {
-    my ($self, $src) = @_;
-
-    my $content_dir = $self->content_dir;
-    my $path = "$src";
-    $path =~ s!$content_dir!!;
-    $path =~ s!\.([^.]+)$!!;
-    $path =~ s!index$!!;
-    return $path;
-}
-
-sub entry_url {
-    my ($self, $src) = @_;
-    return "https://$HOST" . $self->entry_url_path($src);
-}
 
 sub entry_text {
     my ($self, $src) = @_;
@@ -192,29 +176,30 @@ sub build_categories {
     my %src_list_map;
     for ($src_list->@*) {
         my $src      = $_;
-        my $category = $src->parent;
-        while ($category ne $self->content_dir) {
-            $src_list_map{$category}{$src} = 1;
-            $src      = $category;
-            $category = $src->parent;
+        my $src_category = $src->parent;
+        while ($src_category ne $self->content_dir) {
+            $src_list_map{$src_category}{$src} = 1;
+            $src          = $src_category;
+            $src_category = $src->parent;
         }
     }
 
     my @categories;
 
     my $content_dir = $self->content_dir;
-    for my $category (keys %src_list_map) {
-        $category =~ s!$content_dir!!;
+    for my $src_category (keys %src_list_map) {
 
         # すでにカテゴリ一覧のページが存在していたら、生成しないでおく
         for my $ext ('html', 'txt', 'md', 'markdown') {
-            next if Path::Tiny::path($content_dir, $category, "index.$ext")->exists;
+            next if Path::Tiny::path($src_category, "index.$ext")->exists;
         }
 
-        my @src_list = keys $src_list_map{$category}->%*;
+        my @src_list = keys $src_list_map{$src_category}->%*;
+        my $category = $self->chomp_content_dir($src_category);
         $self->build_category($category, \@src_list);
         push @categories => $category;
     }
+
     return \@categories;
 }
 
@@ -256,11 +241,6 @@ sub build_category {
     $category_dir->mkpath;
     $dest->spew_utf8($html);
     $self->diag("Created category $dest\n");
-}
-
-sub category_url {
-    my ($self, $category) = @_;
-    return "https://$HOST$category/"
 }
 
 sub category_title {
@@ -340,21 +320,6 @@ sub build_tag {
     $tag_dir->mkpath unless $tag_dir->is_dir;
     $dest->spew_utf8($html);
     $self->diag("Created tag $dest\n");
-}
-
-sub tag_url_path {
-    my ($self, $tag) = @_;
-    return sprintf("/tag/%s", _normalize_name($tag));
-}
-
-sub tag_url {
-    my ($self, $tag) = @_;
-    return "https://$HOST" . $self->tag_url_path($tag);
-}
-
-sub tag_index_url {
-    my ($self) = @_;
-    return "https://$HOST" . "/tag/";
 }
 
 sub build_sitemap {
@@ -474,6 +439,9 @@ sub build_atom_feed {
     $self->diag("Created atom $dest\n");
 }
 
+
+
+
 sub diag {
     my ($self, $msg) = @_;
     print $msg;
@@ -481,10 +449,14 @@ sub diag {
 
 sub to_public {
     my ($self, $src) = @_;
+    my $dir = $self->chomp_content_dir($src);
+    return $dir ? $self->public_dir->child($dir) : $self->public_dir;
+}
+
+sub chomp_content_dir {
+    my ($self, $path) = @_;
     my $content_dir = $self->content_dir;
-    my $dir         = $src =~ s!^$content_dir!!r;
-    my $public      = $dir ? $self->public_dir->child($dir) : $self->public_dir;
-    return $public
+    return $path =~ s!^$content_dir!!r;
 }
 
 sub front_matter {
@@ -542,6 +514,40 @@ sub format_text {
         die "unsupported format: $format";
     }
 }
+
+sub url {
+    my ($self, $path) = @_;
+    return "https://$HOST" . $path;
+}
+
+# e.g. content/foo/bar.txt => /foo/bar
+sub entry_url_path {
+    my ($self, $src) = @_;
+
+    my $content_dir = $self->content_dir;
+    my $path = "$src";
+    $path =~ s!$content_dir!!;
+    $path =~ s!\.([^.]+)$!!;
+    $path =~ s!index$!!;
+    return $path;
+}
+
+sub category_url_path {
+    my ($self, $category) = @_;
+    return "$category/";
+}
+
+sub tag_url_path {
+    my ($self, $tag) = @_;
+    return sprintf("/tag/%s", _normalize_name($tag));
+}
+
+sub entry_url     { my $self = shift; $self->url($self->entry_url_path(@_)) }
+sub category_url  { my $self = shift; $self->url($self->category_url_path(@_)) }
+sub tag_url       { my $self = shift; $self->url($self->tag_url_path(@_)) }
+sub tag_index_url { $_[0]->url("/tag/") }
+
+
 
 sub _render_string {
     my ($self, $template, $vars) = @_;
