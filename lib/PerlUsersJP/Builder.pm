@@ -85,9 +85,9 @@ sub build_entries {
     }
 
     my $categories = $self->build_categories($src_list);
-    $self->build_tags($src_list);
+    my $tags       = $self->build_tags($src_list);
     $self->build_atom_feed($src_list);
-    $self->build_sitemap($src_list, $categories);
+    $self->build_sitemap($src_list, $categories, $tags);
 }
 
 
@@ -290,13 +290,15 @@ sub build_tags {
         my $src_list = $tag_map{$tag};
         $self->build_tag($tag, $src_list);
     }
+
+    return [ keys %tag_map ];
 }
 
 sub build_tag_index {
     my ($self, $tags) = @_;
 
     my $html = $self->_render_string('tag_index.html', {
-        url          => "https://$HOST/tag/",
+        url          => $self->tag_index_url,
         tag_url_path => sub { $self->tag_url_path(@_) },
         tags => [sort { $a cmp $b } $tags->@*],
     });
@@ -350,8 +352,13 @@ sub tag_url {
     return "https://$HOST" . $self->tag_url_path($tag);
 }
 
+sub tag_index_url {
+    my ($self) = @_;
+    return "https://$HOST" . "/tag/";
+}
+
 sub build_sitemap {
-    my ($self, $src_list, $categories) = @_;
+    my ($self, $src_list, $categories, $tags) = @_;
 
     my @url_list;
 
@@ -379,8 +386,18 @@ sub build_sitemap {
         }
     }
 
-    # TODO
     # CASE: tag
+    push @url_list => {
+        loc      => $self->tag_index_url(),
+        priority => 0.8 ** 1
+    };
+    for my $tag ($tags->@*) {
+        my $loc      = $self->tag_url($tag);
+        push @url_list => {
+            loc      => $loc,
+            priority => 0.8 ** 2,
+        }
+    }
 
     @url_list = sort { $b->{priority} <=> $a->{priority} } @url_list;
 
