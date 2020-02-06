@@ -8,10 +8,10 @@ use PerlUsersJP::FrontMatter;
 
 use Encode::Locale;
 use Encode qw(encode);
+use Path::Tiny qw(path);
+use Date::Format qw(time2str);
+use Scalar::Util qw(looks_like_number);
 
-use Path::Tiny ();
-use Date::Format ();
-use Scalar::Util ();
 use Text::MicroTemplate;
 use XML::Atom::Feed;
 use XML::Atom::Entry;
@@ -42,9 +42,9 @@ sub BUILDARGS {
     die "required 'layouts_dir'" unless exists $args{layouts_dir};
 
     return {
-        content_dir => ref $args{content_dir} ? $args{content_dir} : Path::Tiny::path($args{content_dir}),
-        public_dir  => ref $args{public_dir}  ? $args{public_dir}  : Path::Tiny::path($args{public_dir}),
-        layouts_dir => ref $args{layouts_dir} ? $args{layouts_dir} : Path::Tiny::path($args{layouts_dir}),
+        content_dir => ref $args{content_dir} ? $args{content_dir} : path($args{content_dir}),
+        public_dir  => ref $args{public_dir}  ? $args{public_dir}  : path($args{public_dir}),
+        layouts_dir => ref $args{layouts_dir} ? $args{layouts_dir} : path($args{layouts_dir}),
     }
 }
 
@@ -191,7 +191,7 @@ sub build_categories {
 
         # すでにカテゴリ一覧のページが存在していたら、生成しないでおく
         for my $ext ('html', 'txt', 'md', 'markdown') {
-            next if Path::Tiny::path($src_category, "index.$ext")->exists;
+            next if path($src_category, "index.$ext")->exists;
         }
 
         my @src_list = keys $src_list_map{$src_category}->%*;
@@ -208,7 +208,7 @@ sub build_category {
     my ($self, $category, $src_list) = @_;
 
     my @src_list = map {
-        my $file   = Path::Tiny::path($_);
+        my $file   = path($_);
         my $matter = $self->front_matter($file);
         my $name   = $file->basename =~ s!\.[^.]+$!!r;
         my $title  = $matter->exists ? $matter->title : $file->basename . '/';
@@ -229,7 +229,7 @@ sub build_category {
         url         => $self->category_url($category),
         files       => [
             sort {
-                Scalar::Util::looks_like_number($a->{name}) && Scalar::Util::looks_like_number($b->{name})
+                looks_like_number($a->{name}) && looks_like_number($b->{name})
                 ? $a->{name} <=> $b->{name}
                 : $a->{name} cmp $b->{name}
             } @src_list
@@ -294,7 +294,7 @@ sub build_tag {
     my ($self, $tag, $src_list) = @_;
 
     my @src_list = map {
-        my $file   = Path::Tiny::path($_);
+        my $file   = path($_);
         my $matter = $self->front_matter($file);
         my $title  = $matter->title;
         my $href   = $self->entry_url_path($file);
@@ -330,7 +330,7 @@ sub build_sitemap {
     # CASE: entry
     for my $src ($src_list->@*) {
         my $loc      = $self->entry_url($src);
-        my $lastmod  = Date::Format::time2str($DATE_FORMAT, $src->stat->mtime);
+        my $lastmod  = time2str($DATE_FORMAT, $src->stat->mtime);
         my $count    = scalar grep { $_ ne 'index.html' } split qr!/!, $src;
         my $priority = int((0.8 ** ($count - 1)) * 100) / 100;
         push @url_list => {
@@ -409,8 +409,8 @@ sub build_atom_feed {
 
         $entry->title($matter->title);
         $entry->id("tag:$HOST,2020:$path");
-        $entry->updated(Date::Format::time2str($DATE_FORMAT, $src->stat->mtime));
-        #$entry->published(Date::Format::time2str($DATE_FORMAT, $src->stat->mtime)); # FIXME mtime
+        $entry->updated(time2str($DATE_FORMAT, $src->stat->mtime));
+        #$entry->published(time2str($DATE_FORMAT, $src->stat->mtime)); # FIXME mtime
         $entry->content(
             $self->entry_text($src)
         );
@@ -428,7 +428,7 @@ sub build_atom_feed {
     }
 
     my $first_src = $new_src_list[0];
-    $feed->updated(Date::Format::time2str($DATE_FORMAT, $first_src->stat->mtime));
+    $feed->updated(time2str($DATE_FORMAT, $first_src->stat->mtime));
 
     my $xml = $feed->as_xml;
 
