@@ -11,6 +11,7 @@ use Encode qw(encode);
 use Path::Tiny qw(path);
 use Date::Format qw(time2str);
 use Scalar::Util qw(looks_like_number);
+use URI::Escape qw(uri_escape_utf8);
 
 use Text::MicroTemplate;
 use XML::Atom::Feed;
@@ -126,11 +127,13 @@ sub build_entry {
     }
     else {
         my $html = $self->_render_string('entry.html', {
-            text        => $self->entry_text($src),
-            title       => $matter->title,
-            subtitle    => $self->entry_subtitle($src),
-            matter      => $matter,
-            url         => $self->entry_url($src),
+            text         => $self->entry_text($src),
+            title        => $matter->title,
+            subtitle     => $self->entry_subtitle($src),
+            fulltitle    => $self->entry_fulltitle($src),
+            matter       => $matter,
+            url          => $self->entry_url($src),
+            og_image_url => $matter->og_image // $self->og_image_url($src),
         });
         $dest->spew_utf8($html);
         $sub_dest->spew_utf8($html) if $sub_dest;
@@ -168,7 +171,12 @@ sub entry_subtitle {
     return $subtitle;
 }
 
-
+sub entry_fulltitle {
+    my ($self, $src) = @_;
+    my $title    = $self->front_matter($src)->title;
+    my $subtitle = $self->entry_subtitle($src);
+    return $subtitle ? "$title - $subtitle" : $title;
+}
 
 sub build_categories {
     my ($self, $src_list) = @_;
@@ -547,7 +555,25 @@ sub category_url  { my $self = shift; $self->url($self->category_url_path(@_)) }
 sub tag_url       { my $self = shift; $self->url($self->tag_url_path(@_)) }
 sub tag_index_url { $_[0]->url("/tag/") }
 
+sub og_image_url {
+    my ($self, $src) = @_;
 
+    state $font_family = 'Sawarabi Gothic';
+    state $font_size   = '60';
+    state $font_weight = 'bold';
+    state $font_color  = '10355E';
+    state $width       = '900';
+
+    my $option = uri_escape_utf8 join ',', (
+        "l_text:${font_family}_${font_size}_${font_weight}:@{[$self->entry_fulltitle($src)]}",
+        "co_rgb:${font_color}",
+        "w_${width}",
+        "c_fit",
+    );
+
+    # FIXME 個人アカウントに依存させない
+    return "https://res.cloudinary.com/kfly8/image/upload/${option}/v1581137838/carbon_13_o7vxns.png";
+}
 
 sub _render_string {
     my ($self, $template, $vars) = @_;

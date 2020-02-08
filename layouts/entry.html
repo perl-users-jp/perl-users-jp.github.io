@@ -3,9 +3,24 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <title><?= $vars->{fulltitle} ?></title>
+        <meta name="title" content="<?= $vars->{fulltitle} ?>">
         <meta name="description" content="<?= $vars->{matter}->description ?>">
         <meta name="author" content="<?= $vars->{matter}->author ?>">
-        <title><?= $vars->{subtitle} ? "$vars->{title} - $vars->{subtitle}" : $vars->{title} ?></title>
+
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="<?= $vars->{url} ?>">
+        <meta property="og:title" content="<?= $vars->{fulltitle} ?>">
+        <meta property="og:description" content="<?= $vars->{matter}->description ?>">
+        <meta property="og:image" content="<?= $vars->{og_image_url} ?>">
+
+        <meta property="twitter:card" content="summary_large_image">
+        <meta property="twitter:url" content="<?= $vars->{url} ?>">
+        <meta property="twitter:title" content="<?= $vars->{fulltitle} ?>">
+        <meta property="twitter:description" content="<?= $vars->{matter}->description ?>">
+        <meta property="twitter:image" content="<?= $vars->{og_image_url} ?>">
+
         <link rel="icon" href="/img/favicon.ico">
         <link rel="canonical" href="<?= $vars->{url} ?>">
         <link href="TODO" rel="stylesheet">
