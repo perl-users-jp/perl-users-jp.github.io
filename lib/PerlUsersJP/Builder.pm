@@ -480,7 +480,9 @@ sub format_text {
     my ($self, $text, $format) = @_;
 
     if ($format eq 'markdown') {
-        return Text::Markdown::markdown($text);
+        my $html = Text::Markdown::markdown($text);
+        $html =~ s/<code>/<code class="prettyprint">/g;
+        return $html
     }
     elsif ($format eq 'hatena') {
         no warnings qw(once);
@@ -506,6 +508,8 @@ sub format_text {
         $parser->html_header('');
         $parser->html_footer('');
         $parser->parse_string_document("=pod\n\n$text");
+        $out =~ s/<code>/<code class="prettyprint">/g;
+        return $out
     }
     elsif ($format eq 'html') {
         return $text;
