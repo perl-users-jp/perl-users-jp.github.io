@@ -22,7 +22,7 @@
 
 <p>carton は以下のようなことをやってくれます。</p>
 
-<pre><code>* バージョンの固定
+<pre><code class="prettyprint">* バージョンの固定
 * インストール
 * モジュールパスのロード
 </code></pre>
@@ -33,14 +33,14 @@
 
 <h2>carton の仕組み</h2>
 
-<p><code>carton install</code> 実行すると</p>
+<p><code class="prettyprint">carton install</code> 実行すると</p>
 
-<pre><code>cpanm -L local --installdeps .
+<pre><code class="prettyprint">cpanm -L local --installdeps .
 </code></pre>
 
-<p>されて、<code>carton exec -- foo</code> すると</p>
+<p>されて、<code class="prettyprint">carton exec -- foo</code> すると</p>
 
-<pre><code>perl -Mlib::core::only foo
+<pre><code class="prettyprint">perl -Mlib::core::only foo
 </code></pre>
 
 <p>される、みたいなかんじだと思っておけばだいたいあってる。</p>
@@ -53,9 +53,9 @@
 
 <h3>carton をつかわない方法の実践</h3>
 
-<p>まず、依存関係を <code>cpanfile</code> というファイルに記述します。依存関係をこまかく指定することもできますが、今回のスタイルでは requires でバージョンを指定するだけの用途にしかつかいません。</p>
+<p>まず、依存関係を <code class="prettyprint">cpanfile</code> というファイルに記述します。依存関係をこまかく指定することもできますが、今回のスタイルでは requires でバージョンを指定するだけの用途にしかつかいません。</p>
 
-<pre><code>requires('Amon2'                           =&gt; '3.66');
+<pre><code class="prettyprint">requires('Amon2'                           =&gt; '3.66');
 requires('Amon2::Lite'                     =&gt; '0.09');
 requires('Text::Xslate'                    =&gt; '1.5006');
 requires('Plack::Session'                  =&gt; '0.14');
@@ -70,13 +70,13 @@ if ($^O eq 'darwin') {
 
 <p>次に、<em>install-deps.sh</em> というファイル名で以下のファイルを作成します。このシェルスクリプトを実行すると、依存ライブラリが local/ 以下にインストールされます。carton とおなじかんじですね。</p>
 
-<pre><code>#!/bin/sh
+<pre><code class="prettyprint">#!/bin/sh
 cpanm --installdeps --no-man-pages --verbose --no-interactive -L extlib .
 </code></pre>
 
-<p>最後に <code>run.sh</code> をおきます。これは carton exec とおなじかんじの効果です。</p>
+<p>最後に <code class="prettyprint">run.sh</code> をおきます。これは carton exec とおなじかんじの効果です。</p>
 
-<pre><code>#!/bin/sh
+<pre><code class="prettyprint">#!/bin/sh
 BASEDIR=$(dirname $(readlink -f $0))
 perl -Mlib::core::only "-Mlib=$BASEDIR/extlib/lib/perl5/" "$@"
 </code></pre>

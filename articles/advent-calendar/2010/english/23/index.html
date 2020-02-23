@@ -14,7 +14,28 @@
         <h1>Test::SharedFork - testing with fork(2)</h1>
         tag
 
-        Pod::Simple::XHTML=HASH(0x555ccf0a35b8)
+        <p>Test::SharedFork is utility module for Test::Builder. This module makes forking test! This module merges test count with parent process &amp; child process.</p>
+
+<p>The following code is works well!</p>
+
+<pre><code class="prettyprint">    use Test::More tests =&gt; 200;
+    use Test::SharedFork;
+
+    my $pid = fork();
+    if ($pid == 0) {
+        # child
+        ok 1, &quot;child $_&quot; for 1..100;
+    } elsif ($pid) {
+        # parent
+        ok 1, &quot;parent $_&quot; for 1..100;
+        waitpid($pid, 0);
+    } else {
+        die $!;
+    }</code></pre>
+
+<p>My <a href="http://search.cpan.org/perldoc?Test::TCP">Test::TCP</a> stands on this module.</p>
+
+
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

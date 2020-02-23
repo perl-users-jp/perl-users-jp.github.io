@@ -14,7 +14,109 @@
         <h1>DBIx::Kohada - yet another O/R Mapper</h1>
         tag
 
-        Pod::Simple::XHTML=HASH(0x555ccf0e39b0)
+        <p><a href="http://search.cpan.org/perldoc?DBIx::Kohada">DBIx::Kohada</a> is lightweight OO-ish O/R Mapper. It mostly likes <a href="http://search.cpan.org/perldoc?Class::DBI">Class::DBI</a>.</p>
+
+<p>The feature of <a href="http://search.cpan.org/perldoc?DBIx::Kohada">DBIx::Kohada</a> is:</p>
+
+<dl>
+
+<dt>OO</dt>
+<dd>
+
+<p>The object have a <code class="prettyprint"> $dbh </code>, unlike <a href="http://search.cpan.org/perldoc?Class::DBI">Class::DBI</a>.</p>
+
+<p><a href="http://search.cpan.org/perldoc?Class::DBI">Class::DBI</a> holds <code class="prettyprint">$dbh</code> in the class variable. It is bad idea. It makes hard to manage connections by users.</p>
+
+</dd>
+<dt>Simple code</dt>
+<dd>
+
+<p><a href="http://search.cpan.org/perldoc?DBIx::Kohada">DBIx::Kohada</a> is readable. It does not inherit <a href="http://search.cpan.org/perldoc?Ima::DBI">Ima::DBI</a> :P</p>
+
+</dd>
+<dt>No unintended automatic DB call</dt>
+<dd>
+
+<p><a href="http://search.cpan.org/perldoc?DBIx::Kohada">DBIx::Kohada</a> does not call RDBMS without user&#39;s request.</p>
+
+</dd>
+<dt>Efficient pagination</dt>
+<dd>
+
+<p><a href="http://search.cpan.org/perldoc?DBIx::Kohada">DBIx::Kohada</a> has 2 pagination plugins.</p>
+
+<p><a href="http://search.cpan.org/perldoc?DBIx::Kohada::Plugin::Pager">DBIx::Kohada::Plugin::Pager</a> fetches &quot;entries_per_page + 1&quot; rows. And detect &quot;this page has a next page or not&quot;.</p>
+
+<p><a href="http://search.cpan.org/perldoc?DBIx::Kohada::Plugin::Pager::MySQLFoundRows">DBIx::Kohada::Plugin::Pager::MySQLFoundRows</a> uses MySQL&#39;s SQL_CALC_FOUND_ROWS. It is faster than calling COUNT(*).</p>
+
+<p><a href="http://search.cpan.org/perldoc?DBIx::Class">DBIx::Class</a>&#39;s pagination makes very slow query at some time. I dislike it.</p>
+
+</dd>
+<dt>No transparent cache</dt>
+<dd>
+
+<p>I don&#39;t like transparent cache on O/R mapper.</p>
+
+</dd>
+<dt>No caching in iterator</dt>
+<dd>
+
+<p><a href="http://search.cpan.org/perldoc?DBIx::Skinny">DBIx::Skinny</a>&#39;s iterator caches all data in iterator object. It makes the situation: user uses too much memory. Why user want to use iterator?? User want to save a memory!</p>
+
+<p>Then, <a href="http://search.cpan.org/perldoc?DBIx::Kohada">DBIx::Kohada</a>&#39;s iterator doesn&#39;t use a cache.</p>
+
+</dd>
+<dt>Programmable meta data API</dt>
+<dd>
+
+<p><a href="http://search.cpan.org/perldoc?DBIx::Skinny">DBIx::Skinny</a> provides only DSL style API for creating schema. It makes hard to meta programming for schema.</p>
+
+<p><a href="http://search.cpan.org/perldoc?DBIx::Kohada">DBIx::Kohada</a> provides complete API for the operating schema.</p>
+
+</dd>
+<dt>use <a href="http://search.cpan.org/perldoc?SQL::Maker">SQL::Maker</a></dt>
+<dd>
+
+<p><a href="http://search.cpan.org/perldoc?DBIx::Kohada">DBIx::Kohada</a> uses <a href="http://search.cpan.org/perldoc?SQL::Maker">SQL::Maker</a> for creating SQL. <a href="http://search.cpan.org/perldoc?SQL::Maker">SQL::Maker</a> is simple and flexible SQL generator.</p>
+
+</dd>
+</dl>
+
+<pre><code class="prettyprint">    package MyApp::DB::Row::User;
+    use parent qw/DBIx::Kohada::Row/;
+    __PACKAGE__-&gt;set_table(&#39;user&#39;);
+    __PACKAGE__-&gt;set_primary_key(&#39;user_id&#39;);
+    __PACKAGE__-&gt;add_column($_) for qw/user_id name email/;
+
+    package main;
+    use DBIx::Kohada::Schema;
+    use DBIx::Kohada;
+    use DBI;
+
+    my $schema = DBIx::Kohada::Schema-&gt;new();
+    $schema-&gt;register_row_class(&#39;MyApp::DB::Row::User&#39;);
+
+    my $dbh = DBI-&gt;connect(&#39;dbi:SQLite:&#39;);
+    my $db = DBIx::Kohada-&gt;new(
+        dbh    =&gt; $dbh,
+        schema =&gt; $schema,
+    );
+    $db-&gt;dbh; # =&gt; #dbh
+    my $user = $db-&gt;insert(&#39;user&#39; =&gt; {name =&gt; &#39;john&#39;, email =&gt; &#39;john@exapmle.com&#39;});
+    say $user-&gt;name; # =&gt; john
+    $user-&gt;name(&#39;mark&#39;);
+    $user-&gt;update;
+    $user-&gt;delete();
+
+    my @users = $db-&gt;search_by_sql(&#39;user&#39; =&gt; q{SELECT * FROM user WHERE name LIKE &#39;dai%&#39;});
+
+    {
+        my $user = $db-&gt;single(&#39;user&#39; =&gt; {user_id =&gt; 3});
+        my $iter = $db-&gt;search(&#39;user&#39; =&gt; {user_id =&gt; 3});
+        my @users = $db-&gt;search(&#39;user&#39; =&gt; {user_id =&gt; 3});
+    }</code></pre>
+
+
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

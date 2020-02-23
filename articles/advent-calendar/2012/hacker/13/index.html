@@ -34,9 +34,9 @@
 <li>後々の参照のために、スクリプト自体は残しておきたい</li>
 </ul>
 
-<p>使い方は簡単で、あなたが実行するplファイルに <code>use Script::Ichigeki;</code> と書くだけ。以下使用例。</p>
+<p>使い方は簡単で、あなたが実行するplファイルに <code class="prettyprint">use Script::Ichigeki;</code> と書くだけ。以下使用例。</p>
 
-<pre><code>% ls -A
+<pre><code class="prettyprint">% ls -A
 ichigeki.pl
 
 % cat ichigeki.pl
@@ -72,7 +72,7 @@ execute log file [./.ichigeki.pl.log] alredy exists!
 
 <p>useにいくつか引数を渡すことも可能です。</p>
 
-<pre><code>#!/usr/bin/env perl
+<pre><code class="prettyprint">#!/usr/bin/env perl
 use 5.014;
 use warnigns;
 use utf8;
@@ -87,7 +87,7 @@ die 'ウッ、一撃';
 
 <p>このようにすれば、 <em>12月24日にしか実行されません</em> 。事前や事後の暴発を防げるので安心ですね。</p>
 
-<p>リモートで時間のかかる重要なスクリプトを流すときはscreenやnohupを使うのが定石ですが、デフォルトだとpromptを出すのでnohupで実行すると入力待ちで止まってしまいます。その場合は<code>confirm_dialog =&gt; 0,</code> としてpromptの表示をやめるか、screenやtmuxを使って実行するようにすると良いでしょう。</p>
+<p>リモートで時間のかかる重要なスクリプトを流すときはscreenやnohupを使うのが定石ですが、デフォルトだとpromptを出すのでnohupで実行すると入力待ちで止まってしまいます。その場合は<code class="prettyprint">confirm_dialog =&gt; 0,</code> としてpromptの表示をやめるか、screenやtmuxを使って実行するようにすると良いでしょう。</p>
 
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>

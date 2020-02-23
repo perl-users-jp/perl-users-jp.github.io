@@ -42,7 +42,7 @@
 
 <p>以下のように設定すれば .t やら .psgi なファイルでもシンタックスハイライトがきいて便利だといわざるをえないのです。</p>
 
-<pre><code>augroup filetypedetect
+<pre><code class="prettyprint">augroup filetypedetect
 autocmd! BufNewFile,BufRead *.t setf perl
 autocmd! BufNewFile,BufRead *.psgi setf perl
 autocmd! BufNewFile,BufRead *.tt setf tt2html
@@ -55,13 +55,13 @@ augroup END
 
 <p>ですから、以下のようにかいて、自動的にテンプレートファイルをひらくようにしています。</p>
 
-<pre><code>autocmd BufNewFile *.pl 0r $HOME/.vim/template/perl-script.txt
+<pre><code class="prettyprint">autocmd BufNewFile *.pl 0r $HOME/.vim/template/perl-script.txt
 autocmd BufNewFile *.t  0r $HOME/.vim/template/perl-test.txt
 </code></pre>
 
 <p>perl-script.txt は以下のようなものです。</p>
 
-<pre><code>#!/usr/bin/env perl
+<pre><code class="prettyprint">#!/usr/bin/env perl
 use strict;
 use warnings;
 use utf8;
@@ -71,7 +71,7 @@ use autodie;
 
 <p>perl-test.txt は以下のようなものです。</p>
 
-<pre><code>use strict;
+<pre><code class="prettyprint">use strict;
 use warnings;
 use utf8;
 use Test::More;
@@ -83,7 +83,7 @@ done_testing;
 
 <p>package 名を自動で指定したいので単純なテンプレートファイルではなく vim の関数を定義してそれをフックでよぶようにしています。</p>
 
-<pre><code>function! s:pm_template()
+<pre><code class="prettyprint">function! s:pm_template()
     let path = substitute(expand('%'), '.*lib/', '', 'g')
     let path = substitute(path, '[\\/]', '::', 'g')
     let path = substitute(path, '\.pm$', '', 'g')
@@ -110,7 +110,7 @@ package 名のまちがいは vim で検出してしまいましょう。以下�
 
 <p>この設定いれておくだけで、数ヶ月に一回の package 名まちがってはまる地獄からのがれられるのでぜひ設定すべき。</p>
 
-<pre><code>function! s:get_package_name()
+<pre><code class="prettyprint">function! s:get_package_name()
     let mx = '^\s*package\s\+\([^ ;]\+\)'
     for line in getline(1, 5)
         if line =~ mx
@@ -140,10 +140,10 @@ au! BufWritePost *.pm call s:check_package_name()
 <h2>PerlTidy をかけられるようにする</h2>
 
 <p>hashref の => の桁揃えを手でやるのはダルいんで、perltidy でやっちまいましょう。
-僕は以下の設定を愛用しています。<code>,pt</code> がファイル全体の perltidy。
-<code>,ptv</code> が選択範囲の perltidy です。</p>
+僕は以下の設定を愛用しています。<code class="prettyprint">,pt</code> がファイル全体の perltidy。
+<code class="prettyprint">,ptv</code> が選択範囲の perltidy です。</p>
 
-<pre><code>map ,pt &lt;Esc&gt;:%! perltidy -se&lt;CR&gt;
+<pre><code class="prettyprint">map ,pt &lt;Esc&gt;:%! perltidy -se&lt;CR&gt;
 map ,ptv &lt;Esc&gt;:'&lt;,'&gt;! perltidy -se&lt;CR&gt;
 </code></pre>
 
@@ -157,7 +157,7 @@ map ,ptv &lt;Esc&gt;:'&lt;,'&gt;! perltidy -se&lt;CR&gt;
 
 <p>色々設定してますが、ハードにつかってるのは以下の2つだけです。</p>
 
-<pre><code>snippet     dumper
+<pre><code class="prettyprint">snippet     dumper
     use Data::Dumper; warn Dumper(${1:code});
 
 snippet     querylog

@@ -14,7 +14,30 @@
         <h1>Python::Serialize::Pickle::InlinePython</h1>
         tag
 
-        Pod::Simple::XHTML=HASH(0x555ccf0e3818)
+        <p><a href="http://search.cpan.org/perldoc?Python::Serialize::Pickle::InlinePython">Python::Serialize::Pickle::InlinePython</a> is a serializer/deserializer for Python&#39;s serializer format named <a href="http://docs.python.org/library/pickle.html">Pickle</a>.</p>
+
+<p><a href="http://search.cpan.org/perldoc?Python::Serialize::Pickle">Python::Serialize::Pickle</a> is already exists in the CPAN, but it is no longer maintain. It does not supports recent Python&#39;s pickle format.</p>
+
+<p><a href="http://search.cpan.org/perldoc?Python::Serialize::Pickle::InlinePython">Python::Serialize::Pickle::InlinePython</a> uses <a href="http://search.cpan.org/perldoc?Inline::Python">Inline::Python</a> to manipulate pickle. It is very simple and easy!</p>
+
+<pre><code class="prettyprint">    use Data::Dumper;
+    use Python::Serialize::Pickle::InlinePython;
+
+    # load it
+    my $pic = Python::Serialize::Pickle::InlinePython-&gt;new(&#39;data.pickle&#39;);
+    while (my $dat = $pic-&gt;load()) {
+        warn Dumper($dat);
+    }
+
+    # dump it
+    my $pic = Python::Serialize::Pickle::InlinePython-&gt;new(&#39;&gt;data.pickle&#39;);
+    $pic-&gt;dump(&#39;foo&#39;);
+    $pic-&gt;dump(&#39;bar&#39;);
+    $pic-&gt;close();</code></pre>
+
+<p>Enjoy!</p>
+
+
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

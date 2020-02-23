@@ -14,7 +14,48 @@
         <h1>Smart::Args - smart argument validation</h1>
         tag
 
-        Pod::Simple::XHTML=HASH(0x555ccf09f0c0)
+        <p>Smart::Args is yet another argument validation library.</p>
+
+<p>This module makes your module more readable, and writable =)</p>
+
+<pre><code class="prettyprint">  use Smart::Args;
+
+  sub func2 {
+    args my $p =&gt; &#39;Int&#39;,
+         my $q =&gt; { isa =&gt; &#39;Int&#39;, optional =&gt; 1 };
+  }
+  func2(p =&gt; 3, q =&gt; 4); # p =&gt; 3, q =&gt; 4
+  func2(p =&gt; 3);         # p =&gt; 3, q =&gt; undef
+
+  sub func3 {
+    args my $p =&gt; {isa =&gt; &#39;Int&#39;, default =&gt; 3},
+  }
+  func3(p =&gt; 4); # p =&gt; 4
+  func3();       # p =&gt; 3
+
+  package F;
+  use Moose;
+  use Smart::Args;
+
+  sub method {
+    args my $self,
+         my $p =&gt; &#39;Int&#39;;
+  }
+  sub class_method {
+    args my $class =&gt; &#39;ClassName&#39;,
+         my $p =&gt; &#39;Int&#39;;
+  }
+
+  my $f = F-&gt;new();
+  $f-&gt;method(p =&gt; 3);
+
+  F-&gt;class_method(p =&gt; 3);</code></pre>
+
+<p>Okay, it uses <a href="http://search.cpan.org/perldoc?PadWalker">PadWalker</a> to retrieve variable name. It is obvious. But so, <a href="http://search.cpan.org/perldoc?PadWalker">PadWalker</a> is stable enough. I think it is production ready.</p>
+
+<p>Enjoy!</p>
+
+
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

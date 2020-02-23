@@ -23,7 +23,7 @@
 
 <p>ブロックスコープなんだけど SET したスコープの中にあるブロックはスコープの対象外なので以下のテストは動かなかったりするんだ。</p>
 
-<pre><code>my $tx = Text::Xslate-&gt;new({
+<pre><code class="prettyprint">my $tx = Text::Xslate-&gt;new({
     syntax =&gt; 'TTerse'
 });
 my $ret = $tx-&gt;render_string(&lt;&lt;TMPL,);
@@ -46,7 +46,7 @@ is $ret, "kiranaikiranai"; # kiranaikiru が帰って来て失敗する
 
 <p>色々あって次のようなケースはブロックスコープになってないんだけど、これ直しちゃうと影響範囲でかすぎるからきっとこのままっぽいね。</p>
 
-<pre><code>my $tx = Text::Xslate-&gt;new({
+<pre><code class="prettyprint">my $tx = Text::Xslate-&gt;new({
     syntax =&gt; 'TTerse'
 });
 my $ret = $tx-&gt;render_string(&lt;&lt;TMPL,);
@@ -62,7 +62,7 @@ is $ret, "kiranaikiru"; # kiranaikiranai が帰って来て失敗する
 
 <p>あと関係無いけどこれの ELSIF の中での chin の定義で Text::Xslate::Compiler: Cannot modify chin, which is not a lexical variable って言われるんだけど(1.6001現在)これはバグなんで gfx が直してくれるはず！</p>
 
-<pre><code>[% IF 1 -%]
+<pre><code class="prettyprint">[% IF 1 -%]
 [%   SET chin = 'kiru' -%]
 [% ELSIF 0 -%]
 [%   SET chin = 'kiranai' -%]

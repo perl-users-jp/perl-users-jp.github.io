@@ -43,7 +43,7 @@
 
 <p>psgiファイルをPlack::Builderを使って以下のように書くことができます。</p>
 
-<pre><code>use Plack::Builder;
+<pre><code class="prettyprint">use Plack::Builder;
 ...
 builder {
     enable 'Plack::Middleware::Auth::OAuth',
@@ -65,7 +65,7 @@ builder {
 
 <p>なので、enable_ifを使って、特定条件の場合にのみMiddlewareを読みこませるようしてみましょう。</p>
 
-<pre><code>builder {
+<pre><code class="prettyprint">builder {
     enable_if {$_[0]-&gt;{PATH_INFO} !~ m!^/ping(?:$|/)!}
         'Plack::Middleware::Auth::OAuth',
         'consumer_key'    =&gt; 'your_consumer_key',
@@ -81,11 +81,11 @@ builder {
 
 <h2>Plack::Builder::Conditionals</h2>
 
-<p>さて、問題は解決しましたが、<code>$_[0]-&gt;{PATH_INFO}</code>みたいな生に近い情報を書くのは綺麗じゃないと思うかもしれません。</p>
+<p>さて、問題は解決しましたが、<code class="prettyprint">$_[0]-&gt;{PATH_INFO}</code>みたいな生に近い情報を書くのは綺麗じゃないと思うかもしれません。</p>
 
 <p>その場合は、kazeburoさん作の<a href="http://search.cpan.org/dist/Plack-Builder-Conditionals/">Plack::Builder::Conditionals</a>を使うと綺麗に書くことができます。</p>
 
-<pre><code>use Plack::Builder::Conditionals;
+<pre><code class="prettyprint">use Plack::Builder::Conditionals;
 
 builder {
     enable match_if path('!', qr!^/ping(?:$|/)!),

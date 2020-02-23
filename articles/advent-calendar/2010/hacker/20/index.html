@@ -14,7 +14,31 @@
         <h1>Image::LibRaw で raw 画像を操作する</h1>
         tag
 
-        Pod::Simple::XHTML=HASH(0x555ccf0e3b30)
+        <p>&#x304A;&#x306A;&#x304B;&#x304C;&#x3059;&#x304D;&#x3059;&#x304E;&#x305F;&#x306E;&#x3067;&#x3001;&#x305D;&#x308D;&#x305D;&#x308D;&#x663C;&#x98EF;&#x3092;&#x305F;&#x3079;&#x306B;&#x3044;&#x304D;&#x305F;&#x3044; tokuhirom &#x3067;&#x3059;&#x3002; <a href="http://search.cpan.org/perldoc?Image::LibRaw">Image::LibRaw</a> &#x3092;&#x3064;&#x304B;&#x3046;&#x3068;&#x3001;raw &#x753B;&#x50CF;&#x3092;&#x7C21;&#x5358;&#x306B;&#x64CD;&#x4F5C;&#x3067;&#x304D;&#x307E;&#x3059;&#x3002;&#x3053;&#x308C;&#x306F;&#x3001;libraw &#x3068;&#x3044;&#x3046; C++ (&#x3060;&#x3063;&#x305F;&#x306F;&#x305A;)&#x3067;&#x304B;&#x304B;&#x308C;&#x305F;&#x30E9;&#x30A4;&#x30D6;&#x30E9;&#x30EA;&#x306E;&#x30E9;&#x30C3;&#x30D1;&#x30FC;&#x3067;&#x3059;&#x3002;</p>
+
+<pre><code class="prettyprint">    use Image::LibRaw;
+    my $libraw = Image::LibRaw-&gt;new();
+    $raw-&gt;open_file($fname);
+    $raw-&gt;unpack_thumb;
+    $raw-&gt;dcraw_thumb_writer(&#39;libraw-thumb.jpg&#39;);</code></pre>
+
+<p>raw &#x753B;&#x50CF;&#x3092;&#x3042;&#x3064;&#x304B;&#x3044;&#x305F;&#x3044;&#x5834;&#x5408;&#x306B;&#x306F;&#x305C;&#x3072;&#x3054;&#x308A;&#x3088;&#x3046;&#x304F;&#x3060;&#x3055;&#x3044;&#x3002;</p>
+
+<h1 id="POD-ERRORS">POD ERRORS</h1>
+
+<p>Hey! <b>The above document had some coding errors, which are explained below:</b></p>
+
+<dl>
+
+<dt>Around line 3:</dt>
+<dd>
+
+<p>Non-ASCII character seen before =encoding in &#39;&#x304A;&#x306A;&#x304B;&#x304C;&#x3059;&#x304D;&#x3059;&#x304E;&#x305F;&#x306E;&#x3067;&#x3001;&#x305D;&#x308D;&#x305D;&#x308D;&#x663C;&#x98EF;&#x3092;&#x305F;&#x3079;&#x306B;&#x3044;&#x304D;&#x305F;&#x3044;&#39;. Assuming CP1252</p>
+
+</dd>
+</dl>
+
+
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

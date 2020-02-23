@@ -14,7 +14,13 @@
         <h1>Image::Epeg - extreamly fast JPEG resizing</h1>
         tag
 
-        Pod::Simple::XHTML=HASH(0x555cce89b140)
+        <p>Perl wrapper to the ultra-fast jpeg manipulation library &quot;Epeg&quot;. This library can be used to thumbnail (resize down) jpegs, set comments and quality.</p>
+
+<pre><code class="prettyprint">    use Image::Epeg qw(:constants);
+    my $epg = new Image::Epeg( &quot;test.jpg&quot; );
+    $epg-&gt;resize( 150, 150, MAINTAIN_ASPECT_RATIO );</code></pre>
+
+
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

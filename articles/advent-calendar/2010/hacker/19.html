@@ -14,7 +14,36 @@
         <h1>ひらがなをカタカナに変換したいだって?それなら Lingua::JA::Regular::Unicode</h1>
         tag
 
-        Pod::Simple::XHTML=HASH(0x555ccf0a77d8)
+        <p>&#x3053;&#x3053;&#x306B;&#x304D;&#x3066;&#x672C;&#x6C17;&#x3092;&#x3060;&#x3057;&#x3066;&#x3044;&#x308B; tokuhirom &#x3067;&#x3059;&#x3002;&#x3053;&#x3093;&#x306B;&#x3061;&#x306F;&#x3002;</p>
+
+<p>Perl &#x3067;&#x30B3;&#x30FC;&#x30C9;&#x3092;&#x304B;&#x3044;&#x3066;&#x3044;&#x308B;&#x3068;&#x3001;&#x5168;&#x89D2;&#x30AB;&#x30BF;&#x30AB;&#x30CA;&#x3092;&#x534A;&#x89D2;&#xFF76;&#xFF80;&#xFF76;&#xFF85;&#x306B;&#x5909;&#x63DB;&#x3057;&#x305F;&#x3044;&#x3068;&#x304B;&#x3001;&#x305D;&#x3046;&#x3044;&#x3046;&#x8981;&#x671B;&#x3063;&#x3066;&#x3088;&#x304F;&#x3042;&#x308B;&#x3068;&#x304A;&#x3082;&#x3046;&#x3093;&#x3067;&#x3059;&#x3088;&#x306D;&#x3002;&#x305D;&#x3093;&#x306A;&#x3068;&#x304D;&#x306F; <a href="http://search.cpan.org/perldoc?Lingua::JA::Regular::Unicode">Lingua::JA::Regular::Unicode</a> &#x3092;&#x3064;&#x304B;&#x3046;&#x3068;&#x3044;&#x3044;&#x3067;&#x3059;&#x306D;&#x3002;</p>
+
+<pre><code class="prettyprint">    use Lingua::JA::Regular::Unicode qw/alnum_z2h hiragana2katakana space_z2h/;
+    alnum_z2h(&quot;&#xFF21;&#xFF11;&quot;);                                        # =&gt; &quot;A1&quot;
+    hiragana2katakana(&quot;&#x307B;&#x3052;&quot;);                                # =&gt; &quot;&#x30DB;&#x30B2;&quot;
+    space_z2h(&quot;\x{0300}&quot;);                                    # =&gt; &#x534A;&#x89D2;&#x30B9;&#x30DA;&#x30FC;&#x30B9;</code></pre>
+
+<p>&#x3061;&#x3087;&#x3046;&#x3079;&#x3093;&#x308A;&#x3002;</p>
+
+<p>&#x305F;&#x3076;&#x3093;&#x3001;&#x3060;&#x3044;&#x305F;&#x3044;&#x306E;&#x30B1;&#x30FC;&#x30B9;&#x3067;&#x3044;&#x307E;&#x5B9F;&#x88C5;&#x3055;&#x308C;&#x3066;&#x308B;&#x95A2;&#x6570;&#x3067;&#x305F;&#x308A;&#x3066;&#x308B;&#x3068;&#x304A;&#x3082;&#x3046;&#x3093;&#x3067;&#x3059;&#x304C;&#x3001;&#x306A;&#x3093;&#x304B;&#x3053;&#x3046;&#x3044;&#x3046;&#x306E;&#x307B;&#x3057;&#x3044;!&#x3063;&#x3066;&#x306E;&#x3042;&#x308C;&#x3070;&#x8981;&#x671B;&#x3092;&#x304A;&#x307E;&#x3061;&#x3057;&#x3066;&#x304A;&#x308A;&#x307E;&#x3059;&#x3002;</p>
+
+<p>Enjoy!</p>
+
+<h1 id="POD-ERRORS">POD ERRORS</h1>
+
+<p>Hey! <b>The above document had some coding errors, which are explained below:</b></p>
+
+<dl>
+
+<dt>Around line 3:</dt>
+<dd>
+
+<p>Non-ASCII character seen before =encoding in &#39;&#x3053;&#x3053;&#x306B;&#x304D;&#x3066;&#x672C;&#x6C17;&#x3092;&#x3060;&#x3057;&#x3066;&#x3044;&#x308B;&#39;. Assuming CP1252</p>
+
+</dd>
+</dl>
+
+
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>
