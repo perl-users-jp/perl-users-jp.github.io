@@ -8,11 +8,15 @@ use PerlUsersJP::FrontMatter;
 
 use Encode::Locale;
 use Encode qw(encode);
+use Path::Tiny qw(path);
+use Date::Format qw(time2str);
+use Scalar::Util qw(looks_like_number);
 
-use Path::Tiny ();
-use Date::Format ();
-use Scalar::Util ();
 use Text::MicroTemplate;
+use XML::Atom::Feed;
+use XML::Atom::Entry;
+use XML::Atom::Person;
+use XML::Atom::Link;
 
 use Text::Xatena;
 use Text::Xatena::Inline;
@@ -25,6 +29,11 @@ use Class::Tiny qw(
     layouts_dir
 );
 
+our $HOST = 'perl-users.jp';
+
+my $ATOM_FEED_COUNT = 10;
+my $DATE_FORMAT     = '%Y-%m-%dT%H:%M:%S%z';
+
 sub BUILDARGS {
     my ($class, %args) = @_;
 
@@ -33,9 +42,9 @@ sub BUILDARGS {
     die "required 'layouts_dir'" unless exists $args{layouts_dir};
 
     return {
-        content_dir => ref $args{content_dir} ? $args{content_dir} : Path::Tiny::path($args{content_dir}),
-        public_dir  => ref $args{public_dir}  ? $args{public_dir}  : Path::Tiny::path($args{public_dir}),
-        layouts_dir => ref $args{layouts_dir} ? $args{layouts_dir} : Path::Tiny::path($args{layouts_dir}),
+        content_dir => ref $args{content_dir} ? $args{content_dir} : path($args{content_dir}),
+        public_dir  => ref $args{public_dir}  ? $args{public_dir}  : path($args{public_dir}),
+        layouts_dir => ref $args{layouts_dir} ? $args{layouts_dir} : path($args{layouts_dir}),
     }
 }
 
@@ -75,10 +84,10 @@ sub build_entries {
         $self->build_entry($src);
     }
 
-    $self->build_categories($src_list);
-    $self->build_tags($src_list);
-    #$self->build_sitemap(\@entries);
-    #$self->build_atom(\@entries);
+    my $categories = $self->build_categories($src_list);
+    my $tags       = $self->build_tags($src_list);
+    $self->build_atom_feed($src_list);
+    $self->build_sitemap($src_list, $categories, $tags);
 }
 
 
@@ -121,6 +130,7 @@ sub build_entry {
             title       => $matter->title,
             subtitle    => $self->entry_subtitle($src),
             matter      => $matter,
+            url         => $self->entry_url($src),
         });
         $dest->spew_utf8($html);
         $sub_dest->spew_utf8($html) if $sub_dest;
@@ -128,6 +138,7 @@ sub build_entry {
 
     $self->diag("Created entry $dest\n");
 }
+
 
 sub entry_text {
     my ($self, $src) = @_;
@@ -165,39 +176,39 @@ sub build_categories {
     my %src_list_map;
     for ($src_list->@*) {
         my $src      = $_;
-        my $category = $src->parent;
-        while ($category ne $self->content_dir) {
-            $src_list_map{$category}{$src} = 1;
-            $src      = $category;
-            $category = $src->parent;
+        my $src_category = $src->parent;
+        while ($src_category ne $self->content_dir) {
+            $src_list_map{$src_category}{$src} = 1;
+            $src          = $src_category;
+            $src_category = $src->parent;
         }
     }
 
-    for my $category (keys %src_list_map) {
-        my @src_list = keys $src_list_map{$category}->%*;
-        $self->build_category($category, \@src_list);
-    }
-}
-
-sub normalize_name {
-    my ($name) = @_;
-    return $name =~ s!::!-!gr;
-}
-
-sub build_category {
-    my ($self, $src_category, $src_list) = @_;
-
-    # すでにカテゴリ一覧のページが存在していたら、生成しないでおく
-    $src_category = Path::Tiny::path($src_category);
-    for my $ext ('html', 'txt', 'md', 'markdown') {
-        return if $src_category->child("index.$ext")->exists;
-    }
+    my @categories;
 
     my $content_dir = $self->content_dir;
-    my $category = $src_category =~ s!$content_dir!!r;
+    for my $src_category (keys %src_list_map) {
+
+        # すでにカテゴリ一覧のページが存在していたら、生成しないでおく
+        for my $ext ('html', 'txt', 'md', 'markdown') {
+            next if path($src_category, "index.$ext")->exists;
+        }
+
+        my @src_list = keys $src_list_map{$src_category}->%*;
+        my $category = $self->chomp_content_dir($src_category);
+        $self->build_category($category, \@src_list);
+        push @categories => $category;
+    }
+
+    return \@categories;
+}
+
+
+sub build_category {
+    my ($self, $category, $src_list) = @_;
 
     my @src_list = map {
-        my $file   = Path::Tiny::path($_);
+        my $file   = path($_);
         my $matter = $self->front_matter($file);
         my $name   = $file->basename =~ s!\.[^.]+$!!r;
         my $title  = $matter->exists ? $matter->title : $file->basename . '/';
@@ -215,9 +226,10 @@ sub build_category {
         category    => $category,
         description => $category,
         title       => $category,
+        url         => $self->category_url($category),
         files       => [
             sort {
-                Scalar::Util::looks_like_number($a->{name}) && Scalar::Util::looks_like_number($b->{name})
+                looks_like_number($a->{name}) && looks_like_number($b->{name})
                 ? $a->{name} <=> $b->{name}
                 : $a->{name} cmp $b->{name}
             } @src_list
@@ -258,14 +270,18 @@ sub build_tags {
         my $src_list = $tag_map{$tag};
         $self->build_tag($tag, $src_list);
     }
+
+    return [ keys %tag_map ];
 }
 
 sub build_tag_index {
     my ($self, $tags) = @_;
 
     my $html = $self->_render_string('tag_index.html', {
-        description => '',
-        tags        => [sort { $a cmp $b } $tags->@*],
+        url          => $self->tag_index_url,
+        tag_url_path => sub { $self->tag_url_path(@_) },
+        tags => [sort { $a cmp $b } $tags->@*],
+        description  => '',
     });
 
     my $tag_dir = $self->public_dir->child('tag');
@@ -279,17 +295,11 @@ sub build_tag {
     my ($self, $tag, $src_list) = @_;
 
     my @src_list = map {
-        my $file   = Path::Tiny::path($_);
+        my $file   = path($_);
         my $matter = $self->front_matter($file);
         my $title  = $matter->title;
+        my $href   = $self->entry_url_path($file);
 
-        # content/foo/bar.txt => /foo/bar
-        my $href = do {
-            my $content_dir = $self->content_dir;
-            my $path = $file =~ s!$content_dir!!r;
-            my $href = $path =~ s!\.([^.]+)$!!r;
-            $href;
-        };
         {
             file   => $file,
             matter => $matter,
@@ -302,10 +312,11 @@ sub build_tag {
         tag         => $tag,
         description => $tag,
         title       => $tag,
+        url         => $self->tag_url($tag),
         files       => [ sort { $a->{title} cmp $b->{title} } @src_list ],
     });
 
-    my $tag_dir = $self->public_dir->child('tag', encode(locale => normalize_name($tag)));
+    my $tag_dir = $self->public_dir->child('tag', encode(locale => _normalize_name($tag)));
     my $dest = $tag_dir->child('index.html');
     $tag_dir->mkpath unless $tag_dir->is_dir;
     $dest->spew_utf8($html);
@@ -313,14 +324,124 @@ sub build_tag {
 }
 
 sub build_sitemap {
-    my ($self, $entries) = @_;
-    ... # TODO
+    my ($self, $src_list, $categories, $tags) = @_;
+
+    my @url_list;
+
+    # CASE: entry
+    for my $src ($src_list->@*) {
+        my $loc      = $self->entry_url($src);
+        my $lastmod  = time2str($DATE_FORMAT, $src->stat->mtime);
+        my $count    = scalar grep { $_ ne 'index.html' } split qr!/!, $src;
+        my $priority = int((0.8 ** ($count - 1)) * 100) / 100;
+        push @url_list => {
+            loc      => $loc,
+            lastmod  => $lastmod,
+            priority => $priority,
+        }
+    }
+
+    # CASE: category
+    for my $category ($categories->@*) {
+        my $loc      = $self->category_url($category);
+        my $count    = scalar split qr!/!, $category;
+        my $priority = int((0.8 ** ($count - 1)) * 100) / 100;
+        push @url_list => {
+            loc      => $loc,
+            priority => $priority,
+        }
+    }
+
+    # CASE: tag
+    push @url_list => {
+        loc      => $self->tag_index_url(),
+        priority => 0.8 ** 1
+    };
+    for my $tag ($tags->@*) {
+        my $loc      = $self->tag_url($tag);
+        push @url_list => {
+            loc      => $loc,
+            priority => 0.8 ** 2,
+        }
+    }
+
+    @url_list = sort { $b->{priority} <=> $a->{priority} } @url_list;
+
+    my $xml = $self->_render_string('sitemap.xml', {
+        url_list => \@url_list,
+    });
+
+    my $dest = $self->public_dir->child('sitemap.xml');
+    $dest->spew_utf8($xml);
+    $self->diag("Created sitemap $dest\n");
 }
 
-sub build_atom {
-    my ($self, $entries) = @_;
-    ... # TODO
+sub build_atom_feed {
+    my ($self, $src_list) = @_;
+
+    my $feed = XML::Atom::Feed->new;
+    $feed->title('新着記事 - Perl Users JP');
+    $feed->id("tag:$HOST,2020:/feed");
+    $feed->lang('ja-JP');
+
+    { # link alternate
+        my $link = XML::Atom::Link->new;
+        $link->type('text/html');
+        $link->rel('alternate');
+        $link->href("https://$HOST");
+        $feed->add_link($link);
+    }
+
+    { # link self
+        my $link = XML::Atom::Link->new;
+        $link->type('application/atom+xml');
+        $link->rel('self');
+        $link->href("https://$HOST/feed.atom");
+        $feed->add_link($link);
+    }
+
+    my @sorted = sort { $b->stat->mtime <=> $a->stat->mtime } $src_list->@*;
+    my @new_src_list = splice @sorted, 0, $ATOM_FEED_COUNT;
+    for my $src (@new_src_list) {
+        my $entry = XML::Atom::Entry->new;
+    
+        my $matter = $self->front_matter($src);
+        my $path   = $self->entry_url_path($src);
+
+        $entry->title($matter->title);
+        $entry->id("tag:$HOST,2020:$path");
+        $entry->updated(time2str($DATE_FORMAT, $src->stat->mtime));
+        #$entry->published(time2str($DATE_FORMAT, $src->stat->mtime)); # FIXME mtime
+        $entry->content(
+            $self->entry_text($src)
+        );
+
+        my $author = XML::Atom::Person->new;
+        $author->name($matter->author);
+        $entry->author($author);
+
+        my $link = XML::Atom::Link->new;
+        $link->type('text/html');
+        $link->rel('alternate');
+        $link->href($self->entry_url($src));
+
+        $feed->add_entry($entry);
+    }
+
+    my $first_src = $new_src_list[0];
+    $feed->updated(time2str($DATE_FORMAT, $first_src->stat->mtime));
+
+    my $xml = $feed->as_xml;
+
+    my $atom_dir = $self->public_dir->child();
+    my $dest = $atom_dir->child('feed.atom');
+    $atom_dir->mkpath unless $atom_dir->is_dir;
+    $dest->spew($xml);
+    $self->diag("Created atom $dest\n");
 }
+
+
+
 
 sub diag {
     my ($self, $msg) = @_;
@@ -329,10 +450,14 @@ sub diag {
 
 sub to_public {
     my ($self, $src) = @_;
+    my $dir = $self->chomp_content_dir($src);
+    return $dir ? $self->public_dir->child($dir) : $self->public_dir;
+}
+
+sub chomp_content_dir {
+    my ($self, $path) = @_;
     my $content_dir = $self->content_dir;
-    my $dir         = $src =~ s!^$content_dir!!r;
-    my $public      = $dir ? $self->public_dir->child($dir) : $self->public_dir;
-    return $public
+    return $path =~ s!^$content_dir!!r;
 }
 
 sub front_matter {
@@ -356,7 +481,9 @@ sub format_text {
     my ($self, $text, $format) = @_;
 
     if ($format eq 'markdown') {
-        return Text::Markdown::markdown($text);
+        my $html = Text::Markdown::markdown($text);
+        $html =~ s/<code>/<code class="prettyprint">/g;
+        return $html
     }
     elsif ($format eq 'hatena') {
         no warnings qw(once);
@@ -382,11 +509,50 @@ sub format_text {
         $parser->html_header('');
         $parser->html_footer('');
         $parser->parse_string_document("=pod\n\n$text");
+        $out =~ s/<code>/<code class="prettyprint">/g;
+        return $out
+    }
+    elsif ($format eq 'html') {
+        return $text;
     }
     else {
         die "unsupported format: $format";
     }
 }
+
+sub url {
+    my ($self, $path) = @_;
+    return "https://$HOST" . $path;
+}
+
+# e.g. content/foo/bar.txt => /foo/bar
+sub entry_url_path {
+    my ($self, $src) = @_;
+
+    my $content_dir = $self->content_dir;
+    my $path = "$src";
+    $path =~ s!$content_dir!!;
+    $path =~ s!\.([^.]+)$!!;
+    $path =~ s!index$!!;
+    return $path;
+}
+
+sub category_url_path {
+    my ($self, $category) = @_;
+    return "$category/";
+}
+
+sub tag_url_path {
+    my ($self, $tag) = @_;
+    return sprintf("/tag/%s", _normalize_name($tag));
+}
+
+sub entry_url     { my $self = shift; $self->url($self->entry_url_path(@_)) }
+sub category_url  { my $self = shift; $self->url($self->category_url_path(@_)) }
+sub tag_url       { my $self = shift; $self->url($self->tag_url_path(@_)) }
+sub tag_index_url { $_[0]->url("/tag/") }
+
+
 
 sub _render_string {
     my ($self, $template, $vars) = @_;
@@ -407,6 +573,11 @@ sub _render_string {
     ...
 
     return $renderer->($vars);
+}
+
+sub _normalize_name {
+    my ($name) = @_;
+    return $name =~ s!::!-!gr;
 }
 
 1;

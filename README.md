@@ -1,8 +1,16 @@
 
-# WIP
+# 手伝いをしてくれる人を募集しています:muscle:
 
-perl-users.jp をGitHub Pagesに移管作業をしています。
-https://github.com/perl-users-jp/test-perl-users-jp/projects/1
+perl-users.jpをGitHub Pagesへ移管しています。その手伝いをしてくれる人を募集しています！
+具体的なissueは、次のプロジェクトに記載しています。
+https://github.com/perl-users-jp/perl-users-jp.github.io/projects/1
+
+誰でも気軽に参加してもらえればと思っています!
+やってみたいissueがあれば、pull request待っています。
+不明点などあれば、お気軽に[@kfly8](https://twitter.com/kfly8)までご連絡ください。
+
+-----
+
 
 # ビルドする方法
 
