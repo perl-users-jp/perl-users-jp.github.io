@@ -264,7 +264,8 @@ sub build_tag_index {
     my ($self, $tags) = @_;
 
     my $html = $self->_render_string('tag_index.html', {
-        tags => [sort { $a cmp $b } $tags->@*],
+        description => '',
+        tags        => [sort { $a cmp $b } $tags->@*],
     });
 
     my $tag_dir = $self->public_dir->child('tag');
