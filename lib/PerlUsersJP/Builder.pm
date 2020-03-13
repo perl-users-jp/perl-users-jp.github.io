@@ -281,6 +281,7 @@ sub build_tag_index {
         url          => $self->tag_index_url,
         tag_url_path => sub { $self->tag_url_path(@_) },
         tags => [sort { $a cmp $b } $tags->@*],
+        description  => '',
     });
 
     my $tag_dir = $self->public_dir->child('tag');
