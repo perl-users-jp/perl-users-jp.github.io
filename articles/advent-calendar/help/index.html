@@ -30,7 +30,7 @@
 git がよくわからないという方は、自分の書くトラックの誰かにメール等で記事を渡して更新してもらうのが簡単だと思います(頻繁に更新する場合は権限をもらって自分でgitを使いましょう!)。</p><p>各記事をpushするタイミングは任意で行って構いません。期日になれば、perl-users.jpから記事へのリンクが自動的に張られます。<br />
 期日前でも、例えば <br/> /articles/advent-calendar/2012/sym/5 <br/>のようにURLに直接アクセスすれば、該当記事(この例では12月5日の記事)を見ることができます。プレビューがわりに表示を確認しておきましょう。</p><p>GitHub 経由やURL直接アクセスで事前に記事が見られるのがイヤだという場合は、公開ギリギリまで push しないようにしてください。</p><p>記事は、はてな記法が使えますが、完全に互換というわけではありません。HTMLタグも利用可能です。</p><p>記事の先頭行はタイトルとして使用されます。以下に記述例を示します。</p>
 
-    <pre class="code prettyprint">記事タイトル
+    <pre class="code">記事タイトル
 meta-author: 記事を書いた人
 meta-tags: 記事のカテゴリ
 
@@ -38,7 +38,7 @@ meta-tags: 記事のカテゴリ
 ･･･</pre>
 <p>記事タイトルは改行を含む事が出来ません。meta-author, meta-tags は主に RSS 配信に用いられます。RSS の author として設定されるので</p>
 
-    <pre class="code prettyprint">記事タイトル
+    <pre class="code">記事タイトル
 meta-author: パール 太郎 &lt;jperl@example.com&gt;
 meta-tags: perl, win32
 
