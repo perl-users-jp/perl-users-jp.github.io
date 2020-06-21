@@ -190,9 +190,7 @@ sub build_categories {
     for my $src_category (keys %src_list_map) {
 
         # すでにカテゴリ一覧のページが存在していたら、生成しないでおく
-        for my $ext ('html', 'txt', 'md', 'markdown') {
-            next if path($src_category, "index.$ext")->exists;
-        }
+        next if $self->_is_category_page_exists($src_category);
 
         my @src_list = keys $src_list_map{$src_category}->%*;
         my $category = $self->chomp_content_dir($src_category);
@@ -202,6 +200,16 @@ sub build_categories {
 
     return \@categories;
 }
+
+
+sub _is_category_page_exists {
+    my ($self, $src_category) = @_;
+    for my $ext ('html', 'txt', 'md', 'markdown') {
+        return 1 if path($src_category, "index.$ext")->exists;
+    }
+    return 0;
+}
+
 
 
 sub build_category {
