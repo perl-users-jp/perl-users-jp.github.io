@@ -5,4 +5,4 @@ clean:
 test:
 	carton install && carton exec -- prove -Ilib -r t
 server: build
-	carton exec -- plackup -R public/ -p 5555 --host localhost script/app.psgi
+	carton exec -- plackup -p 5555 --host localhost script/app.psgi
