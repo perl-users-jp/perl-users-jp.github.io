@@ -1,24 +1,31 @@
 
-# 手伝いをしてくれる人を募集しています:muscle:
+# 記事を書く方法
 
-perl-users.jpをGitHub Pagesへ移管しています。その手伝いをしてくれる人を募集しています！
-具体的なissueは、次のプロジェクトに記載しています。
-https://github.com/perl-users-jp/perl-users-jp.github.io/projects/1
+## 1. 記事を書く
 
-誰でも気軽に参加してもらえればと思っています!
-やってみたいissueがあれば、pull request待っています。
-不明点などあれば、お気軽に[@kfly8](https://twitter.com/kfly8)までご連絡ください。
+content/ 配下にmarkdownで記事を書く。 記事は、次のように冒頭にメタ要素を書き、それ以下に内容を書く。
 
------
+```:sample.md
+何かタイトル
+meta-author: YOURNAME
+meta-tags: foo, bar
+meta-date: 2020-12-01
 
+# 何かヘッダー
+何か内容。
+```
 
-# ビルドする方法
+## 2. 記事の確認する
 
-1. content/ 以下を編集し、記事を書く
-2. commit & push
-    - pushするとGitHub Actionsでビルドします
+- `make server`で、記事をビルドし、`perl-users.jp`のローカルサーバを立ち上げられる
+- `make build`で、記事をビルドできる
 
-開発環境で記事を確認したい場合は、Make
+## 3. deploy
+
+- content branchに反映する
+  - writer権限を持っている場合は、content branchに直接反映する
+  - writer権限がなければ、pull requestを作る
+- content branchに反映されれば、GitHub Actionsで自動で反映される
 
 # 必要なもの
 
@@ -35,4 +42,3 @@ https://github.com/perl-users-jp/perl-users-jp.github.io/projects/1
     - テストを実行します
 - `make server`
     - public/ のデータを確認するために Plack::App::Directory をつかってサーバーをたちあげます。
-
