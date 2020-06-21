@@ -1,95 +1,141 @@
-<!doctype html>
-<html lang="ja">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <meta name="description" content="/modern_introduction_perl">
-        <title>/modern_introduction_perl</title>
-        <link rel="icon" href="/img/favicon.ico">
-        <link rel="canonical" href="https://perl-users.jp/modern_introduction_perl/">
-        <link href="TODO" rel="stylesheet">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+    <head profile="http://purl.org/net/ns/metaprof">
+        <!-- Document Metadata -->
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta http-equiv="Content-Language" content="ja" />
+        <meta http-equiv="Content-Style-Type" content="text/css" />
+        <meta http-equiv="Content-Script-Type" content="text/javascript" />
+        <meta http-equiv="imagetoolbar" content="no" />
+
+        <!-- Atom news feed -->
+
+        <link rel="alternate" type="application/rss+xml" title="RSS feed" href="http://coderepos.org/share/log/websites/perl-users.jp?limit=100&amp;mode=stop_on_copy&amp;format=rss" />
+        <link rel="stylesheet" type="text/css" href="/css/perl-users.jp.css" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+        <link rel="icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+
+        <title>モダンなPerl入門 - モダンなPerl入門</title>
+
+        <script src="http://www.google-analytics.com/urchin.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            _uacct = "UA-4463402-1";
+            urchinTracker();
+        </script>
+        <!-- script src="/js/codepress/codepress.js" type="text/javascript"></script -->
     </head>
     <body>
-        <h1>/modern_introduction_perl</h1>
-        <ul>
-            <li>
-                <a href="/modern_introduction_perl/cpan_recent">
-                    cpan_recent.html
-                </a>
-            </li>
-            <li>
-                <a href="/modern_introduction_perl/cpan_sommelier">
-                    cpan_sommelier.html
-                </a>
-            </li>
-            <li>
-                <a href="/modern_introduction_perl/devel_cover">
-                    devel_cover.html
-                </a>
-            </li>
-            <li>
-                <a href="/modern_introduction_perl/devel_nytprof">
-                    devel_nytprof.html
-                </a>
-            </li>
-            <li>
-                <a href="/modern_introduction_perl/email_send">
-                    email_send.html
-                </a>
-            </li>
-            <li>
-                <a href="/modern_introduction_perl/encode_io_flow">
-                    encode_io_flow.html
-                </a>
-            </li>
-            <li>
-                <a href="/modern_introduction_perl/index">
-                    index.html
-                </a>
-            </li>
-            <li>
-                <a href="/modern_introduction_perl/json">
-                    json.html
-                </a>
-            </li>
-            <li>
-                <a href="/modern_introduction_perl/libxml">
-                    libxml.html
-                </a>
-            </li>
-            <li>
-                <a href="/modern_introduction_perl/perldoc">
-                    perldoc.html
-                </a>
-            </li>
-            <li>
-                <a href="/modern_introduction_perl/rss_create">
-                    rss_create.html
-                </a>
-            </li>
-            <li>
-                <a href="/modern_introduction_perl/rss_parse">
-                    rss_parse.html
-                </a>
-            </li>
-            <li>
-                <a href="/modern_introduction_perl/sub_prototype">
-                    sub_prototype.html
-                </a>
-            </li>
-            <li>
-                <a href="/modern_introduction_perl/template-tt">
-                    template-tt.html
-                </a>
-            </li>
-            <li>
-                <a href="/modern_introduction_perl/variables">
-                    variables.html
-                </a>
-            </li>
-        </ul>
-
-        <a href="/">HOME</a>
-
+        <div id="head-navigation"><a href="/">Perl-users.jp</a></div>
+<!-- content start -->
+        <h1>モダンなPerl入門</h1>
+        <p>古来から親しまれている Perl 入門とはひと味違う、今風の Perl 入門テキストを作りましょ。</p>
+        <div>
+            <h2>目次</h2>
+            <ol>
+                <li>Perlの概要
+                    <ol>
+                        <li>なにか</li>
+                        <li>なにか</li>
+                        <li>バージョン</li>
+                        <li>ラクダ画像とPerl</li>
+                        <li>環境別インストール</li>
+                        <li><a href="/modern_introduction_perl/perldoc.html">基礎的な<code>perldoc</code>コマンド</a></li>
+                    </ol>
+                </li>
+                <li><a href="/modern_introduction_perl/variables.html">変数</a></li>
+                    <ol>
+                        <li>スカラー（文字列・数値）</li>
+                        <li>配列</li>
+                        <li>ハッシュ</li>
+                        <li>リファレンス</li>
+                    </ol>
+                <li>条件分岐</li>
+                    <ol>
+                        <li><code>if</code> / <code>elsif</code> / <code>else</code></li>
+                    </ol>
+                <li>ループ</li>
+                    <ol>
+                        <li><code>foreach</code></li>
+                        <li><code>while</code></li>
+                    </ol>
+                <li>デバッグ手法
+                    <ol>
+                        <li><code>print</code></li>
+                        <li><code>warn</code></li>
+                        <li>Data::Dumper</li>
+                        <li>YAML</li>
+                        <li>XXX</li>
+                    </ol>
+                </li>
+                <li>ファイル操作</li>
+                    <ol>
+                        <li><code>open()</code></li>
+                        <li>IO::File</li>
+                        <li>Path::Class</li>
+                        <li><code>stat()</code> / <code>-f</code> / <code>-d</code> / <code>-e</code> / <code>-x</code></li>
+                    </ol>
+                <li>サブルーチン</li>
+                    <ol>
+                        <li><a href="/modern_introduction_perl/sub_prototype.html">プロトタイプ</a></li>
+                    </ol>
+                <li>正規表現</li>
+                    <ol>
+                        <li>メタキャラクター</li>
+                        <li>キャラクターセット</li>
+                    </ol>
+                <li>データ
+                    <ol>
+                        <li><code>tie</code></li>
+                        <li>Storable</li>
+                    </ol>
+                </li>
+                <li>Encode
+                    <ol>
+                        <li><a href="/modern_introduction_perl/encode_io_flow.html">入出力の考え方</a></li>
+                    </ol>
+                </li>
+                <li>ワンライナー</li>
+                <li>データベース
+                    <ol>
+                        <li>DBI</li>
+                            <ol>
+                                <li>mysql</li>
+                                <li>PostgreSQL</li>
+                                <li>SQLite</li>
+                            </ol>
+                    </ol>
+                </li>
+                <li>オブジェクト</li>
+                    <ol>
+                        <li><code>bless</code></li>
+                    </ol>
+                <li>モジュール</li>
+                <li>CPAN
+                    <ol>
+                        <li>各OSでのCPANのつかいかた
+                            <ol>
+                                <li>WindowsでCPANモジュールをつかう</li>
+                                <li>Mac OS XでCPANモジュールをつかう</li>
+                                <li>FreeBSDでCPANモジュールをつかう</li>
+                                <li>DebianでCPANモジュールをつかう</li>
+                            </ol>
+                        </li>
+                        <li><a href="/modern_introduction_perl/cpan_sommelier.html">CPANモジュールの選び方</a></li>
+                        <li><a href="/modern_introduction_perl/cpan_recent.html">CPANモジュールの更新情報をチェックする</a></li>
+                    </ol>
+                </li>
+                <li>初心者卒業前に
+                    <ol>
+                        <li>Moose(中身出来るまでhide-kさんの<a href="http://svn.coderepos.org/share/docs/moose-ja/">POD翻訳</a>をゆっくり読んでいってね！)</li>
+                        <li>普段使わないサブルーチン名やグローバル変数を軽く紹介</li>
+                        <li>コミュニティ</li>
+                    </ol>
+                </li>
+            </ol>
+        </div>
+<!-- content end -->
+        <hr />
+        <p><a href="/modern_introduction_perl/">目次へ</a></p>
+        <p>Last modified: $Date: 2008-08-04 09:00:30 +0900 (月, 04  8月 2008) $</p>
     </body>
 </html>
