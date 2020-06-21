@@ -26,3 +26,4 @@ jobs:
         deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
         publish_branch: master
         publish_dir: ./public
+        cname: perl-users.jp
