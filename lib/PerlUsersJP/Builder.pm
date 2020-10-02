@@ -558,21 +558,38 @@ sub tag_index_url { $_[0]->url("/tag/") }
 sub og_image_url {
     my ($self, $src) = @_;
 
-    state $font_family = 'Sawarabi Gothic';
-    state $font_size   = '60';
-    state $font_weight = 'bold';
-    state $font_color  = '10355E';
-    state $width       = '900';
+    my $title_font_family = 'NotoSansJP-Black.otf';
+    my $title_font_size   = '50';
+    my $title_font_weight = 'bold';
+    my $title_font_color  = '000000';
+    my $title_width       = '900';
 
-    my $option = uri_escape_utf8 join ',', (
-        "l_text:${font_family}_${font_size}_${font_weight}:@{[$self->entry_fulltitle($src)]}",
-        "co_rgb:${font_color}",
-        "w_${width}",
+    my $author_font_family = 'NotoSansJP-Black.otf';
+    my $author_font_size   = '30';
+    my $author_font_weight = 'bold';
+    my $author_font_color  = '000000';
+    my $author_x           = '100';
+    my $author_y           = '100';
+
+
+    my $matter = $self->front_matter($src);
+
+    my $title_option = join ',', (
+        "l_text:${title_font_family}_${title_font_size}_${title_font_weight}:@{[ uri_escape_utf8 $matter->title ]}",
+        "co_rgb:${title_font_color}",
+        "w_${title_width}",
         "c_fit",
     );
 
-    # FIXME 個人アカウントに依存させない
-    return "https://res.cloudinary.com/kfly8/image/upload/${option}/v1581137838/carbon_13_o7vxns.png";
+    my $author_option = join ',', (
+        "l_text:${author_font_family}_${author_font_size}_${author_font_weight}:@{[ uri_escape_utf8 $matter->author ]}",
+        "co_rgb:${author_font_color}",
+        "g_south_east",
+        "x_${author_x}",
+        "y_${author_y}",
+    );
+
+    return "https://res.cloudinary.com/kfly8/image/upload/${title_option}/${author_option}/v1601626948/og-image.png";
 }
 
 sub _render_string {
