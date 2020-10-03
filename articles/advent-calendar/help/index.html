@@ -3,9 +3,24 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <title>Perl Advent Calendar 書き方 - Articles Advent Calendar</title>
+        <meta name="title" content="Perl Advent Calendar 書き方 - Articles Advent Calendar">
         <meta name="description" content="">
         <meta name="author" content="hasegawayosuke">
-        <title>Perl Advent Calendar 書き方 - Articles Advent Calendar</title>
+
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="https://perl-users.jp/articles/advent-calendar/help">
+        <meta property="og:title" content="Perl Advent Calendar 書き方 - Articles Advent Calendar">
+        <meta property="og:description" content="">
+        <meta property="og:image" content="https://res.cloudinary.com/kfly8/image/upload/l_text:NotoSansJP-Black.otf_50_bold:Perl%20Advent%20Calendar%20%E6%9B%B8%E3%81%8D%E6%96%B9,co_rgb:000000,w_900,c_fit/l_text:NotoSansJP-Black.otf_30_bold:hasegawayosuke,co_rgb:000000,g_south_east,x_130,y_120/v1601626948/og-perl-users-jp.png">
+
+        <meta property="twitter:card" content="summary_large_image">
+        <meta property="twitter:url" content="https://perl-users.jp/articles/advent-calendar/help">
+        <meta property="twitter:title" content="Perl Advent Calendar 書き方 - Articles Advent Calendar">
+        <meta property="twitter:description" content="">
+        <meta property="twitter:image" content="https://res.cloudinary.com/kfly8/image/upload/l_text:NotoSansJP-Black.otf_50_bold:Perl%20Advent%20Calendar%20%E6%9B%B8%E3%81%8D%E6%96%B9,co_rgb:000000,w_900,c_fit/l_text:NotoSansJP-Black.otf_30_bold:hasegawayosuke,co_rgb:000000,g_south_east,x_130,y_120/v1601626948/og-perl-users-jp.png">
+
         <link rel="icon" href="/img/favicon.ico">
         <link rel="canonical" href="https://perl-users.jp/articles/advent-calendar/help">
         <link href="TODO" rel="stylesheet">
@@ -30,7 +45,7 @@
 git がよくわからないという方は、自分の書くトラックの誰かにメール等で記事を渡して更新してもらうのが簡単だと思います(頻繁に更新する場合は権限をもらって自分でgitを使いましょう!)。</p><p>各記事をpushするタイミングは任意で行って構いません。期日になれば、perl-users.jpから記事へのリンクが自動的に張られます。<br />
 期日前でも、例えば <br/> /articles/advent-calendar/2012/sym/5 <br/>のようにURLに直接アクセスすれば、該当記事(この例では12月5日の記事)を見ることができます。プレビューがわりに表示を確認しておきましょう。</p><p>GitHub 経由やURL直接アクセスで事前に記事が見られるのがイヤだという場合は、公開ギリギリまで push しないようにしてください。</p><p>記事は、はてな記法が使えますが、完全に互換というわけではありません。HTMLタグも利用可能です。</p><p>記事の先頭行はタイトルとして使用されます。以下に記述例を示します。</p>
 
-    <pre class="code prettyprint">記事タイトル
+    <pre class="code">記事タイトル
 meta-author: 記事を書いた人
 meta-tags: 記事のカテゴリ
 
@@ -38,7 +53,7 @@ meta-tags: 記事のカテゴリ
 ･･･</pre>
 <p>記事タイトルは改行を含む事が出来ません。meta-author, meta-tags は主に RSS 配信に用いられます。RSS の author として設定されるので</p>
 
-    <pre class="code prettyprint">記事タイトル
+    <pre class="code">記事タイトル
 meta-author: パール 太郎 &lt;jperl@example.com&gt;
 meta-tags: perl, win32
 

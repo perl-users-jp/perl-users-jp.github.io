@@ -3,9 +3,24 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <title>自己参照の階層構造を持つテーブルをツリー形式にする DBIx::Tree - Articles Advent Calendar 2011 Dbix</title>
+        <meta name="title" content="自己参照の階層構造を持つテーブルをツリー形式にする DBIx::Tree - Articles Advent Calendar 2011 Dbix">
         <meta name="description" content="">
         <meta name="author" content="bayashi">
-        <title>自己参照の階層構造を持つテーブルをツリー形式にする DBIx::Tree - Articles Advent Calendar 2011 Dbix</title>
+
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="https://perl-users.jp/articles/advent-calendar/2011/dbix/3">
+        <meta property="og:title" content="自己参照の階層構造を持つテーブルをツリー形式にする DBIx::Tree - Articles Advent Calendar 2011 Dbix">
+        <meta property="og:description" content="">
+        <meta property="og:image" content="https://res.cloudinary.com/kfly8/image/upload/l_text:NotoSansJP-Black.otf_50_bold:%E8%87%AA%E5%B7%B1%E5%8F%82%E7%85%A7%E3%81%AE%E9%9A%8E%E5%B1%A4%E6%A7%8B%E9%80%A0%E3%82%92%E6%8C%81%E3%81%A4%E3%83%86%E3%83%BC%E3%83%96%E3%83%AB%E3%82%92%E3%83%84%E3%83%AA%E3%83%BC%E5%BD%A2%E5%BC%8F%E3%81%AB%E3%81%99%E3%82%8B%20DBIx%3A%3ATree,co_rgb:000000,w_900,c_fit/l_text:NotoSansJP-Black.otf_30_bold:bayashi,co_rgb:000000,g_south_east,x_130,y_120/v1601626948/og-perl-users-jp.png">
+
+        <meta property="twitter:card" content="summary_large_image">
+        <meta property="twitter:url" content="https://perl-users.jp/articles/advent-calendar/2011/dbix/3">
+        <meta property="twitter:title" content="自己参照の階層構造を持つテーブルをツリー形式にする DBIx::Tree - Articles Advent Calendar 2011 Dbix">
+        <meta property="twitter:description" content="">
+        <meta property="twitter:image" content="https://res.cloudinary.com/kfly8/image/upload/l_text:NotoSansJP-Black.otf_50_bold:%E8%87%AA%E5%B7%B1%E5%8F%82%E7%85%A7%E3%81%AE%E9%9A%8E%E5%B1%A4%E6%A7%8B%E9%80%A0%E3%82%92%E6%8C%81%E3%81%A4%E3%83%86%E3%83%BC%E3%83%96%E3%83%AB%E3%82%92%E3%83%84%E3%83%AA%E3%83%BC%E5%BD%A2%E5%BC%8F%E3%81%AB%E3%81%99%E3%82%8B%20DBIx%3A%3ATree,co_rgb:000000,w_900,c_fit/l_text:NotoSansJP-Black.otf_30_bold:bayashi,co_rgb:000000,g_south_east,x_130,y_120/v1601626948/og-perl-users-jp.png">
+
         <link rel="icon" href="/img/favicon.ico">
         <link rel="canonical" href="https://perl-users.jp/articles/advent-calendar/2011/dbix/3">
         <link href="TODO" rel="stylesheet">
