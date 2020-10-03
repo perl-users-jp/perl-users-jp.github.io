@@ -10,6 +10,7 @@ use Class::Tiny qw(
     description
     author     
     tags       
+    og_image
 
     layout     
     format     
@@ -48,6 +49,7 @@ sub BUILDARGS {
             description => $data->{description} // '',
             author      => $data->{author} // '',
             tags        => $tags,
+            og_image    => $data->{og_image},
             layout      => $data->{layout},
             format      => $data->{format} // $format,
         }

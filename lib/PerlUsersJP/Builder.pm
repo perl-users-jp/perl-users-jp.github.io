@@ -11,6 +11,7 @@ use Encode qw(encode);
 use Path::Tiny qw(path);
 use Date::Format qw(time2str);
 use Scalar::Util qw(looks_like_number);
+use URI::Escape qw(uri_escape_utf8);
 
 use Text::MicroTemplate;
 use XML::Atom::Feed;
@@ -126,11 +127,13 @@ sub build_entry {
     }
     else {
         my $html = $self->_render_string('entry.html', {
-            text        => $self->entry_text($src),
-            title       => $matter->title,
-            subtitle    => $self->entry_subtitle($src),
-            matter      => $matter,
-            url         => $self->entry_url($src),
+            text         => $self->entry_text($src),
+            title        => $matter->title,
+            subtitle     => $self->entry_subtitle($src),
+            fulltitle    => $self->entry_fulltitle($src),
+            matter       => $matter,
+            url          => $self->entry_url($src),
+            og_image_url => $matter->og_image // $self->og_image_url($src),
         });
         $dest->spew_utf8($html);
         $sub_dest->spew_utf8($html) if $sub_dest;
@@ -168,7 +171,12 @@ sub entry_subtitle {
     return $subtitle;
 }
 
-
+sub entry_fulltitle {
+    my ($self, $src) = @_;
+    my $title    = $self->front_matter($src)->title;
+    my $subtitle = $self->entry_subtitle($src);
+    return $subtitle ? "$title - $subtitle" : $title;
+}
 
 sub build_categories {
     my ($self, $src_list) = @_;
@@ -412,7 +420,7 @@ sub build_atom_feed {
     my @new_src_list = splice @sorted, 0, $ATOM_FEED_COUNT;
     for my $src (@new_src_list) {
         my $entry = XML::Atom::Entry->new;
-    
+
         my $matter = $self->front_matter($src);
         my $path   = $self->entry_url_path($src);
 
@@ -560,7 +568,46 @@ sub category_url  { my $self = shift; $self->url($self->category_url_path(@_)) }
 sub tag_url       { my $self = shift; $self->url($self->tag_url_path(@_)) }
 sub tag_index_url { $_[0]->url("/tag/") }
 
+sub og_image_url {
+    my ($self, $src) = @_;
 
+    my $title_font_family = 'NotoSansJP-Black.otf';
+    my $title_font_size   = '50';
+    my $title_font_weight = 'bold';
+    my $title_font_color  = '000000';
+    my $title_width       = '900';
+
+    my $author_font_family = 'NotoSansJP-Black.otf';
+    my $author_font_size   = '30';
+    my $author_font_weight = 'bold';
+    my $author_font_color  = '000000';
+    my $author_x           = '130';
+    my $author_y           = '120';
+
+    my $matter = $self->front_matter($src);
+
+    # XXX commaがcloudinaryだと文字区切りの意味を持つので、代替文字に置き換え
+    # https://support.cloudinary.com/hc/en-us/community/posts/200788162-Using-special-characters-in-Text-overlaying-
+    my $title  = $matter->title =~ s!,!%E2%80%9A!gr;
+    my $author = $matter->author =~ s!,!%E2%80%9A!gr;
+
+    my $title_option = join ',', (
+        "l_text:${title_font_family}_${title_font_size}_${title_font_weight}:@{[ uri_escape_utf8 $title ]}",
+        "co_rgb:${title_font_color}",
+        "w_${title_width}",
+        "c_fit",
+    );
+
+    my $author_option = join ',', (
+        "l_text:${author_font_family}_${author_font_size}_${author_font_weight}:@{[ uri_escape_utf8 $author ]}",
+        "co_rgb:${author_font_color}",
+        "g_south_east",
+        "x_${author_x}",
+        "y_${author_y}",
+    );
+
+    return "https://res.cloudinary.com/kfly8/image/upload/${title_option}/${author_option}/v1601626948/og-perl-users-jp.png";
+}
 
 sub _render_string {
     my ($self, $template, $vars) = @_;

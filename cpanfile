@@ -1,17 +1,17 @@
 requires 'perl', '5.030001';
 
-requires 'Encode::Locale';
-requires 'Encode';
-
+# order by a-z
 requires 'Class::Tiny';
 requires 'Date::Format';
+requires 'Encode';
+requires 'Encode::Locale';
 requires 'Path::Tiny';
-requires 'Text::MicroTemplate';
-requires 'XML::Atom';
-
-requires 'Text::Xatena';
-requires 'Text::Markdown';
 requires 'Pod::Simple::XHTML';
+requires 'Text::Markdown';
+requires 'Text::MicroTemplate';
+requires 'Text::Xatena';
+requires 'URI::Escape';
+requires 'XML::Atom';
 
 on 'develop' => sub {
     requires 'Plack';
