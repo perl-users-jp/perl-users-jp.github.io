@@ -4,16 +4,17 @@ use warnings;
 use utf8;
 
 use Class::Tiny qw(
-    body       
+    body
 
-    title      
+    title
     description
-    author     
-    tags       
+    author
+    email
+    tags
     og_image
 
-    layout     
-    format     
+    layout
+    format
 );
 
 sub BUILDARGS {
@@ -43,11 +44,14 @@ sub BUILDARGS {
         my $data    = _parse_text_entry($file);
         my $tags    = $data->{tags} ? [ grep { $_ } map { s!\s*!!; s!\s*$!!; $_ } split /[,\s]/, $data->{tags} ] : [];
 
+        my ($author, $email) = ($data->{author} // '') =~ m!^([^<]+)<?([^>]*)!g;
+
         return {
             body        => $data->{body},
             title       => $data->{title} // '',
             description => $data->{description} // '',
-            author      => $data->{author} // '',
+            author      => $author // '',
+            email       => $email // '',
             tags        => $tags,
             og_image    => $data->{og_image},
             layout      => $data->{layout},

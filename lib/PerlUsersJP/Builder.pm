@@ -606,7 +606,7 @@ sub og_image_url {
         "y_${author_y}",
     );
 
-    return "https://res.cloudinary.com/kfly8/image/upload/${title_option}/${author_option}/v1601626948/og-perl-users-jp.png";
+    return sprintf("https://res.cloudinary.com/kfly8/image/upload/%s/%s/v1601626948/og-perl-users-jp.png", $title_option, $author ? $author_option : '')
 }
 
 sub _render_string {
