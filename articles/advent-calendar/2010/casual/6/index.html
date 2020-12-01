@@ -7,19 +7,19 @@
         <title>MySQL と SQLite に対応した DBIx なモジュールを PostgreSQL に対応させる Tips いくつか - Articles Advent Calendar 2010 Casual</title>
         <meta name="title" content="MySQL と SQLite に対応した DBIx なモジュールを PostgreSQL に対応させる Tips いくつか - Articles Advent Calendar 2010 Casual">
         <meta name="description" content="">
-        <meta name="author" content="fujiwara <fujiwara@cpan.org>">
+        <meta name="author" content="fujiwara ">
 
         <meta property="og:type" content="website">
         <meta property="og:url" content="https://perl-users.jp/articles/advent-calendar/2010/casual/6">
         <meta property="og:title" content="MySQL と SQLite に対応した DBIx なモジュールを PostgreSQL に対応させる Tips いくつか - Articles Advent Calendar 2010 Casual">
         <meta property="og:description" content="">
-        <meta property="og:image" content="https://res.cloudinary.com/kfly8/image/upload/l_text:NotoSansJP-Black.otf_50_bold:MySQL%20%E3%81%A8%20SQLite%20%E3%81%AB%E5%AF%BE%E5%BF%9C%E3%81%97%E3%81%9F%20DBIx%20%E3%81%AA%E3%83%A2%E3%82%B8%E3%83%A5%E3%83%BC%E3%83%AB%E3%82%92%20PostgreSQL%20%E3%81%AB%E5%AF%BE%E5%BF%9C%E3%81%95%E3%81%9B%E3%82%8B%20Tips%20%E3%81%84%E3%81%8F%E3%81%A4%E3%81%8B,co_rgb:000000,w_900,c_fit/l_text:NotoSansJP-Black.otf_30_bold:fujiwara%20%3Cfujiwara%40cpan.org%3E,co_rgb:000000,g_south_east,x_130,y_120/v1601626948/og-perl-users-jp.png">
+        <meta property="og:image" content="https://res.cloudinary.com/kfly8/image/upload/l_text:NotoSansJP-Black.otf_50_bold:MySQL%20%E3%81%A8%20SQLite%20%E3%81%AB%E5%AF%BE%E5%BF%9C%E3%81%97%E3%81%9F%20DBIx%20%E3%81%AA%E3%83%A2%E3%82%B8%E3%83%A5%E3%83%BC%E3%83%AB%E3%82%92%20PostgreSQL%20%E3%81%AB%E5%AF%BE%E5%BF%9C%E3%81%95%E3%81%9B%E3%82%8B%20Tips%20%E3%81%84%E3%81%8F%E3%81%A4%E3%81%8B,co_rgb:000000,w_900,c_fit/l_text:NotoSansJP-Black.otf_30_bold:fujiwara%20,co_rgb:000000,g_south_east,x_130,y_120/v1601626948/og-perl-users-jp.png">
 
         <meta property="twitter:card" content="summary_large_image">
         <meta property="twitter:url" content="https://perl-users.jp/articles/advent-calendar/2010/casual/6">
         <meta property="twitter:title" content="MySQL と SQLite に対応した DBIx なモジュールを PostgreSQL に対応させる Tips いくつか - Articles Advent Calendar 2010 Casual">
         <meta property="twitter:description" content="">
-        <meta property="twitter:image" content="https://res.cloudinary.com/kfly8/image/upload/l_text:NotoSansJP-Black.otf_50_bold:MySQL%20%E3%81%A8%20SQLite%20%E3%81%AB%E5%AF%BE%E5%BF%9C%E3%81%97%E3%81%9F%20DBIx%20%E3%81%AA%E3%83%A2%E3%82%B8%E3%83%A5%E3%83%BC%E3%83%AB%E3%82%92%20PostgreSQL%20%E3%81%AB%E5%AF%BE%E5%BF%9C%E3%81%95%E3%81%9B%E3%82%8B%20Tips%20%E3%81%84%E3%81%8F%E3%81%A4%E3%81%8B,co_rgb:000000,w_900,c_fit/l_text:NotoSansJP-Black.otf_30_bold:fujiwara%20%3Cfujiwara%40cpan.org%3E,co_rgb:000000,g_south_east,x_130,y_120/v1601626948/og-perl-users-jp.png">
+        <meta property="twitter:image" content="https://res.cloudinary.com/kfly8/image/upload/l_text:NotoSansJP-Black.otf_50_bold:MySQL%20%E3%81%A8%20SQLite%20%E3%81%AB%E5%AF%BE%E5%BF%9C%E3%81%97%E3%81%9F%20DBIx%20%E3%81%AA%E3%83%A2%E3%82%B8%E3%83%A5%E3%83%BC%E3%83%AB%E3%82%92%20PostgreSQL%20%E3%81%AB%E5%AF%BE%E5%BF%9C%E3%81%95%E3%81%9B%E3%82%8B%20Tips%20%E3%81%84%E3%81%8F%E3%81%A4%E3%81%8B,co_rgb:000000,w_900,c_fit/l_text:NotoSansJP-Black.otf_30_bold:fujiwara%20,co_rgb:000000,g_south_east,x_130,y_120/v1601626948/og-perl-users-jp.png">
 
         <link rel="icon" href="/img/favicon.ico">
         <link rel="canonical" href="https://perl-users.jp/articles/advent-calendar/2010/casual/6">
