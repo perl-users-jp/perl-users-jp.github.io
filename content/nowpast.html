@@ -35,6 +35,15 @@
 
 <p>oldtype としたものもたいていは動きますし、環境の都合や軽量だなどの理由で普通に使われたりもします。そのへん勘違いなきよう。</p>
 
+<h3>CPANモジュールの検索</h3>
+
+自動リダイレクトされるので知ってると思いますが。
+
+<ul>
+<li>oldtype: <a href="https://search.cpan.org/">search.cpan.org</a></li>
+<li>modern: <a href="https://metacpan.org/">MetaCPAN</a></li>
+</ul>
+        
 <h3>CPANモジュールインストール</h3>
 
 <ul>
@@ -46,16 +55,15 @@
 <h3>OR マッパー</h3>
 
 <ul>
-<li>oldtype: Class::DBI</li>
-<li>modern: DBIx::Class, Data::ObjectDriver, DBIx::Skinny</li>
+<li>oldtype: Class::DBI, DBIx::Skinny</li>
+<li>modern: DBIx::Class, Data::ObjectDriver, Teng, Aniki</li>
 </ul>
 
 <h3>テンプレートエンジン</h3>
 
 <ul>
-<li>oldtype: HTML::Template</li>
-<li>modern: Template</li>
-<li>post modern: Text::MicroTemplate, Text::Xslate</li>
+<li>oldtype: HTML::Template, Template</li>
+<li>modern: Text::MicroTemplate, Text::Xslate</li>
 </ul>
 
 <h3>文字コード</h3>
@@ -68,43 +76,45 @@
 <h3>ファイル名</h3>
 
 <ul>
-<li>oldtype: File::Spec, File::BaseDir</li>
-<li>modern: Path::Class</li>
+<li>oldtype: File::Spec, File::BaseDir, Path::Class</li>
+<li>modern: Path::Tiny</li>
 </ul>
 
 <h3>open</h3>
 
 <ul>
 <li>oldtype: <code>open FH, "filename" or die $!;</code></li>
-<li>modern: <code>open my $fh, '&lt;', 'filename' or die $!;</code> または <a href="http://search.cpan.org/dist/Path-Class/">Path::Class</a>をつかって<code>file('filename')-&gt;open('r')</code> とか</li>
+<li>modern: <code>open my $fh, '&lt;', 'filename' or die $!;</code> または <a href="https://metacpan.org/pod/Path::Tiny">Path::Tiny</a>をつかって<code>path('filename')-&gt;openr()</code> とか</li>
 </ul>
 
 <h3>クラス雛形</h3>
 
 <ul>
-<li>oldtype: Class::Accessor::* とか</li>
-<li>modern: Moose</li>
+<li>oldtype: Class::Accessor, Class::Accessor::Fast</li>
+<li>old modern: Moose, Mouse</li>
+<li>modern: Moo, Class::Tiny</li>
 </ul>
 
 <h3>Makefile.PL</h3>
 
 <ul>
-<li>oldtype: ExtUtils::MakeMaker</li>
-<li>modern: Module::Install</li>
+<li>oldtype: ExtUtils::MakeMaker, Module::Install</li>
+<li>modern: Module::Build</li>
 </ul>
 
 <h3>インタラクティブシェル</h3>
 
 <ul>
-<li>oldtype: <code>perl -de0</code></li>
-<li>modern: <code>re.pl</code> (Devel::REPL)</li>
+<li>oldtype: <code>perl -de0</code>, <code>re.pl</code> (Devel::REPL)</li>
+<li>modern: <code>reply</code> (<a href="https://metacpan.org/pod/Reply">Reply</a>)</li>
 </ul>
 
 <h3>日付処理</h3>
 
 <ul>
 <li>oldtype: <code>time()</code> や <code>localtime()</code> でがんばったり Date::Simple, Time::Local, Date::Calc とか</li>
-<li>modern: DateTime</li>
+<li>modern: DateTime, Time::Piece</li>
+<li>post modern: Time::Moment</li>
 </ul>
 
 <h3>メール送信</h3>
@@ -112,7 +122,7 @@
 <ul>
 <li>oldtype: Net::SMTP を直</li>
 <li>modern: Email::Send + Email::MIME, MIME::Lite など</li>
-<li>post modern: Email::Sender</li>
+<li>post modern: Email::Sender, Email::Stuffer</li>
 </ul>
 
 <h3>Public な変数</h3>
@@ -126,60 +136,22 @@
 
 <ul>
 <li>oldtype: <code>$foo = $var unless defined $foo</code></li>
-<li>5.10: <code>$foo //= $var</code></li>
+<li>5.10+: <code>$foo //= $var</code></li>
 </ul>
 
 <h3>継承</h3>
 
 <ul>
 <li>oldtype: <code>use base</code></li>
-<li>modern: <code>use parent</code> (とくに Catalyst 周辺)</li>
+<li>modern: <code>use parent</code></li>
 </ul>
 
-<h2>恐怖の Catalyst 編</h2>
-
-<p>oldtype のものはサポートされなくなっていくと思われます。</p>
-
-<h3>Root</h3>
-
-<ul>
-<li>oldtype: App.pm に書く（もういないかな）</li>
-<li>modern: App/Controller/Root.pm に <code>__PACKAGE__-&gt;config-&gt;{namespace} = '';</code> してそこに書く</li>
-</ul>
-
-<h3>基本最終処理</h3>
-
-<ul>
-<li>oldtype: Catalyst::Plugin::DefaultEnd</li>
-<li>modern: Catalyst::Action::RenderView</li>
-</ul>
-
-<h3>DBIx::Class モデル</h3>
-
-<ul>
-<li>oldtype: Catalyst::Model::DBIC</li>
-<li>modern: Catalyst::Model::DBIC::Schema</li>
-</ul>
-
-<h3>認証</h3>
-
-<ul>
-<li>oldtype: Catalyst::Plugin::Authentication::*</li>
-<li>modern: Catalyst::Plugin::Authentication と Catalyst::Authentication::*</li>
-</ul>
-
-<h3>キャッシュ</h3>
-
-<ul>
-<li>oldtype: Catalyst::Plugin::Cache::*</li>
-<li>modern: Catalyst::Plugin::Cache と好きな Cache::</li>
-</ul>
-
-<h3>まあそれでも</h3>
+<h3>Web Application Framework</h3>
 
 <ul>
 <li>oldtype: CGI::Application</li>
-<li>modern: Catalyst</li>
+<li>old modern: Catalyst</li>
+<li>modernMojolicious, Dancer2, Amon2</li>
 </ul>
 
 <hr />
