@@ -1,8 +1,8 @@
 build:
-	carton install && carton exec -- perl -Ilib script/build.pl
+	cpm install && perl -Ilocal/lib/perl5 -Ilib script/build.pl
 clean:
 	rm -r public
 test:
-	carton install && carton exec -- prove -Ilib -r t
+	cpm install && prove -Ilocal/lib/perl5 -Ilib -r t
 server: build
-	carton exec -- plackup -p 5555 --host localhost script/app.psgi
+	plackup -Ilocal/lib/perl5 -p 5555 --host localhost script/app.psgi
