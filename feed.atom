@@ -5,36 +5,9 @@
   <link type="text/html" rel="alternate" href="https://perl-users.jp"/>
   <link type="application/atom+xml" rel="self" href="https://perl-users.jp/feed.atom"/>
   <entry>
-    <title>whoswho.html</title>
-    <id>tag:perl-users.jp,2020:/whoswho</id>
-    <modified>2021-02-08T15:35:09+0000</modified>
-    <content/>
-    <author>
-      <name></name>
-    </author>
-  </entry>
-  <entry>
-    <title>index.html</title>
-    <id>tag:perl-users.jp,2020:/</id>
-    <modified>2021-02-08T15:35:09+0000</modified>
-    <content/>
-    <author>
-      <name></name>
-    </author>
-  </entry>
-  <entry>
     <title>keywords.html</title>
     <id>tag:perl-users.jp,2020:/keywords</id>
-    <modified>2021-02-08T15:35:09+0000</modified>
-    <content/>
-    <author>
-      <name></name>
-    </author>
-  </entry>
-  <entry>
-    <title>use_case.html</title>
-    <id>tag:perl-users.jp,2020:/use_case</id>
-    <modified>2021-02-08T15:35:09+0000</modified>
+    <modified>2021-02-11T13:25:08+0000</modified>
     <content/>
     <author>
       <name></name>
@@ -43,25 +16,7 @@
   <entry>
     <title>nowpast.html</title>
     <id>tag:perl-users.jp,2020:/nowpast</id>
-    <modified>2021-02-08T15:35:09+0000</modified>
-    <content/>
-    <author>
-      <name></name>
-    </author>
-  </entry>
-  <entry>
-    <title>books.html</title>
-    <id>tag:perl-users.jp,2020:/books</id>
-    <modified>2021-02-08T15:35:09+0000</modified>
-    <content/>
-    <author>
-      <name></name>
-    </author>
-  </entry>
-  <entry>
-    <title>popular_softwares.html</title>
-    <id>tag:perl-users.jp,2020:/popular_softwares</id>
-    <modified>2021-02-08T15:35:09+0000</modified>
+    <modified>2021-02-11T13:25:08+0000</modified>
     <content/>
     <author>
       <name></name>
@@ -70,7 +25,16 @@
   <entry>
     <title>products.html</title>
     <id>tag:perl-users.jp,2020:/products</id>
-    <modified>2021-02-08T15:35:09+0000</modified>
+    <modified>2021-02-11T13:25:08+0000</modified>
+    <content/>
+    <author>
+      <name></name>
+    </author>
+  </entry>
+  <entry>
+    <title>popular_softwares.html</title>
+    <id>tag:perl-users.jp,2020:/popular_softwares</id>
+    <modified>2021-02-11T13:25:08+0000</modified>
     <content/>
     <author>
       <name></name>
@@ -78,21 +42,57 @@
   </entry>
   <entry>
     <title>index.html</title>
-    <id>tag:perl-users.jp,2020:/jobs/</id>
-    <modified>2021-02-08T15:35:09+0000</modified>
+    <id>tag:perl-users.jp,2020:/</id>
+    <modified>2021-02-11T13:25:08+0000</modified>
     <content/>
     <author>
       <name></name>
     </author>
   </entry>
   <entry>
-    <title>index.html</title>
-    <id>tag:perl-users.jp,2020:/dont/</id>
-    <modified>2021-02-08T15:35:09+0000</modified>
+    <title>books.html</title>
+    <id>tag:perl-users.jp,2020:/books</id>
+    <modified>2021-02-11T13:25:08+0000</modified>
     <content/>
     <author>
       <name></name>
     </author>
   </entry>
-  <modified>2021-02-08T15:35:09+0000</modified>
+  <entry>
+    <title>use_case.html</title>
+    <id>tag:perl-users.jp,2020:/use_case</id>
+    <modified>2021-02-11T13:25:08+0000</modified>
+    <content/>
+    <author>
+      <name></name>
+    </author>
+  </entry>
+  <entry>
+    <title>whoswho.html</title>
+    <id>tag:perl-users.jp,2020:/whoswho</id>
+    <modified>2021-02-11T13:25:08+0000</modified>
+    <content/>
+    <author>
+      <name></name>
+    </author>
+  </entry>
+  <entry>
+    <title>module_corelist.html</title>
+    <id>tag:perl-users.jp,2020:/modules/module_corelist</id>
+    <modified>2021-02-11T13:25:08+0000</modified>
+    <content/>
+    <author>
+      <name></name>
+    </author>
+  </entry>
+  <entry>
+    <title>cpan_mini_webserver.html</title>
+    <id>tag:perl-users.jp,2020:/modules/cpan_mini_webserver</id>
+    <modified>2021-02-11T13:25:08+0000</modified>
+    <content/>
+    <author>
+      <name></name>
+    </author>
+  </entry>
+  <modified>2021-02-11T13:25:08+0000</modified>
 </feed>
