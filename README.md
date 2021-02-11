@@ -30,7 +30,7 @@ meta-date: 2020-12-01
 # 必要なもの
 
 - perl 5.30 以降 (できるだけ最新に保つ)
-- 最新のCarton
+- App::cpm
 
 # Makefileのつかいかた
 
