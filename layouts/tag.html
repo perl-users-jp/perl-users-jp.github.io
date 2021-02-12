@@ -7,22 +7,27 @@
         <title><?= $vars->{title} ?></title>
         <link rel="icon" href="/img/favicon.ico">
         <link rel="canonical" href="<?= $vars->{url} ?>">
-        <link href="TODO" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css">
+        <link rel="stylesheet" href="/css/main.css">
     </head>
     <body>
-        <h1><?= $vars->{tag} ?></h1>
-        <ul>
+        <?= $include->('./include/header.html') ?>
+        <main>
+            <h1 class="tag-title">#<?= $vars->{tag} ?></h1>
 ?           for (@{$vars->{files}}) {
-            <li>
-                <a href="<?= $_->{href} ?>">
-                    <?= $_->{title} ?>
-                </a>
-            </li>
+                <div class="card">
+?                   if ($_->{matter}->exists && $_->{matter}->date ) {
+                        <div class="card-date"><?= $_->{matter}->date ?></div>
+?                   }
+                    <a href="<?= $_->{href} ?>">
+                        <div class="card-title"><?= $_->{title} ?></div>
+                    </a>
+?                   if ($_->{matter}->exists && $_->{matter}->author) {
+                        <div class="card-author"><?= $_->{matter}->author ?></div>
+?                   }
+                </div>
 ?           }
-        </ul>
-
-        <a href="/tag">タグ一覧</a>
-        <a href="/">HOME</a>
-
+        </main>
+        <?= $include->('./include/footer.html') ?>
     </body>
 </html>

@@ -7,21 +7,21 @@
         <title>タグ一覧</title>
         <link rel="icon" href="/img/favicon.ico">
         <link rel="canonical" href="<?= $vars->{url} ?>">
-        <link href="TODO" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css">
+        <link rel="stylesheet" href="/css/main.css">
     </head>
     <body>
-        <h1>タグ一覧</h1>
-        <ul>
+        <?= $include->('./include/header.html') ?>
+        <main>
+            <h1 class="category-title">タグ一覧</h1>
 ?           for my $tag (@{$vars->{tags}}) {
-            <li>
-                <a href=<?= $vars->{tag_url_path}->($tag) ?>>
-                    <?= $tag ?>
-                </a>
-            </li>
+                <div class="card">
+                    <a href="<?= $vars->{tag_url_path}->($tag) ?>">
+                        <div class="card-title"><?= $tag ?></div>
+                    </a>
+                </div>
 ?           }
-        </ul>
-
-        <a href="/">HOME</a>
-
+        </main>
+        <?= $include->('./include/footer.html') ?>
     </body>
 </html>
