@@ -10,6 +10,7 @@ use Class::Tiny qw(
     description
     author
     email
+    date
     tags
     og_image
 
@@ -50,6 +51,7 @@ sub BUILDARGS {
             body        => $data->{body},
             title       => $data->{title} // '',
             description => $data->{description} // '',
+            date        => $data->{date} // '',
             author      => $author // '',
             email       => $email // '',
             tags        => $tags,

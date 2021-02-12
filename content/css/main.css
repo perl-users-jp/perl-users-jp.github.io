@@ -1,0 +1,138 @@
+/* BODY */
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-flow: column;
+    max-width: 100%;
+    min-height: 100vh;
+}
+
+/* HEADER */
+.site-header {
+    padding: 20px;
+    border-bottom: 1px solid;
+    border-bottom-color: var(--border);
+
+}
+.site-header .logo {
+    padding: 8px 16px;
+    font-weight: 600;
+    color: #fff;
+    background: #202b38;
+    border-radius: 2px;
+}
+
+.site-header .logo:hover {
+    text-decoration: none;
+}
+
+
+
+@media (prefers-color-scheme: dark) {
+.site-header {
+    border-bottom-color: var(--border);
+}
+
+.site-header .logo {
+    color: #000;
+    background: #fff;
+}
+}
+
+
+/* MAIN */
+main {
+    width: 800px;
+    margin: 0 auto;
+    flex: 1;
+}
+
+@media (max-width: 800px) {
+main {
+    width: 96%;
+}
+}
+
+.page-title {
+    margin: 10px;
+    font-size: 1.5em;
+    color: var(--text-main);
+}
+
+@media (prefers-color-scheme: dark) {
+.page-title {
+    color: var(--text-main);
+}
+}
+
+.card {
+    border: 1px solid;
+    margin: 10px;
+    border-radius: 2px;
+    border-color: var(--border);
+}
+
+.card:hover {
+    box-shadow: 0 1px 1px 0 rgba(0,0,0,0.2);
+}
+
+.card a:hover {
+    text-decoration: none;
+}
+
+.card-title {
+    padding: 10px 30px;
+    font-size: 1.3em;
+    font-weight: 900;
+    color: var(--text-main);
+}
+
+.card-title:hover {
+    color: var(--links);
+}
+
+.card-date {
+    text-align: right;
+    padding: 10px 10px 0;
+    margin-bottom: -10px;
+    font-size: 0.8em;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+.card-author {
+    text-align: right;
+    padding: 0 10px 10px;
+    margin-top: -10px;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+/* FOOTER */
+.site-footer {
+    max-width: 100%;
+    padding: 20px;
+    font-size: 0.8em;
+    border-top: 1px solid;
+    border-top-color: var(--border);
+    background-color: var(--background);
+}
+
+.site-footer nav {
+    text-align: center;
+}
+
+.site-footer .octicon {
+    fill: #000;
+}
+
+@media (prefers-color-scheme: dark) {
+.site-footer {
+    background-color: var(--background);
+}
+
+.site-footer .octicon {
+    fill: #fff;
+}
+}
