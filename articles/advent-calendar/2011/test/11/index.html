@@ -23,16 +23,26 @@
 
         <link rel="icon" href="/img/favicon.ico">
         <link rel="canonical" href="https://perl-users.jp/articles/advent-calendar/2011/test/11">
-        <link href="TODO" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css">
+        <link rel="stylesheet" href="/css/main.css">
     </head>
     <body>
-        <h1>Jenkinsで継続的メトリクス測定のすすめ</h1>
-        tag
-            <a href='/tag/perl'>perl</a>
-            <a href='/tag/test'>test</a>
-            <a href='/tag/jenkins'>jenkins</a>
+        <header class="site-header">
+    <a href="/" class="logo">Perl-users.jp</a>
+</header>
 
-        <p>Perl Test Track 11日目です</p>
+        <main class="entry">
+        <h1 class="entry-title">Jenkinsで継続的メトリクス測定のすすめ</h1>
+        <div class="entry-tags">
+            <a class="entry-tag" href='/tag/perl'>#perl</a>
+            <a class="entry-tag" href='/tag/test'>#test</a>
+            <a class="entry-tag" href='/tag/jenkins'>#jenkins</a>
+        </div>
+            <div class="entry-author">dann</div>
+            <div class="entry-date">2011-12-11</div>
+
+        <div class="entry-text">
+            <p>Perl Test Track 11日目です</p>
 
 <div class="section">
     <h4>はじめに</h4>
@@ -194,6 +204,22 @@ our $MAX_SUB_LENGTH            = 50;</pre>
     <p>メトリクスの測定で、レビュー対象を早期に摘出するとコード品質をあげることが可能になります。早期に問題を見つけるのは、テストやビルドだけでなく、こういった静的解析による機械的なレビューによってもあげることが可能なわけです。</p><p>これらのメトリクスによる定量評価もCIに組み込むことでその価値を発揮します。性能だけでなく、品質もある一定線は定量評価が可能であり、人感じるのではなく、測定によって定量評価をすすめることで、改善効果を実感することができます。</p><p>CheckStyleのチェック項目は数多く存在しますが、Perl::Metrics::SimpleをベースにしてJava版と同じようにモジュール化をすることで、より高度なチェックも可能になります。興味のある方は是非トライしてみてください。</p><p>2003年頃からCruise Control ->  Continuum -> Hudson (Jenkins) とCIシステムを使ってきたわけですが、当時はJava界隈ではよく使われてましたが、あまりPerlのプロジェクトでは使われていませんでした。今では、Jenkinsの素晴らしいQualityから、Perlのプロジェクトでも大分使われるようになってきていますね。遅筆ではありますが、今後もJava界隈で今までに培ったCIの使い方のノウハウを、Perlのプロジェクトでも活かす方法を書いていきたいところです。</p><p>では、Enjoy Jenkins!</p><p>次回は、tsucchi さんです！</p>
 
 </div>
+        </div>
+        </main>
+        <footer class="site-footer">
+    <nav>
+        <a href="https://github.com/perl-users-jp/perl-users-jp.github.io" target="_blank" rel="noopener">
+            <svg class="octicon" height="32" viewBox="0 0 16 16" version="1.1" width="32" aria-hidden="true"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+        </a>
+    </nav>
+    <p>
+        <a href="/">Perl-users.jp</a> - 日本のPerlユーザーのためのハブサイトです。日本の Perl ユーザーに最新の情報を届けることを目的にしています。
+    </p>
+    <p>
+    文章のライセンスは、特に明記が無い限りすべて <a href="http://creativecommons.org/licenses/by/2.0/">CC-by</a>でおねがいします。
+    </p>
+</footer>
+
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>

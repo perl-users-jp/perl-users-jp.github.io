@@ -23,21 +23,47 @@
 
         <link rel="icon" href="/img/favicon.ico">
         <link rel="canonical" href="https://perl-users.jp/articles/advent-calendar/2012/hacker/14">
-        <link href="TODO" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css">
+        <link rel="stylesheet" href="/css/main.css">
     </head>
     <body>
-        <h1>Plack::App::Gateway - コンテンツをお好みにゲートうぇいうぇいうぇい！！</h1>
-        tag
-            <a href='/tag/perl'>perl</a>
-            <a href='/tag/plack'>plack</a>
+        <header class="site-header">
+    <a href="/" class="logo">Perl-users.jp</a>
+</header>
 
-        <p>やあハッキングモンスターのみんな、元気かーい？ ぼくは普通です。</p><p>きょうはみんなでインターネットコンテンツをお好みにゲートうぇいうぇいうぇいしちゃうぞ！！あ、こんにちは bayashi です。</p><p>ちょっと数日前から、「<a href="https://www.google.co.jp/search?q=%E3%81%9F%E3%81%A3%E3%81%9F+%E3%81%B2%E3%81%9F%E3%81%99%E3%82%89+%E3%82%A2%E3%82%A4%E3%83%89%E3%83%AB%E6%B0%B4%E7%9D%80%E7%94%BB%E5%83%8F&ie=utf-8&oe=utf-8&aq=t&rls=org.mozilla:ja:official&hl=ja&client=firefox-a">たった n 行のコードでひたすらアイドル水着画像を集める</a>」っていうのが流行ってるみたいだね！！</p><p>これは全力でのっかりたいね！！ もちろん技術的課題としてだよ！！ ぼくは水着なんか興味ないよ！！ どっちかというとおっぱうｒ４８ｗ３るｊｑ２！！！</p><p>さあ！もうこのテンションも維持するのがつらくなってきてるから、早い目に終わらせるぞ！！</p><p>というわけで、<a href="https://github.com/bayashi/Plack-App-Gateway">Plack::App::Gateway</a> 書きました！！ 名前でだいたい想像つきますね！！</p><p>使い方はこんなんです！！</p>
+        <main class="entry">
+        <h1 class="entry-title">Plack::App::Gateway - コンテンツをお好みにゲートうぇいうぇいうぇい！！</h1>
+        <div class="entry-tags">
+            <a class="entry-tag" href='/tag/perl'>#perl</a>
+            <a class="entry-tag" href='/tag/plack'>#plack</a>
+        </div>
+            <div class="entry-author">bayashi</div>
+            <div class="entry-date">2012-12-14</div>
+
+        <div class="entry-text">
+            <p>やあハッキングモンスターのみんな、元気かーい？ ぼくは普通です。</p><p>きょうはみんなでインターネットコンテンツをお好みにゲートうぇいうぇいうぇいしちゃうぞ！！あ、こんにちは bayashi です。</p><p>ちょっと数日前から、「<a href="https://www.google.co.jp/search?q=%E3%81%9F%E3%81%A3%E3%81%9F+%E3%81%B2%E3%81%9F%E3%81%99%E3%82%89+%E3%82%A2%E3%82%A4%E3%83%89%E3%83%AB%E6%B0%B4%E7%9D%80%E7%94%BB%E5%83%8F&ie=utf-8&oe=utf-8&aq=t&rls=org.mozilla:ja:official&hl=ja&client=firefox-a">たった n 行のコードでひたすらアイドル水着画像を集める</a>」っていうのが流行ってるみたいだね！！</p><p>これは全力でのっかりたいね！！ もちろん技術的課題としてだよ！！ ぼくは水着なんか興味ないよ！！ どっちかというとおっぱうｒ４８ｗ３るｊｑ２！！！</p><p>さあ！もうこのテンションも維持するのがつらくなってきてるから、早い目に終わらせるぞ！！</p><p>というわけで、<a href="https://github.com/bayashi/Plack-App-Gateway">Plack::App::Gateway</a> 書きました！！ 名前でだいたい想像つきますね！！</p><p>使い方はこんなんです！！</p>
 
     <pre class="code prettyprint lang-perl">plackup -MPlack::App::Gateway -e &#39;Plack::App::Gateway-&gt;new-&gt;to_app&#39;</pre>
 <p>たったの 1 行！！！ これだけで web アプリが起動しちゃうぞ！！</p><p>あとは、以下のように、plackup したサーバにブラウザでアクセスするだけ！！</p>
 
     <pre class="code prettyprint">http://127.0.0.1:5000/?url=http://t.co/C4CkxAaD</pre>
 <p>url を好きに変えれば画像をいろいろ集めて見放題だ！！</p><p>頑張れ青少年！！</p><p>そして、Plack::App::Gateway を new する際に ` filter => sub { #do something } ` という風にコードリファレンスを渡せば、画像をかき集めるだけじゃない、あなた好みのゲートうぇいうぇいうぇいにできちゃうぞ！！ うらやましい！！</p><p>とにかく、詳しくは、完全に書きかけの POD を読んでみてください！！ でもほんとうに書きかけなので、ソース読んだほうがましかも！！ なにせコードも書きかけです！！ しかももう飽きたのでこれ以上何もしない可能性大です！！</p><p>さらば！！</p>
+
+        </div>
+        </main>
+        <footer class="site-footer">
+    <nav>
+        <a href="https://github.com/perl-users-jp/perl-users-jp.github.io" target="_blank" rel="noopener">
+            <svg class="octicon" height="32" viewBox="0 0 16 16" version="1.1" width="32" aria-hidden="true"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+        </a>
+    </nav>
+    <p>
+        <a href="/">Perl-users.jp</a> - 日本のPerlユーザーのためのハブサイトです。日本の Perl ユーザーに最新の情報を届けることを目的にしています。
+    </p>
+    <p>
+    文章のライセンスは、特に明記が無い限りすべて <a href="http://creativecommons.org/licenses/by/2.0/">CC-by</a>でおねがいします。
+    </p>
+</footer>
 
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>

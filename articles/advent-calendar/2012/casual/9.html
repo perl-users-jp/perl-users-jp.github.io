@@ -23,16 +23,26 @@
 
         <link rel="icon" href="/img/favicon.ico">
         <link rel="canonical" href="https://perl-users.jp/articles/advent-calendar/2012/casual/9">
-        <link href="TODO" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css">
+        <link rel="stylesheet" href="/css/main.css">
     </head>
     <body>
-        <h1>CPAN Author になりました - Dist::Zilla のご紹介</h1>
-        tag
-            <a href='/tag/perl'>perl</a>
-            <a href='/tag/CPAN'>CPAN</a>
-            <a href='/tag/Dist::Zilla'>Dist::Zilla</a>
+        <header class="site-header">
+    <a href="/" class="logo">Perl-users.jp</a>
+</header>
 
-        <p>Hacker track で[/articles/advent-calendar/2012/hacker/8:title=記事]を読んで頂いた方はこんにちは。それ以外の方は初めましてだと思います。数ヵ月前に <a href="http://search.cpan.org/~yakex">CPAN Author</a> になりました <a href="http://twitter.com/yak_ex">yak_ex</a> と申します。</p><p>Perl を使い始めてから既に 10 年以上経っておりモジュールもたまに書いたりはしていたのですが、CPAN Author となると色々と手順があって大変なんじゃないか、そんな思いもありずっと憧れの存在でありました<a href="#fn1" title="後はこんなモジュール上げちゃっていいんだろうか、という障壁">*1</a>。同じように感じている人もいるんじゃないだろうかということで、そんな自分が CPAN Author となるハードルを下げてもらった <a href="http://search.cpan.org/perldoc?Dist%3A%3AZilla">Dist::Zilla</a> についてご紹介させて頂きます。なお、Dist::Zilla で CPAN Author になった、なので他の CPAN Author 向けモジュールとの比較はできません。ご了承ください。</p><p>Perl モジュールと言えば Makefile.PL か Build。そんな認識だったのですが、自分が github で fork したモジュールにはいずれも存在していませんでした。そして存在する謎のファイル dist.ini。実はこれらのモジュールは Dist::Zilla を使って管理されていたものだったのです。Dist::Zilla は dist.ini だけ書けば他のもろもろの面倒を見てくれるツールです。極論すれば release するときの手順はこれだけです。</p>
+        <main class="entry">
+        <h1 class="entry-title">CPAN Author になりました - Dist::Zilla のご紹介</h1>
+        <div class="entry-tags">
+            <a class="entry-tag" href='/tag/perl'>#perl</a>
+            <a class="entry-tag" href='/tag/CPAN'>#CPAN</a>
+            <a class="entry-tag" href='/tag/Dist::Zilla'>#Dist::Zilla</a>
+        </div>
+            <div class="entry-author">yak_ex </div>
+            <div class="entry-date">2012-12-09</div>
+
+        <div class="entry-text">
+            <p>Hacker track で[/articles/advent-calendar/2012/hacker/8:title=記事]を読んで頂いた方はこんにちは。それ以外の方は初めましてだと思います。数ヵ月前に <a href="http://search.cpan.org/~yakex">CPAN Author</a> になりました <a href="http://twitter.com/yak_ex">yak_ex</a> と申します。</p><p>Perl を使い始めてから既に 10 年以上経っておりモジュールもたまに書いたりはしていたのですが、CPAN Author となると色々と手順があって大変なんじゃないか、そんな思いもありずっと憧れの存在でありました<a href="#fn1" title="後はこんなモジュール上げちゃっていいんだろうか、という障壁">*1</a>。同じように感じている人もいるんじゃないだろうかということで、そんな自分が CPAN Author となるハードルを下げてもらった <a href="http://search.cpan.org/perldoc?Dist%3A%3AZilla">Dist::Zilla</a> についてご紹介させて頂きます。なお、Dist::Zilla で CPAN Author になった、なので他の CPAN Author 向けモジュールとの比較はできません。ご了承ください。</p><p>Perl モジュールと言えば Makefile.PL か Build。そんな認識だったのですが、自分が github で fork したモジュールにはいずれも存在していませんでした。そして存在する謎のファイル dist.ini。実はこれらのモジュールは Dist::Zilla を使って管理されていたものだったのです。Dist::Zilla は dist.ini だけ書けば他のもろもろの面倒を見てくれるツールです。極論すれば release するときの手順はこれだけです。</p>
 
 <pre>> dzil release
 (テストとか色々実行)
@@ -161,6 +171,22 @@ hash_tags = #perl
   <div class="footnote" id="fn3">*3: 正確にはプラグインのインスタンス名ですし別に指定する方法もあるのですがこう思っていてもまず問題はないはずです</div>
   <div class="footnote" id="fn4">*4: というか作者同じです</div>
 </div>
+
+        </div>
+        </main>
+        <footer class="site-footer">
+    <nav>
+        <a href="https://github.com/perl-users-jp/perl-users-jp.github.io" target="_blank" rel="noopener">
+            <svg class="octicon" height="32" viewBox="0 0 16 16" version="1.1" width="32" aria-hidden="true"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+        </a>
+    </nav>
+    <p>
+        <a href="/">Perl-users.jp</a> - 日本のPerlユーザーのためのハブサイトです。日本の Perl ユーザーに最新の情報を届けることを目的にしています。
+    </p>
+    <p>
+    文章のライセンスは、特に明記が無い限りすべて <a href="http://creativecommons.org/licenses/by/2.0/">CC-by</a>でおねがいします。
+    </p>
+</footer>
 
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>

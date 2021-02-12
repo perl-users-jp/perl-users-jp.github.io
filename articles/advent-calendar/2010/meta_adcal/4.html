@@ -23,13 +23,22 @@
 
         <link rel="icon" href="/img/favicon.ico">
         <link rel="canonical" href="https://perl-users.jp/articles/advent-calendar/2010/meta_adcal/4">
-        <link href="TODO" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css">
+        <link rel="stylesheet" href="/css/main.css">
     </head>
     <body>
-        <h1>見た目重要</h1>
-        tag
+        <header class="site-header">
+    <a href="/" class="logo">Perl-users.jp</a>
+</header>
 
-        <p>いい加減ネタ切れなので、そろそろ次の人に書いて欲しいkanです。</p><p>昨日までで本当に最低限の機能を持ったカレンダーアプリが出来ました。しかし、このままだといかにも寂しいです。せめて、突貫工事で作られた[/articles/advent-calendar/2009/:title=去年のカレンダー]と同じ程度にはしたいところ。</p><p>まずは、本文を装飾できるように、何らかの記法が使えるようにします。去年のカレンダーでもはてな記法が使えたので、今回も使えるようにしてみます。perlではてな記法と言えば Text::Hatena がありますが、今回は cho45さんの Text::Xatena を使ってみます。きっと後に使い方の不味いところを直してくれることでしょう。</p>
+        <main class="entry">
+        <h1 class="entry-title">見た目重要</h1>
+        <div class="entry-tags">
+        </div>
+            <div class="entry-date">2010-12-04</div>
+
+        <div class="entry-text">
+            <p>いい加減ネタ切れなので、そろそろ次の人に書いて欲しいkanです。</p><p>昨日までで本当に最低限の機能を持ったカレンダーアプリが出来ました。しかし、このままだといかにも寂しいです。せめて、突貫工事で作られた[/articles/advent-calendar/2009/:title=去年のカレンダー]と同じ程度にはしたいところ。</p><p>まずは、本文を装飾できるように、何らかの記法が使えるようにします。去年のカレンダーでもはてな記法が使えたので、今回も使えるようにしてみます。perlではてな記法と言えば Text::Hatena がありますが、今回は cho45さんの Text::Xatena を使ってみます。きっと後に使い方の不味いところを直してくれることでしょう。</p>
 
     <pre class="code prettyprint lang-perl">my $xatena = Text::Xatena-&gt;new();
 my $formatted_body = $xatena-&gt;format($body);</pre>
@@ -47,6 +56,22 @@ builder {
     $app;
 };</pre>
 <p>app.psgiファイルを↑のように変更してみました。enable 'Static' (ry で有効にしている Plack::Middleware::Static モジュールを使うと、特定パスへのアクセスをローカルファイルへの参照として扱って処理してくれます。ついでに説明しておくと、ContentLengthモジュールはContent-Lengthヘッダを、contentの長さから自動的につけてくれるモジュールで、Lintモジュールは出力が正しい形式かどうかチェックしてくれるモジュールです。</p><p>余談ですが、Staticモジュールを設定したものの、そのあとコピーしてきた2009年のカレンダーのテンプレートでは全て外部のCSS,JSを参照していたため、この機能が使われることはありませんでした……。</p><p>これで、名実ともにアドベントカレンダーアプリが出来ました。非効率なところや、足りてない機能もありますが、それは今後他の人が追加してくれるはずです(実際、もりもりと現在のApp::AdventCalendarには機能が追加されていっています)。</p><p>興味のある人は、githubの p5-app-adventcalendar プロジェクトをチェックしてみて下さい。機能修正、追加をしてみたい場合は、irc.freenode.org の #perl-casual で kan_fushihara, tokuhirom, yappoあたりに声をかけてもらえれば、commit権を設定します。</p><p>それでは、私以外の誰かが書く5日目をお楽しみに。</p>
+
+        </div>
+        </main>
+        <footer class="site-footer">
+    <nav>
+        <a href="https://github.com/perl-users-jp/perl-users-jp.github.io" target="_blank" rel="noopener">
+            <svg class="octicon" height="32" viewBox="0 0 16 16" version="1.1" width="32" aria-hidden="true"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+        </a>
+    </nav>
+    <p>
+        <a href="/">Perl-users.jp</a> - 日本のPerlユーザーのためのハブサイトです。日本の Perl ユーザーに最新の情報を届けることを目的にしています。
+    </p>
+    <p>
+    文章のライセンスは、特に明記が無い限りすべて <a href="http://creativecommons.org/licenses/by/2.0/">CC-by</a>でおねがいします。
+    </p>
+</footer>
 
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>

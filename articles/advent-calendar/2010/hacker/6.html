@@ -23,16 +23,26 @@
 
         <link rel="icon" href="/img/favicon.ico">
         <link rel="canonical" href="https://perl-users.jp/articles/advent-calendar/2010/hacker/6">
-        <link href="TODO" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css">
+        <link rel="stylesheet" href="/css/main.css">
     </head>
     <body>
-        <h1>変態的正規表現モジュールを支える Regexp::Assemble::Compressed</h1>
-        tag
-            <a href='/tag/perl'>perl</a>
-            <a href='/tag/hacker'>hacker</a>
-            <a href='/tag/regexp'>regexp</a>
+        <header class="site-header">
+    <a href="/" class="logo">Perl-users.jp</a>
+</header>
 
-        <p><a href="/articles/advent-calendar/2008/">2 年前の JPerl Advent Calendar</a> では<a href="/articles/advent-calendar/2008/16.html">風邪でブッチ</a>した前科を持つ <a href="http://blog.livedoor.jp/nipotan/">nipotan</a> です。今回、<a href="/articles/advent-calendar/2010/casual/">Casual Track</a> に申し込んだとついさっきまで思い込んでて、うっかり今年もやらかすところでした。</p><p>Hacker Track は自分のモジュール紹介ということなので、今まで一度も紹介していない、結構軽いノリのやつでいかせてもらいます。</p><p>私が Perl をはじめた頃、「ばよえ～ん警報発令!?」でお馴染みの大崎さんによる「<a href="http://www.din.or.jp/~ohzaki/perl.htm">Perl メモ</a>」をよく見ては、様々な Tips を参考にさせていただいてました。<br />
+        <main class="entry">
+        <h1 class="entry-title">変態的正規表現モジュールを支える Regexp::Assemble::Compressed</h1>
+        <div class="entry-tags">
+            <a class="entry-tag" href='/tag/perl'>#perl</a>
+            <a class="entry-tag" href='/tag/hacker'>#hacker</a>
+            <a class="entry-tag" href='/tag/regexp'>#regexp</a>
+        </div>
+            <div class="entry-author">nipotan</div>
+            <div class="entry-date">2010-12-06</div>
+
+        <div class="entry-text">
+            <p><a href="/articles/advent-calendar/2008/">2 年前の JPerl Advent Calendar</a> では<a href="/articles/advent-calendar/2008/16.html">風邪でブッチ</a>した前科を持つ <a href="http://blog.livedoor.jp/nipotan/">nipotan</a> です。今回、<a href="/articles/advent-calendar/2010/casual/">Casual Track</a> に申し込んだとついさっきまで思い込んでて、うっかり今年もやらかすところでした。</p><p>Hacker Track は自分のモジュール紹介ということなので、今まで一度も紹介していない、結構軽いノリのやつでいかせてもらいます。</p><p>私が Perl をはじめた頃、「ばよえ～ん警報発令!?」でお馴染みの大崎さんによる「<a href="http://www.din.or.jp/~ohzaki/perl.htm">Perl メモ</a>」をよく見ては、様々な Tips を参考にさせていただいてました。<br />
 「ここの Tips のほとんど正規表現ソリューションじゃん！」とか驚愕しつ、正規表現のパワーに魅せられた私は、「それ正規表現じゃなくてもできるよ」ということを、無理矢理正規表現で実現しようとしたりする、今にして考えると、とてもひねくれた育ち方をした時代がありました。</p><p>大崎さんは、RFC に記載されている BNF に基き「正規表現ハンドアセンブル」をして、完成したとてつもなく巨大な正規表現を「以下のようになりました」とかサラッと掲載していて、変態的な正規表現愛を感じます。<br />
 まるで、バカリズムがさも当たり前のように「持つとしたらこうです」とか言っていて、周りはなんだかちょっと釈然としていないみたいな空気すら漂っていますね。</p><p>かくいう私は、以前勤務していた名もなき中小企業で、電話番号の validation をうまいことやるようサラッと求められたことがあり、総務省の Web サイトに通信事業者に割り当てられた電話番号の一覧テーブルがあったことから、それを大崎さんのように「正規表現ハンドアセンブル」して、今から 7 年半ほど前、<a href="http://search.cpan.org/dist/Number-Phone-JP/">Number::Phone::JP</a> というモジュールを公開しました。</p><p>しかし、当時は通信事業は言わば過渡期。あのタイミングでこんなものを作ってしまったせいで、時が経つにつれ validation の正確さは失なわれていき、面倒臭がって 4 年ぐらい放置したら頻繁にクレームが来てしまう始末。</p><p>「どうしてこんな high-maintenance なもの作っちゃったかなぁ…」</p><p>後悔の日々を過していた、あの頃、CPAN を彷徨っている頃に偶然出会ったのが <a href="http://search.cpan.org/dist/Regexp-Assemble/">Regexp::Assemble</a> というモジュール。<br />
 Regexp::Assemble は、今でこそ、皆さんご存知のモジュールだと思いますが、かつてはこの素晴しいモジュールはマイナーな存在でした。<br />
@@ -115,6 +125,22 @@ print $rac-&gt;re;</pre>
 これでなんだかモヤモヤしてた言いたいこともようやく言えるようになったよ！</p><p>ポイズン！</p><p>ちなみに、Regexp::Assemble::Compressed は、あくまで Regexp::Assemble の子クラスであり、ポイズンだなんだとRegexp::Assemble の威光を傘に着ているわけではありません。<br />
 Regexp::Assemble という偉大なモジュールに感謝しつつ、「持つとしたらこうです」という新たなスタイルを提案してみました。<br />
 この冬、あなたの正規表現をよりコンパクトに、よりエレガントにまとめてみませんか。</p><p>明日は、いい国作ろう鎌倉.pm より、ドラキチで有名な typester さんです。</p>
+
+        </div>
+        </main>
+        <footer class="site-footer">
+    <nav>
+        <a href="https://github.com/perl-users-jp/perl-users-jp.github.io" target="_blank" rel="noopener">
+            <svg class="octicon" height="32" viewBox="0 0 16 16" version="1.1" width="32" aria-hidden="true"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+        </a>
+    </nav>
+    <p>
+        <a href="/">Perl-users.jp</a> - 日本のPerlユーザーのためのハブサイトです。日本の Perl ユーザーに最新の情報を届けることを目的にしています。
+    </p>
+    <p>
+    文章のライセンスは、特に明記が無い限りすべて <a href="http://creativecommons.org/licenses/by/2.0/">CC-by</a>でおねがいします。
+    </p>
+</footer>
 
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>

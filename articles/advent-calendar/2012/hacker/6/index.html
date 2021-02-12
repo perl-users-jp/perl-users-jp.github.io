@@ -23,16 +23,26 @@
 
         <link rel="icon" href="/img/favicon.ico">
         <link rel="canonical" href="https://perl-users.jp/articles/advent-calendar/2012/hacker/6">
-        <link href="TODO" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css">
+        <link rel="stylesheet" href="/css/main.css">
     </head>
     <body>
-        <h1>Net::APNs::Extended - あなたに通知を送りたい</h1>
-        tag
-            <a href='/tag/perl'>perl</a>
-            <a href='/tag/iphone'>iphone</a>
-            <a href='/tag/apns'>apns</a>
+        <header class="site-header">
+    <a href="/" class="logo">Perl-users.jp</a>
+</header>
 
-        <p>やぁみんな！！今というライフをエンジョイしているかーい！？私は普通です。</p><p>今日は、みんなにとってもクールでハッピーなモジュールを紹介してやるぜ！あ、こんにちは xaicron です。</p><p>それはこいつだ！ iOS に通知を送るためのモジュール、その名も Net::APNs::Extended っつーんだ。よろしくな！！昔、typester さんが AnyEvent::Net::APNS って言うモジュールを出してますけど、できることは大体一緒です。</p><p>使い方はベリィイージー！！まずは、にっくき Apple に諸々とアプリの申請をだしたりして紆余曲折の末にクライアント証明書を手に入れてくれ！！もちろんそのためにはプッシュ通知を受け取る iOS アプリが必要なので頑張って書いてください。</p><p>証明書とアプリができたらあとは送るだけ！！！と見せかけて、まずは端末から device token っつーのを取得する必要があるんだ！！ちゃんとアプリをつくればできてるはずですね。</p><p>これで準備は完了だ。慣れてる人なら1時間ぐらいで出来るはずだぜ！！私はできません。</p><p>そしたらおもむろに以下のような感じで使うんだ！！</p>
+        <main class="entry">
+        <h1 class="entry-title">Net::APNs::Extended - あなたに通知を送りたい</h1>
+        <div class="entry-tags">
+            <a class="entry-tag" href='/tag/perl'>#perl</a>
+            <a class="entry-tag" href='/tag/iphone'>#iphone</a>
+            <a class="entry-tag" href='/tag/apns'>#apns</a>
+        </div>
+            <div class="entry-author">xaicron</div>
+            <div class="entry-date">2012-12-06</div>
+
+        <div class="entry-text">
+            <p>やぁみんな！！今というライフをエンジョイしているかーい！？私は普通です。</p><p>今日は、みんなにとってもクールでハッピーなモジュールを紹介してやるぜ！あ、こんにちは xaicron です。</p><p>それはこいつだ！ iOS に通知を送るためのモジュール、その名も Net::APNs::Extended っつーんだ。よろしくな！！昔、typester さんが AnyEvent::Net::APNS って言うモジュールを出してますけど、できることは大体一緒です。</p><p>使い方はベリィイージー！！まずは、にっくき Apple に諸々とアプリの申請をだしたりして紆余曲折の末にクライアント証明書を手に入れてくれ！！もちろんそのためにはプッシュ通知を受け取る iOS アプリが必要なので頑張って書いてください。</p><p>証明書とアプリができたらあとは送るだけ！！！と見せかけて、まずは端末から device token っつーのを取得する必要があるんだ！！ちゃんとアプリをつくればできてるはずですね。</p><p>これで準備は完了だ。慣れてる人なら1時間ぐらいで出来るはずだぜ！！私はできません。</p><p>そしたらおもむろに以下のような感じで使うんだ！！</p>
 
     <pre class="code prettyprint">use Net::APNs::Extended;
 
@@ -88,6 +98,22 @@ while (...) {
 <p>コードは超適当ですよ。</p><p>APNs の拡張形式っていうのを使っているときにエラーが発生すると、送信できなくなります。でもコネクション自体は残っていて、エラーを返してくれます。それを取得するのが retrieve_error() で、値が返ってくるとコネクションが切断されます。<br />
 ただし、エラーが発生したのがどんな device token でどんなデータを送ったかがわかりません。<br />
 identifier というのを指定すると、エラーの内容にその数値が入っているので、これを key にしたキャッシュとか作っておくことで、どの device_token でどんなデータを送ったのかを log に吐くとかができますね。</p><p>retrieve_error() でコネクションは切れますが、また send() した時に勝手に reconnect をするのでその辺は安心です。</p><p>複数の device に対して一気に送りたい時は send_multi() とかが使えます。</p><p>しかし、生ソケット通信めんどくさい。APNs 爆発しろ！！！！！</p><p>以上、週末のダークサイドヘブン、xaicron でした。</p>
+
+        </div>
+        </main>
+        <footer class="site-footer">
+    <nav>
+        <a href="https://github.com/perl-users-jp/perl-users-jp.github.io" target="_blank" rel="noopener">
+            <svg class="octicon" height="32" viewBox="0 0 16 16" version="1.1" width="32" aria-hidden="true"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+        </a>
+    </nav>
+    <p>
+        <a href="/">Perl-users.jp</a> - 日本のPerlユーザーのためのハブサイトです。日本の Perl ユーザーに最新の情報を届けることを目的にしています。
+    </p>
+    <p>
+    文章のライセンスは、特に明記が無い限りすべて <a href="http://creativecommons.org/licenses/by/2.0/">CC-by</a>でおねがいします。
+    </p>
+</footer>
 
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>

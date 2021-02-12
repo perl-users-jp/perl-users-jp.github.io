@@ -23,13 +23,22 @@
 
         <link rel="icon" href="/img/favicon.ico">
         <link rel="canonical" href="https://perl-users.jp/articles/advent-calendar/2010/casual/25">
-        <link href="TODO" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css">
+        <link rel="stylesheet" href="/css/main.css">
     </head>
     <body>
-        <h1>String::Randomでランダム文字列を作成してニヤニヤする</h1>
-        tag
+        <header class="site-header">
+    <a href="/" class="logo">Perl-users.jp</a>
+</header>
 
-        <p>こんばんは。<a href="http://www.twitter.jp/Songmu">Songmu</a>です。</p><p>さて、テストデータ等でランダム文字列がほしいときがあると思います。そんなときに役立つのがString::Randomです。</p><p>引数に独自記法を指定するrandpatternメソッドと、正規表現(のサブセット)を指定するrandregexメソッドに分かれています。とっつきやすいのはrandregexメソッドです。randpatternも自分でルールを追加したり出来るみたいなので、慣れれば便利なのかも知れません</p><p>で、String::Randomの情報はググると日本語でもいくつか有用な情報が出てくるので、詳しくはそっちをみてください（ぇ</p><p>このモジュールは本来的にはASCIIを出力することしか期待されていません。しかし裏技的な使い方ですが、use utf8してあると、randregexメソッド内に記述したマルチバイト文字を正しくハンドリングしてくれます。また、ブラケットと範囲指定を組み合わせることも可能です。</p><p>ということで、以下のようにすると、カタカナ3～9文字のランダム文字列や、漢字3～6文字のランダム文字列を出力させることができます。</p>
+        <main class="entry">
+        <h1 class="entry-title">String::Randomでランダム文字列を作成してニヤニヤする</h1>
+        <div class="entry-tags">
+        </div>
+            <div class="entry-date">2010-12-25</div>
+
+        <div class="entry-text">
+            <p>こんばんは。<a href="http://www.twitter.jp/Songmu">Songmu</a>です。</p><p>さて、テストデータ等でランダム文字列がほしいときがあると思います。そんなときに役立つのがString::Randomです。</p><p>引数に独自記法を指定するrandpatternメソッドと、正規表現(のサブセット)を指定するrandregexメソッドに分かれています。とっつきやすいのはrandregexメソッドです。randpatternも自分でルールを追加したり出来るみたいなので、慣れれば便利なのかも知れません</p><p>で、String::Randomの情報はググると日本語でもいくつか有用な情報が出てくるので、詳しくはそっちをみてください（ぇ</p><p>このモジュールは本来的にはASCIIを出力することしか期待されていません。しかし裏技的な使い方ですが、use utf8してあると、randregexメソッド内に記述したマルチバイト文字を正しくハンドリングしてくれます。また、ブラケットと範囲指定を組み合わせることも可能です。</p><p>ということで、以下のようにすると、カタカナ3～9文字のランダム文字列や、漢字3～6文字のランダム文字列を出力させることができます。</p>
 
     <pre class="code prettyprint">use utf8;
 binmode STDOUT, &#39;:encoding(utf8)&#39;;
@@ -100,6 +109,22 @@ say $rand_maker-&gt;randregex(&#39;[一-龠]{3,6}&#39;) for 1..20;</pre>
                push(@{$string}, \@tmp);
            },</pre>
 <p>randregexはユニコードブロックはおろか、パーレン・パイプも使えなかったりしますが、その分最低限の機能でしっかり動くようにしてあるということなのでしょう。</p><p>最終リリースが2006年9月と少し古く、作者のSteven Pritchard氏もこれしかCPANモジュールが無いのが気になりますが、そんなに巨大なモジュールでもなく、podもしっかり書かれていて読みやすく、コードもかっちりしている印象なので、テストデータ作成なんかには十分でしょう。</p>
+
+        </div>
+        </main>
+        <footer class="site-footer">
+    <nav>
+        <a href="https://github.com/perl-users-jp/perl-users-jp.github.io" target="_blank" rel="noopener">
+            <svg class="octicon" height="32" viewBox="0 0 16 16" version="1.1" width="32" aria-hidden="true"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+        </a>
+    </nav>
+    <p>
+        <a href="/">Perl-users.jp</a> - 日本のPerlユーザーのためのハブサイトです。日本の Perl ユーザーに最新の情報を届けることを目的にしています。
+    </p>
+    <p>
+    文章のライセンスは、特に明記が無い限りすべて <a href="http://creativecommons.org/licenses/by/2.0/">CC-by</a>でおねがいします。
+    </p>
+</footer>
 
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>

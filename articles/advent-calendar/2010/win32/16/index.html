@@ -23,13 +23,22 @@
 
         <link rel="icon" href="/img/favicon.ico">
         <link rel="canonical" href="https://perl-users.jp/articles/advent-calendar/2010/win32/16">
-        <link href="TODO" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css">
+        <link rel="stylesheet" href="/css/main.css">
     </head>
     <body>
-        <h1>スライドの下準備にWin32::PowerPointを使う</h1>
-        tag
+        <header class="site-header">
+    <a href="/" class="logo">Perl-users.jp</a>
+</header>
 
-        <p>16日目の今日は頭がPな覆面ライターがPなネタをお送りします。Pで始まるWin32ネタといえばPPMが定番ですが、今日はOLEの紹介もかねてWin32::PowerPointを使ってみましょう。MS Officeもバージョンや設定によって微妙に挙動が異なる部分がありますが、ひとまずこんな感じのコードを書くと「foo」と書いてあるスライド1枚のプレゼンテーションが保存されます。簡単ですね。</p>
+        <main class="entry">
+        <h1 class="entry-title">スライドの下準備にWin32::PowerPointを使う</h1>
+        <div class="entry-tags">
+        </div>
+            <div class="entry-date">2010-12-16</div>
+
+        <div class="entry-text">
+            <p>16日目の今日は頭がPな覆面ライターがPなネタをお送りします。Pで始まるWin32ネタといえばPPMが定番ですが、今日はOLEの紹介もかねてWin32::PowerPointを使ってみましょう。MS Officeもバージョンや設定によって微妙に挙動が異なる部分がありますが、ひとまずこんな感じのコードを書くと「foo」と書いてあるスライド1枚のプレゼンテーションが保存されます。簡単ですね。</p>
 
     <pre class="code prettyprint lang-perl">use strict;
 use warnings;
@@ -54,6 +63,22 @@ $pp-&gt;close_presentation;</pre>
           -&gt;Invoke(&#39;Font&#39;)
           -&gt;SetProperty(&#39;Bold&#39;, $pp-&gt;c-&gt;True);</pre>
 <p>また、Win32::PowerPointではおまけとして基本的な定数は$pp->c->...でアクセスできるようになっています。この手の情報は、MSDNのほか、Visual Basic Editorの表示メニューから呼び出せるオブジェクトブラウザを利用すると簡単に調べられます―というのは窓使いのみなさんなら先刻ご存じでしょう。</p><p>もちろんWin32::OLEで操作できるのはPowerPointだけではありません。WordでもExcelでも、あるいはInternetExplorerでも、とっかかりさえわかってしまえば、あとは同じような方法で操作できます。</p><p>大量のExcelファイル、大量のWordファイルに対してちょっとした定型処理をしたいときなど、Visual Basic Editorを立ち上げて標準モジュールやクラスモジュールにごりごり処理を書くのも悪くはないですが、OLEの使い方をマスターしておくと読み込みたいファイルの選択や途中のテキスト処理などはPerlで済ませて、必要な部分だけOLE経由でVisual Basic的な処理を行う、といったことが簡単にできるようになります。これを機会にみなさんもぜひVisual Basicの世界にうわ何をする(ry</p><p>はい、お見苦しいところをお見せしました。このように、Win32::OLEを使えばPerlでも簡単にVisual Basicもどきが使えます。Visual Basicをご存じのみなさんはこの機会にぜひPerlも覚えてみてください！</p><p>次はどなたになるのかな？</p>
+
+        </div>
+        </main>
+        <footer class="site-footer">
+    <nav>
+        <a href="https://github.com/perl-users-jp/perl-users-jp.github.io" target="_blank" rel="noopener">
+            <svg class="octicon" height="32" viewBox="0 0 16 16" version="1.1" width="32" aria-hidden="true"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+        </a>
+    </nav>
+    <p>
+        <a href="/">Perl-users.jp</a> - 日本のPerlユーザーのためのハブサイトです。日本の Perl ユーザーに最新の情報を届けることを目的にしています。
+    </p>
+    <p>
+    文章のライセンスは、特に明記が無い限りすべて <a href="http://creativecommons.org/licenses/by/2.0/">CC-by</a>でおねがいします。
+    </p>
+</footer>
 
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>

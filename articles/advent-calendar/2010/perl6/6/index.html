@@ -23,13 +23,23 @@
 
         <link rel="icon" href="/img/favicon.ico">
         <link rel="canonical" href="https://perl-users.jp/articles/advent-calendar/2010/perl6/6">
-        <link href="TODO" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css">
+        <link rel="stylesheet" href="/css/main.css">
     </head>
     <body>
-        <h1>公開されているモジュールを使ってみよう</h1>
-        tag
+        <header class="site-header">
+    <a href="/" class="logo">Perl-users.jp</a>
+</header>
 
-        <p>昨日は自分でモジュールを書いて、$HOME/.perl6/lib/以下にインストールするところまでやりました。今日は公開されているモジュールを使ってみましょう。これについては、未来の記事になりますが（！！）、本家のPerl 6 Advent Calendarに掲載された<a href="http://perl6advent.wordpress.com/2010/12/09/day-9-–-the-module-ecosystem/">Day 9 - The module ecosystem</a>に詳しく説明してありました。こちらでも紹介しておきます。</p><p>公開されているモジュールは<a href="http://modules.perl6.org/">http://modules.perl6.org/</a> で見ることができ、この一覧はgithub上の <a href="https://github.com/perl6/ecosystem/blob/master/projects.list">https://github.com/perl6/ecosystem/blob/master/projects.list</a> というファイルで管理されています。また、すべてのモジュールはそれぞれの作者のgithub上にあります。<br />
+        <main class="entry">
+        <h1 class="entry-title">公開されているモジュールを使ってみよう</h1>
+        <div class="entry-tags">
+        </div>
+            <div class="entry-author">Nobuo Danjou </div>
+            <div class="entry-date">2010-12-06</div>
+
+        <div class="entry-text">
+            <p>昨日は自分でモジュールを書いて、$HOME/.perl6/lib/以下にインストールするところまでやりました。今日は公開されているモジュールを使ってみましょう。これについては、未来の記事になりますが（！！）、本家のPerl 6 Advent Calendarに掲載された<a href="http://perl6advent.wordpress.com/2010/12/09/day-9-–-the-module-ecosystem/">Day 9 - The module ecosystem</a>に詳しく説明してありました。こちらでも紹介しておきます。</p><p>公開されているモジュールは<a href="http://modules.perl6.org/">http://modules.perl6.org/</a> で見ることができ、この一覧はgithub上の <a href="https://github.com/perl6/ecosystem/blob/master/projects.list">https://github.com/perl6/ecosystem/blob/master/projects.list</a> というファイルで管理されています。また、すべてのモジュールはそれぞれの作者のgithub上にあります。<br />
 なので、この中に使いたいな、と思うモジュールが見つかったら、このリストを見たりリンクをたどったりしてレポジトリの場所を見つけて、</p>
 
     <pre class="code prettyprint">$ cd ~/tmp
@@ -69,6 +79,22 @@ Bennu
 ....
 </pre>
 <p>と、いい感じ。ですが、いくらか試してみたところ、ufo && makeするとコンパイルできるけどneutroでインストールできないこともあったし、最新のrakudo starでは動作しないモジュールもあるようでした。rakudo starも日々成長していますし、仕方ないことかもしれません。その点だけ注意しながら使うと良いでしょう。</p>
+
+        </div>
+        </main>
+        <footer class="site-footer">
+    <nav>
+        <a href="https://github.com/perl-users-jp/perl-users-jp.github.io" target="_blank" rel="noopener">
+            <svg class="octicon" height="32" viewBox="0 0 16 16" version="1.1" width="32" aria-hidden="true"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+        </a>
+    </nav>
+    <p>
+        <a href="/">Perl-users.jp</a> - 日本のPerlユーザーのためのハブサイトです。日本の Perl ユーザーに最新の情報を届けることを目的にしています。
+    </p>
+    <p>
+    文章のライセンスは、特に明記が無い限りすべて <a href="http://creativecommons.org/licenses/by/2.0/">CC-by</a>でおねがいします。
+    </p>
+</footer>
 
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>

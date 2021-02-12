@@ -23,15 +23,25 @@
 
         <link rel="icon" href="/img/favicon.ico">
         <link rel="canonical" href="https://perl-users.jp/articles/advent-calendar/2010/acme/15">
-        <link href="TODO" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css">
+        <link rel="stylesheet" href="/css/main.css">
     </head>
     <body>
-        <h1>時にはお伽の話を - Acme::Rumpelstiltskin</h1>
-        tag
-            <a href='/tag/perl'>perl</a>
-            <a href='/tag/acme'>acme</a>
+        <header class="site-header">
+    <a href="/" class="logo">Perl-users.jp</a>
+</header>
 
-        <p>(firstly written in Japanese, later in English)</p><p>こんにちは、前回2回の記事が受けなく軽く凹み気味の<a href="http://twitter.com/maka2_donzoko">makamaka</a>です。今日はまず最初にお伽話をしましょう。ご存じの方も多いと思いますが、ルンペルシュティルツヒェン（ランペルシュティルツキンなど日本語表記は色々）というドイツの童話です。日本語Wikipediaの<a href="http://ja.wikipedia.org/wiki/%E3%83%AB%E3%83%B3%E3%83%9A%E3%83%AB%E3%82%B7%E3%83%A5%E3%83%86%E3%82%A3%E3%83%AB%E3%83%84%E3%83%92%E3%82%A7%E3%83%B3">ルンペルシュティルツヒェン</a>（英：<a href="http://en.wikipedia.org/wiki/Rumpelstiltskin">Rumpelstiltskin</a>）に細かい説明がありますが、かいつまんでいうと：</p><br />
+        <main class="entry">
+        <h1 class="entry-title">時にはお伽の話を - Acme::Rumpelstiltskin</h1>
+        <div class="entry-tags">
+            <a class="entry-tag" href='/tag/perl'>#perl</a>
+            <a class="entry-tag" href='/tag/acme'>#acme</a>
+        </div>
+            <div class="entry-author">makamaka</div>
+            <div class="entry-date">2010-12-15</div>
+
+        <div class="entry-text">
+            <p>(firstly written in Japanese, later in English)</p><p>こんにちは、前回2回の記事が受けなく軽く凹み気味の<a href="http://twitter.com/maka2_donzoko">makamaka</a>です。今日はまず最初にお伽話をしましょう。ご存じの方も多いと思いますが、ルンペルシュティルツヒェン（ランペルシュティルツキンなど日本語表記は色々）というドイツの童話です。日本語Wikipediaの<a href="http://ja.wikipedia.org/wiki/%E3%83%AB%E3%83%B3%E3%83%9A%E3%83%AB%E3%82%B7%E3%83%A5%E3%83%86%E3%82%A3%E3%83%AB%E3%83%84%E3%83%92%E3%82%A7%E3%83%B3">ルンペルシュティルツヒェン</a>（英：<a href="http://en.wikipedia.org/wiki/Rumpelstiltskin">Rumpelstiltskin</a>）に細かい説明がありますが、かいつまんでいうと：</p><br />
 <p>粉挽屋が「うちの娘は藁を紡いで黄金に変えれるよ」とテキトーなこと言ってたら、王様が「じゃ、明日の朝までにやってみせて。お后にしてあげるから。出来なきゃ首チョンパね」と娘を塔に幽閉。<br />
 娘さん困り果てて泣いていると、小人が出てきてコンニチハ。娘の身につけてるものと交換で藁を金に変えてくれましたとさ。</p><p>ところが、できあがった金を見た王様はどんどん要求をエスカレート。とうとう娘は交換するものがなくなってしまうも、小人は生まれてくる子供をもらう条件で藁を金に変えてくれました。そんなこんなで欲望充足した王様と娘さんは結婚。めでたしめでたし。<br />
 ……じゃないだろう。はたして王と后の間に生まれた赤ん坊を取りに小人がやってくる。泣いて懇願するお后。可哀想に思った小人は3日以内に自分の名前を当てたら子供は取らないと約束。お后はありとあらゆる名前を挙げるも、当たらない。<br />
@@ -121,6 +131,22 @@ use Acme::Rumpelstilskin;</pre>
 The module dies as the story is.</p><p>This module has no function and I forgot why this modle was made.</p><p>Lastly I give you a quiz.Until Perl 5.8.8, there is Rumpelstiltskin in a core document. If you don't use any search tool, in this winter vacation, it will be a goot to killing time.</p><br />
 <br />
 <p>P.S. hide_o_55 pointed that antipop created <a href="/articles/advent-calendar/2008/17.html">Acme::Class::TypoSafe</a> in advent calenda 2008. Oops!</p>
+
+        </div>
+        </main>
+        <footer class="site-footer">
+    <nav>
+        <a href="https://github.com/perl-users-jp/perl-users-jp.github.io" target="_blank" rel="noopener">
+            <svg class="octicon" height="32" viewBox="0 0 16 16" version="1.1" width="32" aria-hidden="true"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+        </a>
+    </nav>
+    <p>
+        <a href="/">Perl-users.jp</a> - 日本のPerlユーザーのためのハブサイトです。日本の Perl ユーザーに最新の情報を届けることを目的にしています。
+    </p>
+    <p>
+    文章のライセンスは、特に明記が無い限りすべて <a href="http://creativecommons.org/licenses/by/2.0/">CC-by</a>でおねがいします。
+    </p>
+</footer>
 
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>

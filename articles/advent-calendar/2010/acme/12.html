@@ -23,16 +23,26 @@
 
         <link rel="icon" href="/img/favicon.ico">
         <link rel="canonical" href="https://perl-users.jp/articles/advent-calendar/2010/acme/12">
-        <link href="TODO" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css">
+        <link rel="stylesheet" href="/css/main.css">
     </head>
     <body>
-        <h1>Acme::Ikamusumeで侵略しなイカ？</h1>
-        tag
-            <a href='/tag/perl'>perl</a>
-            <a href='/tag/acme'>acme</a>
-            <a href='/tag/ikamusume'>ikamusume</a>
+        <header class="site-header">
+    <a href="/" class="logo">Perl-users.jp</a>
+</header>
 
-        <p>人間どもよ！</p><p>我こそは<a href="http://www.ika-musume.com/">海からの使者</a>の手先、<a href="http://twitter.com/tomita">トミール</a>でゲソ！！</p><p>今日は<a href="http://search.cpan.org/perldoc?Acme::Ikamusume">Acme::Ikamusume</a>を紹介するでゲソ</p><br />
+        <main class="entry">
+        <h1 class="entry-title">Acme::Ikamusumeで侵略しなイカ？</h1>
+        <div class="entry-tags">
+            <a class="entry-tag" href='/tag/perl'>#perl</a>
+            <a class="entry-tag" href='/tag/acme'>#acme</a>
+            <a class="entry-tag" href='/tag/ikamusume'>#ikamusume</a>
+        </div>
+            <div class="entry-author">tomi-ru</div>
+            <div class="entry-date">2010-12-12</div>
+
+        <div class="entry-text">
+            <p>人間どもよ！</p><p>我こそは<a href="http://www.ika-musume.com/">海からの使者</a>の手先、<a href="http://twitter.com/tomita">トミール</a>でゲソ！！</p><p>今日は<a href="http://search.cpan.org/perldoc?Acme::Ikamusume">Acme::Ikamusume</a>を紹介するでゲソ</p><br />
 <p><h3>使い方</h3></p><p>geso() にテキストを渡すと変換されるでゲソ。簡単じゃなイカ？</p>
 
     <pre class="code prettyprint lang-perl">use utf8;
@@ -48,6 +58,22 @@ IKA
 <p>「私は海からの使者、イカ娘でゲソ。みんなもいっしょに侵略しなイカ？」</p><p>と、なるでゲソ。</p><p>おろかなる人間どものために、簡単に試せるサイトを作ったのでさっそくてきとうな文章を侵略してみようじゃなイカ！？</p><p><a href="http://ika.koneta.org/">侵略！イカ娘変換</a> <a href="http://b.hatena.ne.jp/entry/http://ika.koneta.org/"><img src="http://b.hatena.ne.jp/entry/image/http://ika.koneta.org/" alt="B!" /></a><br /></p><br />
 <p><h3>開発こばなし</h3></p><p>ちょっと作れろうとおもってすぐわかったのでゲソが、意外にイカ文法がむずかしくこれはサクっとイカない、と放置していたのですゲソ（－ω－）</p><p>このたびここの順番がまわってきたことをきっかけに実装を決意したのでゲソ。</p><p>ググってみたら、JavaScriptの正規表現でがんばってるのがいくつかあったけど、モジュール化するならちゃんと文法を認識してやりたいな、と。しかし日本語動詞の活用形って、ふくざつすぎるじゃなイカ・・・</p><p>とくに難しいのが文末ルール「じゃなイカ？」。同じ文末ルール「でゲソ」との使い分け方がはっきりしないため原作にあたる必要があり、必然的に開発中はずっとアニメを流していたでゲソ(*￣∀￣*)</p><p>あとアニメではわからない、「いか」「げそ」って正式な表記はカタカナなのか？ひらがななのか？という問題につきあたったため、原作のコミックも取り寄せて読まなくてはいけなかったでゲソ。ああなんて楽しい開発じゃなイカ(°∀°)</p><p>ちなみに<a href="https://github.com/tomi-ru/Acme-Ikamusume">レポジトリはこちら</a>でゲソ。forkしなイカ？ pull requestしなイカ？</p><p><a href="https://github.com/tomi-ru/ika.koneta.org">サイトのコード</a>もまるっと上げてるでゲソ。つっこんでほしいイカ的オサレポイントがあるのでぜひ見つけてみなイカ？</p><br />
 <p><h3>MeCabつかってるでゲソ</h3></p><p><a href="https://github.com/bayashi/Acme-Yomeru">bayashiさんのAcme::Yomeruも</a>やってるけどMAParser（形態素解析機）をText::MeCabとかChasen、YahooのAPIと切り替えることのできる汎用インターフェースを作ろうと思ったのでゲソが、Acme::IkamusumeではMeCab伝説の宝刀userdicを使うことにしたのであきらめたでゲソ。だれかLingua::JA::MAParserとか作らなイカ？</p><p>ついでに前から気になっていたText::MeCabのちょっとした問題とUnicodeサポートリクエストを牧さんに送りつけたでゲソ。</p><p>動詞の活用とか敬体→常体変換ルールをうまいこと変換してくれるライブラリとかNLPまわりの偉い学者さんが公開してないかなあ、とけっこうググったのでゲソが、みつからなかったでゲソ。。</p>
+
+        </div>
+        </main>
+        <footer class="site-footer">
+    <nav>
+        <a href="https://github.com/perl-users-jp/perl-users-jp.github.io" target="_blank" rel="noopener">
+            <svg class="octicon" height="32" viewBox="0 0 16 16" version="1.1" width="32" aria-hidden="true"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+        </a>
+    </nav>
+    <p>
+        <a href="/">Perl-users.jp</a> - 日本のPerlユーザーのためのハブサイトです。日本の Perl ユーザーに最新の情報を届けることを目的にしています。
+    </p>
+    <p>
+    文章のライセンスは、特に明記が無い限りすべて <a href="http://creativecommons.org/licenses/by/2.0/">CC-by</a>でおねがいします。
+    </p>
+</footer>
 
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
