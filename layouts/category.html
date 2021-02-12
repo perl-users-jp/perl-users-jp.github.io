@@ -13,7 +13,7 @@
     <body>
         <?= $include->('./include/header.html') ?>
         <main>
-            <h1 class="page-title"><?= $vars->{category} ?></h1>
+            <h1 class="category-title"><?= $vars->{category} ?></h1>
 ?           for (@{$vars->{files}}) {
                 <div class="card">
 ?                   if ($_->{matter}->exists && $_->{matter}->date ) {

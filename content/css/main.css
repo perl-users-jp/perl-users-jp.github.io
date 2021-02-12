@@ -6,11 +6,12 @@ body {
     flex-flow: column;
     max-width: 100%;
     min-height: 100vh;
+    line-height: 1.7;
 }
 
 /* HEADER */
 .site-header {
-    padding: 20px;
+    padding: 20px 10px;
     border-bottom: 1px solid;
     border-bottom-color: var(--border);
 
@@ -50,20 +51,14 @@ main {
 
 @media (max-width: 800px) {
 main {
-    width: 96%;
+    width: 100%;
 }
 }
 
-.page-title {
+.category-title {
     margin: 10px;
     font-size: 1.5em;
     color: var(--text-main);
-}
-
-@media (prefers-color-scheme: dark) {
-.page-title {
-    color: var(--text-main);
-}
 }
 
 .card {
@@ -82,9 +77,9 @@ main {
 }
 
 .card-title {
-    padding: 10px 30px;
+    padding: 10px;
     font-size: 1.3em;
-    font-weight: 900;
+    font-weight: 600;
     color: var(--text-main);
 }
 
@@ -107,6 +102,53 @@ main {
     margin-top: -10px;
     font-weight: 700;
     color: var(--text-main);
+}
+
+.entry {
+}
+
+.entry-title {
+    font-size: 1.4em;
+    padding: 20px 10px;
+    color: var(--text-bright);
+    line-height: 1.4;
+    background: var(--background-alt);
+    margin: 0 0 5px;
+}
+
+.entry-tags {
+    margin: 0 10px;
+}
+
+.entry-tag {
+    display: inline-block;
+    background: #9e9e9e;
+    padding: 2px 5px;
+    color: #fff;
+    border-radius: 5px;
+    margin-right: 2px;
+    font-size: 0.8em;
+}
+
+.entry-author {
+    margin-right: 10px;
+    text-align: right;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--text-main);
+}
+
+.entry-date {
+    margin-right: 10px;
+    text-align: right;
+    font-size: 0.8em;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--text-muted);
+}
+
+.entry-text {
+    margin: 10px;
 }
 
 /* FOOTER */

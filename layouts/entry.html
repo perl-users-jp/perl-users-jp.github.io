@@ -23,16 +23,30 @@
 
         <link rel="icon" href="/img/favicon.ico">
         <link rel="canonical" href="<?= $vars->{url} ?>">
-        <link href="TODO" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css">
+        <link rel="stylesheet" href="/css/main.css">
     </head>
     <body>
-        <h1><?= $vars->{title} ?></h1>
-        tag
+        <?= $include->('./include/header.html') ?>
+        <main class="entry">
+        <h1 class="entry-title"><?= $vars->{title} ?></h1>
+        <div class="entry-tags">
 ?       for my $tag ($vars->{matter}->tags->@*) {
-            <a href='<?= "/tag/$tag" ?>'><?= $tag ?></a>
+            <a class="entry-tag" href='<?= "/tag/$tag" ?>'>#<?= $tag ?></a>
+?       }
+        </div>
+?       if ($vars->{matter}->author) {
+            <div class="entry-author"><?= $vars->{matter}->author ?></div>
+?       }
+?       if ($vars->{matter}->date ) {
+            <div class="entry-date"><?= $vars->{matter}->date ?></div>
 ?       }
 
-        <?= $vars->{text} ?>
+        <div class="entry-text">
+            <?= $vars->{text} ?>
+        </div>
+        </main>
+        <?= $include->('./include/footer.html') ?>
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&amp;skin=sunburst"></script>
     </body>
 </html>
