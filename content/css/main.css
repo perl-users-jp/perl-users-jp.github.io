@@ -57,7 +57,7 @@ main {
 
 .category-title {
     margin: 10px;
-    font-size: 1.5em;
+    font-size: 1.1em;
     color: var(--text-main);
 }
 
@@ -78,7 +78,7 @@ main {
 
 .card-title {
     padding: 10px;
-    font-size: 1.3em;
+    font-size: 1em;
     font-weight: 600;
     color: var(--text-main);
 }
@@ -92,7 +92,7 @@ main {
     padding: 10px 10px 0;
     margin-bottom: -10px;
     font-size: 0.8em;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--text-muted);
 }
 
@@ -100,7 +100,7 @@ main {
     text-align: right;
     padding: 0 10px 10px;
     margin-top: -10px;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--text-main);
 }
 
@@ -158,6 +158,7 @@ main {
     background: #9e9e9e;
     border-radius: 5px;
     display: inline-block;
+    font-size: 1em;
 }
 
 
@@ -187,4 +188,9 @@ main {
 .site-footer .octicon {
     fill: #fff;
 }
+}
+
+/* override prettyprint */
+pre.prettyprint {
+    width: auto !important;
 }
