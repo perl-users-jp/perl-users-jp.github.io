@@ -623,11 +623,12 @@ sub _render_string {
     my $renderer = eval <<~ "..." or die $@;
     sub {
         my \$vars = shift;
+        my \$include = shift;
         $code->();
     }
     ...
 
-    return $renderer->($vars);
+    return $renderer->($vars, sub { $self->_render_string(@_) });
 }
 
 sub _normalize_name {
