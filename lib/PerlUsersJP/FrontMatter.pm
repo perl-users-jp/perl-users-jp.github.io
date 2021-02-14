@@ -32,7 +32,7 @@ sub BUILDARGS {
         # file is not entry
         return {};
     }
-    elsif ($format eq 'html') {
+    elsif ($format eq 'html' || $format eq 'microtemplate') {
         my $data = _parse_html_entry($file);
 
         return {
@@ -76,6 +76,7 @@ sub _detect_entry_format {
          : $ext eq 'markdown' ? 'markdown'
          : $ext eq 'txt'      ? 'hatena'
          : $ext eq 'html'     ? 'html'
+         : $ext eq 'mt'       ? 'microtemplate'
          : undef
 }
 
