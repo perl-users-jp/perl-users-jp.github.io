@@ -125,6 +125,11 @@ sub build_entry {
         $src->copy($dest);
         $src->copy($sub_dest) if $sub_dest;
     }
+    elsif ($matter->format eq 'microtemplate') {
+        my $html = $self->_render_string($src);
+        $dest->spew_utf8($html);
+        $sub_dest->spew_utf8($html) if $sub_dest;
+    }
     else {
         my $html = $self->_render_string('entry.html', {
             text         => $self->entry_text($src),
@@ -529,6 +534,9 @@ sub format_text {
         return $out
     }
     elsif ($format eq 'html') {
+        return $text;
+    }
+    elsif ($format eq 'microtemplate') {
         return $text;
     }
     else {
