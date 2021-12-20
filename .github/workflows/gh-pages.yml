@@ -1,6 +1,6 @@
 name: Deploy GitHub Pages
 
-on: 
+on:
   push:
     branches:
       - content
@@ -10,13 +10,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v1
-      
+      uses: actions/checkout@v2
+
     - name: Setup Perl
       uses: shogo82148/actions-setup-perl@v1
       with:
         perl-version: '5.30'
-    
+
     - name: Build
       run: make build
 
