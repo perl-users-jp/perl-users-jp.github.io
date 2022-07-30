@@ -47,7 +47,7 @@ say ref $hoge;  # main
 
 ** オブジェクトは単なるリファレンス
 
-[http://perldoc.jp/docs/perl/5.14.1/perlobj.pod:title=Perl のオブジェクト]からタイトルを拝借した訳ですが、blessの第1引数にはリファレンスを渡します。なので、オブジェクトに他の言語でいうメンバ変数を持たせたい場合は、以下のように書きます。
+[https://perldoc.jp/docs/perl/5.14.1/perlobj.pod:title=Perl のオブジェクト]からタイトルを拝借した訳ですが、blessの第1引数にはリファレンスを渡します。なので、オブジェクトに他の言語でいうメンバ変数を持たせたい場合は、以下のように書きます。
 
 >|perl|
 package Foo;
@@ -141,7 +141,7 @@ say ref $hash_ref;  # HASH
 say ref $obj;       # MyClass
 ||<
 
-ちなみに、リファレンスじゃないもの（数字, 文字列, 配列, ハッシュとか）を渡すと空文字列が返ってきます。（[http://perldoc.jp/func/ref]参照）
+ちなみに、リファレンスじゃないもの（数字, 文字列, 配列, ハッシュとか）を渡すと空文字列が返ってきます。（[https://perldoc.jp/func/ref]参照）
 
 ** blessされたものとそうじゃないものを区別するには？
 
