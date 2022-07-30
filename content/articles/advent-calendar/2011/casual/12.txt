@@ -131,8 +131,8 @@ perl -Sd plackup MyApp.psgi
 さて、いかがでしたでしょうか？意外とデバッガも奥が深いですね。
 さらに貪りたい方は以下のドキュメントを参考にすると
 いままで知らなかったことがたくさん発見できるかも知れませんね！
-http://perldoc.jp/docs/perl/5.10.0/perldebtut.pod
-http://perldoc.jp/docs/perl/5.10.0/perldebug.pod
+https://perldoc.jp/docs/perl/5.10.0/perldebtut.pod
+https://perldoc.jp/docs/perl/5.10.0/perldebug.pod
 
 
 
