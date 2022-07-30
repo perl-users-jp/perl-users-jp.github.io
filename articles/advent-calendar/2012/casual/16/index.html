@@ -83,7 +83,7 @@ say ref $hoge;  # main</pre>
 </div>
 <div class="section">
     <h4>オブジェクトは単なるリファレンス</h4>
-    <p><a href="http://perldoc.jp/docs/perl/5.14.1/perlobj.pod">Perl &#x306E;&#x30AA;&#x30D6;&#x30B8;&#x30A7;&#x30AF;&#x30C8;</a>からタイトルを拝借した訳ですが、blessの第1引数にはリファレンスを渡します。なので、オブジェクトに他の言語でいうメンバ変数を持たせたい場合は、以下のように書きます。</p>
+    <p><a href="https://perldoc.jp/docs/perl/5.14.1/perlobj.pod">Perl &#x306E;&#x30AA;&#x30D6;&#x30B8;&#x30A7;&#x30AF;&#x30C8;</a>からタイトルを拝借した訳ですが、blessの第1引数にはリファレンスを渡します。なので、オブジェクトに他の言語でいうメンバ変数を持たせたい場合は、以下のように書きます。</p>
 
     <pre class="code prettyprint lang-perl">package Foo;
 use strict;
@@ -168,7 +168,7 @@ my $obj = bless {}, &#39;MyClass&#39;;
 say ref $array_ref; # ARRAY
 say ref $hash_ref;  # HASH
 say ref $obj;       # MyClass</pre>
-<p>ちなみに、リファレンスじゃないもの（数字, 文字列, 配列, ハッシュとか）を渡すと空文字列が返ってきます。（<a href="http://perldoc.jp/func/ref">http://perldoc.jp/func/ref</a>参照）</p>
+<p>ちなみに、リファレンスじゃないもの（数字, 文字列, 配列, ハッシュとか）を渡すと空文字列が返ってきます。（<a href="https://perldoc.jp/func/ref">https://perldoc.jp/func/ref</a>参照）</p>
 
 </div>
 <div class="section">
