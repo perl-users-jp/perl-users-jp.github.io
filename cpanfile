@@ -1,4 +1,4 @@
-requires 'perl', '5.030001';
+requires 'perl', '5.038';
 
 # order by a-z
 requires 'Class::Tiny';
