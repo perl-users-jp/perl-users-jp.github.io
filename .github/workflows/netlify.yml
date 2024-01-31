@@ -4,20 +4,20 @@ on:
     types: [opened, synchronize]
 jobs:
   build:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Setup Perl
         uses: shogo82148/actions-setup-perl@v1
         with:
-          perl-version: '5.30'
-          
+          perl-version: '5.38'
+
       - name: Build
         run: make build
 
       - name: Deploy to Netlify
-        uses: nwtgck/actions-netlify@v1.0
+        uses: nwtgck/actions-netlify@v2.0
         with:
           publish-dir: './public'
           github-token: ${{ secrets.GITHUB_TOKEN }}
