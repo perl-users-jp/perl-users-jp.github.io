@@ -38,42 +38,42 @@
             <div class="entry-date">2010-12-20</div>
 
         <div class="entry-text">
-            <p><a href="http://search.cpan.org/perldoc?DBIx::Kohada">DBIx::Kohada</a> is lightweight OO-ish O/R Mapper. It mostly likes <a href="http://search.cpan.org/perldoc?Class::DBI">Class::DBI</a>.</p>
+            <p><a href="https://metacpan.org/pod/DBIx::Kohada">DBIx::Kohada</a> is lightweight OO-ish O/R Mapper. It mostly likes <a href="https://metacpan.org/pod/Class::DBI">Class::DBI</a>.</p>
 
-<p>The feature of <a href="http://search.cpan.org/perldoc?DBIx::Kohada">DBIx::Kohada</a> is:</p>
+<p>The feature of <a href="https://metacpan.org/pod/DBIx::Kohada">DBIx::Kohada</a> is:</p>
 
 <dl>
 
 <dt>OO</dt>
 <dd>
 
-<p>The object have a <code class="prettyprint"> $dbh </code>, unlike <a href="http://search.cpan.org/perldoc?Class::DBI">Class::DBI</a>.</p>
+<p>The object have a <code class="prettyprint"> $dbh </code>, unlike <a href="https://metacpan.org/pod/Class::DBI">Class::DBI</a>.</p>
 
-<p><a href="http://search.cpan.org/perldoc?Class::DBI">Class::DBI</a> holds <code class="prettyprint">$dbh</code> in the class variable. It is bad idea. It makes hard to manage connections by users.</p>
+<p><a href="https://metacpan.org/pod/Class::DBI">Class::DBI</a> holds <code class="prettyprint">$dbh</code> in the class variable. It is bad idea. It makes hard to manage connections by users.</p>
 
 </dd>
 <dt>Simple code</dt>
 <dd>
 
-<p><a href="http://search.cpan.org/perldoc?DBIx::Kohada">DBIx::Kohada</a> is readable. It does not inherit <a href="http://search.cpan.org/perldoc?Ima::DBI">Ima::DBI</a> :P</p>
+<p><a href="https://metacpan.org/pod/DBIx::Kohada">DBIx::Kohada</a> is readable. It does not inherit <a href="https://metacpan.org/pod/Ima::DBI">Ima::DBI</a> :P</p>
 
 </dd>
 <dt>No unintended automatic DB call</dt>
 <dd>
 
-<p><a href="http://search.cpan.org/perldoc?DBIx::Kohada">DBIx::Kohada</a> does not call RDBMS without user&#39;s request.</p>
+<p><a href="https://metacpan.org/pod/DBIx::Kohada">DBIx::Kohada</a> does not call RDBMS without user&#39;s request.</p>
 
 </dd>
 <dt>Efficient pagination</dt>
 <dd>
 
-<p><a href="http://search.cpan.org/perldoc?DBIx::Kohada">DBIx::Kohada</a> has 2 pagination plugins.</p>
+<p><a href="https://metacpan.org/pod/DBIx::Kohada">DBIx::Kohada</a> has 2 pagination plugins.</p>
 
-<p><a href="http://search.cpan.org/perldoc?DBIx::Kohada::Plugin::Pager">DBIx::Kohada::Plugin::Pager</a> fetches &quot;entries_per_page + 1&quot; rows. And detect &quot;this page has a next page or not&quot;.</p>
+<p><a href="https://metacpan.org/pod/DBIx::Kohada::Plugin::Pager">DBIx::Kohada::Plugin::Pager</a> fetches &quot;entries_per_page + 1&quot; rows. And detect &quot;this page has a next page or not&quot;.</p>
 
-<p><a href="http://search.cpan.org/perldoc?DBIx::Kohada::Plugin::Pager::MySQLFoundRows">DBIx::Kohada::Plugin::Pager::MySQLFoundRows</a> uses MySQL&#39;s SQL_CALC_FOUND_ROWS. It is faster than calling COUNT(*).</p>
+<p><a href="https://metacpan.org/pod/DBIx::Kohada::Plugin::Pager::MySQLFoundRows">DBIx::Kohada::Plugin::Pager::MySQLFoundRows</a> uses MySQL&#39;s SQL_CALC_FOUND_ROWS. It is faster than calling COUNT(*).</p>
 
-<p><a href="http://search.cpan.org/perldoc?DBIx::Class">DBIx::Class</a>&#39;s pagination makes very slow query at some time. I dislike it.</p>
+<p><a href="https://metacpan.org/pod/DBIx::Class">DBIx::Class</a>&#39;s pagination makes very slow query at some time. I dislike it.</p>
 
 </dd>
 <dt>No transparent cache</dt>
@@ -85,23 +85,23 @@
 <dt>No caching in iterator</dt>
 <dd>
 
-<p><a href="http://search.cpan.org/perldoc?DBIx::Skinny">DBIx::Skinny</a>&#39;s iterator caches all data in iterator object. It makes the situation: user uses too much memory. Why user want to use iterator?? User want to save a memory!</p>
+<p><a href="https://metacpan.org/pod/DBIx::Skinny">DBIx::Skinny</a>&#39;s iterator caches all data in iterator object. It makes the situation: user uses too much memory. Why user want to use iterator?? User want to save a memory!</p>
 
-<p>Then, <a href="http://search.cpan.org/perldoc?DBIx::Kohada">DBIx::Kohada</a>&#39;s iterator doesn&#39;t use a cache.</p>
+<p>Then, <a href="https://metacpan.org/pod/DBIx::Kohada">DBIx::Kohada</a>&#39;s iterator doesn&#39;t use a cache.</p>
 
 </dd>
 <dt>Programmable meta data API</dt>
 <dd>
 
-<p><a href="http://search.cpan.org/perldoc?DBIx::Skinny">DBIx::Skinny</a> provides only DSL style API for creating schema. It makes hard to meta programming for schema.</p>
+<p><a href="https://metacpan.org/pod/DBIx::Skinny">DBIx::Skinny</a> provides only DSL style API for creating schema. It makes hard to meta programming for schema.</p>
 
-<p><a href="http://search.cpan.org/perldoc?DBIx::Kohada">DBIx::Kohada</a> provides complete API for the operating schema.</p>
+<p><a href="https://metacpan.org/pod/DBIx::Kohada">DBIx::Kohada</a> provides complete API for the operating schema.</p>
 
 </dd>
-<dt>use <a href="http://search.cpan.org/perldoc?SQL::Maker">SQL::Maker</a></dt>
+<dt>use <a href="https://metacpan.org/pod/SQL::Maker">SQL::Maker</a></dt>
 <dd>
 
-<p><a href="http://search.cpan.org/perldoc?DBIx::Kohada">DBIx::Kohada</a> uses <a href="http://search.cpan.org/perldoc?SQL::Maker">SQL::Maker</a> for creating SQL. <a href="http://search.cpan.org/perldoc?SQL::Maker">SQL::Maker</a> is simple and flexible SQL generator.</p>
+<p><a href="https://metacpan.org/pod/DBIx::Kohada">DBIx::Kohada</a> uses <a href="https://metacpan.org/pod/SQL::Maker">SQL::Maker</a> for creating SQL. <a href="https://metacpan.org/pod/SQL::Maker">SQL::Maker</a> is simple and flexible SQL generator.</p>
 
 </dd>
 </dl>
